@@ -496,6 +496,8 @@ const LOG_KEY = "einsdurcheins_log_v1";   // eigenes Archiv, getrennt vom Einmal
 
 //// ===== Elemente / Zustand =====
 const $ = id => document.getElementById(id);
+// Namen vereinheitlichen: "anna" / "ANNA" / "anna-lena" -> "Anna" / "Anna" / "Anna-Lena"
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
 const screens = ["home","testSetup","trainSetup","quiz","result"];
 let mode="test";
 let selectedLevel=null, selectedReihe=null, playerName="";
@@ -510,8 +512,9 @@ function factText(k){ return k.replace("÷"," ÷ "); }
 function show(id){ screens.forEach(s=>$(s).classList.toggle("hide", s!==id)); }
 
 //// ===== Home / Menü =====
+$("name").addEventListener("change", ()=>{ $("name").value=capName($("name").value); });
 $("name").addEventListener("input", ()=>{
-  playerName=$("name").value.trim();
+  playerName=capName($("name").value);
   const ok=!!playerName;
   $("modeTest").classList.toggle("dis",!ok);
   $("modeTrain").classList.toggle("dis",!ok);
@@ -780,7 +783,7 @@ let fileHandle=null;
 const hasFS=('showSaveFilePicker' in window);
 
 function normalize(arr){
-  return (Array.isArray(arr)?arr:[]).map(e => e && e.modus ? e : Object.assign({modus:"Test"}, e));
+  return (Array.isArray(arr)?arr:[]).map(e => { const x=(e && e.modus) ? e : Object.assign({modus:"Test"}, e); if(x && typeof x.name==="string") x.name=capName(x.name); return x; });
 }
 function loadFromLocal(){ try{ return normalize(JSON.parse(localStorage.getItem(LOG_KEY))); }catch(e){ return []; } }
 function saveToLocal(){ try{ localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); return true; }catch(e){ return false; } }

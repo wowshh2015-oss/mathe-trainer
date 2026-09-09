@@ -77,8 +77,10 @@ function renderChips(){
   box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+names.map(n=>`<span class="chip" data-name="${esc(n)}">${esc(n)}</span>`).join("");
   box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ $("name").value=c.dataset.name; update(); }));
 }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+$("name").addEventListener("change",()=>{ $("name").value=capName($("name").value); update(); });
 function update(){
-  const n=$("name").value.trim();
+  const n=capName($("name").value);
   $("grid").classList.toggle("dis",!n);
   $("hint").textContent = n ? `Hallo ${n}! Wähle dein Training.` : "Gib zuerst deinen Namen ein – dann wähle dein Training.";
   document.querySelectorAll(".tile").forEach(a=>a.href = a.dataset.page + (n ? "#name="+encodeURIComponent(n) : ""));
