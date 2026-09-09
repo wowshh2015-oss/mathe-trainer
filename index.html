@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mathe-Trainer">
+<title>Mathe-Trainer · Schule Hohe Landwehr</title>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--text:#f1f5f9;--muted:#94a3b8;--shadow:0 10px 30px rgba(0,0,0,.35)}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#1e3a5f 0%,var(--bg) 60%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:24px;min-height:100vh}
+  .app{width:100%;max-width:680px;text-align:center}
+  h1{font-size:30px;margin:14px 0 4px}
+  .sub{color:var(--muted);margin:0 0 26px;font-size:15px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
+  a.tile:hover{transform:translateY(-3px);border-color:var(--ac)}
+  .tile .ic{font-size:48px;line-height:1}
+  .tile .t{font-size:22px;font-weight:800;margin-top:10px}
+  .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
+  .t1{--ac:#38bdf8}.t2{--ac:#a78bfa}.t3{--ac:#34d399}.t4{--ac:#fb923c}
+  .hint{margin-top:26px;color:var(--muted);font-size:13px;line-height:1.6}
+  .credit{margin-top:22px;color:var(--muted);font-size:13px}
+  .credit strong{color:#38bdf8}
+  @media (max-width:480px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🧮 Mathe-Trainer</h1>
+  <p class="sub">Schule Hohe Landwehr · Wähle dein Training</p>
+  <div class="grid">
+    <a class="tile t1" href="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
+    <a class="tile t2" href="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
+    <a class="tile t3" href="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
+    <a class="tile t4" href="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
+  </div>
+  <p class="hint">Tipp für iPad/iPhone: In Safari öffnen → „Teilen“ → <b>„Zum Home-Bildschirm“</b>. Dann startet der Trainer wie eine App im Vollbild.</p>
+  <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong></p>
+</div>
+</body>
+</html>

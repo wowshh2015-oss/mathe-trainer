@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plus-Trainer</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#34d399; --accent2:#10b981; --soft:rgba(52,211,153,.14); --glow:#0f3d2e;
+    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,var(--glow) 0%,var(--bg) 60%);
+    color:var(--text); min-height:100%;
+    display:flex;align-items:flex-start;justify-content:center;padding:24px;
+  }
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:26px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05)}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:14px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  .levels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:10px 0 22px}
+  .level{cursor:pointer;border:2px solid var(--card2);border-radius:14px;padding:16px 12px;text-align:center;background:#0b1220;transition:.15s}
+  .level:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .level.sel{border-color:var(--accent);background:var(--soft)}
+  .level .name{font-size:18px;font-weight:700}
+  .level .time{color:var(--muted);font-size:13px;margin-top:4px}
+  .level .emoji{font-size:26px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:18px;font-weight:700;padding:15px 20px;color:#06120c;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
+  button:hover{filter:brightness(1.07)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2)}
+  .hide{display:none!important}
+
+  /* Modus-Auswahl */
+  .modegrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+  .modebtn{cursor:pointer;border:2px solid var(--card2);border-radius:16px;padding:24px 18px;text-align:center;background:#0b1220;transition:.15s}
+  .modebtn:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--soft)}
+  .modebtn.dis{opacity:.4;pointer-events:none}
+  .modebtn .ic{font-size:42px;line-height:1}
+  .modebtn .t{font-size:21px;font-weight:800;margin-top:8px}
+  .modebtn .d{color:var(--muted);font-size:13px;margin-top:5px;line-height:1.4}
+
+  /* Trainings-Auswahl: Zahlenraum × Übergang */
+  .zrblock{margin:14px 0 4px}
+  .zrhead{font-size:15px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .zrhead small{font-weight:400;color:var(--muted);font-size:12px}
+  .ueb3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .uebbtn{cursor:pointer;border:2px solid var(--card2);border-radius:12px;padding:14px 8px;text-align:center;background:#0b1220;font-weight:700;font-size:14px;transition:.15s;color:var(--text)}
+  .uebbtn:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--soft)}
+  .uebbtn small{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:3px}
+  .uebbtn .ic{font-size:22px;line-height:1;margin-bottom:4px}
+  .uebbtn.mine{border-color:var(--accent);background:var(--soft);font-size:16px;padding:16px 10px}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:10px;cursor:pointer}
+  .backbtn:hover{color:var(--text)}
+
+  /* Quiz */
+  .qtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:15px;color:var(--muted)}
+  .badge{background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:6px 14px}
+  .timerbar{height:10px;border-radius:999px;background:#0b1220;overflow:hidden;margin-bottom:24px}
+  .timerfill{height:100%;width:100%;background:var(--good);transition:width .1s linear,background .2s}
+  .question{font-size:52px;font-weight:800;text-align:center;margin:10px 0 24px;letter-spacing:1px}
+  .answerrow{display:flex;gap:12px}
+  .answerrow input{flex:1;font-size:30px;text-align:center}
+  .feedback{height:28px;text-align:center;font-size:18px;font-weight:700;margin-top:14px}
+
+  /* Result */
+  .scorebig{font-size:60px;font-weight:800;text-align:center;margin:6px 0}
+  .verdict{text-align:center;font-size:22px;font-weight:800;padding:10px;border-radius:12px;margin:8px 0 18px}
+  .verdict.pass{background:rgba(34,197,94,.15);color:#86efac}
+  .verdict.fail{background:rgba(239,68,68,.15);color:#fca5a5}
+  .verdict.mid{background:rgba(245,158,11,.15);color:#fcd34d}
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+  .stat{background:#0b1220;border-radius:12px;padding:14px;text-align:center}
+  .stat .n{font-size:24px;font-weight:800}
+  .stat .l{font-size:12px;color:var(--muted)}
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap}
+  .btnrow button{flex:1}
+  .review{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.7}
+  .review b{color:var(--bad)}
+
+  /* Tabellen / Abschnitte */
+  .loghead{display:flex;justify-content:space-between;align-items:center;margin:28px 0 10px}
+  .loghead h2{font-size:18px;margin:0}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--card2)}
+  th{color:var(--muted);font-weight:600}
+  td.pass{color:#86efac;font-weight:700}
+  td.fail{color:#fca5a5;font-weight:700}
+  .logempty{color:var(--muted);font-size:14px;padding:10px 0}
+  .smallbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .smallbtns button{font-size:13px;padding:8px 12px}
+
+  /* Speicher-Banner */
+  .savebanner{margin-top:26px;background:var(--card);border-radius:14px;padding:14px 18px;border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .sbtext{font-size:14px;font-weight:600}
+  .sbtext.ok{color:#86efac}
+  .sbtext.warn{color:#fca5a5}
+  .sbtext.info{color:var(--muted)}
+  .sbtext small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+  .sbbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .sbbtns button{font-size:13px;padding:9px 13px}
+
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:26px 0 6px}
+  .credit strong{color:var(--accent);font-weight:700}
+  .credit a{color:var(--muted);cursor:pointer;text-decoration:underline}
+  .credit a:hover{color:var(--text)}
+
+  /* Urkunden-Auswahl */
+  .certrow{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid var(--card2)}
+  .certrow:last-child{border-bottom:none}
+  .certrow input{width:20px;height:20px;cursor:pointer;flex:none}
+  .certrow .nm{font-weight:700;flex:1}
+  .certrow .meta{color:var(--muted);font-size:13px}
+
+  /* Fehler-Analyse */
+  .anarow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .anarow label{margin:0}
+  select{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none;cursor:pointer}
+  select:focus{border-color:var(--accent)}
+  .anasum{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin:4px 0 16px}
+  .anasum div{background:#0b1220;border-radius:10px;padding:10px;text-align:center}
+  .anasum .v{font-size:20px;font-weight:800}
+  .anasum .k{font-size:11px;color:var(--muted);margin-top:2px}
+  .tag{font-weight:700;white-space:nowrap}
+  .tag.hot{color:#fca5a5}
+  .tag.mid{color:#fcd34d}
+  .tag.low{color:var(--muted)}
+  td.fact{font-weight:800;font-size:15px;white-space:nowrap}
+  .bar{height:9px;border-radius:999px;background:#0b1220;overflow:hidden;width:100%;min-width:70px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444)}
+  .subhead{font-size:14px;font-weight:700;color:var(--muted);margin:18px 0 8px}
+  .empf{margin-top:14px;padding:13px 15px;border-radius:12px;font-size:14px;font-weight:600;line-height:1.55;background:rgba(245,158,11,.12);color:#fcd34d}
+  .empf.ok{background:rgba(34,197,94,.12);color:#86efac}
+  .empf b{color:#fff}
+
+  /* PIN-Dialog */
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.78);display:flex;align-items:center;justify-content:center;z-index:9998;padding:20px}
+  .modal{background:var(--card);border-radius:18px;padding:26px;max-width:380px;width:100%;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.08);text-align:center}
+  .modal h3{margin:0 0 6px;font-size:20px}
+  .modal p{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.5}
+  .pininput{width:100%;font-size:34px;letter-spacing:14px;text-align:center;padding:12px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none;font-family:inherit}
+  .pininput:focus{border-color:var(--accent)}
+  .pinerr{color:#fca5a5;font-size:14px;font-weight:700;min-height:20px;margin:10px 0 4px}
+  .modal .btnrow{margin-top:8px}
+  .modal .links{margin-top:14px;font-size:13px;display:flex;justify-content:center;gap:18px}
+  .modal .links a{color:var(--muted);cursor:pointer;text-decoration:underline}
+  .modal .links a:hover{color:var(--text)}
+
+  /* Startseite */
+  .splash{position:fixed;inset:0;z-index:9990;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;background:radial-gradient(1200px 600px at 50% -10%,var(--glow) 0%,var(--bg) 60%)}
+  .splashcard{background:var(--card);border-radius:22px;padding:34px 30px;max-width:560px;width:100%;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.06)}
+  .splashcard img{width:150px;height:150px;border-radius:24px;background:#fff;padding:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .splashcard .school{font-size:24px;font-weight:800;margin:16px 0 2px}
+  .splashcard .schoolsub{color:var(--muted);font-size:14px;margin:0 0 22px}
+  .splashcard .apptitle{font-size:28px;font-weight:800;margin:0 0 10px}
+  .splashcard .intro{font-size:15px;line-height:1.6;margin:0 auto 24px;max-width:460px;opacity:.92}
+  .splashcard .intro b{color:var(--accent)}
+  .splashcard .weiter{font-size:20px;padding:16px 40px}
+  .splashcard .links{margin-top:18px;font-size:13px;display:flex;justify-content:center;gap:18px}
+  .splashcard .links a{color:var(--muted);cursor:pointer;text-decoration:underline}
+  .splashcard .links a:hover{color:var(--text)}
+  .splashsave{margin-top:16px;font-size:13px;padding:10px 12px;border-radius:10px;line-height:1.5}
+  .splashsave.ok{background:rgba(34,197,94,.12);color:#86efac}
+  .splashsave.warn{background:rgba(245,158,11,.14);color:#fcd34d}
+  .splashsave a{color:inherit;cursor:pointer;text-decoration:underline;font-weight:700}
+  .topwarn{position:fixed;top:0;left:0;right:0;z-index:9995;background:#b91c1c;color:#fff;font-weight:700;font-size:14px;padding:10px 16px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .topwarn button{font-size:13px;padding:7px 12px;margin-left:10px;background:#fff;color:#7f1d1d}
+
+  /* Impressum */
+  .imp{text-align:left}
+  .imp h3{text-align:center}
+  .imp dl{margin:0 0 14px;font-size:14px;line-height:1.6}
+  .imp dt{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px;margin-top:10px}
+  .imp dd{margin:0}
+  .imp a{color:var(--accent)}
+  .imp .note{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.55;margin:0 0 16px}
+
+  /* Bekannte Namen */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips .lbl{color:var(--muted);font-size:12px;width:100%;margin-bottom:-2px}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;transition:.15s}
+  .chip:hover{border-color:var(--accent);background:var(--soft)}
+
+  #printArea{display:none}
+  @media print{
+    @page{ size:A4 portrait; margin:0; }
+    body{ background:#fff !important; padding:0 !important; }
+    .app, .splash, .overlay, .topwarn{ display:none !important; }
+    #printArea{ display:block !important; }
+  }
+
+  /* Urkunde */
+  .cert{width:210mm;height:145mm;box-sizing:border-box;padding:7mm 9mm;page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+  .cert-inner{height:100%;box-sizing:border-box;border-radius:6mm;border:2.5mm solid #f59e0b;outline:0.6mm solid #fbbf24;outline-offset:-4.5mm;background:radial-gradient(120mm 70mm at 50% 0%,#f0fdf4 0%,#ffffff 60%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#1f2937;padding:8mm 14mm;position:relative}
+  .cert .ribbon{font-size:16mm;line-height:1;margin-bottom:1mm}
+  .cert .title{font-size:11mm;font-weight:800;color:#059669;letter-spacing:.4mm;margin:0}
+  .cert .subtitle{font-size:4.4mm;color:#64748b;margin:1.5mm 0 4mm}
+  .cert .name{font-size:13mm;font-weight:800;color:#1e293b;margin:0 0 1mm;border-bottom:0.8mm dashed #cbd5e1;padding:0 6mm 2mm}
+  .cert .praise{font-size:5mm;font-weight:700;color:#16a34a;margin:4mm 0;line-height:1.35;max-width:150mm}
+  .cert .stats{display:flex;gap:6mm;margin:2mm 0 4mm}
+  .cert .stat{background:#f1f5f9;border-radius:3mm;padding:3mm 5mm;min-width:28mm}
+  .cert .stat .v{font-size:6.5mm;font-weight:800;color:#059669}
+  .cert .stat .k{font-size:3.2mm;color:#64748b;text-transform:uppercase;letter-spacing:.3mm}
+  .cert .foot{display:flex;justify-content:space-between;width:100%;margin-top:auto;font-size:3.8mm;color:#64748b}
+  .cert .foot .sig{border-top:0.4mm solid #94a3b8;padding-top:1.5mm;min-width:55mm;text-align:center}
+  .cert .stars{color:#f59e0b;font-size:6mm;letter-spacing:2mm;margin-top:1mm}
+
+  /* Druckbogen Fehler-Analyse */
+  .sheet{width:210mm;min-height:297mm;box-sizing:border-box;padding:16mm 15mm;background:#fff;color:#1f2937;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+  .sheet h2{font-size:7mm;margin:0 0 1mm;color:#059669}
+  .sheet .who{font-size:5.5mm;font-weight:800;margin:0 0 1mm}
+  .sheet .meta{font-size:3.6mm;color:#64748b;margin:0 0 7mm}
+  .sheet h3{font-size:4.4mm;margin:7mm 0 2mm;color:#334155}
+  .sheet table{width:100%;border-collapse:collapse;font-size:3.6mm}
+  .sheet th,.sheet td{border-bottom:0.3mm solid #cbd5e1;padding:2mm 2.5mm;text-align:left;color:#1f2937}
+  .sheet th{color:#64748b;font-weight:600}
+  .sheet td.fact{font-weight:800;font-size:4.2mm}
+  .sheet .hot{color:#dc2626;font-weight:700}
+  .sheet .mid{color:#d97706;font-weight:700}
+  .sheet .low{color:#64748b}
+  .sheet .box{margin-top:7mm;padding:4mm 5mm;border-radius:3mm;background:#fef3c7;color:#92400e;font-size:4mm;font-weight:700;line-height:1.5}
+  .sheet .box.ok{background:#dcfce7;color:#166534}
+  .sheet .foot{margin-top:10mm;font-size:3.2mm;color:#94a3b8}
+</style>
+</head>
+<body>
+<div id="topWarn" class="topwarn hide"></div>
+<div class="app">
+  <h1 id="appH1">➕ Plus-Trainer</h1>
+  <p class="sub" id="appSub"></p>
+
+  <!-- ============ HOME / MENÜ ============ -->
+  <div id="home" class="card">
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
+    <div class="modegrid">
+      <div class="modebtn dis" id="modeTrain">
+        <div class="ic">💪</div>
+        <div class="t">Trainingsraum</div>
+        <div class="d">In Ruhe üben – bis 20, 100, 1000<br>(ohne Zeitdruck)</div>
+      </div>
+      <div class="modebtn dis" id="modeTest">
+        <div class="ic">🎯</div>
+        <div class="t">Test</div>
+        <div class="d">25 Aufgaben auf Zeit<br>mit Punkten &amp; Urkunde</div>
+      </div>
+    </div>
+    <p class="sub" style="margin:18px 0 0;text-align:center">Tipp: Erst im <strong>Trainingsraum</strong> üben, dann den <strong>Test</strong> machen.</p>
+  </div>
+
+  <!-- ============ TEST-SETUP ============ -->
+  <div id="testSetup" class="card hide">
+    <button class="backbtn" data-home>← zurück zum Menü</button>
+    <label>Zahlenraum wählen</label>
+    <div class="levels" id="zrgrid">
+      <div class="level" data-zr="20"><div class="emoji">🐣</div><div class="name">bis 20</div><div class="time">Zeit ×1</div></div>
+      <div class="level" data-zr="100"><div class="emoji">🐥</div><div class="name">bis 100</div><div class="time">Zeit ×1,5</div></div>
+      <div class="level" data-zr="1000"><div class="emoji">🦅</div><div class="name">bis 1000</div><div class="time">Zeit ×2</div></div>
+    </div>
+    <label>Schwierigkeit wählen</label>
+    <div class="levels">
+      <div class="level" data-level="leicht"><div class="emoji">🙂</div><div class="name">Leicht</div><div class="time" data-sec="20">20 Sek. pro Aufgabe</div><div class="time">Punkte ×1</div></div>
+      <div class="level" data-level="mittel"><div class="emoji">😀</div><div class="name">Mittel</div><div class="time" data-sec="15">15 Sek. pro Aufgabe</div><div class="time">Punkte ×1,2</div></div>
+      <div class="level" data-level="schwer"><div class="emoji">🔥</div><div class="name">Schwer</div><div class="time" data-sec="10">10 Sek. pro Aufgabe</div><div class="time">Punkte ×1,5</div></div>
+    </div>
+    <button id="startTestBtn" class="full" disabled>Test starten ▶</button>
+    <p class="sub" style="margin:16px 0 0;text-align:center">25 Aufgaben mit und ohne Übergang · richtig +10 · falsch / Zeit abgelaufen −5 · Punkte ×Stufen-Faktor · bestanden ab 90 % richtig</p>
+  </div>
+
+  <!-- ============ TRAINING-SETUP ============ -->
+  <div id="trainSetup" class="card hide">
+    <button class="backbtn" data-home>← zurück zum Menü</button>
+    <label>Was möchtest du üben?</label>
+    <div id="uebgrid"></div>
+    <p class="sub" style="margin:14px 0 0;text-align:center">Im Trainingsraum gibt es keinen Zeitdruck – einfach in Ruhe üben.</p>
+  </div>
+
+  <!-- ============ QUIZ ============ -->
+  <div id="quiz" class="card hide">
+    <div class="qtop">
+      <span class="badge" id="progress">Aufgabe 1 / 25</span>
+      <span class="badge" id="livescore">Punkte: 0</span>
+    </div>
+    <div class="timerbar" id="timerbar"><div class="timerfill" id="timerfill"></div></div>
+    <div class="question" id="question">47 + 38</div>
+    <div class="answerrow">
+      <input type="text" id="answer" inputmode="numeric" autocomplete="off" placeholder="?">
+      <button id="okBtn">OK</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ============ RESULT ============ -->
+  <div id="result" class="card hide">
+    <div class="scorebig" id="finalScore">0</div>
+    <div class="verdict" id="verdict">—</div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="stCorrect">0</div><div class="l">Richtig</div></div>
+      <div class="stat"><div class="n" id="stWrong">0</div><div class="l">Falsch</div></div>
+      <div class="stat"><div class="n" id="stThird">–</div><div class="l" id="stThirdLabel">Stufe</div></div>
+    </div>
+    <div id="reviewBox" class="review hide"></div>
+    <div class="btnrow" style="margin-top:18px">
+      <button id="againBtn">🔁 Nochmal</button>
+      <button id="homeBtn" class="ghost">🏠 Menü</button>
+    </div>
+  </div>
+
+  <div class="loghead"><h2>💪 Trainingsraum – Fortschritt</h2></div>
+  <div class="card" style="padding:14px 18px"><div id="trainArea"><div class="logempty">Noch keine Übungen.</div></div></div>
+
+  <div class="loghead"><h2>📊 Test-Statistik je Kind</h2></div>
+  <div class="card" style="padding:14px 18px"><div id="statArea"><div class="logempty">Noch keine Tests.</div></div></div>
+
+  <div class="loghead">
+    <h2>🔍 Fehler-Analyse je Kind</h2>
+    <div class="smallbtns"><button class="ghost" id="anaPrintBtn">🖨️ Analyse drucken</button></div>
+  </div>
+  <div class="card" style="padding:14px 18px">
+    <div class="anarow"><label for="anaSelect">Kind:</label><select id="anaSelect"></select></div>
+    <div id="anaArea"><div class="logempty">Noch keine Daten.</div></div>
+  </div>
+
+  <div class="loghead">
+    <h2>🏅 Urkunden drucken</h2>
+    <div class="smallbtns"><button class="ghost" id="printBtn">🖨️ Ausgewählte drucken</button></div>
+  </div>
+  <div class="card" style="padding:14px 18px">
+    <div class="sub" style="margin:0 0 10px">Wähle aus, wofür du eine Urkunde drucken möchtest (2 pro A4-Seite).</div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px;color:var(--text)"><input type="checkbox" id="certAll"> <span>Alle auswählen</span></label>
+    <div id="certArea"><div class="logempty">Noch hat kein Kind bestanden.</div></div>
+  </div>
+
+  <div class="loghead">
+    <h2>📋 Archiv (alle Durchgänge)</h2>
+    <div class="smallbtns"><button class="ghost" id="exportBtn">CSV export</button><button class="ghost" id="clearBtn">Löschen</button></div>
+  </div>
+  <div class="card" style="padding:14px 18px"><div id="logArea"><div class="logempty">Noch keine Durchgänge.</div></div></div>
+
+  <div class="savebanner">
+    <div class="sbtext" id="saveStatus">Speicherung wird geprüft …</div>
+    <div class="sbbtns">
+      <button id="unlockBtn" class="hide">🔓 Speichern freigeben</button>
+      <button class="ghost" id="connectBtn">📂 Vorhandenes Archiv öffnen</button>
+      <button class="ghost" id="newBtn">🆕 Neues Archiv anlegen</button>
+    </div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a data-impressum>Impressum</a></footer>
+</div>
+
+<!-- ============ STARTSEITE ============ -->
+<div id="splash" class="splash">
+  <div class="splashcard">
+    <img src="data:image/jpeg;base64,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" alt="Logo Schule Hohe Landwehr">
+    <div class="school">Schule Hohe Landwehr</div>
+    <div class="schoolsub">Ganztagsgrundschule mit Vorschule · Hamburg</div>
+    <div class="apptitle">➕ Plus-Trainer</div>
+    <p class="intro" id="splashIntro"></p>
+    <button class="weiter" id="splashWeiter">Weiter ▶</button>
+    <div class="links">
+      <a href="https://schule-hohe-landwehr.schulhomepages.hamburg.de/" target="_blank" rel="noopener">Schul-Homepage</a>
+      <a data-impressum>Impressum</a>
+    </div>
+    <div id="splashSave" class="splashsave hide"></div>
+  </div>
+</div>
+
+<!-- ============ IMPRESSUM ============ -->
+<div id="impOverlay" class="overlay hide"><div class="modal imp">
+  <h3>Impressum</h3>
+  <dl>
+    <dt>Programm</dt><dd id="impProgramm"></dd>
+    <dt>Schule</dt><dd>Schule Hohe Landwehr, Hamburg<br><a href="https://schule-hohe-landwehr.schulhomepages.hamburg.de/" target="_blank" rel="noopener">schule-hohe-landwehr.schulhomepages.hamburg.de</a></dd>
+    <dt>Entwicklung &amp; Verantwortung</dt><dd>Peter Svyetnyenko</dd>
+    <dt>E-Mail</dt><dd><a href="mailto:petro.svyetnyenko@hl.hamburg">petro.svyetnyenko@hl.hamburg</a></dd>
+  </dl>
+  <div class="note">Fragen, Vorschläge, Verbesserungswünsche oder Fehlermeldungen? Bitte einfach per E-Mail an <a href="mailto:petro.svyetnyenko@hl.hamburg">petro.svyetnyenko@hl.hamburg</a> schreiben.</div>
+  <div class="btnrow"><button class="full" data-impclose>Schließen</button></div>
+</div></div>
+
+<div id="pinOverlay" class="overlay hide"><div class="modal" id="pinModal"></div></div>
+<div id="printArea"></div>
+
+<!-- Archiv vom Schullaufwerk: wird automatisch geladen, wenn die Datei neben dieser HTML-Datei liegt -->
+<script src="plus_archiv.js"></script>
+<script>
+//// ===== Rechenart =====
+const OPS={
+  plus: { key:"plus",  sym:"+", verb:"Addieren",     was:"Plusrechnen",  pass:"Plus-Pass",  ass:"Plus-Ass",
+          programm:"Plus-Trainer – Übungs- und Testprogramm für das Addieren bis 1000",
+          sub:"Üben und Testen des Plusrechnens – bis 20, bis 100 und bis 1000.",
+          intro:"Mit diesem Programm übst und testest du das <b>Plusrechnen</b> – bis 20, bis 100 und bis 1000, ohne und mit Zehnerübergang. Im <b>Trainingsraum</b> übst du in Ruhe – ohne Zeitdruck. Im <b>Test</b> löst du 25 Aufgaben auf Zeit, sammelst Punkte und kannst dir eine <b>Urkunde</b> verdienen." },
+  minus:{ key:"minus", sym:"−", verb:"Subtrahieren", was:"Minusrechnen", pass:"Minus-Pass", ass:"Minus-Ass",
+          programm:"Minus-Trainer – Übungs- und Testprogramm für das Subtrahieren bis 1000",
+          sub:"Üben und Testen des Minusrechnens – bis 20, bis 100 und bis 1000.",
+          intro:"Mit diesem Programm übst und testest du das <b>Minusrechnen</b> – bis 20, bis 100 und bis 1000, ohne und mit Zehnerübergang. Im <b>Trainingsraum</b> übst du in Ruhe – ohne Zeitdruck. Im <b>Test</b> löst du 25 Aufgaben auf Zeit, sammelst Punkte und kannst dir eine <b>Urkunde</b> verdienen." }
+};
+const OP=OPS["plus"];
+
+//// ===== Konfiguration =====
+const CONFIG = {
+  questions: 25,
+  passPercent: 90,
+  points_correct: 10,
+  points_wrong: -5,
+  times:  { leicht:20, mittel:15, schwer:10 },
+  zrTime: { 20:1, 100:1.5, 1000:2 },          // Zeitfaktor je Zahlenraum
+  factor: { leicht:1,  mittel:1.2, schwer:1.5 },
+  labels: { leicht:"Leicht", mittel:"Mittel", schwer:"Schwer" },
+  trainQuestions: 10,
+  mixQuestions: 12
+};
+const LOG_KEY = "plus_log_v1";
+
+//// ===== Elemente / Zustand =====
+const $ = id => document.getElementById(id);
+const screens = ["home","testSetup","trainSetup","quiz","result"];
+let mode="test";
+let selectedLevel=null, selectedZr=null, selectedReihe=null, playerName="";
+let order=[], idx=0, score=0, correct=0, wrong=0, mistakes=[];
+let askedFacts=[], wrongFacts=[];
+let timer=null, totalTime=0, pCorrect=10, pWrong=-5;
+
+// Aufgabe = [a,b].  Plus: 47+38 und 38+47 sind dieselbe Aufgabe. Minus: nicht.
+function factKey(a,b){ return OP.key==="plus" ? Math.min(a,b)+"+"+Math.max(a,b) : a+"−"+b; }
+function factText(k){ return k.replace(/([+−])/," $1 "); }
+function factParts(k){ return k.split(/[+−]/).map(Number); }
+function result(a,b){ return OP.key==="plus" ? a+b : a-b; }
+
+function show(id){ screens.forEach(s=>$(s).classList.toggle("hide", s!==id)); }
+
+//// ===== Texte je Rechenart =====
+$("appSub").textContent=OP.sub;
+$("splashIntro").innerHTML=OP.intro;
+$("impProgramm").textContent=OP.programm;
+
+//// ===== Home / Menü =====
+$("name").addEventListener("input", ()=>{
+  playerName=$("name").value.trim();
+  const ok=!!playerName;
+  $("modeTest").classList.toggle("dis",!ok);
+  $("modeTrain").classList.toggle("dis",!ok);
+});
+$("modeTest").addEventListener("click", ()=>{
+  if(!playerName) return;
+  selectedLevel=null; selectedZr=null;
+  document.querySelectorAll("#testSetup .level").forEach(l=>l.classList.remove("sel"));
+  updateTestTimes();
+  $("startTestBtn").disabled=true;
+  show("testSetup");
+});
+$("modeTrain").addEventListener("click", ()=>{ if(playerName) show("trainSetup"); });
+document.querySelectorAll("[data-home]").forEach(b=>b.addEventListener("click",()=>show("home")));
+$("homeBtn").addEventListener("click",()=>show("home"));
+
+//// ===== Test-Setup =====
+document.querySelectorAll("#zrgrid .level").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll("#zrgrid .level").forEach(l=>l.classList.remove("sel"));
+    el.classList.add("sel"); selectedZr=+el.dataset.zr;
+    updateTestTimes();
+    $("startTestBtn").disabled=!(selectedZr && selectedLevel);
+  });
+});
+document.querySelectorAll("#testSetup .level[data-level]").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll("#testSetup .level[data-level]").forEach(l=>l.classList.remove("sel"));
+    el.classList.add("sel"); selectedLevel=el.dataset.level;
+    $("startTestBtn").disabled=!(selectedZr && selectedLevel);
+  });
+});
+function updateTestTimes(){
+  const f=selectedZr ? CONFIG.zrTime[selectedZr] : 1;
+  document.querySelectorAll("#testSetup [data-sec]").forEach(d=>{ d.textContent=Math.round(+d.dataset.sec*f)+" Sek. pro Aufgabe"; });
+}
+$("startTestBtn").addEventListener("click", startTest);
+
+//// ===== Training-Setup: Zahlenraum × Übergang =====
+(function buildUeb(){
+  const g=$("uebgrid"); let html="";
+  [20,100,1000].forEach(zr=>{
+    const ueberg = zr===1000 ? "Zehner-/Hunderterübergang" : "Zehnerübergang";
+    html+=`<div class="zrblock"><div class="zrhead">${zr===20?"🐣":zr===100?"🐥":"🦅"} Bis ${zr} <small>${ueberg}</small></div><div class="ueb3">
+      <div class="uebbtn" data-reihe="${zr}-ohne"><div class="ic">🟢</div>ohne Übergang<small>z. B. ${beispiel(zr,"ohne")}</small></div>
+      <div class="uebbtn" data-reihe="${zr}-mit"><div class="ic">🟠</div>mit Übergang<small>z. B. ${beispiel(zr,"mit")}</small></div>
+      <div class="uebbtn" data-reihe="${zr}-mix"><div class="ic">🎲</div>gemischt<small>beides durcheinander</small></div>
+    </div></div>`;
+  });
+  html+=`<div class="zrblock"><div class="uebbtn mine" data-reihe="mine"><div class="ic">🧠</div>Meine Aufgaben<small>deine eigenen Fehleraufgaben – automatisch für dich zusammengestellt</small></div></div>`;
+  g.innerHTML=html;
+  g.querySelectorAll(".uebbtn").forEach(b=>b.addEventListener("click",()=>startTraining(b.dataset.reihe)));
+})();
+function beispiel(zr,ueb){
+  const ex = OP.key==="plus"
+    ? {20:{ohne:"12 + 5",mit:"7 + 8"},100:{ohne:"43 + 25",mit:"47 + 38"},1000:{ohne:"423 + 251",mit:"468 + 357"}}
+    : {20:{ohne:"17 − 5",mit:"15 − 8"},100:{ohne:"68 − 25",mit:"85 − 47"},1000:{ohne:"674 − 251",mit:"825 − 468"}};
+  return ex[zr][ueb];
+}
+
+//// ===== Aufgaben erzeugen =====
+function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function carries(a,b){ while(a>0||b>0){ if(a%10+b%10>=10) return true; a=Math.floor(a/10); b=Math.floor(b/10); } return false; }
+function borrows(a,b){ while(b>0){ if(a%10<b%10) return true; a=Math.floor(a/10); b=Math.floor(b/10); } return false; }
+// erzeugt EINE gültige Aufgabe im Zahlenraum zr mit/ohne Übergang
+function mkTask(zr,ueb){
+  for(let i=0;i<2000;i++){
+    let a,b,c;
+    if(OP.key==="plus"){
+      a=rnd(1,zr-1); b=rnd(1,zr-1);
+      if(a+b>zr) continue;
+      c=carries(a,b);
+    }else{
+      a=rnd(2,zr); b=rnd(1,a-1);
+      c=borrows(a,b);
+    }
+    if(ueb==="ohne" && c) continue;
+    if(ueb==="mit"  && !c) continue;
+    return [a,b];
+  }
+  return OP.key==="plus" ? [1,1] : [2,1];
+}
+function buildSet(zr,ueb,n){
+  const q=[], seen=new Set();
+  let guard=0;
+  while(q.length<n && guard++<5000){
+    const u = ueb==="mix" ? (Math.random()<0.5?"ohne":"mit") : ueb;
+    const t=mkTask(zr,u), k=factKey(t[0],t[1]);
+    if(seen.has(k)) continue;
+    seen.add(k); q.push(t);
+  }
+  return q;
+}
+function buildTestQuestions(){ return buildSet(selectedZr,"mix",CONFIG.questions); }
+function buildTrainingQuestions(reihe){
+  const [zr,ueb]=reihe.split("-");
+  return buildSet(+zr,ueb, ueb==="mix"?CONFIG.mixQuestions:CONFIG.trainQuestions);
+}
+
+//// ===== Spielablauf =====
+function startTest(){
+  mode="test";
+  order=buildTestQuestions();
+  totalTime=CONFIG.times[selectedLevel]*CONFIG.zrTime[selectedZr];
+  const f=CONFIG.factor[selectedLevel];
+  pCorrect=Math.round(CONFIG.points_correct*f);
+  pWrong =Math.round(CONFIG.points_wrong *f);
+  beginQuiz();
+}
+function startTraining(reihe){
+  mode="training"; selectedReihe=reihe;
+  if(reihe==="mine"){
+    const q=buildMine();
+    if(q==="nodata" || q==="clean"){
+      alert(q==="nodata" ? "Für dich gibt es noch keine eigenen Aufgaben – übe zuerst ein paar Bereiche. Du bekommst jetzt eine gemischte Übung. 💪"
+                         : "🎉 Super! Bei dir gibt es gerade keine offenen Problemaufgaben. Du bekommst eine gemischte Übung.");
+      selectedReihe=prefZr(playerName.trim().toLowerCase())+"-mix"; order=buildTrainingQuestions(selectedReihe);
+    } else order=q;
+  } else order=buildTrainingQuestions(reihe);
+  beginQuiz();
+}
+
+//// ===== Meine Aufgaben: individuelles Training aus den eigenen Fehlern =====
+// richtige Antworten in Folge (neueste zuerst) – ab 3 gilt die Aufgabe als gelernt
+function masteredStreak(nameKey,k){
+  let s=0;
+  for(const e of LOG){
+    if(!Array.isArray(e.gestellt) || e.name.trim().toLowerCase()!==nameKey) continue;
+    const n=e.gestellt.filter(x=>x===k).length; if(!n) continue;
+    if((e.fehler||[]).includes(k)) return s;
+    s+=n;
+  }
+  return s;
+}
+// meistgeübter Zahlenraum des Kindes (für die gemischte Ersatz-Übung)
+function prefZr(nameKey){
+  const c={}; LOG.forEach(e=>{ if(e.zr && e.name.trim().toLowerCase()===nameKey) c[e.zr]=(c[e.zr]||0)+1; });
+  const best=Object.keys(c).sort((a,b)=>c[b]-c[a])[0]; return best?+best:20;
+}
+// liefert die Aufgabenliste – oder "nodata" (noch nichts geübt) / "clean" (keine offenen Fehler)
+function buildMine(){
+  const nameKey=playerName.trim().toLowerCase();
+  const A=analyse(nameKey);
+  if(!A.durchgaenge) return "nodata";
+  const N=CONFIG.trainQuestions, chosen=[], seen=new Set();
+  const add=(a,b)=>{ const k=factKey(a,b); if(seen.has(k)) return; seen.add(k); chosen.push((OP.key==="plus" && Math.random()<0.5) ? [b,a] : [a,b]); };
+  const rank={hot:0,mid:1,low:2};
+  // 1) offene Fehleraufgaben: Dauerbrenner zuerst
+  A.facts.filter(f=>masteredStreak(nameKey,f.k)<3)
+    .sort((x,y)=>rank[grade(x).cls]-rank[grade(y).cls] || y.wrong-x.wrong || y.quote-x.quote)
+    .forEach(f=>{ if(chosen.length<N){ const [a,b]=factParts(f.k); add(a,b); } });
+  if(!chosen.length) return "clean";
+  // 2) Nachbaraufgaben aus den schwächsten Bereichen
+  A.bereiche.forEach(b=>{ let g=0; while(chosen.length<N && g++<60){ const t=mkTask(b.zr,b.ueb); add(t[0],t[1]); } });
+  // 3) auffüllen im meistgeübten Zahlenraum
+  const zr=prefZr(nameKey); let guard=0;
+  while(chosen.length<N && guard++<500){ const t=mkTask(zr, Math.random()<0.5?"ohne":"mit"); add(t[0],t[1]); }
+  return shuffle(chosen);
+}
+function beginQuiz(){
+  idx=0; score=0; correct=0; wrong=0; mistakes=[];
+  askedFacts=[]; wrongFacts=[];
+  $("timerbar").classList.toggle("hide", mode!=="test");
+  $("livescore").classList.toggle("hide", mode!=="test");
+  show("quiz");
+  nextQuestion();
+}
+function nextQuestion(){
+  if(idx>=order.length){ finish(); return; }
+  const [a,b]=order[idx];
+  $("question").textContent = `${a} ${OP.sym} ${b}`;
+  $("progress").textContent = `Aufgabe ${idx+1} / ${order.length}`;
+  $("livescore").textContent = `Punkte: ${score}`;
+  $("feedback").textContent = "";
+  $("answer").value=""; $("answer").disabled=false; $("okBtn").disabled=false;
+  $("answer").focus();
+  if(mode==="test") startTimer();
+}
+function startTimer(){
+  clearInterval(timer);
+  const fill=$("timerfill");
+  fill.style.width="100%"; fill.style.background="var(--good)";
+  const start=Date.now();
+  timer=setInterval(()=>{
+    const left=Math.max(0, totalTime-(Date.now()-start)/1000);
+    const pct=(left/totalTime)*100;
+    fill.style.width=pct+"%";
+    fill.style.background = pct>50?"var(--good)":pct>20?"var(--warn)":"var(--bad)";
+    if(left<=0){ clearInterval(timer); submit(true); }
+  },80);
+}
+$("okBtn").addEventListener("click",()=>submit(false));
+$("answer").addEventListener("keydown",e=>{ if(e.key==="Enter") submit(false); });
+
+function submit(timeout){
+  if(mode==="test") clearInterval(timer);
+  $("answer").disabled=true; $("okBtn").disabled=true;
+  const [a,b]=order[idx];
+  const right=result(a,b);
+  const given=parseInt($("answer").value,10);
+  const isCorrect = !timeout && given===right;
+  const key=factKey(a,b);
+  askedFacts.push(key);
+  if(!isCorrect) wrongFacts.push(key);
+  const fb=$("feedback");
+  if(isCorrect){
+    correct++;
+    if(mode==="test") score+=pCorrect;
+    fb.style.color="var(--good)";
+    fb.textContent = mode==="test" ? `Richtig!  +${pCorrect}` : "Richtig! 👍";
+  }else{
+    wrong++;
+    if(mode==="test") score+=pWrong;
+    mistakes.push(`${a} ${OP.sym} ${b} = ${right}`);
+    fb.style.color="var(--bad)";
+    const pts = mode==="test" ? `   ${pWrong}` : "";
+    fb.textContent = timeout ? `Zeit abgelaufen!  ${a} ${OP.sym} ${b} = ${right}${pts}`
+                             : `Falsch!  ${a} ${OP.sym} ${b} = ${right}${pts}`;
+  }
+  if(mode==="test") $("livescore").textContent=`Punkte: ${score}`;
+  idx++;
+  setTimeout(nextQuestion, mode==="test" ? 1100 : 900);
+}
+
+//// ===== Ende =====
+function finish(){ mode==="test" ? finishTest() : finishTraining(); }
+function finishTest(){
+  show("result");
+  const percent=Math.round((correct/order.length)*100);
+  const passed=percent>=CONFIG.passPercent;
+  $("finalScore").textContent=`${score} Punkte`;
+  const v=$("verdict");
+  v.className="verdict "+(passed?"pass":"fail");
+  v.textContent = passed ? `✅ Bestanden – du kannst das ${OP.was} bis ${selectedZr}! (${percent} % richtig)` : `❌ Noch üben! (${percent} % richtig)`;
+  $("stCorrect").textContent=correct; $("stWrong").textContent=wrong;
+  $("stThirdLabel").textContent="Stufe";
+  $("stThird").textContent=`${CONFIG.labels[selectedLevel]} · bis ${selectedZr}`;
+  showReview();
+  saveEntry({ modus:"Test", zr:selectedZr, stufe:CONFIG.labels[selectedLevel], punkte:score, prozent:percent, bestanden:passed?"Ja":"Nein" });
+  if(passed) celebrate();
+}
+function finishTraining(){
+  show("result");
+  const percent=Math.round((correct/order.length)*100);
+  $("finalScore").textContent=`${percent} %`;
+  const v=$("verdict"); let txt,cls;
+  if(percent===100){ txt="🌟 Perfekt! Das sitzt!"; cls="pass"; }
+  else if(percent>=90){ txt="🎉 Super – fast alles richtig!"; cls="pass"; }
+  else if(percent>=70){ txt="👍 Gut! Übe das noch ein bisschen."; cls="mid"; }
+  else { txt="💪 Weiter üben – du schaffst das!"; cls="fail"; }
+  v.className="verdict "+cls; v.textContent=txt;
+  $("stCorrect").textContent=correct; $("stWrong").textContent=wrong;
+  $("stThirdLabel").textContent="Geübt";
+  $("stThird").textContent=reiheLabel(selectedReihe);
+  showReview();
+  saveEntry({ modus:"Training", reihe:selectedReihe, zr:(selectedReihe==="mine" ? null : +selectedReihe.split("-")[0]), prozent:percent });
+  if(percent>=90) celebrate();
+}
+function showReview(){
+  const rb=$("reviewBox");
+  if(mistakes.length){ rb.classList.remove("hide"); rb.innerHTML="<b>Diese Aufgaben üben:</b><br>"+mistakes.join(" &nbsp;·&nbsp; "); }
+  else rb.classList.add("hide");
+}
+function reiheLabel(r){
+  if(!r) return "–";
+  if(r==="mine") return "Meine Aufgaben";
+  const [zr,ueb]=String(r).split("-");
+  return `bis ${zr} · ${ueb==="mix"?"gemischt":ueb+" Übergang"}`;
+}
+function reiheSort(r){ if(r==="mine") return 99999; const [zr,ueb]=String(r).split("-"); return (+zr)*10 + ({ohne:0,mit:1,mix:2}[ueb]||0); }
+
+$("againBtn").addEventListener("click", ()=>{
+  if(mode==="training" && selectedReihe!=null) startTraining(selectedReihe);
+  else if(mode==="test" && selectedLevel && selectedZr) startTest();
+  else show("home");
+});
+
+//// ===== Speichern =====
+let LOG=[];
+let fileHandle=null;
+const hasFS=('showSaveFilePicker' in window);
+function normalize(arr){ return (Array.isArray(arr)?arr:[]).map(e => e && e.modus ? e : Object.assign({modus:"Test"}, e)); }
+function loadFromLocal(){ try{ return normalize(JSON.parse(localStorage.getItem(LOG_KEY))); }catch(e){ return []; } }
+function saveToLocal(){ try{ localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); return true; }catch(e){ return false; } }
+
+//// ===== Archivdatei auf dem Schullaufwerk =====
+const ARCHIV_NAME="plus_archiv.js";
+let fileReady=false, archivPin=null, unsaved=false, pinDirty=false, autoLoaded=false;
+let storageOk=true, idbOk=true;
+
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open("plus_fs",1); r.onupgradeneeded=()=>r.result.createObjectStore("h"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbGet(k){ try{ const db=await idb(); return await new Promise((res,rej)=>{ const q=db.transaction("h","readonly").objectStore("h").get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); }catch(e){ return null; } }
+async function idbSet(k,v){ try{ const db=await idb(); await new Promise((res,rej)=>{ const t=db.transaction("h","readwrite"); t.objectStore("h").put(v,k); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }catch(e){} }
+
+function serializeArchive(){ return "window.ARCHIV_DATA="+JSON.stringify({version:2,pin:getPin(),log:LOG})+";\n"; }
+function parseArchive(text){
+  if(!text || !text.trim()) return null;
+  let t=text.trim();
+  if(/^(window\.|var |let |const )/.test(t)) t=t.slice(t.indexOf("=")+1);
+  t=t.replace(/;\s*$/,"");
+  const d=JSON.parse(t);
+  return Array.isArray(d) ? {log:d} : d;
+}
+function absorb(d){
+  if(!d) return;
+  if(Array.isArray(d.log)) mergeIn(d.log);
+  if(!pinDirty && typeof d.pin==="string" && /^\d{4}$/.test(d.pin)) archivPin=d.pin;
+}
+async function readHandle(){ if(!fileHandle) return; try{ const f=await fileHandle.getFile(); absorb(parseArchive(await f.text())); }catch(e){} }
+async function writeHandle(){
+  if(!fileHandle) return false;
+  try{ const w=await fileHandle.createWritable(); await w.write(serializeArchive()); await w.close(); return true; }catch(e){ return false; }
+}
+async function ensurePermission(interactive){
+  if(!fileHandle){ fileReady=false; return false; }
+  try{
+    let p=await fileHandle.queryPermission({mode:"readwrite"});
+    if(p!=="granted" && interactive) p=await fileHandle.requestPermission({mode:"readwrite"});
+    fileReady=(p==="granted");
+  }catch(e){ fileReady=false; }
+  return fileReady;
+}
+async function persist(opts){
+  saveToLocal();
+  if(fileReady){
+    if(!(opts && opts.noMerge)) await readHandle();
+    const ok=await writeHandle();
+    if(ok){ unsaved=false; pinDirty=false; } else fileReady=false;
+  }
+  renderSaveState();
+}
+async function adoptHandle(h){
+  fileHandle=h; await idbSet("archiv",h);
+  await ensurePermission(true);
+  await readHandle();
+  await persist();
+  renderAll();
+}
+async function openExistingArchive(){
+  if(!hasFS){ alert("Bitte Microsoft Edge oder Google Chrome verwenden."); return; }
+  try{ const [h]=await window.showOpenFilePicker({types:[{description:"Archivdatei",accept:{"text/javascript":[".js"],"application/json":[".json"]}}]}); await adoptHandle(h); }catch(e){}
+}
+async function createNewArchive(){
+  if(!hasFS){ alert("Bitte Microsoft Edge oder Google Chrome verwenden."); return; }
+  try{ const h=await window.showSaveFilePicker({suggestedName:ARCHIV_NAME,types:[{description:"Archivdatei",accept:{"text/javascript":[".js"]}}]}); await adoptHandle(h); }catch(e){}
+}
+async function initArchive(){
+  if(window.ARCHIV_DATA){ absorb(Array.isArray(window.ARCHIV_DATA)?{log:window.ARCHIV_DATA}:window.ARCHIV_DATA); autoLoaded=true; }
+  storageOk=saveToLocal();
+  await idbSet("probe", Date.now()); idbOk=!!(await idbGet("probe"));
+  fileHandle=await idbGet("archiv");
+  if(fileHandle && await ensurePermission(false)){ await readHandle(); await writeHandle(); }
+  renderAll(); renderSaveState();
+}
+
+function saveEntry(extra){
+  const now=new Date(), pad=n=>String(n).padStart(2,"0");
+  LOG.unshift(Object.assign({
+    datum:`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()}`,
+    zeit:`${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    name:playerName, richtig:correct, falsch:wrong,
+    gestellt:askedFacts.slice(), fehler:wrongFacts.slice()
+  }, extra));
+  unsaved=true;
+  persist();
+  renderAll();
+}
+
+//// ===== Anzeige =====
+function renderAll(){ renderNames(); renderTrain(); renderStats(); renderAnalyse(); renderCerts(); renderLog(); }
+
+function renderNames(){
+  const map={};
+  LOG.forEach(e=>{ const k=e.name.trim().toLowerCase(); if(k && !map[k]) map[k]=e.name.trim(); });
+  const names=Object.values(map).sort((a,b)=>a.localeCompare(b,"de"));
+  const box=$("nameChips");
+  if(!names.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+names.map(n=>`<span class="chip" data-name="${esc(n)}">${esc(n)}</span>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ $("name").value=c.dataset.name; $("name").dispatchEvent(new Event("input")); }));
+}
+
+function renderLog(){
+  const area=$("logArea");
+  if(!LOG.length){ area.innerHTML='<div class="logempty">Noch keine Durchgänge.</div>'; return; }
+  let html='<table><thead><tr><th>Datum</th><th>Zeit</th><th>Name</th><th>Modus</th><th>Zahlenraum</th><th>Stufe/Übung</th><th>Punkte</th><th>R</th><th>F</th><th>%</th><th>Ergebnis</th></tr></thead><tbody>';
+  LOG.forEach(e=>{
+    const test=e.modus==="Test";
+    const detail = test ? (e.stufe||"–") : (e.reihe==="mine" ? "Meine Aufgaben" : (String(e.reihe||"").split("-")[1]||"–"));
+    const cls = test ? (e.bestanden==="Ja"?"pass":"fail") : "";
+    const erg = test ? (e.bestanden==="Ja"?"Bestanden":"offen") : "geübt";
+    html+=`<tr><td>${e.datum}</td><td>${e.zeit}</td><td>${esc(e.name)}</td><td>${e.modus}</td><td>bis ${e.zr||"–"}</td><td>${detail}</td><td>${test?e.punkte:"–"}</td><td>${e.richtig}</td><td>${e.falsch}</td><td>${e.prozent} %</td><td class="${cls}">${erg}</td></tr>`;
+  });
+  area.innerHTML=html+"</tbody></table>";
+}
+
+function renderStats(){
+  const tests=LOG.filter(e=>e.modus==="Test");
+  const area=$("statArea");
+  if(!tests.length){ area.innerHTML='<div class="logempty">Noch keine Tests.</div>'; return; }
+  const map={};
+  tests.forEach(e=>{
+    const k=e.name.trim().toLowerCase()+"|"+e.zr;
+    if(!map[k]) map[k]={name:e.name, zr:e.zr, versuche:0, best:-1, passes:0};
+    map[k].versuche++;
+    if(e.prozent>map[k].best) map[k].best=e.prozent;
+    if(e.bestanden==="Ja") map[k].passes++;
+  });
+  let html='<table><thead><tr><th>Name</th><th>Zahlenraum</th><th>Tests</th><th>Bester</th><th>Bestanden</th><th>Status</th></tr></thead><tbody>';
+  Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,"de")||a.zr-b.zr).forEach(m=>{
+    const ok=m.passes>0;
+    html+=`<tr><td>${esc(m.name)}</td><td>bis ${m.zr}</td><td>${m.versuche}</td><td>${m.best} %</td><td>${m.passes}×</td><td class="${ok?'pass':'fail'}">${ok?'✅ kann es':'❌ noch üben'}</td></tr>`;
+  });
+  area.innerHTML=html+"</tbody></table>";
+}
+
+function renderTrain(){
+  const tr=LOG.filter(e=>e.modus==="Training");
+  const area=$("trainArea");
+  if(!tr.length){ area.innerHTML='<div class="logempty">Noch keine Übungen.</div>'; return; }
+  const map={};
+  tr.forEach(e=>{
+    const k=e.name.trim().toLowerCase()+"|"+e.reihe;
+    if(!map[k]) map[k]={name:e.name, reihe:e.reihe, versuche:0, best:-1, last:e.prozent, errSum:0};
+    const m=map[k]; m.versuche++; m.errSum+=e.falsch;
+    if(e.prozent>m.best) m.best=e.prozent;
+  });
+  const rows=Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,"de")||reiheSort(a.reihe)-reiheSort(b.reihe));
+  let html='<table><thead><tr><th>Name</th><th>Übung</th><th>Geübt</th><th>Bester</th><th>Zuletzt</th><th>Ø Fehler</th></tr></thead><tbody>';
+  rows.forEach(m=>{
+    const avg=Math.round(m.errSum/m.versuche*10)/10;
+    const cls=m.best>=90?"pass":(m.best>=70?"":"fail");
+    html+=`<tr><td>${esc(m.name)}</td><td>${reiheLabel(m.reihe)}</td><td>${m.versuche}×</td><td class="${cls}">${m.best} %</td><td>${m.last} %</td><td>${avg}</td></tr>`;
+  });
+  area.innerHTML=html+"</tbody></table>";
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+//// ===== Fehler-Analyse =====
+let anaChild=null;
+function analysableChildren(){
+  const map={};
+  LOG.forEach(e=>{ if(!Array.isArray(e.gestellt)||!e.gestellt.length) return; const k=e.name.trim().toLowerCase(); if(!map[k]) map[k]=e.name.trim(); });
+  return Object.keys(map).sort((a,b)=>map[a].localeCompare(map[b],"de")).map(k=>({key:k,name:map[k]}));
+}
+// Bereich einer Aufgabe: Zahlenraum + Übergang
+function catOf(k){
+  const [a,b]=factParts(k);
+  const ref = OP.key==="plus" ? a+b : a;
+  const zr = ref<=20?20 : ref<=100?100 : 1000;
+  const ueb = (OP.key==="plus" ? carries(a,b) : borrows(a,b)) ? "mit" : "ohne";
+  return {zr, ueb, label:`bis ${zr} · ${ueb} Übergang`, sort:zr*10+(ueb==="mit"?1:0)};
+}
+function analyse(nameKey){
+  const entries=LOG.filter(e=>Array.isArray(e.gestellt)&&e.gestellt.length&&e.name.trim().toLowerCase()===nameKey);
+  const asked={}, wrongC={};
+  entries.forEach(e=>{ e.gestellt.forEach(k=>asked[k]=(asked[k]||0)+1); (e.fehler||[]).forEach(k=>wrongC[k]=(wrongC[k]||0)+1); });
+  const facts=Object.keys(wrongC).map(k=>{ const a=asked[k]||wrongC[k]; return {k, wrong:wrongC[k], asked:a, quote:Math.round(wrongC[k]/a*100)}; });
+  facts.sort((x,y)=> y.wrong-x.wrong || y.quote-x.quote || x.k.localeCompare(y.k));
+  // Fehler und gestellte Aufgaben je Bereich
+  const bereiche={};
+  Object.keys(asked).forEach(k=>{ const c=catOf(k); if(!bereiche[c.label]) bereiche[c.label]={label:c.label,sort:c.sort,zr:c.zr,ueb:c.ueb,asked:0,wrong:0}; bereiche[c.label].asked+=asked[k]; });
+  facts.forEach(f=>{ const c=catOf(f.k); bereiche[c.label].wrong+=f.wrong; });
+  const totalAsked=Object.values(asked).reduce((s,n)=>s+n,0);
+  const totalWrong=Object.values(wrongC).reduce((s,n)=>s+n,0);
+  return { entries, facts, bereiche:Object.values(bereiche).filter(b=>b.wrong>0).sort((a,b)=>b.wrong-a.wrong||a.sort-b.sort), totalAsked, totalWrong, durchgaenge:entries.length };
+}
+function grade(f){
+  if(f.wrong>=3 || (f.wrong>=2 && f.quote>=60)) return {cls:"hot", txt:"🔴 Dauerbrenner"};
+  if(f.wrong===2) return {cls:"mid", txt:"🟠 wiederholt"};
+  return {cls:"low", txt:"⚪ einmalig"};
+}
+function renderAnalyse(){
+  const kinder=analysableChildren();
+  const sel=$("anaSelect"), area=$("anaArea");
+  if(!kinder.length){ sel.innerHTML=""; sel.disabled=true; area.innerHTML='<div class="logempty">Noch keine Daten. Das Programm merkt sich bei jedem Durchgang, welche Aufgaben gestellt wurden und welche falsch waren – danach erscheint hier die Auswertung.</div>'; return; }
+  sel.disabled=false;
+  if(!kinder.some(k=>k.key===anaChild)) anaChild=kinder[0].key;
+  sel.innerHTML=kinder.map(k=>`<option value="${esc(k.key)}"${k.key===anaChild?" selected":""}>${esc(k.name)}</option>`).join("");
+  const A=analyse(anaChild);
+  const quote=A.totalAsked? Math.round(A.totalWrong/A.totalAsked*100) : 0;
+  let html=`<div class="anasum">
+    <div><div class="v">${A.durchgaenge}</div><div class="k">Durchgänge</div></div>
+    <div><div class="v">${A.totalAsked}</div><div class="k">Aufgaben</div></div>
+    <div><div class="v">${A.totalWrong}</div><div class="k">Fehler</div></div>
+    <div><div class="v">${quote} %</div><div class="k">Fehlerquote</div></div></div>`;
+  if(!A.facts.length){ area.innerHTML=html+'<div class="empf ok">🎉 Keine einzige Fehleraufgabe – dieses Kind hat bisher alles richtig gerechnet!</div>'; return; }
+  html+='<div class="subhead">Fehleraufgaben (häufigste zuerst)</div><table><thead><tr><th>Aufgabe</th><th>falsch</th><th>gestellt</th><th>Quote</th><th>Einschätzung</th></tr></thead><tbody>';
+  A.facts.forEach(f=>{ const g=grade(f); html+=`<tr><td class="fact">${factText(f.k)}</td><td>${f.wrong}×</td><td>${f.asked}×</td><td>${f.quote} %</td><td class="tag ${g.cls}">${g.txt}</td></tr>`; });
+  html+='</tbody></table>';
+  if(A.bereiche.length){
+    const max=A.bereiche[0].wrong;
+    html+='<div class="subhead">Schwierigste Bereiche</div><table><tbody>';
+    A.bereiche.slice(0,6).forEach(b=>{ html+=`<tr><td style="width:190px" class="fact" >${b.label}</td><td style="width:120px">${b.wrong} von ${b.asked} falsch</td><td><div class="bar"><i style="width:${Math.round(b.wrong/max*100)}%"></i></div></td></tr>`; });
+    html+='</tbody></table>';
+  }
+  const dauer=A.facts.filter(f=>grade(f).cls==="hot"), wieder=A.facts.filter(f=>grade(f).cls==="mid");
+  if(dauer.length) html+=`<div class="empf">🔴 <b>Diese Aufgaben sitzen noch nicht:</b> ${dauer.slice(0,8).map(f=>factText(f.k)).join(" · ")}<br>Sie werden immer wieder falsch gerechnet – hier lohnt sich gezieltes Üben${A.bereiche.length?`, vor allem im Bereich <b>${A.bereiche[0].label}</b>`:""}.</div>`;
+  else if(wieder.length) html+=`<div class="empf">🟠 <b>Zweimal falsch gerechnet:</b> ${wieder.slice(0,8).map(f=>factText(f.k)).join(" · ")}<br>Noch kein Dauerproblem, aber im Auge behalten.</div>`;
+  else html+='<div class="empf ok">👍 Nur einzelne Flüchtigkeitsfehler – keine Aufgabe wird regelmäßig falsch gerechnet.</div>';
+  area.innerHTML=html;
+}
+$("anaSelect").addEventListener("change",()=>{ anaChild=$("anaSelect").value; renderAnalyse(); });
+$("anaPrintBtn").addEventListener("click",()=>{
+  const kinder=analysableChildren();
+  if(!kinder.length){ alert("Noch keine Analyse-Daten vorhanden."); return; }
+  const kind=kinder.find(k=>k.key===anaChild)||kinder[0];
+  const A=analyse(kind.key);
+  const today=new Date(), pad=n=>String(n).padStart(2,"0");
+  const datum=`${pad(today.getDate())}.${pad(today.getMonth()+1)}.${today.getFullYear()}`;
+  const quote=A.totalAsked? Math.round(A.totalWrong/A.totalAsked*100) : 0;
+  let h=`<div class="sheet"><h2>🔍 ${OP.verb} – Fehler-Analyse</h2><p class="who">${esc(kind.name)}</p>
+    <p class="meta">Stand: ${datum} · ${A.durchgaenge} Durchgänge · ${A.totalAsked} Aufgaben · ${A.totalWrong} Fehler · Fehlerquote ${quote} %</p>`;
+  if(!A.facts.length) h+='<div class="box ok">Keine Fehleraufgaben – bisher alles richtig gerechnet!</div>';
+  else{
+    h+='<h3>Fehleraufgaben (häufigste zuerst)</h3><table><thead><tr><th>Aufgabe</th><th>falsch</th><th>gestellt</th><th>Quote</th><th>Einschätzung</th></tr></thead><tbody>';
+    A.facts.forEach(f=>{ const g=grade(f); h+=`<tr><td class="fact">${factText(f.k)}</td><td>${f.wrong}×</td><td>${f.asked}×</td><td>${f.quote} %</td><td class="${g.cls}">${g.txt.replace(/^[^ ]+ /,"")}</td></tr>`; });
+    h+='</tbody></table>';
+    if(A.bereiche.length){ h+='<h3>Schwierigste Bereiche</h3><table><tbody>'; A.bereiche.slice(0,6).forEach(b=>h+=`<tr><td class="fact">${b.label}</td><td>${b.wrong} von ${b.asked} falsch</td></tr>`); h+='</tbody></table>'; }
+    const dauer=A.facts.filter(f=>grade(f).cls==="hot");
+    h+= dauer.length ? `<div class="box">Gezielt üben: ${dauer.slice(0,10).map(f=>factText(f.k)).join(" · ")}</div>` : '<div class="box ok">Keine Dauerfehler – nur einzelne Flüchtigkeitsfehler.</div>';
+  }
+  h+=`<p class="foot">Plus-Trainer · entwickelt von @P.Svyetnyenko</p></div>`;
+  $("printArea").innerHTML=h; window.print();
+});
+
+//// ===== Urkunden (je Kind und Zahlenraum) =====
+function bestPassByChild(){
+  const by={};
+  LOG.filter(e=>e.modus==="Test").forEach(e=>{
+    const key=e.name.trim().toLowerCase()+"|"+e.zr;
+    if(!by[key]) by[key]={name:e.name, zr:e.zr, attempts:0, best:null};
+    const g=by[key]; g.attempts++;
+    if(e.bestanden==="Ja"){ const better=!g.best||e.prozent>g.best.prozent||(e.prozent===g.best.prozent&&e.punkte>g.best.punkte); if(better) g.best=e; }
+  });
+  return Object.values(by).filter(g=>g.best).sort((a,b)=>a.name.localeCompare(b.name,"de")||a.zr-b.zr);
+}
+function praiseFor(best, attempts){
+  const pct=best.prozent, hard=best.stufe==="Schwer", firstTry=attempts<=1; let line;
+  if(pct===100 && firstTry)     line=`🌟 Perfekt und auf Anhieb – ein echtes ${OP.ass}!`;
+  else if(pct===100)            line="🌟 Alles richtig – fehlerfrei! Dein Üben hat sich voll gelohnt!";
+  else if(pct>=96 && firstTry)  line="🎉 Spitze gemacht – fast alles auf Anhieb richtig!";
+  else if(pct>=96)              line="🎉 Klasse – nur ein klitzekleiner Flüchtigkeitsfehler!";
+  else if(firstTry)             line="👍 Sehr gut gemacht – das sitzt schon richtig gut!";
+  else                          line="👍 Sehr gut – dein Üben zahlt sich aus, weiter so!";
+  if(hard) line+=" Und das auf der schweren Stufe – Respekt!";
+  return line;
+}
+function renderCerts(){
+  const list=bestPassByChild(); const area=$("certArea");
+  if(!list.length){ area.innerHTML='<div class="logempty">Noch hat kein Kind bestanden.</div>'; $("certAll").checked=false; area._list=[]; return; }
+  area.innerHTML=list.map((g,i)=>`<div class="certrow"><input type="checkbox" class="certck" data-i="${i}"><span class="nm">${esc(g.name)} <span style="color:var(--muted);font-weight:400">· bis ${g.zr}</span></span><span class="meta">${g.best.prozent} % · ${g.best.stufe} · ${g.best.punkte} Punkte · ${g.attempts} Versuch${g.attempts>1?"e":""}</span></div>`).join("");
+  area._list=list; $("certAll").checked=false;
+}
+$("certAll").addEventListener("change",()=>{ document.querySelectorAll(".certck").forEach(c=>c.checked=$("certAll").checked); });
+$("printBtn").addEventListener("click",async()=>{
+  const list=$("certArea")._list||[];
+  const chosen=[...document.querySelectorAll(".certck")].filter(c=>c.checked).map(c=>list[+c.dataset.i]);
+  if(!chosen.length){ alert("Bitte zuerst mindestens eine Urkunde auswählen."); return; }
+  if(await requirePin()) buildAndPrint(chosen);
+});
+function buildAndPrint(children){
+  const today=new Date(), pad=n=>String(n).padStart(2,"0");
+  const datum=`${pad(today.getDate())}.${pad(today.getMonth()+1)}.${today.getFullYear()}`;
+  $("printArea").innerHTML=children.map(g=>{ const b=g.best; return `<div class="cert"><div class="cert-inner">
+      <div class="ribbon">🏅</div><p class="title">${OP.pass}</p>
+      <p class="subtitle">Diese Urkunde für sicheres ${OP.verb} erhält</p>
+      <p class="name">${esc(g.name)}</p><div class="stars">★ ★ ★ ★ ★</div>
+      <p class="praise">${praiseFor(b,g.attempts)}</p>
+      <div class="stats">
+        <div class="stat"><div class="v">${b.prozent} %</div><div class="k">richtig</div></div>
+        <div class="stat"><div class="v">bis ${g.zr}</div><div class="k">Zahlenraum</div></div>
+        <div class="stat"><div class="v">${b.stufe}</div><div class="k">Stufe</div></div>
+        <div class="stat"><div class="v">${b.punkte}</div><div class="k">Punkte</div></div>
+      </div>
+      <div class="foot"><div class="sig">${datum}<br>Datum</div><div class="sig">Mathe-Unterricht<br>Unterschrift</div></div>
+    </div></div>`; }).join("");
+  window.print();
+}
+window.addEventListener("afterprint",()=>{ $("printArea").innerHTML=""; });
+
+//// ===== PIN-Schutz =====
+const PIN_KEY = LOG_KEY+"_pin";
+const SUPER_PIN = "4785";
+let pinUnlocked=false;
+function getLocalPin(){ try{ return localStorage.getItem(PIN_KEY)||null; }catch(e){ return null; } }
+function getPin(){ return archivPin || getLocalPin() || "0000"; }
+function setPin(p){ archivPin=p; pinDirty=true; try{ localStorage.setItem(PIN_KEY,p); }catch(e){} persist(); }
+function pinDialog(o){
+  return new Promise(resolve=>{
+    const ov=$("pinOverlay"), m=$("pinModal");
+    m.innerHTML=`<h3>${o.title}</h3><p>${o.text}</p>
+      <input class="pininput" id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+      <div class="pinerr" id="pinErr"></div>
+      <div class="btnrow"><button id="pinOk">OK</button><button class="ghost" id="pinCancel">Abbrechen</button></div>
+      ${o.links&&o.links.length ? `<div class="links">${o.links.map((l,i)=>`<a data-i="${i}">${l}</a>`).join("")}</div>` : ""}`;
+    ov.classList.remove("hide");
+    const inp=$("pinInput"); inp.focus();
+    const close=v=>{ ov.classList.add("hide"); m.innerHTML=""; resolve(v); };
+    inp.addEventListener("input",()=>{ inp.value=inp.value.replace(/\D/g,"").slice(0,4); });
+    $("pinOk").addEventListener("click",()=>{
+      const v=inp.value;
+      if(v.length!==4){ $("pinErr").textContent="Bitte 4 Ziffern eingeben."; return; }
+      const err=o.check(v);
+      if(err){ $("pinErr").textContent=err; inp.value=""; inp.focus(); return; }
+      close({value:v});
+    });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") $("pinOk").click(); if(e.key==="Escape") close(null); });
+    $("pinCancel").addEventListener("click",()=>close(null));
+    m.querySelectorAll(".links a").forEach(a=>a.addEventListener("click",()=>close({link:+a.dataset.i})));
+  });
+}
+async function requirePin(always){
+  while(true){
+    if(pinUnlocked && !always) return true;
+    const r=await pinDialog({ title:"🔒 PIN eingeben",
+      text: always ? "Diese Aktion ist geschützt. Bitte die 4-stellige PIN eingeben." : "Der Urkunden-Druck ist geschützt. Bitte die 4-stellige PIN eingeben.",
+      check:v=> v===getPin() ? null : "Falsche PIN.", links:["PIN ändern","PIN vergessen?"] });
+    if(!r) return false;
+    if(r.value){ if(!always) pinUnlocked=true; return true; }
+    if(r.link===0) await changePinFlow();
+    if(r.link===1) await resetPinFlow();
+  }
+}
+async function newPinFlow(){
+  const a=await pinDialog({title:"🔑 Neue PIN festlegen",text:"Bitte eine neue 4-stellige PIN eingeben.",check:()=>null});
+  if(!a) return false;
+  const b=await pinDialog({title:"🔑 Neue PIN wiederholen",text:"Bitte die neue PIN noch einmal eingeben.",check:v=> v===a.value ? null : "Die PINs stimmen nicht überein."});
+  if(!b) return false;
+  setPin(a.value); pinUnlocked=true; alert("Neue PIN gespeichert."); return true;
+}
+async function changePinFlow(){ const r=await pinDialog({title:"🔒 Aktuelle PIN",text:"Zum Ändern bitte zuerst die aktuelle PIN eingeben.",check:v=> v===getPin() ? null : "Falsche PIN."}); if(r) await newPinFlow(); }
+async function resetPinFlow(){ const r=await pinDialog({title:"🛟 Super-PIN",text:"PIN vergessen? Bitte die Super-PIN eingeben (bei der Lehrkraft erfragen). Danach kann eine neue PIN festgelegt werden.",check:v=> v===SUPER_PIN ? null : "Falsche Super-PIN."}); if(r) await newPinFlow(); }
+
+//// ===== CSV / Löschen / Archiv-Buttons =====
+function downloadBlob(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+$("exportBtn").addEventListener("click",()=>{
+  if(!LOG.length){ alert("Noch keine Ergebnisse zum Exportieren."); return; }
+  const head=["Datum","Zeit","Name","Modus","Zahlenraum","Stufe/Übung","Punkte","Richtig","Falsch","Prozent","Ergebnis"];
+  const rows=LOG.map(e=>{ const t=e.modus==="Test"; return [e.datum,e.zeit,e.name,e.modus,e.zr||"",(t?(e.stufe||""):reiheLabel(e.reihe)),(t?e.punkte:""),e.richtig,e.falsch,e.prozent,(t?e.bestanden:"geübt")]; });
+  const csv=[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  downloadBlob(new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"}),"plus_protokoll.csv");
+});
+$("clearBtn").addEventListener("click",async()=>{
+  if(!(await requirePin(true))) return;
+  if(confirm("Wirklich das ganze Protokoll löschen?")){
+    LOG=[]; try{localStorage.removeItem(LOG_KEY);}catch(e){}
+    await persist({noMerge:true}); renderAll();
+  }
+});
+function tsKey(e){ const p=(e.datum||"").split("."); return (p[2]||"")+(p[1]||"")+(p[0]||"")+(e.zeit||"").replace(":",""); }
+function keyOf(e){ return [e.datum,e.zeit,e.name,e.modus,e.prozent].join("|"); }
+function mergeIn(arr){
+  const seen=new Set(LOG.map(keyOf));
+  normalize(arr).forEach(e=>{ if(!seen.has(keyOf(e))){ LOG.push(e); seen.add(keyOf(e)); } });
+  LOG.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+}
+$("connectBtn").addEventListener("click", openExistingArchive);
+$("newBtn").addEventListener("click", createNewArchive);
+$("unlockBtn").addEventListener("click", async()=>{ if(await ensurePermission(true)){ await readHandle(); await persist(); renderAll(); } else renderSaveState(); });
+document.addEventListener("click", e=>{
+  if(e.target.closest("[data-open]"))   openExistingArchive();
+  if(e.target.closest("[data-unlock]")) $("unlockBtn").click();
+});
+
+//// ===== Speicher-Status =====
+function renderSaveState(){
+  const n=LOG.length, t=$("saveStatus");
+  const needUnlock = !!fileHandle && !fileReady;
+  $("unlockBtn").classList.toggle("hide", !needUnlock);
+  $("connectBtn").classList.toggle("hide", fileReady);
+  $("newBtn").classList.toggle("hide", fileReady);
+  const warn = unsaved ? "⚠️ Ergebnis noch NICHT im Archiv gespeichert! " : "";
+  let cls, html;
+  if(fileReady){ cls="ok"; html=`✅ Archiv auf dem Schullaufwerk aktiv – alle Ergebnisse werden automatisch gespeichert.<small>${n} Einträge · Datei: ${esc(fileHandle.name)}</small>`; }
+  else if(needUnlock){ cls="warn"; html=`${warn}🔓 Archivdatei bekannt – bitte einmal „Speichern freigeben“ klicken.<small>Danach wird wieder automatisch gespeichert.</small>`; }
+  else{
+    const check=`<br>Speicher-Check: Browser-Speicher ${storageOk?"✓":"✗ blockiert"} · Datei-Merker ${idbOk?"✓":"✗ blockiert"}${(idbOk && !fileHandle) ? " – muss die Datei nach jedem Neustart erneut gewählt werden, löscht dieser Browser beim Schließen die Websitedaten (Einstellung „Beim Schließen löschen“ oder Schul-Richtlinie)." : ""}`;
+    cls="warn"; html=`${warn}Speichern ist auf diesem PC noch nicht eingerichtet.<small>Einmalig „Vorhandenes Archiv öffnen“ (Datei <b>${ARCHIV_NAME}</b> auf dem Schullaufwerk) oder „Neues Archiv anlegen“. ${autoLoaded ? "Zum Lesen wurde das Archiv bereits automatisch geladen." : "Tipp: Das Programm direkt vom Schullaufwerk starten – dann wird das Archiv zum Lesen automatisch geladen."}${check}</small>`;
+  }
+  t.className="sbtext "+cls; t.innerHTML=html;
+  const ss=$("splashSave");
+  if(fileReady){ ss.className="splashsave ok"; ss.innerHTML=`✅ Archiv verbunden – ${n} Einträge`; }
+  else if(needUnlock){ ss.className="splashsave warn"; ss.innerHTML=`🔓 Mit „Weiter“ wird das Speichern auf dem Schullaufwerk freigegeben.`; }
+  else { ss.className="splashsave warn"; ss.innerHTML=`⚠️ Speichern noch nicht eingerichtet – <a data-open>Archiv öffnen</a> (nur Lehrkraft)`; }
+  const tw=$("topWarn"), showTop = unsaved && !fileReady;
+  tw.classList.toggle("hide", !showTop);
+  if(showTop) tw.innerHTML=`⚠️ Ergebnis noch nicht im Archiv gespeichert! ${needUnlock ? '<button data-unlock>🔓 Speichern freigeben</button>' : '<button data-open>📂 Archiv öffnen</button>'}`;
+}
+
+//// ===== Konfetti =====
+function celebrate(){
+  const canvas=document.createElement("canvas");
+  canvas.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext("2d");
+  function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+  resize(); addEventListener("resize",resize);
+  const colors=["#38bdf8","#22c55e","#f59e0b","#ef4444","#a855f7","#facc15"];
+  const parts=[];
+  for(let i=0;i<160;i++) parts.push({x:Math.random()*canvas.width,y:-20-Math.random()*canvas.height,r:6+Math.random()*8,c:colors[(Math.random()*colors.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-0.2+Math.random()*0.4});
+  const end=Date.now()+4000;
+  (function frame(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; if(p.y>canvas.height+20){ p.y=-20; p.x=Math.random()*canvas.width; } ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore(); });
+    if(Date.now()<end) requestAnimationFrame(frame); else{ removeEventListener("resize",resize); canvas.remove(); }
+  })();
+}
+
+//// ===== Startseite & Impressum =====
+$("splashWeiter").addEventListener("click",async()=>{
+  if(fileHandle && !fileReady){ if(await ensurePermission(true)){ await readHandle(); await persist(); renderAll(); } }
+  $("splash").classList.add("hide"); $("name").focus();
+});
+document.querySelectorAll("[data-impressum]").forEach(a=>a.addEventListener("click",()=>$("impOverlay").classList.remove("hide")));
+document.querySelectorAll("[data-impclose]").forEach(b=>b.addEventListener("click",()=>$("impOverlay").classList.add("hide")));
+$("impOverlay").addEventListener("click",e=>{ if(e.target===$("impOverlay")) $("impOverlay").classList.add("hide"); });
+
+//// ===== Start =====
+(function init(){
+  LOG=loadFromLocal();
+  renderAll(); renderSaveState();
+  show("home");
+  initArchive();
+})();
+</script>
+</body>
+</html>
