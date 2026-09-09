@@ -13,33 +13,88 @@
   html,body{margin:0;min-height:100%}
   body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#1e3a5f 0%,var(--bg) 60%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:24px;min-height:100vh}
   .app{width:100%;max-width:680px;text-align:center}
-  h1{font-size:30px;margin:14px 0 4px}
-  .sub{color:var(--muted);margin:0 0 26px;font-size:15px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .logo{width:110px;height:110px;border-radius:22px;background:#fff;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.35);margin-top:6px}
+  .school{font-size:15px;color:var(--muted);margin:10px 0 0}
+  h1{font-size:32px;margin:4px 0 22px}
+  .card{background:var(--card);border-radius:20px;padding:22px 24px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);text-align:left;margin-bottom:18px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:22px;padding:14px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:#38bdf8}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips .lbl{color:var(--muted);font-size:12px;width:100%;margin-bottom:-2px}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;transition:.15s}
+  .chip:hover{border-color:#38bdf8;background:rgba(56,189,248,.12)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;transition:.2s}
+  .grid.dis{opacity:.4;pointer-events:none}
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
-  a.tile:hover{transform:translateY(-3px);border-color:var(--ac)}
+  a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
   .tile .ic{font-size:48px;line-height:1}
   .tile .t{font-size:22px;font-weight:800;margin-top:10px}
   .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
-  .t1{--ac:#38bdf8}.t2{--ac:#a78bfa}.t3{--ac:#34d399}.t4{--ac:#fb923c}
-  .hint{margin-top:26px;color:var(--muted);font-size:13px;line-height:1.6}
-  .credit{margin-top:22px;color:var(--muted);font-size:13px}
+  .t1{--ac:#38bdf8;--soft:rgba(56,189,248,.10)}.t2{--ac:#a78bfa;--soft:rgba(167,139,250,.10)}.t3{--ac:#34d399;--soft:rgba(52,211,153,.10)}.t4{--ac:#fb923c;--soft:rgba(251,146,60,.10)}
+  .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
+  .credit{margin-top:18px;color:var(--muted);font-size:13px}
   .credit strong{color:#38bdf8}
-  @media (max-width:480px){.grid{grid-template-columns:1fr}}
+  @media (max-width:480px){.grid{grid-template-columns:1fr}h1{font-size:26px}}
 </style>
 </head>
 <body>
 <div class="app">
+  <img class="logo" src="logo.jpeg" alt="Logo Schule Hohe Landwehr">
+  <p class="school">Schule Hohe Landwehr · Hamburg</p>
   <h1>🧮 Mathe-Trainer</h1>
-  <p class="sub">Schule Hohe Landwehr · Wähle dein Training</p>
-  <div class="grid">
-    <a class="tile t1" href="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
-    <a class="tile t2" href="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
-    <a class="tile t3" href="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
-    <a class="tile t4" href="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
+
+  <div class="card">
+    <label for="name">Wie heißt du?</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
   </div>
-  <p class="hint">Tipp für iPad/iPhone: In Safari öffnen → „Teilen“ → <b>„Zum Home-Bildschirm“</b>. Dann startet der Trainer wie eine App im Vollbild.</p>
+
+  <div class="grid dis" id="grid">
+    <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
+    <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
+    <a class="tile t3" data-page="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
+    <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
+  </div>
+  <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong></p>
 </div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1"];
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// bekannte Namen aus allen vier Trainern (gleicher Browser)
+function knownNames(){
+  const map={};
+  KEYS.forEach(k=>{ try{ (JSON.parse(localStorage.getItem(k))||[]).forEach(e=>{ if(!e||!e.name) return; const key=e.name.trim().toLowerCase(); if(key&&!map[key]) map[key]=e.name.trim(); }); }catch(e){} });
+  return Object.values(map).sort((a,b)=>a.localeCompare(b,"de"));
+}
+function renderChips(){
+  const names=knownNames(), box=$("nameChips");
+  if(!names.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+names.map(n=>`<span class="chip" data-name="${esc(n)}">${esc(n)}</span>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ $("name").value=c.dataset.name; update(); }));
+}
+function update(){
+  const n=$("name").value.trim();
+  $("grid").classList.toggle("dis",!n);
+  $("hint").textContent = n ? `Hallo ${n}! Wähle dein Training.` : "Gib zuerst deinen Namen ein – dann wähle dein Training.";
+  document.querySelectorAll(".tile").forEach(a=>a.href = a.dataset.page + (n ? "#name="+encodeURIComponent(n) : ""));
+  try{ if(n) localStorage.setItem("mathe_name",n); }catch(e){}
+}
+$("name").addEventListener("input",update);
+
+// Name aus der Rückkehr-Adresse (#name=...) oder aus dem letzten Besuch übernehmen
+(function init(){
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  $("name").value=n;
+  renderChips(); update();
+  if(!n) $("name").focus();
+})();
+</script>
 </body>
 </html>

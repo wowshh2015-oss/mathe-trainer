@@ -62,6 +62,7 @@
   .uebbtn.mine{border-color:var(--accent);background:var(--soft);font-size:16px;padding:16px 10px}
   .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:10px;cursor:pointer}
   .backbtn:hover{color:var(--text)}
+  a.backbtn{text-decoration:none;display:inline-block}
 
   /* Quiz */
   .qtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:15px;color:var(--muted)}
@@ -241,6 +242,7 @@
 
   <!-- ============ HOME / MENÜ ============ -->
   <div id="home" class="card">
+    <a class="backbtn hide" id="menuLink" href="index.html">← Alle Trainer</a>
     <label for="name">Name des Kindes</label>
     <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
     <div class="chips" id="nameChips"></div>
@@ -1174,6 +1176,14 @@ $("impOverlay").addEventListener("click",e=>{ if(e.target===$("impOverlay")) $("
   renderAll(); renderSaveState();
   show("home");
   initArchive();
+  // Start aus der gemeinsamen Übersicht (index.html#name=...): Name übernehmen, Startseite überspringen
+  const m=location.hash.match(/name=([^&]+)/);
+  if(m){
+    const n=decodeURIComponent(m[1]);
+    $("name").value=n; $("name").dispatchEvent(new Event("input"));
+    $("splash").classList.add("hide");
+    const l=$("menuLink"); l.classList.remove("hide"); l.href="index.html#name="+encodeURIComponent(n);
+  }
 })();
 </script>
 </body>

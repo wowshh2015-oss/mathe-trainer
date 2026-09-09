@@ -1,9 +1,9 @@
-# Aktualisiert die Online-Version: kopiert die 4 Trainer aus "Documents\Claude Code"
+﻿# Aktualisiert die Online-Version: kopiert die 4 Trainer aus "Documents\Claude Code"
 # in dieses Repository, macht einen Commit und lädt ihn zu GitHub hoch.
 # Aufruf: Rechtsklick -> "Mit PowerShell ausführen"  (oder im Terminal: .\update.ps1)
 $src = "C:\Users\petru\Documents\Claude Code"
 $dst = $PSScriptRoot
-foreach ($f in "einmaleins-trainer.html","einsdurcheins-trainer.html","plus-trainer.html","minus-trainer.html") {
+foreach ($f in "index.html","logo.jpeg","einmaleins-trainer.html","einsdurcheins-trainer.html","plus-trainer.html","minus-trainer.html") {
   Copy-Item (Join-Path $src $f) (Join-Path $dst $f) -Force
   "kopiert: $f"
 }
