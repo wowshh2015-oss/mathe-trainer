@@ -1120,6 +1120,15 @@ document.addEventListener("click", e=>{
 //// ===== Speicher-Status =====
 function renderSaveState(){
   const n=LOG.length, t=$("saveStatus");
+  // Geräte ohne Dateizugriff (iPad/iPhone/Firefox): nur Gerätespeicher, keine Archiv-Buttons
+  if(!hasFS){
+    ["unlockBtn","connectBtn","newBtn"].forEach(id=>$(id).classList.add("hide"));
+    t.className="sbtext info";
+    t.innerHTML=`💾 Ergebnisse werden auf diesem Gerät gespeichert.<small>${n} Einträge · Statistik, Fehler-Analyse und „Meine Aufgaben“ beziehen sich auf dieses Gerät. Ein gemeinsames Archiv für mehrere PCs gibt es nur mit Edge oder Chrome am PC.</small>`;
+    $("splashSave").className="splashsave hide";
+    $("topWarn").classList.add("hide");
+    return;
+  }
   const needUnlock = !!fileHandle && !fileReady;
   $("unlockBtn").classList.toggle("hide", !needUnlock);
   $("connectBtn").classList.toggle("hide", fileReady);
