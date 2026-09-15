@@ -334,28 +334,25 @@
     <div id="anaArea"><div class="logempty">Noch keine Daten.</div></div>
   </div>
 
-  <div class="loghead">
-    <h2>🏅 Urkunden drucken</h2>
+  <div class="loghead" data-nurlehrer><h2>🏅 Urkunden drucken</h2>
     <div class="smallbtns"><button class="ghost" id="printBtn">🖨️ Ausgewählte drucken</button></div>
   </div>
-  <div class="card" style="padding:14px 18px">
-    <div class="sub" style="margin:0 0 10px">Wähle aus, wofür du eine Urkunde drucken möchtest (2 pro A4-Seite).</div>
+  <div class="card" data-nurlehrer style="padding:14px 18px"><div class="sub" style="margin:0 0 10px">Wähle aus, wofür du eine Urkunde drucken möchtest (2 pro A4-Seite).</div>
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px;color:var(--text)"><input type="checkbox" id="certAll"> <span>Alle auswählen</span></label>
     <div id="certArea"><div class="logempty">Noch hat kein Kind bestanden.</div></div>
   </div>
 
-  <div class="loghead">
-    <h2>📋 Archiv (alle Durchgänge)</h2>
+  <div class="loghead" data-nurlehrer><h2>📋 Archiv (alle Durchgänge)</h2>
     <div class="smallbtns"><button class="ghost" id="exportBtn">CSV export</button><button class="ghost" id="clearBtn">Löschen</button></div>
   </div>
-  <div class="card" style="padding:14px 18px"><div id="logArea"><div class="logempty">Noch keine Durchgänge.</div></div></div>
+  <div class="card" data-nurlehrer style="padding:14px 18px"><div id="logArea"><div class="logempty">Noch keine Durchgänge.</div></div></div>
 
   <div class="savebanner">
     <div class="sbtext" id="saveStatus">Speicherung wird geprüft …</div>
     <div class="sbbtns"></div>
   </div>
 
-  <footer class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a data-impressum>Impressum</a></footer>
+  <footer class="credit"><span id="rolleHinweis" class="hide">👩‍🏫 Lehrer-Modus · </span>Entwickelt von <strong>@P.Svyetnyenko</strong> · <a data-impressum>Impressum</a> · <a id="rolleBtn">🔑 Lehrer</a></footer>
 </div>
 
 <!-- ============ STARTSEITE ============ -->
@@ -449,7 +446,7 @@ $("splashIntro").innerHTML=OP.intro;
 $("impProgramm").textContent=OP.programm;
 
 //// ===== Home / Menü =====
-$("name").addEventListener("change", ()=>{ $("name").value=capName($("name").value); });
+$("name").addEventListener("change", ()=>{ $("name").value=capName($("name").value); $("name").dispatchEvent(new Event("input")); if(!istLehrer) cloudSubscribe(); });
 $("name").addEventListener("input", ()=>{
   playerName=capName($("name").value);
   const ok=!!playerName;
@@ -739,44 +736,79 @@ function loadFromLocal(){ try{ return normalize(JSON.parse(localStorage.getItem(
 function saveToLocal(){ try{ localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); return true; }catch(e){ return false; } }
 
 //// ===== Online-Archiv (Firebase Firestore, Rechenzentrum Frankfurt) =====
-// Diese Version speichert jedes Ergebnis zusätzlich in einer gemeinsamen Online-Datenbank.
-// Alle PCs und Tablets sehen dieselben Daten. Ohne Internet wird lokal gesammelt und
-// automatisch nachgesendet (Firestore-Offline-Warteschlange).
+// Jedes Ergebnis wird zusätzlich in einer gemeinsamen Online-Datenbank gespeichert.
+// Ohne Internet wird lokal gesammelt und automatisch nachgesendet.
 const CLOUD = {
   app: "minus",
   key: "HL-GH7G-3T7W-N5S5-BV3C",
   config: { apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" }
 };
-let db=null, cloudOk=false, cloudErr="", pending=false, cloudCount=0;
+let db=null, cloudOk=false, cloudErr="", pending=false, cloudCount=0, unsubErg=null;
 let fileReady=false, archivPin=null, pinDirty=false, unsaved=false;
 
-// stabile Dokument-ID aus Datum|Zeit|Name|Modus|Prozent -> derselbe Durchgang wird nie doppelt angelegt
+//// ===== Rollen: Gast (Kind/Eltern) und Lehrer =====
+// Gast sieht ausschließlich die eigenen Daten – Ergebnisse anderer Kinder werden
+// gar nicht erst aus der Datenbank geladen. Lehrer-Modus wird per PIN freigeschaltet.
+let istLehrer=false;
+try{ istLehrer = localStorage.getItem("mathe_lehrer")==="1"; }catch(e){}
+
+function applyRolle(){
+  document.querySelectorAll("[data-nurlehrer]").forEach(el=>el.classList.toggle("hide", !istLehrer));
+  const b=$("rolleBtn");
+  if(b) b.textContent = istLehrer ? "👩‍🏫 Lehrer-Modus beenden" : "🔑 Lehrer";
+  const h=$("rolleHinweis");
+  if(h) h.classList.toggle("hide", !istLehrer);
+}
+function setRolle(lehrer){
+  istLehrer=!!lehrer;
+  try{ localStorage.setItem("mathe_lehrer", istLehrer?"1":"0"); }catch(e){}
+  applyRolle(); cloudSubscribe(); renderAll(); renderSaveState();
+}
+
+// stabile Dokument-ID -> derselbe Durchgang wird nie doppelt angelegt
 function docId(e){ return CLOUD.app+"_"+keyOf(e).replace(/\//g,"_").slice(0,300); }
 
 function cloudInit(){
+  applyRolle();
   if(typeof firebase==="undefined"){ cloudErr="Firebase-SDK nicht geladen"; renderSaveState(); return; }
   try{
     firebase.initializeApp(CLOUD.config);
     db=firebase.firestore();
     db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
-    // Live-Verbindung: alle Ergebnisse dieser App
-    db.collection("ergebnisse").where("key","==",CLOUD.key).where("app","==",CLOUD.app)
-      .onSnapshot({includeMetadataChanges:true}, snap=>{
-        const rows=[], ids=new Set();
-        snap.forEach(d=>{ const x=d.data(); delete x.key; delete x.app; delete x._cloud; rows.push(x); ids.add(d.id); });
-        cloudOk=true; cloudErr=""; cloudCount=rows.length; pending=snap.metadata.hasPendingWrites;
-        mergeIn(rows);
-        LOG.forEach(e=>{ if(ids.has(docId(e))) e._cloud=true; });
-        if(!pending) unsaved=false;
-        saveToLocal(); renderAll(); renderSaveState();
-        cloudPushMissing();
-      }, err=>{ cloudOk=false; cloudErr=err.code||String(err); renderSaveState(); });
+    cloudSubscribe();
     db.collection("einstellungen").doc("pin").onSnapshot(d=>{
       if(d.exists && !pinDirty){ const p=d.data().pin; if(/^\d{4}$/.test(String(p))) archivPin=String(p); }
     }, ()=>{});
   }catch(e){ cloudOk=false; cloudErr=String(e); renderSaveState(); }
 }
+
+// Verbindung zur Datenbank: Lehrer = alle Kinder, Gast = nur das eigene Kind
+function cloudSubscribe(){
+  if(!db) return;
+  if(unsubErg){ try{ unsubErg(); }catch(e){} unsubErg=null; }
+  let q=db.collection("ergebnisse").where("key","==",CLOUD.key).where("app","==",CLOUD.app);
+  if(!istLehrer){
+    LOG=LOG.filter(e=>e.name===playerName);
+    if(!playerName){ cloudOk=true; cloudCount=0; saveToLocal(); renderAll(); renderSaveState(); return; }
+    q=q.where("name","==",playerName);
+  }
+  unsubErg=q.onSnapshot({includeMetadataChanges:true}, snap=>{
+    const rows=[], ids=new Set();
+    snap.forEach(d=>{ const x=d.data(); delete x.key; delete x.app; delete x._cloud; rows.push(x); ids.add(d.id); });
+    cloudOk=true; cloudErr=""; cloudCount=rows.length; pending=snap.metadata.hasPendingWrites;
+    // Die Cloud ist die Wahrheit: gelöschte Einträge verschwinden auch hier,
+    // noch nicht gesendete Ergebnisse dieses Geräts bleiben erhalten.
+    const nochNichtGesendet=LOG.filter(e=>!e._cloud && !ids.has(docId(e)));
+    LOG=[];
+    mergeIn(rows.concat(nochNichtGesendet));
+    LOG.forEach(e=>{ if(ids.has(docId(e))) e._cloud=true; });
+    if(!pending) unsaved=false;
+    saveToLocal(); renderAll(); renderSaveState();
+    cloudPushMissing();
+  }, err=>{ cloudOk=false; cloudErr=err.code||String(err); renderSaveState(); });
+}
+
 // Ergebnis in die Cloud schreiben (auch offline: wird automatisch nachgesendet)
 function cloudPush(e){
   if(!db || !e) return;
@@ -786,7 +818,6 @@ function cloudPush(e){
     .then(()=>{ e._cloud=true; saveToLocal(); })
     .catch(err=>{ cloudErr=err.code||String(err); unsaved=true; renderSaveState(); });
 }
-// lokale Einträge, die noch nicht online sind (z. B. aus der Datei-Version importiert)
 function cloudPushMissing(){ LOG.filter(e=>!e._cloud).slice(0,200).forEach(cloudPush); }
 async function cloudDeleteAll(){
   if(!db) return;
@@ -795,6 +826,14 @@ async function cloudDeleteAll(){
   for(let i=0;i<docs.length;i+=400){ const b=db.batch(); docs.slice(i,i+400).forEach(d=>b.delete(d.ref)); await b.commit(); }
 }
 async function persist(){ saveToLocal(); renderSaveState(); }
+
+// Lehrer-Modus per PIN betreten / verlassen
+if($("rolleBtn")) $("rolleBtn").addEventListener("click", async()=>{
+  if(istLehrer){ setRolle(false); return; }
+  if(await requirePin(true)) setRolle(true);
+});
+// Gast: beim Namenswechsel neu verbinden, damit nur die eigenen Daten geladen werden
+["modeTest","modeTrain"].forEach(id=>{ const b=$(id); if(b) b.addEventListener("click", ()=>{ if(!istLehrer && playerName) cloudSubscribe(); }); });
 
 function saveEntry(extra){
   const now=new Date(), pad=n=>String(n).padStart(2,"0");
@@ -1103,10 +1142,11 @@ function renderSaveState(){
   const t=$("saveStatus"), n=LOG.length;
   ["unlockBtn","connectBtn","newBtn"].forEach(id=>{ const b=$(id); if(b) b.classList.add("hide"); });
   const online = navigator.onLine !== false;
+  const wer = istLehrer ? "alle Kinder der Klasse" : (playerName ? "dein Kind" : "noch kein Name eingegeben");
   let cls, html;
   if(cloudOk && !cloudErr){
     cls="ok";
-    html=`☁️ Online-Archiv aktiv – alle Ergebnisse werden automatisch in der Cloud gespeichert (Frankfurt).<small>${n} Einträge · gemeinsam für alle PCs und Tablets${pending ? " · ⏳ wird gerade gesendet" : ""}</small>`;
+    html=`☁️ Online-Archiv aktiv – Ergebnisse werden automatisch gespeichert (Rechenzentrum Frankfurt).<small>${n} Einträge · ${wer}${pending ? " · ⏳ wird gerade gesendet" : ""}</small>`;
   }else if(!online){
     cls="warn";
     html=`📴 Offline – Ergebnisse werden auf diesem Gerät gesammelt und automatisch gesendet, sobald wieder Internet da ist.<small>${n} Einträge lokal</small>`;
@@ -1120,7 +1160,7 @@ function renderSaveState(){
   t.className="sbtext "+cls; t.innerHTML=html;
   const ss=$("splashSave");
   ss.className="splashsave "+(cloudOk ? "ok" : "warn");
-  ss.innerHTML = cloudOk ? `☁️ Online-Archiv verbunden – ${n} Einträge` : (online ? "☁️ Online-Archiv wird verbunden …" : "📴 Offline – Ergebnisse werden später gesendet");
+  ss.innerHTML = cloudOk ? `☁️ Online-Archiv verbunden${istLehrer ? " · 👩‍🏫 Lehrer-Modus" : ""}` : (online ? "☁️ Online-Archiv wird verbunden …" : "📴 Offline – Ergebnisse werden später gesendet");
   const tw=$("topWarn"), showTop = !!cloudErr && online;
   tw.classList.toggle("hide", !showTop);
   if(showTop) tw.innerHTML=`⚠️ Online-Archiv nicht erreichbar – Ergebnisse werden auf diesem Gerät gesammelt.`;
@@ -1169,6 +1209,7 @@ $("impOverlay").addEventListener("click",e=>{ if(e.target===$("impOverlay")) $("
     $("splash").classList.add("hide");
     const l=$("menuLink"); l.classList.remove("hide"); l.href="index.html#name="+encodeURIComponent(n);
   }
+  if(!istLehrer) cloudSubscribe();   // Gast: nur die eigenen Daten laden
 })();
 </script>
 </body>
