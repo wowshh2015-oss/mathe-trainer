@@ -830,6 +830,11 @@ async function persist(){ saveToLocal(); renderSaveState(); }
 // Lehrer-Modus per PIN betreten / verlassen
 if($("rolleBtn")) $("rolleBtn").addEventListener("click", async()=>{
   if(istLehrer){ setRolle(false); return; }
+  // Ohne Verbindung ist die richtige PIN nicht bekannt -> Lehrer-Modus gesperrt
+  if(!cloudOk || !archivPin){
+    alert("Keine Verbindung zum Online-Archiv.\n\nDer Lehrer-Modus ist erst möglich, wenn die Verbindung steht. Bitte Internet prüfen und die Seite neu laden.\n\nHinweis: In der Titelzeile muss ☁️ stehen – sonst ist die Adresse ohne /online/ geöffnet.");
+    return;
+  }
   if(await requirePin(true)) setRolle(true);
 });
 // Gast: beim Namenswechsel neu verbinden, damit nur die eigenen Daten geladen werden
