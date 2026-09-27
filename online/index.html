@@ -26,12 +26,13 @@
   .chip:hover{border-color:#38bdf8;background:rgba(56,189,248,.12)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;transition:.2s}
   .grid.dis{opacity:.4;pointer-events:none}
+  a.tile.wide{grid-column:1 / -1}
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
   .tile .ic{font-size:48px;line-height:1}
   .tile .t{font-size:22px;font-weight:800;margin-top:10px}
   .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
-  .t1{--ac:#38bdf8;--soft:rgba(56,189,248,.10)}.t2{--ac:#a78bfa;--soft:rgba(167,139,250,.10)}.t3{--ac:#34d399;--soft:rgba(52,211,153,.10)}.t4{--ac:#fb923c;--soft:rgba(251,146,60,.10)}
+  .t1{--ac:#38bdf8;--soft:rgba(56,189,248,.10)}.t2{--ac:#a78bfa;--soft:rgba(167,139,250,.10)}.t3{--ac:#34d399;--soft:rgba(52,211,153,.10)}.t4{--ac:#fb923c;--soft:rgba(251,146,60,.10)}.t5{--ac:#f472b6;--soft:rgba(244,114,182,.10)}
   .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
   .credit{margin-top:18px;color:var(--muted);font-size:13px}
   .credit strong{color:#38bdf8}
@@ -55,6 +56,7 @@
     <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
     <a class="tile t3" data-page="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
+    <a class="tile t5 wide" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">Zahlen zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong></p>
@@ -62,7 +64,7 @@
 
 <script>
 const $=id=>document.getElementById(id);
-const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1"];
+const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
 // bekannte Namen aus allen vier Trainern (gleicher Browser)
