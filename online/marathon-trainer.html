@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rechen-Marathon">
+<title>Rechen-Marathon</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#f59e0b; --accent2:#d97706;
+    --good:#22c55e; --bad:#ef4444; --gold:#fbbf24;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#3a2a12 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px}
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:18px;font-weight:700;
+    padding:15px 20px;color:#3a2a02;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .backbtn:hover{color:var(--text)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips .lbl{color:var(--muted);font-size:12px;width:100%}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .chip:hover{border-color:var(--accent)}
+
+  /* Hochhaus */
+  .turm{position:relative;background:linear-gradient(180deg,#0b1a34 0%,#0b1220 70%);border-radius:16px;
+    padding:14px 12px;overflow:hidden;border:1px solid var(--card2)}
+  .etagen{display:flex;flex-direction:column;gap:6px}
+  .etage{position:relative;height:46px;border-radius:10px;background:#131c2f;border:1px solid #27324a;
+    display:flex;align-items:center;gap:10px;padding:0 10px 0 52px;transition:.35s}
+  .etage .nr{position:absolute;left:10px;width:32px;text-align:center;font-size:14px;font-weight:800;color:var(--muted)}
+  .fenster{display:flex;gap:7px}
+  .fenster i{width:17px;height:19px;border-radius:3px;background:#1d2840;border:1px solid #2b3550}
+  .etage.done{background:#1a2439;border-color:#3b4668}
+  .etage.done .fenster i{background:var(--gold);border-color:#f8d878;box-shadow:0 0 10px rgba(251,191,36,.55)}
+  .etage.done .nr{color:var(--gold)}
+  .etage.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,158,11,.25)}
+  .etage.safe::after{content:"🔒";position:absolute;right:10px;font-size:14px;opacity:.85}
+  .etage.dach{height:26px;background:transparent;border:none}
+  .boden{height:34px;border-radius:0 0 10px 10px;background:#243149;border:1px solid #33415c;
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);margin-top:6px}
+  .figur{position:absolute;left:14px;width:34px;height:40px;transition:bottom .9s cubic-bezier(.34,1.3,.64,1);z-index:3}
+  .wolke{position:absolute;right:14px;font-size:20px;opacity:.5}
+
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .etagenbadge{font-size:34px;font-weight:800;line-height:1}
+  .etagenbadge small{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
+  .herzen{font-size:26px;letter-spacing:3px}
+  .herzen .weg{opacity:.25;filter:grayscale(1)}
+  .fortschritt{display:flex;gap:5px;margin:0 0 18px}
+  .fortschritt i{flex:1;height:8px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px}
+  .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
+  .antwortzeile{display:flex;gap:12px}
+  .antwortzeile input{flex:1;font-size:30px;text-align:center}
+  .rueck{height:28px;text-align:center;font-size:18px;font-weight:700;margin-top:14px}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.5}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  .stufe{display:inline-block;background:rgba(245,158,11,.14);color:#fcd34d;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🏢 Rechen-Marathon</h1>
+  <p class="sub">Klettere Etage für Etage – 10 richtige Aufgaben pro Stockwerk.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
+
+    <div id="turmBox" class="hide" style="margin-top:18px">
+      <div class="kopf">
+        <div class="etagenbadge" id="etageGross">1. Stock<small id="etageStufe"></small></div>
+        <div style="text-align:right"><div class="stufe" id="naechsteSafe"></div></div>
+      </div>
+      <div class="turm" id="turm"></div>
+      <button class="full" id="startBtn" style="margin-top:16px">Etage starten ▶</button>
+      <div class="info" style="margin-top:14px">❤️❤️❤️ Pro Etage hast du <b>3 Herzen</b>. Jede falsche Antwort kostet ein Herz.
+        Sind alle Herzen weg, probierst du dieselbe Etage noch einmal – <b>geschaffte Etagen verlierst du nie</b>.</div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <!-- ===== SPIEL ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf">
+      <div><span class="stufe" id="spielEtage">Etage 1</span></div>
+      <div class="herzen" id="herzen"></div>
+    </div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="frage" id="frage">7 + 8</div>
+    <div class="antwortzeile">
+      <input type="text" id="antwort" inputmode="numeric" autocomplete="off" placeholder="?">
+      <button id="okBtn">OK</button>
+    </div>
+    <div class="rueck" id="rueck"></div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div class="turm" id="turm2"></div>
+    <div class="info" id="ergText" style="margin-top:14px"></div>
+    <div class="btnrow">
+      <button id="weiterBtn"></button>
+      <button class="ghost" id="endeBtn">🏠 Menü</button>
+    </div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+//// ===== Verbindung =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="marathon", PRO_ETAGE=10, HERZEN=3, SAFE=5;   // jede 5. Etage ist Sicherheitsetage
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+
+let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false;
+let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], startZeit=0;
+
+//// ===== Etagen-Plan =====
+const PLAN=[
+  {bis:3,   typen:["plus20ohne","minus20ohne"],                          label:"Plus & Minus bis 20"},
+  {bis:6,   typen:["plus20","minus20","zerlegen20"],                     label:"bis 20 mit Übergang & Zerlegen"},
+  {bis:10,  typen:["plus100","minus100"],                                label:"Plus & Minus bis 100"},
+  {bis:15,  typen:["plus100","minus100","zerlegen100"],                  label:"bis 100 gemischt"},
+  {bis:20,  typen:["mal"],                                               label:"Einmaleins"},
+  {bis:25,  typen:["mal","geteilt"],                                     label:"Einmaleins & Einsdurcheins"},
+  {bis:30,  typen:["plus100","minus100","mal","geteilt"],                label:"alles gemischt"},
+  {bis:9999,typen:["plus1000","minus1000","mal","geteilt","zerlegen100"],label:"Bonus-Etagen"}
+];
+function planFuer(e){ return PLAN.find(p=>e<=p.bis) || PLAN[PLAN.length-1]; }
+function istSafe(e){ return e%SAFE===0; }
+function letzteSafe(e){ return Math.floor((e-1)/SAFE)*SAFE; }
+
+//// ===== Aufgaben =====
+function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+function carries(a,b){ while(a>0||b>0){ if(a%10+b%10>=10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+function borrows(a,b){ while(b>0){ if(a%10<b%10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+const BOX='<span class="blank">?</span>';
+
+function mkPlus(zr,ueb){
+  for(let i=0;i<500;i++){
+    const a=rnd(1,zr-1), b=rnd(1,zr-1);
+    if(a+b>zr) continue;
+    const c=carries(a,b);
+    if(ueb==="ohne"&&c) continue;
+    if(ueb==="mit"&&!c) continue;
+    return {html:`${a} + ${b}`, text:`${a} + ${b}`, antwort:a+b, key:Math.min(a,b)+"+"+Math.max(a,b)};
+  }
+  return {html:"1 + 1", text:"1 + 1", antwort:2, key:"1+1"};
+}
+function mkMinus(zr,ueb){
+  for(let i=0;i<500;i++){
+    const a=rnd(2,zr), b=rnd(1,a-1);
+    const c=borrows(a,b);
+    if(ueb==="ohne"&&c) continue;
+    if(ueb==="mit"&&!c) continue;
+    return {html:`${a} − ${b}`, text:`${a} − ${b}`, antwort:a-b, key:a+"−"+b};
+  }
+  return {html:"2 − 1", text:"2 − 1", antwort:1, key:"2−1"};
+}
+function mkMal(){ const a=rnd(1,10), b=rnd(1,10);
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:Math.min(a,b)+"×"+Math.max(a,b)}; }
+function mkGeteilt(){ const a=rnd(1,10), b=rnd(1,10);
+  return {html:`${a*b} ÷ ${b}`, text:`${a*b} ÷ ${b}`, antwort:a, key:(a*b)+"÷"+b}; }
+function mkZerlegen(zr){
+  if(zr===20){
+    const z=rnd(11,20), t=rnd(Math.max(1,z-10), Math.min(10,z-1)), f=Math.random()<0.5;
+    return {html: f?`${t} + ${BOX} = ${z}`:`${z} = ${t} + ${BOX}`, text:`${z} = ${t} + ?`, antwort:z-t, key:z+"="+t};
+  }
+  for(let i=0;i<60;i++){ const a=rnd(11,99); if(a%10===0) continue;
+    const z=Math.random()<0.3?100:Math.ceil(a/10)*10;
+    return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a}; }
+  return {html:`67 + ${BOX} = 70`, text:"70 = 67 + ?", antwort:3, key:"70=67"};
+}
+function mkTyp(typ){
+  switch(typ){
+    case "plus20ohne":  return mkPlus(20,"ohne");
+    case "minus20ohne": return mkMinus(20,"ohne");
+    case "plus20":      return mkPlus(20,"mit");
+    case "minus20":     return mkMinus(20,"mit");
+    case "plus100":     return mkPlus(100,"egal");
+    case "minus100":    return mkMinus(100,"egal");
+    case "plus1000":    return mkPlus(1000,"egal");
+    case "minus1000":   return mkMinus(1000,"egal");
+    case "mal":         return mkMal();
+    case "geteilt":     return mkGeteilt();
+    case "zerlegen20":  return mkZerlegen(20);
+    case "zerlegen100": return mkZerlegen(100);
+  }
+  return mkPlus(20,"ohne");
+}
+function baueAufgaben(e){
+  const typen=planFuer(e).typen, q=[], seen=new Set();
+  let guard=0;
+  while(q.length<PRO_ETAGE+6 && guard++<800){
+    const t=mkTyp(typen[Math.floor(Math.random()*typen.length)]);
+    if(seen.has(t.key)) continue;
+    seen.add(t.key); q.push(t);
+  }
+  while(q.length<PRO_ETAGE+6) q.push(mkTyp(typen[0]));
+  return q;
+}
+
+//// ===== Hochhaus zeichnen =====
+function figurSVG(){
+  return `<svg viewBox="0 0 34 40" width="34" height="40" aria-hidden="true">
+    <circle cx="17" cy="9" r="6" fill="#4ade80"/>
+    <path d="M17 15 L17 30" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
+    <path d="M17 18 L8 9 M17 18 L26 9" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
+    <path d="M17 29 L11 39 M17 29 L23 39" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/></svg>`;
+}
+const EH=52;   // Höhe einer Etage inkl. Abstand
+function zeichneTurm(box, aktuell, hoechste, animZiel){
+  const von=Math.max(1, aktuell-5), bis=von+8;
+  let html='<div class="etagen">';
+  for(let e=bis;e>=von;e--){
+    const done=e<=hoechste, cur=e===aktuell;
+    html+=`<div class="etage${done?" done":""}${cur?" cur":""}${istSafe(e)?" safe":""}">
+      <span class="nr">${e}</span><div class="fenster"><i></i><i></i><i></i></div></div>`;
+  }
+  html+='</div><div class="boden">Erdgeschoss</div>';
+  html+=`<div class="figur" id="${box.id}Figur" style="bottom:${40 + (animZiel!==undefined?animZiel:aktuell-von)*EH}px">${figurSVG()}</div>`;
+  if(bis>=30) html+='<div class="wolke" style="top:10px">☁️</div>';
+  box.innerHTML=html;
+  box._von=von;
+  return von;
+}
+function figurNach(box, etageNr){
+  const f=$(box.id+"Figur");
+  if(f) f.style.bottom = (40 + (etageNr-box._von)*EH) + "px";
+}
+
+//// ===== Zustand =====
+function hoechsteGeschafft(){
+  return MEINE.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m, +e.etage||0), 0);
+}
+function zeigeStart(){
+  const hoch=hoechsteGeschafft();
+  etage=hoch+1;
+  $("etageGross").innerHTML=`${etage}. Stock<small>${planFuer(etage).label}</small>`;
+  const naechste=istSafe(etage)?etage:(Math.floor(etage/SAFE)+1)*SAFE;
+  $("naechsteSafe").textContent=`🔒 Sicherheitsetage: ${letzteSafe(etage)||"–"} · nächste: ${naechste}`;
+  $("startBtn").textContent=`Etage ${etage} starten ▶`;
+  zeichneTurm($("turm"), etage, hoch);
+  $("turmBox").classList.remove("hide");
+}
+function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); }
+
+//// ===== Spiel =====
+$("startBtn").addEventListener("click", ()=>{
+  aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN;
+  fehlerListe=[]; gestellt=[]; falsch=[]; startZeit=Date.now();
+  $("spielEtage").textContent=`Etage ${etage} · ${planFuer(etage).label}`;
+  zeige("spiel"); naechsteAufgabe();
+});
+function zeichneHerzen(){
+  let h=""; for(let i=0;i<HERZEN;i++) h+=`<span class="${i<herzen?"":"weg"}">❤️</span>`;
+  $("herzen").innerHTML=h;
+}
+function zeichneFortschritt(){
+  let h=""; for(let i=0;i<PRO_ETAGE;i++) h+=`<i class="${i<richtig?"ok":""}"></i>`;
+  $("fortschritt").innerHTML=h;
+}
+function naechsteAufgabe(){
+  if(richtig>=PRO_ETAGE){ fertig(true); return; }
+  if(herzen<=0){ fertig(false); return; }
+  const a=aufgaben[idx % aufgaben.length];
+  $("frage").innerHTML=a.html;
+  zeichneHerzen(); zeichneFortschritt();
+  $("rueck").textContent="";
+  $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
+  $("antwort").focus();
+}
+$("okBtn").addEventListener("click", pruefe);
+$("antwort").addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
+function pruefe(){
+  if($("antwort").disabled) return;
+  const a=aufgaben[idx % aufgaben.length];
+  const gegeben=parseInt($("antwort").value,10);
+  const ok = gegeben===a.antwort;
+  $("antwort").disabled=true; $("okBtn").disabled=true;
+  gestellt.push(a.key);
+  const r=$("rueck");
+  if(ok){
+    richtig++;
+    r.style.color="var(--good)"; r.textContent="Richtig! 👍";
+  }else{
+    herzen--; falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`);
+    r.style.color="var(--bad)"; r.textContent=`Falsch! ${a.text} = ${a.antwort}`;
+  }
+  zeichneHerzen(); zeichneFortschritt();
+  idx++;
+  setTimeout(naechsteAufgabe, ok?700:1500);
+}
+
+//// ===== Etage fertig =====
+function fertig(geschafft){
+  const hochVorher=hoechsteGeschafft();
+  const dauer=Math.round((Date.now()-startZeit)/1000);
+  speichere(geschafft, dauer);
+  zeige("ergebnis");
+  const neuHoch = geschafft ? Math.max(hochVorher, etage) : hochVorher;
+  let ziel=etage, text="";
+  if(geschafft){
+    $("ergTitel").innerHTML=`🎉 Etage ${etage} geschafft!`;
+    text = istSafe(etage)
+      ? `<b>🔒 Sicherheitsetage erreicht!</b> Unter Etage ${etage} kannst du nicht mehr fallen. Weiter geht es mit <b>${planFuer(etage+1).label}</b>.`
+      : `Stark! Nächste Sicherheitsetage: <b>${(Math.floor(etage/SAFE)+1)*SAFE}</b>. Weiter mit <b>${planFuer(etage+1).label}</b>.`;
+    $("weiterBtn").textContent=`Etage ${etage+1} starten ▶`;
+    $("weiterBtn").onclick=()=>{ etage=etage+1; $("startBtn").click(); };
+  }else{
+    $("ergTitel").innerHTML=`💪 Fast geschafft – ${richtig} von ${PRO_ETAGE}`;
+    text = `Alle Herzen weg – du bleibst auf Etage <b>${etage}</b> und probierst sie noch einmal. Deine geschafften Etagen bleiben dir erhalten!`;
+    if(fehlerListe.length) text += `<br><br><b>Diese Aufgaben üben:</b><br>${fehlerListe.join(" &nbsp;·&nbsp; ")}`;
+    $("weiterBtn").textContent=`Etage ${ziel} nochmal ▶`;
+    $("weiterBtn").onclick=()=>{ etage=ziel; $("startBtn").click(); };
+  }
+  $("ergText").innerHTML=text;
+  zeichneTurm($("turm2"), geschafft?etage:ziel, neuHoch, geschafft?etage-1:undefined);
+  if(geschafft){
+    setTimeout(()=>{ figurNach($("turm2"), etage); konfetti(); }, 350);
+  }
+}
+$("endeBtn").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
+
+//// ===== Speichern =====
+function speichere(geschafft, dauer){
+  const n=new Date(), p=x=>String(x).padStart(2,"0");
+  const eintrag={
+    key:KEY, app:APP, name:playerName,
+    datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`,
+    zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
+    modus:"Marathon", etage:etage, stufe:planFuer(etage).label,
+    richtig:richtig, falsch:falsch.length,
+    prozent: gestellt.length ? Math.round(richtig/gestellt.length*100) : 0,
+    bestanden: geschafft?"Ja":"Nein", dauer:dauer,
+    gestellt:gestellt.slice(), fehler:falsch.slice()
+  };
+  MEINE.push(eintrag);
+  if(!db) return;
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${etage}_${Date.now()%100000}`.replace(/[\/\s]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+
+//// ===== Namen =====
+$("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
+$("name").addEventListener("change", ()=>{
+  $("name").value=capName($("name").value); playerName=$("name").value;
+  try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){}
+  verbindeKind();
+});
+function chipsZeigen(namen){
+  const box=$("nameChips");
+  if(!namen.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+namen.map(n=>`<span class="chip">${esc(n)}</span>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+    $("name").value=c.textContent; $("name").dispatchEvent(new Event("change"));
+  }));
+}
+
+//// ===== Cloud =====
+function verbindeKind(){
+  if(!db || !playerName){ return; }
+  if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+  unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName)
+    .onSnapshot(snap=>{
+      MEINE=[]; snap.forEach(d=>MEINE.push(d.data()));
+      cloudOk=true;
+      $("status").textContent=`☁️ Verbunden · ${MEINE.length} Etagen-Versuche gespeichert`;
+      if(!$("spiel").classList.contains("hide")) return;
+      zeigeStart();
+    }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeStart(); });
+}
+(function init(){
+  try{
+    firebase.initializeApp(CONF);
+    db=firebase.firestore();
+    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
+      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
+      chipsZeigen(namen);
+    }).catch(()=>{});
+  }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ $("name").value=capName(n); playerName=capName(n); $("menuLink").href="index.html#name="+encodeURIComponent(playerName); setTimeout(verbindeKind, 400); }
+  else $("name").focus();
+})();
+
+//// ===== Konfetti =====
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d");
+  const re=()=>{ c.width=innerWidth; c.height=innerHeight; }; re(); addEventListener("resize",re);
+  const col=["#f59e0b","#22c55e","#38bdf8","#ef4444","#a855f7","#fbbf24"], ps=[];
+  for(let i=0;i<150;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,
+    c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const end=Date.now()+3500;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr; if(p.y>c.height+20){p.y=-20;p.x=Math.random()*c.width;}
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore(); });
+    if(Date.now()<end) requestAnimationFrame(f); else { removeEventListener("resize",re); c.remove(); }
+  })();
+}
+</script>
+</body>
+</html>

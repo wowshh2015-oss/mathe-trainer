@@ -55,6 +55,29 @@
   .scroll{overflow-x:auto}
   .hide{display:none!important}
   .status{font-size:13px;color:var(--muted);margin-top:4px}
+  /* Hochhaus der Klasse */
+  .hh{background:linear-gradient(180deg,#0b1a34 0%,#0b1220 70%);border-radius:14px;border:1px solid var(--card2);
+    padding:12px;display:flex;flex-direction:column;gap:5px}
+  .hhEtage{display:flex;align-items:center;gap:10px;min-height:42px;border-radius:9px;background:#131c2f;
+    border:1px solid #27324a;padding:4px 10px 4px 46px;position:relative}
+  .hhEtage.done{background:#1a2439;border-color:#3b4668}
+  .hhEtage.safe{border-color:rgba(251,191,36,.45)}
+  .hhEtage .nr{position:absolute;left:8px;width:30px;text-align:center;font-weight:800;font-size:14px;color:var(--muted)}
+  .hhEtage.done .nr{color:#fbbf24}
+  .hhKinder{display:flex;flex-wrap:wrap;gap:6px}
+  .kind{display:inline-flex;align-items:center;gap:5px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.4);
+    color:#bbf7d0;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700}
+  .kind svg{width:16px;height:19px;flex:none}
+  .hhLeer{color:var(--muted);font-size:13px}
+  body.beamer .card:not(#hochhausCard), body.beamer h1, body.beamer .sub, body.beamer .credit{display:none!important}
+  body.beamer{padding:10px}
+  body.beamer .app{max-width:1600px}
+  body.beamer .hhEtage{min-height:58px;font-size:18px}
+  body.beamer .kind{font-size:20px;padding:6px 16px 6px 8px}
+  body.beamer .kind svg{width:22px;height:26px}
+  body.beamer .hhEtage .nr{font-size:20px;width:40px}
+  body.beamer .hhEtage{padding-left:58px}
+  body.beamer h2{font-size:26px}
   /* PIN */
   .overlay{position:fixed;inset:0;background:rgba(2,6,23,.85);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px}
   .modal{background:var(--card);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow)}
@@ -104,6 +127,14 @@
     <div id="inaktiv"></div>
   </div>
 
+  <div class="card" id="hochhausCard">
+    <h2>🏢 Hochhaus der Klasse <small>Rechen-Marathon · wer steht wo?</small>
+      <span style="flex:1"></span>
+      <button class="ghost noprint" id="beamerBtn">🔍 Vollbild für den Beamer</button>
+    </h2>
+    <div id="hochhaus"></div>
+  </div>
+
   <div class="card noprint">
     <h2>✏️ Namen zusammenführen <small>wenn dasselbe Kind verschieden geschrieben wurde</small></h2>
     <div class="chips" id="vorschlaege" style="margin-bottom:12px"></div>
@@ -146,6 +177,7 @@ const CONFIG={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mat
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
 const SUPER_PIN="4785";
 const APPS={
+  marathon:     {label:"Marathon",      ic:"🏢"},
   einmaleins:   {label:"Einmaleins",    ic:"✖️"},
   einsdurcheins:{label:"Einsdurcheins", ic:"➗"},
   plus:         {label:"Plus",          ic:"➕"},
@@ -160,6 +192,7 @@ let db=null, ALLE=[], pin=null, tage=0, entsperrt=false;
 
 //// ===== Bezeichnungen je Programm =====
 function uebungLabel(e){
+  if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -235,6 +268,7 @@ function render(){
         : '<div class="empty ok">🎉 Alle bekannten Kinder haben in diesem Zeitraum geübt.</div>')
     : '<div class="empty">Noch keine Daten.</div>';
 
+  renderHochhaus();
   fuelleNamen();
 
   // Filter füllen
@@ -259,6 +293,39 @@ function render(){
         }).join("") + "</tbody></table>"
     : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
 }
+
+//// ===== Hochhaus der Klasse (Rechen-Marathon) =====
+function figurSVG(){
+  return `<svg viewBox="0 0 34 40" aria-hidden="true">
+    <circle cx="17" cy="9" r="6" fill="#4ade80"/>
+    <path d="M17 15 L17 30" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
+    <path d="M17 18 L8 9 M17 18 L26 9" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
+    <path d="M17 29 L11 39 M17 29 L23 39" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/></svg>`;
+}
+function renderHochhaus(){
+  const m=ALLE.filter(e=>e.app==="marathon" && e.bestanden==="Ja");
+  const box=$("hochhaus");
+  if(!m.length){ box.innerHTML='<div class="hhLeer">Noch niemand hat den Rechen-Marathon gespielt.</div>'; return; }
+  const stand={};
+  m.forEach(e=>{ const n=e.name, et=+e.etage||0; if(!stand[n]||et>stand[n]) stand[n]=et; });
+  const kinder=Object.entries(stand);                       // [name, etage]
+  const max=Math.max(...kinder.map(k=>k[1]));
+  const oben=Math.max(max, 5);
+  let html='<div class="hh">';
+  for(let e=oben;e>=1;e--){
+    const hier=kinder.filter(k=>k[1]===e).sort((a,b)=>a[0].localeCompare(b[0],"de"));
+    html+=`<div class="hhEtage${hier.length?" done":""}${e%5===0?" safe":""}"><span class="nr">${e}</span>
+      <div class="hhKinder">${hier.map(k=>`<span class="kind">${figurSVG()}${esc(k[0])}</span>`).join("")}</div></div>`;
+  }
+  html+='</div>';
+  const summe=kinder.length;
+  html+=`<div class="status">${summe} Kind${summe===1?"":"er"} im Marathon · höchste Etage: <b>${max}</b> · 🔒 Sicherheitsetagen sind gelb umrandet</div>`;
+  box.innerHTML=html;
+}
+$("beamerBtn").addEventListener("click", ()=>{
+  document.body.classList.toggle("beamer");
+  $("beamerBtn").textContent = document.body.classList.contains("beamer") ? "✖ Vollbild beenden" : "🔍 Vollbild für den Beamer";
+});
 
 //// ===== Namen zusammenführen =====
 // Vorschläge: "Aian Silo" -> "Aian",  "Noura Amara" -> "Noura"
