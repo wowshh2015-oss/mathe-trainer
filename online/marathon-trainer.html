@@ -41,25 +41,59 @@
   .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
   .chip:hover{border-color:var(--accent)}
 
-  /* Hochhaus */
-  .turm{position:relative;background:linear-gradient(180deg,#0b1a34 0%,#0b1220 70%);border-radius:16px;
-    padding:14px 12px;overflow:hidden;border:1px solid var(--card2)}
+  /* ===== Das Haus ===== */
+  .turm{position:relative;border-radius:16px;overflow:hidden;border:1px solid #23304a;
+    background:linear-gradient(180deg,#081228 0%,#13233f 55%,#24405e 100%)}
+  .himmel{position:absolute;inset:0;z-index:0;
+    background-image:radial-gradient(1.6px 1.6px at 12% 8%,#fff,transparent),radial-gradient(1.4px 1.4px at 28% 16%,#fff,transparent),
+      radial-gradient(1.8px 1.8px at 62% 6%,#fff,transparent),radial-gradient(1.3px 1.3px at 82% 14%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 44% 22%,#fff,transparent),radial-gradient(1.2px 1.2px at 91% 27%,#fff,transparent);
+    opacity:.75}
+  .mond{position:absolute;right:26px;top:16px;width:34px;height:34px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#fff8dc,#f6d97a);box-shadow:0 0 26px rgba(250,220,130,.45)}
+  .wolke{position:absolute;font-size:26px;opacity:.35;animation:zieh 26s linear infinite}
+  .wolke.w2{font-size:20px;opacity:.25;animation-duration:40s;animation-delay:-12s}
+  @keyframes zieh{ from{transform:translateX(-90px)} to{transform:translateX(420px)} }
+
+  .dach{position:relative;z-index:2;height:56px;margin:26px 8px 0;
+    background:linear-gradient(180deg,#8b3a2f,#5f251d);clip-path:polygon(50% 0,100% 100%,0 100%)}
+  .schornstein{position:absolute;right:23%;top:26px;width:18px;height:44px;border-radius:3px 3px 0 0;
+    background:linear-gradient(180deg,#9a4437,#6b2a20);border:1px solid #4a1d16;z-index:1}
+  .schornstein i{position:absolute;left:2px;top:-10px;width:11px;height:11px;border-radius:50%;
+    background:rgba(226,232,240,.45);animation:rauch 3.4s ease-in infinite;opacity:0}
+  .schornstein i:nth-child(2){animation-delay:1.1s}
+  .schornstein i:nth-child(3){animation-delay:2.2s}
+  @keyframes rauch{ 0%{opacity:0;transform:translate(0,0) scale(.5)} 25%{opacity:.7}
+    100%{opacity:0;transform:translate(14px,-34px) scale(1.7)} }
+
+  .wand{position:relative;z-index:2;margin:0 8px;padding:8px 10px;
+    background:linear-gradient(180deg,#31425f,#26354d);border-left:3px solid #3d5175;border-right:3px solid #1d2941}
   .etagen{display:flex;flex-direction:column;gap:6px}
-  .etage{position:relative;height:46px;border-radius:10px;background:#131c2f;border:1px solid #27324a;
-    display:flex;align-items:center;gap:10px;padding:0 10px 0 52px;transition:.35s}
-  .etage .nr{position:absolute;left:10px;width:32px;text-align:center;font-size:14px;font-weight:800;color:var(--muted)}
-  .fenster{display:flex;gap:7px}
-  .fenster i{width:17px;height:19px;border-radius:3px;background:#1d2840;border:1px solid #2b3550}
-  .etage.done{background:#1a2439;border-color:#3b4668}
-  .etage.done .fenster i{background:var(--gold);border-color:#f8d878;box-shadow:0 0 10px rgba(251,191,36,.55)}
+  .etage{position:relative;height:46px;display:flex;align-items:center;gap:10px;padding:0 34px 0 54px;
+    border-bottom:2px solid rgba(15,23,42,.35);transition:.35s}
+  .etage .nr{position:absolute;left:14px;width:30px;text-align:center;font-size:13px;font-weight:800;color:#8fa3c4}
+  .fenster{display:flex;gap:9px}
+  .fenster i{position:relative;width:20px;height:23px;border-radius:3px;background:#1a2640;border:2px solid #455f88}
+  .fenster i::before,.fenster i::after{content:"";position:absolute;background:#455f88}
+  .fenster i::before{left:50%;top:0;bottom:0;width:2px;margin-left:-1px}
+  .fenster i::after{top:50%;left:0;right:0;height:2px;margin-top:-1px}
+  .etage.done .fenster i{background:var(--gold);border-color:#f3cf6a;box-shadow:0 0 12px rgba(251,191,36,.6)}
+  .etage.done .fenster i::before,.etage.done .fenster i::after{background:#b57f16}
   .etage.done .nr{color:var(--gold)}
-  .etage.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,158,11,.25)}
-  .etage.safe::after{content:"🔒";position:absolute;right:10px;font-size:14px;opacity:.85}
-  .etage.dach{height:26px;background:transparent;border:none}
-  .boden{height:34px;border-radius:0 0 10px 10px;background:#243149;border:1px solid #33415c;
-    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);margin-top:6px}
-  .figur{position:absolute;left:14px;width:34px;height:40px;transition:bottom .9s cubic-bezier(.34,1.3,.64,1);z-index:3}
-  .wolke{position:absolute;right:14px;font-size:20px;opacity:.5}
+  .etage.cur{background:rgba(245,158,11,.10);border-radius:8px}
+  .etage.cur .nr{color:var(--accent)}
+  .etage.pruef::after{content:"🏅";position:absolute;right:8px;font-size:15px;opacity:.45}
+  .etage.pruef.done::after{opacity:1}
+  .etage.pruef{box-shadow:inset 0 0 0 2px rgba(251,191,36,.35);border-radius:8px}
+
+  .erde{position:relative;z-index:2;height:46px;margin:0 0 0 0;
+    background:linear-gradient(180deg,#2f6b3a 0%,#245730 55%,#1c4526 100%);
+    border-top:3px solid #3c8a4a;display:flex;align-items:flex-end;justify-content:center}
+  .tuer{width:30px;height:34px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#8b5a2b,#6b431f);
+    border:2px solid #a06a35;border-bottom:none;position:relative}
+  .tuer::after{content:"";position:absolute;right:5px;top:15px;width:4px;height:4px;border-radius:50%;background:#f8d878}
+  .figur{position:absolute;left:2px;width:28px;height:33px;z-index:4;
+    transition:bottom .9s cubic-bezier(.34,1.3,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
 
   .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .etagenbadge{font-size:34px;font-weight:800;line-height:1}
@@ -104,7 +138,8 @@
       <div class="turm" id="turm"></div>
       <button class="full" id="startBtn" style="margin-top:16px">Etage starten ▶</button>
       <div class="info" style="margin-top:14px">❤️❤️❤️ Pro Etage hast du <b>3 Herzen</b>. Jede falsche Antwort kostet ein Herz.
-        Sind alle Herzen weg, probierst du dieselbe Etage noch einmal – <b>geschaffte Etagen verlierst du nie</b>.</div>
+        Sind alle Herzen weg, probierst du dieselbe Etage noch einmal – <b>geschaffte Etagen verlierst du nie</b>.<br>
+        🏅 Jede <b>5. Etage ist eine Prüfung</b>: Dort kommen Aufgaben aus allen bisherigen Etagen – dafür gibt es eine Medaille.</div>
       <div class="status" id="status">Verbinde …</div>
     </div>
   </div>
@@ -145,7 +180,7 @@
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
              projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
-const APP="marathon", PRO_ETAGE=10, HERZEN=3, SAFE=5;   // jede 5. Etage ist Sicherheitsetage
+const APP="marathon", PRO_ETAGE=10, HERZEN=3, PRUEF=5;   // jede 5. Etage ist Prüfungsetage 🏅
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
@@ -165,8 +200,17 @@ const PLAN=[
   {bis:9999,typen:["plus1000","minus1000","mal","geteilt","zerlegen100"],label:"Bonus-Etagen"}
 ];
 function planFuer(e){ return PLAN.find(p=>e<=p.bis) || PLAN[PLAN.length-1]; }
-function istSafe(e){ return e%SAFE===0; }
-function letzteSafe(e){ return Math.floor((e-1)/SAFE)*SAFE; }
+function istPruefung(e){ return e%PRUEF===0; }
+function naechstePruefung(e){ return (Math.floor((e-1)/PRUEF)+1)*PRUEF; }
+function medaillen(hoechste){ return Math.floor(hoechste/PRUEF); }
+// Prüfungsetage: Aufgaben aus ALLEN bisherigen Etagen – sonst nur die aktuelle Stufe
+function typenFuer(e){
+  if(!istPruefung(e)) return planFuer(e).typen;
+  const i=PLAN.indexOf(planFuer(e)), set=new Set();
+  PLAN.slice(0,i+1).forEach(p=>p.typen.forEach(t=>set.add(t)));
+  return [...set];
+}
+function stufenText(e){ return istPruefung(e) ? "🏅 Prüfung: alles bisher Gelernte" : planFuer(e).label; }
 
 //// ===== Aufgaben =====
 function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
@@ -227,7 +271,7 @@ function mkTyp(typ){
   return mkPlus(20,"ohne");
 }
 function baueAufgaben(e){
-  const typen=planFuer(e).typen, q=[], seen=new Set();
+  const typen=typenFuer(e), q=[], seen=new Set();
   let guard=0;
   while(q.length<PRO_ETAGE+6 && guard++<800){
     const t=mkTyp(typen[Math.floor(Math.random()*typen.length)]);
@@ -240,31 +284,38 @@ function baueAufgaben(e){
 
 //// ===== Hochhaus zeichnen =====
 function figurSVG(){
-  return `<svg viewBox="0 0 34 40" width="34" height="40" aria-hidden="true">
+  return `<svg viewBox="0 0 34 40" width="100%" height="100%" aria-hidden="true">
     <circle cx="17" cy="9" r="6" fill="#4ade80"/>
     <path d="M17 15 L17 30" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
     <path d="M17 18 L8 9 M17 18 L26 9" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
     <path d="M17 29 L11 39 M17 29 L23 39" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/></svg>`;
 }
-const EH=52;   // Höhe einer Etage inkl. Abstand
-function zeichneTurm(box, aktuell, hoechste, animZiel){
+const EH=52, ERD=46;   // Etagenhöhe inkl. Abstand · Höhe des Erdbodens
+function figurBottom(pos){ return ERD + pos*EH + 6; }
+function zeichneTurm(box, aktuell, hoechste, animVon){
   const von=Math.max(1, aktuell-5), bis=von+8;
-  let html='<div class="etagen">';
+  let f='';
   for(let e=bis;e>=von;e--){
     const done=e<=hoechste, cur=e===aktuell;
-    html+=`<div class="etage${done?" done":""}${cur?" cur":""}${istSafe(e)?" safe":""}">
+    f+=`<div class="etage${done?" done":""}${cur?" cur":""}${istPruefung(e)?" pruef":""}">
       <span class="nr">${e}</span><div class="fenster"><i></i><i></i><i></i></div></div>`;
   }
-  html+='</div><div class="boden">Erdgeschoss</div>';
-  html+=`<div class="figur" id="${box.id}Figur" style="bottom:${40 + (animZiel!==undefined?animZiel:aktuell-von)*EH}px">${figurSVG()}</div>`;
-  if(bis>=30) html+='<div class="wolke" style="top:10px">☁️</div>';
-  box.innerHTML=html;
+  const start = (animVon!==undefined?animVon:aktuell) - von;
+  box.innerHTML=
+    `<div class="himmel"><div class="mond"></div>
+       <div class="wolke" style="top:34px;left:-40px">☁️</div>
+       <div class="wolke w2" style="top:86px;left:-60px">☁️</div></div>
+     <div class="schornstein"><i></i><i></i><i></i></div>
+     <div class="dach"></div>
+     <div class="wand"><div class="etagen">${f}</div></div>
+     <div class="erde"><div class="tuer"></div></div>
+     <div class="figur" id="${box.id}Figur" style="bottom:${figurBottom(start)}px">${figurSVG()}</div>`;
   box._von=von;
   return von;
 }
 function figurNach(box, etageNr){
   const f=$(box.id+"Figur");
-  if(f) f.style.bottom = (40 + (etageNr-box._von)*EH) + "px";
+  if(f) f.style.bottom = figurBottom(etageNr-box._von) + "px";
 }
 
 //// ===== Zustand =====
@@ -274,9 +325,11 @@ function hoechsteGeschafft(){
 function zeigeStart(){
   const hoch=hoechsteGeschafft();
   etage=hoch+1;
-  $("etageGross").innerHTML=`${etage}. Stock<small>${planFuer(etage).label}</small>`;
-  const naechste=istSafe(etage)?etage:(Math.floor(etage/SAFE)+1)*SAFE;
-  $("naechsteSafe").textContent=`🔒 Sicherheitsetage: ${letzteSafe(etage)||"–"} · nächste: ${naechste}`;
+  $("etageGross").innerHTML=`${etage}. Stock<small>${stufenText(etage)}</small>`;
+  const m=medaillen(hoch);
+  $("naechsteSafe").innerHTML = istPruefung(etage)
+    ? `🏅 Jetzt: Prüfungsetage!${m?` · schon ${m}× 🏅`:""}`
+    : `🏅 Nächste Prüfung: Etage ${naechstePruefung(etage)}${m?` · schon ${m}× 🏅`:""}`;
   $("startBtn").textContent=`Etage ${etage} starten ▶`;
   zeichneTurm($("turm"), etage, hoch);
   $("turmBox").classList.remove("hide");
@@ -287,7 +340,7 @@ function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggl
 $("startBtn").addEventListener("click", ()=>{
   aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN;
   fehlerListe=[]; gestellt=[]; falsch=[]; startZeit=Date.now();
-  $("spielEtage").textContent=`Etage ${etage} · ${planFuer(etage).label}`;
+  $("spielEtage").textContent=`Etage ${etage} · ${stufenText(etage)}`;
   zeige("spiel"); naechsteAufgabe();
 });
 function zeichneHerzen(){
@@ -339,10 +392,10 @@ function fertig(geschafft){
   const neuHoch = geschafft ? Math.max(hochVorher, etage) : hochVorher;
   let ziel=etage, text="";
   if(geschafft){
-    $("ergTitel").innerHTML=`🎉 Etage ${etage} geschafft!`;
-    text = istSafe(etage)
-      ? `<b>🔒 Sicherheitsetage erreicht!</b> Unter Etage ${etage} kannst du nicht mehr fallen. Weiter geht es mit <b>${planFuer(etage+1).label}</b>.`
-      : `Stark! Nächste Sicherheitsetage: <b>${(Math.floor(etage/SAFE)+1)*SAFE}</b>. Weiter mit <b>${planFuer(etage+1).label}</b>.`;
+    $("ergTitel").innerHTML = istPruefung(etage) ? `🏅 Prüfung bestanden – Medaille verdient!` : `🎉 Etage ${etage} geschafft!`;
+    text = istPruefung(etage)
+      ? `Stark! Du hast Aufgaben aus <b>allen bisherigen Etagen</b> gelöst und deine <b>${medaillen(etage)}. Medaille</b> bekommen. Weiter geht es mit <b>${stufenText(etage+1)}</b>.`
+      : `Gut gemacht! Nächste Prüfungsetage mit Medaille: <b>Etage ${naechstePruefung(etage)}</b>. Weiter mit <b>${stufenText(etage+1)}</b>.`;
     $("weiterBtn").textContent=`Etage ${etage+1} starten ▶`;
     $("weiterBtn").onclick=()=>{ etage=etage+1; $("startBtn").click(); };
   }else{
@@ -367,7 +420,7 @@ function speichere(geschafft, dauer){
     key:KEY, app:APP, name:playerName,
     datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`,
     zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
-    modus:"Marathon", etage:etage, stufe:planFuer(etage).label,
+    modus:"Marathon", etage:etage, stufe:istPruefung(etage)?"Prüfungsetage":planFuer(etage).label,
     richtig:richtig, falsch:falsch.length,
     prozent: gestellt.length ? Math.round(richtig/gestellt.length*100) : 0,
     bestanden: geschafft?"Ja":"Nein", dauer:dauer,

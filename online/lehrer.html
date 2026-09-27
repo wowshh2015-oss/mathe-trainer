@@ -56,13 +56,28 @@
   .hide{display:none!important}
   .status{font-size:13px;color:var(--muted);margin-top:4px}
   /* Hochhaus der Klasse */
-  .hh{background:linear-gradient(180deg,#0b1a34 0%,#0b1220 70%);border-radius:14px;border:1px solid var(--card2);
-    padding:12px;display:flex;flex-direction:column;gap:5px}
-  .hhEtage{display:flex;align-items:center;gap:10px;min-height:42px;border-radius:9px;background:#131c2f;
-    border:1px solid #27324a;padding:4px 10px 4px 46px;position:relative}
-  .hhEtage.done{background:#1a2439;border-color:#3b4668}
-  .hhEtage.safe{border-color:rgba(251,191,36,.45)}
-  .hhEtage .nr{position:absolute;left:8px;width:30px;text-align:center;font-weight:800;font-size:14px;color:var(--muted)}
+  .hh{position:relative;border-radius:14px;border:1px solid #23304a;overflow:hidden;
+    background:linear-gradient(180deg,#081228 0%,#13233f 55%,#24405e 100%)}
+  .hhMond{position:absolute;right:26px;top:14px;width:30px;height:30px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#fff8dc,#f6d97a);box-shadow:0 0 24px rgba(250,220,130,.4)}
+  .hhSchorn{position:absolute;right:23%;top:22px;width:16px;height:40px;border-radius:3px 3px 0 0;
+    background:linear-gradient(180deg,#9a4437,#6b2a20);border:1px solid #4a1d16;z-index:1}
+  .hhDach{position:relative;z-index:2;height:50px;margin:22px 8px 0;
+    background:linear-gradient(180deg,#8b3a2f,#5f251d);clip-path:polygon(50% 0,100% 100%,0 100%)}
+  .hhWand{position:relative;z-index:2;margin:0 8px;padding:8px 10px;
+    background:linear-gradient(180deg,#31425f,#26354d);border-left:3px solid #3d5175;border-right:3px solid #1d2941;
+    display:flex;flex-direction:column;gap:4px}
+  .hhErde{position:relative;z-index:2;height:40px;background:linear-gradient(180deg,#2f6b3a,#1c4526);
+    border-top:3px solid #3c8a4a;display:flex;align-items:flex-end;justify-content:center}
+  .hhTuer{width:28px;height:30px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#8b5a2b,#6b431f);
+    border:2px solid #a06a35;border-bottom:none}
+  .hhEtage{display:flex;align-items:center;gap:10px;min-height:40px;padding:3px 34px 3px 42px;position:relative;
+    border-bottom:2px solid rgba(15,23,42,.35)}
+  .hhEtage.done{background:rgba(251,191,36,.07);border-radius:8px}
+  .hhEtage.safe{box-shadow:inset 0 0 0 2px rgba(251,191,36,.3);border-radius:8px}
+  .hhEtage.safe::after{content:"🏅";position:absolute;right:8px;font-size:15px;opacity:.5}
+  .hhEtage.safe.done::after{opacity:1}
+  .hhEtage .nr{position:absolute;left:6px;width:30px;text-align:center;font-weight:800;font-size:14px;color:#8fa3c4}
   .hhEtage.done .nr{color:#fbbf24}
   .hhKinder{display:flex;flex-wrap:wrap;gap:6px}
   .kind{display:inline-flex;align-items:center;gap:5px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.4);
@@ -311,15 +326,19 @@ function renderHochhaus(){
   const kinder=Object.entries(stand);                       // [name, etage]
   const max=Math.max(...kinder.map(k=>k[1]));
   const oben=Math.max(max, 5);
-  let html='<div class="hh">';
+  let etagen='';
   for(let e=oben;e>=1;e--){
     const hier=kinder.filter(k=>k[1]===e).sort((a,b)=>a[0].localeCompare(b[0],"de"));
-    html+=`<div class="hhEtage${hier.length?" done":""}${e%5===0?" safe":""}"><span class="nr">${e}</span>
-      <div class="hhKinder">${hier.map(k=>`<span class="kind">${figurSVG()}${esc(k[0])}</span>`).join("")}</div></div>`;
+    etagen+=`<div class="hhEtage${hier.length?" done":""}${e%5===0?" safe":""}"><span class="nr">${e}</span>
+      <div class="hhKinder">${hier.map(k=>{
+        const med=Math.floor(k[1]/5);
+        return `<span class="kind">${figurSVG()}${esc(k[0])}${med?` <span style="opacity:.9">🏅${med>1?"×"+med:""}</span>`:""}</span>`;
+      }).join("")}</div></div>`;
   }
-  html+='</div>';
+  let html=`<div class="hh"><div class="hhMond"></div><div class="hhSchorn"></div><div class="hhDach"></div>
+    <div class="hhWand">${etagen}</div><div class="hhErde"><div class="hhTuer"></div></div></div>`;
   const summe=kinder.length;
-  html+=`<div class="status">${summe} Kind${summe===1?"":"er"} im Marathon · höchste Etage: <b>${max}</b> · 🔒 Sicherheitsetagen sind gelb umrandet</div>`;
+  html+=`<div class="status">${summe} Kind${summe===1?"":"er"} im Marathon · höchste Etage: <b>${max}</b> · 🏅 jede 5. Etage ist eine Prüfungsetage mit Medaille</div>`;
   box.innerHTML=html;
 }
 $("beamerBtn").addEventListener("click", ()=>{
