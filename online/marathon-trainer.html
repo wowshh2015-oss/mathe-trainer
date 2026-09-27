@@ -69,11 +69,11 @@
   .wand{position:relative;z-index:2;margin:0 8px;padding:8px 10px;
     background:linear-gradient(180deg,#31425f,#26354d);border-left:3px solid #3d5175;border-right:3px solid #1d2941}
   .etagen{display:flex;flex-direction:column;gap:6px}
-  .etage{position:relative;height:46px;display:flex;align-items:center;gap:10px;padding:0 34px 0 54px;
+  .etage{position:relative;height:48px;display:flex;align-items:center;gap:10px;padding:0 30px 0 50px;
     border-bottom:2px solid rgba(15,23,42,.35);transition:.35s}
   .etage .nr{position:absolute;left:14px;width:30px;text-align:center;font-size:13px;font-weight:800;color:#8fa3c4}
-  .fenster{display:flex;gap:9px}
-  .fenster i{position:relative;width:20px;height:23px;border-radius:3px;background:#1a2640;border:2px solid #455f88}
+  .fenster{flex:1;display:flex;justify-content:space-evenly;align-items:center}
+  .fenster i{position:relative;width:28px;height:30px;border-radius:4px;background:#1a2640;border:2px solid #455f88}
   .fenster i::before,.fenster i::after{content:"";position:absolute;background:#455f88}
   .fenster i::before{left:50%;top:0;bottom:0;width:2px;margin-left:-1px}
   .fenster i::after{top:50%;left:0;right:0;height:2px;margin-top:-1px}
@@ -290,7 +290,7 @@ function figurSVG(){
     <path d="M17 18 L8 9 M17 18 L26 9" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
     <path d="M17 29 L11 39 M17 29 L23 39" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/></svg>`;
 }
-const EH=52, ERD=46;   // Etagenhöhe inkl. Abstand · Höhe des Erdbodens
+const EH=54, ERD=46;   // Etagenhöhe inkl. Abstand · Höhe des Erdbodens
 function figurBottom(pos){ return ERD + pos*EH + 6; }
 function zeichneTurm(box, aktuell, hoechste, animVon){
   const von=Math.max(1, aktuell-5), bis=von+8;
@@ -298,7 +298,7 @@ function zeichneTurm(box, aktuell, hoechste, animVon){
   for(let e=bis;e>=von;e--){
     const done=e<=hoechste, cur=e===aktuell;
     f+=`<div class="etage${done?" done":""}${cur?" cur":""}${istPruefung(e)?" pruef":""}">
-      <span class="nr">${e}</span><div class="fenster"><i></i><i></i><i></i></div></div>`;
+      <span class="nr">${e}</span><div class="fenster"><i></i><i></i><i></i><i></i></div></div>`;
   }
   const start = (animVon!==undefined?animVon:aktuell) - von;
   box.innerHTML=
