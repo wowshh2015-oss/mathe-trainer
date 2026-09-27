@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klassenübersicht">
+<title>Klassenübersicht · Mathe-Trainer</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --text:#f1f5f9; --muted:#94a3b8; --accent:#38bdf8;
+    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#1e3a5f 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;padding:24px;display:flex;justify-content:center}
+  .app{width:100%;max-width:1100px}
+  h1{font-size:28px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:15px}
+  .card{background:var(--card);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);
+    border:1px solid rgba(255,255,255,.05);margin-bottom:18px}
+  h2{font-size:18px;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h2 small{font-weight:400;color:var(--muted);font-size:13px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-size:15px;font-weight:700;
+    padding:10px 16px;color:#04141f;background:linear-gradient(180deg,var(--accent),#0ea5e9);transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.ghost.sel{border-color:var(--accent);background:rgba(56,189,248,.14);color:#7dd3fc}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  select{font-family:inherit;font-size:15px;padding:9px 12px;border-radius:10px;border:2px solid var(--card2);
+    background:#0b1220;color:var(--text);outline:none;cursor:pointer}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{background:#0b1220;border-radius:12px;padding:14px;text-align:center}
+  .tile .v{font-size:28px;font-weight:800}
+  .tile .k{font-size:12px;color:var(--muted);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--card2);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  td.nm{font-weight:700}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700}
+  .ok{color:#86efac}.no{color:#fca5a5}.mid{color:#fcd34d}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .chip.off{border-color:rgba(239,68,68,.5);color:#fca5a5;background:rgba(239,68,68,.08)}
+  .apps{display:inline-flex;gap:4px}
+  .empty{color:var(--muted);font-size:14px;padding:8px 0}
+  .scroll{overflow-x:auto}
+  .hide{display:none!important}
+  .status{font-size:13px;color:var(--muted);margin-top:4px}
+  /* PIN */
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.85);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px}
+  .modal{background:var(--card);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 6px;font-size:20px}
+  .modal p{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.5}
+  .pininput{width:100%;font-size:34px;letter-spacing:14px;text-align:center;padding:12px;border-radius:12px;
+    border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none;font-family:inherit}
+  .pinerr{color:#fca5a5;font-size:14px;font-weight:700;min-height:20px;margin:10px 0}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+  @media print{ body{background:#fff;color:#000;padding:0} .noprint{display:none!important}
+    .card{background:#fff;box-shadow:none;border:1px solid #ccc} th,td{border-color:#ccc} h1,h2{color:#000} }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📋 Klassenübersicht</h1>
+  <p class="sub" id="sub">Alle Trainer auf einen Blick · nur für die Lehrkraft</p>
+
+  <div class="card noprint">
+    <h2>🗓️ Zeitraum</h2>
+    <div class="row" id="zeitraum">
+      <button class="ghost sel" data-tage="0">Heute</button>
+      <button class="ghost" data-tage="1">Gestern</button>
+      <button class="ghost" data-tage="7">Letzte 7 Tage</button>
+      <button class="ghost" data-tage="30">Letzte 30 Tage</button>
+      <button class="ghost" data-tage="-1">Alles</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="druckBtn">🖨️ Drucken</button>
+      <button class="ghost" id="csvBtn">CSV</button>
+    </div>
+    <div class="status" id="status">Verbinde …</div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Überblick <small id="zeitLabel"></small></h2>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <div class="card">
+    <h2>✅ Wer hat geübt?</h2>
+    <div class="scroll"><div id="aktiv"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>❌ Noch nicht geübt <small>im gewählten Zeitraum</small></h2>
+    <div id="inaktiv"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Alle Durchgänge</h2>
+    <div class="row noprint" style="margin-bottom:12px">
+      <label style="color:var(--muted);font-size:14px">Kind:</label>
+      <select id="fKind"><option value="">alle</option></select>
+      <label style="color:var(--muted);font-size:14px">Programm:</label>
+      <select id="fApp"><option value="">alle</option></select>
+    </div>
+    <div class="scroll"><div id="liste"></div></div>
+  </div>
+
+  <footer class="credit noprint">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="index.html">← zum Mathe-Trainer</a></footer>
+</div>
+
+<div id="pinOverlay" class="overlay"><div class="modal" id="pinModal"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+//// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONFIG={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+               projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const SUPER_PIN="4785";
+const APPS={
+  einmaleins:   {label:"Einmaleins",    ic:"✖️"},
+  einsdurcheins:{label:"Einsdurcheins", ic:"➗"},
+  plus:         {label:"Plus",          ic:"➕"},
+  minus:        {label:"Minus",         ic:"➖"},
+  zerlegen:     {label:"Zerlegen",      ic:"🧩"}
+};
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+
+let db=null, ALLE=[], pin=null, tage=0, entsperrt=false;
+
+//// ===== Bezeichnungen je Programm =====
+function uebungLabel(e){
+  if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
+  const r=String(e.reihe||"");
+  if(r==="mine") return "Meine Aufgaben";
+  if(e.app==="einmaleins")    return r==="mix"?"Gemischt":r==="kern"?"Kernaufgaben":r+"er-Reihe";
+  if(e.app==="einsdurcheins") return r==="mix"?"Gemischt":r==="kern"?"Kernaufgaben":"÷ "+r;
+  const [zr,typ]=r.split("-");
+  if(e.app==="zerlegen"){
+    const T={zerlegen:"Zerlegen",partner:"Partner zur 10",zehner:"Zehner & Einer",voll:"Voller Zehner",mix:"gemischt"};
+    return `bis ${zr} · ${T[typ]||typ||"–"}`;
+  }
+  return `bis ${zr} · ${typ==="mix"?"gemischt":typ?typ+" Übergang":"–"}`;
+}
+function ts(e){ const p=(e.datum||"").split("."); return (p[2]||"")+(p[1]||"")+(p[0]||"")+(e.zeit||"").replace(":",""); }
+function tagVon(e){ const p=(e.datum||"").split("."); return new Date(+p[2],(+p[1])-1,+p[0]); }
+function heute(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+
+//// ===== Zeitraum =====
+function imZeitraum(e){
+  if(tage<0) return true;
+  const d=tagVon(e), h=heute();
+  if(tage===0) return d.getTime()===h.getTime();
+  if(tage===1){ const g=new Date(h); g.setDate(g.getDate()-1); return d.getTime()===g.getTime(); }
+  const ab=new Date(h); ab.setDate(ab.getDate()-(tage-1));
+  return d>=ab;
+}
+function zeitLabel(){ return {"0":"heute","1":"gestern","7":"letzte 7 Tage","30":"letzte 30 Tage","-1":"gesamter Zeitraum"}[String(tage)]; }
+
+//// ===== Anzeige =====
+function render(){
+  $("zeitLabel").textContent = "· " + zeitLabel();
+  const rows = ALLE.filter(imZeitraum).sort((a,b)=>ts(b).localeCompare(ts(a)));
+
+  // Überblick
+  const kinder = [...new Set(rows.map(e=>e.name))];
+  const aufgaben = rows.reduce((s,e)=>s+(e.richtig||0)+(e.falsch||0),0);
+  const proz = rows.length ? Math.round(rows.reduce((s,e)=>s+(e.prozent||0),0)/rows.length) : 0;
+  const tests = rows.filter(e=>e.modus==="Test");
+  const best = tests.filter(e=>e.bestanden==="Ja").length;
+  $("tiles").innerHTML =
+    `<div class="tile"><div class="v">${kinder.length}</div><div class="k">Kinder aktiv</div></div>
+     <div class="tile"><div class="v">${rows.length}</div><div class="k">Durchgänge</div></div>
+     <div class="tile"><div class="v">${aufgaben}</div><div class="k">gerechnete Aufgaben</div></div>
+     <div class="tile"><div class="v">${proz} %</div><div class="k">Ø richtig</div></div>
+     <div class="tile"><div class="v">${tests.length}</div><div class="k">Tests (${best}× bestanden)</div></div>`;
+
+  // Wer hat geübt?
+  const proKind={};
+  rows.forEach(e=>{
+    const k=e.name;
+    if(!proKind[k]) proKind[k]={name:k, n:0, apps:new Set(), summe:0, letzte:"", tests:0, best:0};
+    const m=proKind[k]; m.n++; m.apps.add(e.app); m.summe+=(e.prozent||0);
+    if(!m.letzte) m.letzte=`${e.datum} ${e.zeit}`;
+    if(e.modus==="Test"){ m.tests++; if(e.bestanden==="Ja") m.best++; }
+  });
+  const aktiv=Object.values(proKind).sort((a,b)=>b.n-a.n || a.name.localeCompare(b.name,"de"));
+  $("aktiv").innerHTML = aktiv.length
+    ? `<table><thead><tr><th>Name</th><th>Durchgänge</th><th>Programme</th><th>Ø richtig</th><th>Tests</th><th>zuletzt</th></tr></thead><tbody>`
+      + aktiv.map(m=>{
+          const d=Math.round(m.summe/m.n);
+          const cls=d>=90?"ok":d>=70?"mid":"no";
+          const icons=[...m.apps].map(a=>`<span title="${APPS[a]?APPS[a].label:a}">${APPS[a]?APPS[a].ic:"•"}</span>`).join(" ");
+          return `<tr><td class="nm">${esc(m.name)}</td><td>${m.n}×</td><td class="apps">${icons}</td>
+                  <td class="${cls}">${d} %</td><td>${m.tests?`${m.tests}× (${m.best} bestanden)`:"–"}</td><td>${m.letzte}</td></tr>`;
+        }).join("") + "</tbody></table>"
+    : '<div class="empty">In diesem Zeitraum hat noch niemand geübt.</div>';
+
+  // Noch nicht geübt
+  const alleKinder=[...new Set(ALLE.map(e=>e.name))].sort((a,b)=>a.localeCompare(b,"de"));
+  const fehlen=alleKinder.filter(n=>!proKind[n]);
+  $("inaktiv").innerHTML = alleKinder.length
+    ? (fehlen.length
+        ? `<div class="chips">${fehlen.map(n=>`<span class="chip off">${esc(n)}</span>`).join("")}</div>`
+        : '<div class="empty ok">🎉 Alle bekannten Kinder haben in diesem Zeitraum geübt.</div>')
+    : '<div class="empty">Noch keine Daten.</div>';
+
+  // Filter füllen
+  const fK=$("fKind"), fA=$("fApp"), kSel=fK.value, aSel=fA.value;
+  fK.innerHTML='<option value="">alle</option>'+alleKinder.map(n=>`<option${n===kSel?" selected":""}>${esc(n)}</option>`).join("");
+  const appsVorhanden=[...new Set(ALLE.map(e=>e.app))];
+  fA.innerHTML='<option value="">alle</option>'+appsVorhanden.map(a=>`<option value="${a}"${a===aSel?" selected":""}>${APPS[a]?APPS[a].label:a}</option>`).join("");
+
+  // Liste
+  const gefiltert=rows.filter(e=>(!kSel||e.name===kSel)&&(!aSel||e.app===aSel));
+  $("liste")._rows=gefiltert;
+  $("liste").innerHTML = gefiltert.length
+    ? `<table><thead><tr><th>Datum</th><th>Zeit</th><th>Name</th><th>Programm</th><th>Modus</th><th>Übung / Stufe</th><th>R</th><th>F</th><th>%</th><th>Ergebnis</th></tr></thead><tbody>`
+      + gefiltert.map(e=>{
+          const t=e.modus==="Test";
+          const cls=t?(e.bestanden==="Ja"?"ok":"no"):"";
+          const erg=t?(e.bestanden==="Ja"?"Bestanden":"offen"):"geübt";
+          return `<tr><td>${e.datum}</td><td>${e.zeit}</td><td class="nm">${esc(e.name)}</td>
+            <td>${APPS[e.app]?APPS[e.app].ic+" "+APPS[e.app].label:e.app}</td><td>${e.modus}</td>
+            <td>${esc(uebungLabel(e))}</td><td>${e.richtig}</td><td>${e.falsch}</td><td>${e.prozent} %</td>
+            <td class="${cls}">${erg}</td></tr>`;
+        }).join("") + "</tbody></table>"
+    : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
+}
+
+//// ===== Bedienung =====
+$("zeitraum").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-tage]"); if(!b) return;
+  tage=+b.dataset.tage;
+  $("zeitraum").querySelectorAll("button[data-tage]").forEach(x=>x.classList.toggle("sel", x===b));
+  render();
+});
+$("fKind").addEventListener("change", render);
+$("fApp").addEventListener("change", render);
+$("druckBtn").addEventListener("click", ()=>window.print());
+$("csvBtn").addEventListener("click", ()=>{
+  const rows=$("liste")._rows||[];
+  if(!rows.length){ alert("Keine Daten zum Exportieren."); return; }
+  const head=["Datum","Zeit","Name","Programm","Modus","Übung/Stufe","Richtig","Falsch","Prozent","Ergebnis"];
+  const csv=[head].concat(rows.map(e=>[e.datum,e.zeit,e.name,(APPS[e.app]?APPS[e.app].label:e.app),e.modus,
+      uebungLabel(e),e.richtig,e.falsch,e.prozent,(e.modus==="Test"?e.bestanden:"geübt")]))
+    .map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"}));
+  a.download="klassenuebersicht.csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+
+//// ===== PIN =====
+function pinDialog(o){
+  return new Promise(resolve=>{
+    const m=$("pinModal");
+    m.innerHTML=`<h3>${o.title}</h3><p>${o.text}</p>
+      <input class="pininput" id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+      <div class="pinerr" id="pinErr"></div>
+      <button id="pinOk">OK</button>
+      ${o.link?`<div style="margin-top:14px;font-size:13px"><a id="pinLink" style="color:var(--muted);cursor:pointer;text-decoration:underline">${o.link}</a></div>`:""}`;
+    $("pinOverlay").classList.remove("hide");
+    const inp=$("pinInput"); inp.focus();
+    inp.addEventListener("input",()=>{ inp.value=inp.value.replace(/\D/g,"").slice(0,4); });
+    $("pinOk").addEventListener("click",()=>{
+      const v=inp.value;
+      if(v.length!==4){ $("pinErr").textContent="Bitte 4 Ziffern eingeben."; return; }
+      const err=o.check(v);
+      if(err){ $("pinErr").textContent=err; inp.value=""; inp.focus(); return; }
+      resolve({value:v});
+    });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") $("pinOk").click(); });
+    if(o.link) $("pinLink").addEventListener("click",()=>resolve({link:true}));
+  });
+}
+async function entsperren(){
+  while(true){
+    const r=await pinDialog({ title:"🔒 Klassenübersicht", text:"Diese Seite ist nur für die Lehrkraft. Bitte die 4-stellige PIN eingeben.",
+      check:v=> v===pin ? null : "Falsche PIN.", link:"PIN vergessen?" });
+    if(r.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); return; }
+    const s=await pinDialog({ title:"🛟 Super-PIN", text:"Bitte die Super-PIN eingeben. Die PIN selbst kann in einem Trainer über „PIN ändern“ neu gesetzt werden.",
+      check:v=> v===SUPER_PIN ? null : "Falsche Super-PIN." });
+    if(s.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); return; }
+  }
+}
+
+//// ===== Start =====
+(function init(){
+  try{
+    firebase.initializeApp(CONFIG);
+    db=firebase.firestore();
+    db.collection("einstellungen").doc("pin").onSnapshot(d=>{
+      const p=d.exists?String((d.data()||{}).pin||""):"";
+      pin=/^\d{4}$/.test(p)?p:"0000";
+      if(!entsperrt && !$("pinModal").innerHTML) entsperren();
+    }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
+    db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
+      ALLE=[];
+      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); delete x.key; ALLE.push(x); });
+      const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
+      $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
+      if(entsperrt) render();
+    }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); });
+  }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+})();
+</script>
+</body>
+</html>
