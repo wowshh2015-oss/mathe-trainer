@@ -12,6 +12,7 @@ New-Item -ItemType Directory -Force (Join-Path $dst "online") | Out-Null
 foreach ($f in "index.html","logo.jpeg","einmaleins-trainer.html","einsdurcheins-trainer.html","plus-trainer.html","minus-trainer.html","zerlegen-trainer.html") {
   Copy-Item (Join-Path $src ("mathe-trainer-online\" + $f)) (Join-Path $dst ("online\" + $f)) -Force
 }
+Copy-Item (Join-Path $src "mathe-trainer-online\lehrer.html") (Join-Path $dst "online\lehrer.html") -Force
 Set-Location $dst
 git add -A
 git commit -m ("Update " + (Get-Date -Format "dd.MM.yyyy HH:mm")) 2>$null
