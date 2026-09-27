@@ -31,8 +31,12 @@
   button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
   button.ghost.sel{border-color:var(--accent);background:rgba(56,189,248,.14);color:#7dd3fc}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  select{font-family:inherit;font-size:15px;padding:9px 12px;border-radius:10px;border:2px solid var(--card2);
-    background:#0b1220;color:var(--text);outline:none;cursor:pointer}
+  select,input[type=text]{font-family:inherit;font-size:15px;padding:9px 12px;border-radius:10px;border:2px solid var(--card2);
+    background:#0b1220;color:var(--text);outline:none}
+  select{cursor:pointer}
+  input[type=text]:focus,select:focus{border-color:var(--accent)}
+  .chip.sug{cursor:pointer;border-color:rgba(56,189,248,.5);color:#7dd3fc;background:rgba(56,189,248,.08)}
+  .chip.sug:hover{border-color:var(--accent);background:rgba(56,189,248,.18)}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
   .tile{background:#0b1220;border-radius:12px;padding:14px;text-align:center}
   .tile .v{font-size:28px;font-weight:800}
@@ -98,6 +102,23 @@
   <div class="card">
     <h2>❌ Noch nicht geübt <small>im gewählten Zeitraum</small></h2>
     <div id="inaktiv"></div>
+  </div>
+
+  <div class="card noprint">
+    <h2>✏️ Namen zusammenführen <small>wenn dasselbe Kind verschieden geschrieben wurde</small></h2>
+    <div class="chips" id="vorschlaege" style="margin-bottom:12px"></div>
+    <div class="row">
+      <select id="mVon"></select>
+      <span style="color:var(--muted);font-size:20px">→</span>
+      <select id="mNach"></select>
+      <button id="mBtn">Zusammenführen</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label style="color:var(--muted);font-size:14px">oder umbenennen in:</label>
+      <input type="text" id="mNeu" placeholder="neuer Name" autocomplete="off">
+      <button class="ghost" id="mRename">Umbenennen</button>
+    </div>
+    <div class="status" id="mStatus">Alle Durchgänge des ausgewählten Namens werden übernommen – Statistik und Fehler-Analyse rechnen danach zusammen.</div>
   </div>
 
   <div class="card">
@@ -214,6 +235,8 @@ function render(){
         : '<div class="empty ok">🎉 Alle bekannten Kinder haben in diesem Zeitraum geübt.</div>')
     : '<div class="empty">Noch keine Daten.</div>';
 
+  fuelleNamen();
+
   // Filter füllen
   const fK=$("fKind"), fA=$("fApp"), kSel=fK.value, aSel=fA.value;
   fK.innerHTML='<option value="">alle</option>'+alleKinder.map(n=>`<option${n===kSel?" selected":""}>${esc(n)}</option>`).join("");
@@ -236,6 +259,53 @@ function render(){
         }).join("") + "</tbody></table>"
     : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
 }
+
+//// ===== Namen zusammenführen =====
+// Vorschläge: "Aian Silo" -> "Aian",  "Noura Amara" -> "Noura"
+function vorschlaege(){
+  const namen=[...new Set(ALLE.map(e=>e.name))], out=[];
+  namen.forEach(a=>namen.forEach(b=>{
+    if(a===b) return;
+    if(a.toLowerCase().startsWith(b.toLowerCase()+" ")) out.push([a,b]);
+  }));
+  return out;
+}
+function fuelleNamen(){
+  const namen=[...new Set(ALLE.map(e=>e.name))].sort((a,b)=>a.localeCompare(b,"de"));
+  ["mVon","mNach"].forEach(id=>{
+    const s=$(id), v=s.value;
+    s.innerHTML=namen.map(n=>`<option${n===v?" selected":""}>${esc(n)}</option>`).join("");
+  });
+  const vs=vorschlaege(), box=$("vorschlaege");
+  box.innerHTML = vs.length
+    ? '<span style="color:var(--muted);font-size:13px;width:100%">Vorschläge (anklicken):</span>'
+      + vs.map(p=>`<span class="chip sug" data-von="${esc(p[0])}" data-nach="${esc(p[1])}">${esc(p[0])} → ${esc(p[1])}</span>`).join("")
+    : '<span style="color:var(--muted);font-size:13px">Keine offensichtlichen Doppelungen gefunden.</span>';
+  box.querySelectorAll(".chip.sug").forEach(c=>c.addEventListener("click",()=>{
+    $("mVon").value=c.dataset.von; $("mNach").value=c.dataset.nach;
+    $("mStatus").textContent=`Bereit: „${c.dataset.von}" → „${c.dataset.nach}" – auf „Zusammenführen" klicken.`;
+  }));
+}
+async function umbenennen(von, nach){
+  von=String(von||"").trim(); nach=capName(nach);
+  if(!von || !nach){ alert("Bitte beide Namen auswählen."); return; }
+  if(von===nach){ alert("Die Namen sind identisch."); return; }
+  const treffer=ALLE.filter(e=>e.name===von && e._id);
+  if(!treffer.length){ alert(`Für „${von}" wurden keine Durchgänge gefunden.`); return; }
+  if(!confirm(`${treffer.length} Durchgänge von „${von}" zu „${nach}" übernehmen?\n\nDanach erscheint alles unter „${nach}".`)) return;
+  $("mStatus").textContent="Wird geändert …";
+  try{
+    for(let i=0;i<treffer.length;i+=400){
+      const b=db.batch();
+      treffer.slice(i,i+400).forEach(e=>b.update(db.collection("ergebnisse").doc(e._id),{name:nach}));
+      await b.commit();
+    }
+    $("mStatus").textContent=`✅ ${treffer.length} Durchgänge von „${von}" nach „${nach}" übernommen.`;
+    $("mNeu").value="";
+  }catch(err){ $("mStatus").textContent="⚠️ Fehler: "+(err.code||err); }
+}
+$("mBtn").addEventListener("click", ()=>umbenennen($("mVon").value, $("mNach").value));
+$("mRename").addEventListener("click", ()=>umbenennen($("mVon").value, $("mNeu").value));
 
 //// ===== Bedienung =====
 $("zeitraum").addEventListener("click", e=>{
@@ -306,7 +376,7 @@ async function entsperren(){
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
       ALLE=[];
-      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); delete x.key; ALLE.push(x); });
+      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; ALLE.push(x); });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
       if(entsperrt) render();
