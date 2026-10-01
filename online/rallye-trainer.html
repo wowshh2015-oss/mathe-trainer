@@ -84,19 +84,21 @@
     border-top:3px solid rgba(255,255,255,.22)}
   .bahn.auto   .strasse{background:linear-gradient(180deg,#434a58,#2d323c)}
   .bahn.pferd  .strasse{background:linear-gradient(180deg,#8a6a3c,#5f4826)}
-  .bahn.rakete .strasse{background:transparent;border-top:none}
+  .bahn.rakete .strasse{display:none}
   .mittellinie{position:absolute;left:0;right:-200px;top:28px;height:5px;z-index:2;
     background:repeating-linear-gradient(90deg,rgba(255,255,255,.75) 0 26px,transparent 26px 56px);
     animation:scroll-linie .5s linear infinite;animation-play-state:paused}
   .bahn.pferd .mittellinie{background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 14px,transparent 14px 48px)}
-  .bahn.rakete .mittellinie{top:auto;bottom:26px;height:3px;
-    background:repeating-linear-gradient(90deg,rgba(160,200,255,.55) 0 34px,transparent 34px 74px)}
+  .bahn.rakete .mittellinie{display:none}
   .fahrt .mittellinie{animation-play-state:running}
   @keyframes scroll-linie{ from{transform:translateX(0)} to{transform:translateX(-56px)} }
 
   .fahrzeug{position:absolute;bottom:22px;width:78px;height:44px;z-index:5;
     transition:left .75s cubic-bezier(.3,.9,.4,1);filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
   .bahn.pferd .fahrzeug{height:50px;bottom:20px}
+  .bahn.rakete .fahrzeug{bottom:72px}
+  .bahn.rakete .hindernis{bottom:66px}
+  .bahn.rakete .dekoreihe{gap:34px}
   .fahrzeug.wackel{animation:wackel .45s ease-in-out}
   @keyframes wackel{ 0%,100%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-7px) rotate(-5deg)}
     60%{transform:translateX(5px) rotate(4deg)} }
@@ -525,9 +527,14 @@ const DEKO={
   pferd: ["🌳","🌲","🐦","🏡","🌾","🐑"],
   rakete:["⭐","🪐","✨","☄️","🌙","🛰️"]
 };
+// Im Weltraum gibt es keinen Boden: die Objekte schweben verteilt über die ganze Höhe
+const RAUM_Y=[-8,-96,-44,-132,-66,-114,-22,-78,-140,-52,-104,-30];
+const RAUM_GR=[30,19,25,15,27,17,22,32,14,24,18,28];
 function bahnHTML(){
   const basis=(DEKO[welt]||DEKO.auto);
-  const deko=basis.concat(basis).map(d=>`<span>${d}</span>`).join("");
+  const deko=basis.concat(basis).map((d,i)=> welt==="rakete"
+    ? `<span style="transform:translateY(${RAUM_Y[i%RAUM_Y.length]}px);font-size:${RAUM_GR[i%RAUM_GR.length]}px">${d}</span>`
+    : `<span>${d}</span>`).join("");
   return `<div class="deko"><div class="dekoreihe">${deko}</div></div>
     <div class="strasse"><div class="mittellinie"></div></div>
     <div class="fahrzeug fz" style="left:6%">${fahrzeugSVG(fahrzeugId,farbe)}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
