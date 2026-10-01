@@ -329,100 +329,209 @@ function f1Offen(){ return rundenAuf(3)>=F1_RUNDEN || marathonEtage>=F1_ETAGE; }
 function streckeOffen(n){ return n<5 ? true : f1Offen(); }
 
 //// ===== Garage =====
-const FAHRZEUGE=[
-  {id:"a1", welt:"auto",   name:"Stadtflitzer",   ab:0},
-  {id:"a2", welt:"auto",   name:"Rallye-Wagen",   ab:15},
-  {id:"a3", welt:"auto",   name:"Formel-Flitzer", ab:40},
-  {id:"p1", welt:"pferd",  name:"Pony",           ab:0},
-  {id:"p2", welt:"pferd",  name:"Reitpferd",      ab:15},
-  {id:"p3", welt:"pferd",  name:"Springpferd",    ab:40},
-  {id:"r1", welt:"rakete", name:"Kleine Rakete",  ab:0},
-  {id:"r2", welt:"rakete", name:"Forschungsschiff",ab:15},
-  {id:"r3", welt:"rakete", name:"Sternenjäger",   ab:40}
-];
+// Alle 20 Runden ein neues Fahrzeug, dazwischen (bei 25, 45, 65 …) eine neue Farbe –
+// so wartet immer etwas Neues, auch nach hundert Runden.
+const STUFEN=[0,20,40,60,80,100,120,140,160,180];
+const AUTO_NAMEN  =["Käfer","Stadtflitzer","Familienbus","Geländewagen","Pick-up","Sportwagen","Cabrio","Rallye-Wagen","Formel-Wagen","Super-Formel"];
+const PFERD_NAMEN =["Pony","Fohlen","Reitpferd","Haflinger","Pferd mit Decke","Springpferd","Rennpferd","Ritterpferd","Einhorn","Pegasus"];
+const RAKETE_NAMEN=["Mini-Rakete","Forschungsschiff","Raumgleiter","Space-Shuttle","Frachter","Sternenjäger","Rennkapsel","Fliegende Untertasse","Sternenkreuzer","Komet"];
+const FAHRZEUGE=[];
+STUFEN.forEach((ab,i)=>{
+  FAHRZEUGE.push({id:"a"+(i+1), welt:"auto",   name:AUTO_NAMEN[i],   ab:ab});
+  FAHRZEUGE.push({id:"p"+(i+1), welt:"pferd",  name:PFERD_NAMEN[i],  ab:ab});
+  FAHRZEUGE.push({id:"r"+(i+1), welt:"rakete", name:RAKETE_NAMEN[i], ab:ab});
+});
 const FARBEN=[
-  {c:"#e23b3b", name:"Rot",    ab:0},
-  {c:"#3b82f6", name:"Blau",   ab:0},
-  {c:"#eab308", name:"Gelb",   ab:5},
-  {c:"#22c55e", name:"Grün",   ab:10},
-  {c:"#a855f7", name:"Lila",   ab:25},
-  {c:"#ec4899", name:"Pink",   ab:30},
-  {c:"#f1f5f9", name:"Weiß",   ab:55},
-  {c:"#1f2937", name:"Schwarz",ab:80}
+  {c:"#e23b3b", name:"Rot",     ab:0},
+  {c:"#3b82f6", name:"Blau",    ab:0},
+  {c:"#eab308", name:"Gelb",    ab:25},
+  {c:"#22c55e", name:"Grün",    ab:45},
+  {c:"#a855f7", name:"Lila",    ab:65},
+  {c:"#ec4899", name:"Pink",    ab:85},
+  {c:"#14b8a6", name:"Türkis",  ab:105},
+  {c:"#f97316", name:"Orange",  ab:125},
+  {c:"#f1f5f9", name:"Weiß",    ab:145},
+  {c:"#1f2937", name:"Schwarz", ab:165}
 ];
 const WELTEN=[
   {id:"auto",   ic:"🏎️", name:"Rennstrecke"},
   {id:"pferd",  ic:"🐴", name:"Reitweg"},
   {id:"rakete", ic:"🚀", name:"Weltraum"}
 ];
-const BOOST_AB=20;
+const BOOST_AB=30;
 function gesamtRunden(){ return MEINE.reduce((s,e)=>s+(+e.runden||0),0); }
 function rundenAuf(n){ return MEINE.filter(e=>+e.strecke===n).reduce((s,e)=>s+(+e.runden||0),0); }
 function boost(){ return gesamtRunden()>=BOOST_AB; }
 
 //// ===== Fahrzeug-Bilder =====
+const GLAS='#cde4ff', DUNKEL='#2f3542', LICHT='#fde68a', TECH='#64748b';
+function rad(x,y,r){ return `<circle cx="${x}" cy="${y}" r="${r}" fill="#15181f"/><circle cx="${x}" cy="${y}" r="${(r*0.4).toFixed(1)}" fill="#9aa3b2"/>`; }
 function svgAuto(id,c){
-  const raeder=`<circle cx="20" cy="31" r="7" fill="#15181f"/><circle cx="20" cy="31" r="2.8" fill="#9aa3b2"/>
-                <circle cx="56" cy="31" r="7" fill="#15181f"/><circle cx="56" cy="31" r="2.8" fill="#9aa3b2"/>`;
-  if(id==="a1") return `<svg viewBox="0 0 76 40">
-    <path d="M8 28 L12 15 Q14 10 21 10 L44 10 Q51 10 55 15 L64 19 Q70 21 70 27 L70 30 Q70 32 68 32 L10 32 Q8 32 8 30 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
-    <path d="M19 14 L30 14 L30 21 L15 21 Z" fill="#cde4ff" opacity=".9"/>
-    <path d="M34 14 L44 14 Q48 14 51 18 L34 21 Z" fill="#cde4ff" opacity=".9"/>${raeder}</svg>`;
-  if(id==="a2") return `<svg viewBox="0 0 76 40">
-    <path d="M6 27 L10 14 Q12 9 20 9 L48 9 Q55 9 59 14 L68 18 Q73 20 73 27 L73 31 Q73 33 71 33 L8 33 Q6 33 6 31 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
-    <path d="M18 13 L31 13 L31 20 L14 20 Z" fill="#cde4ff" opacity=".9"/>
-    <path d="M35 13 L47 13 Q51 13 55 18 L35 20 Z" fill="#cde4ff" opacity=".9"/>
-    <rect x="20" y="4" width="26" height="4" rx="2" fill="#2f3542"/>
-    <rect x="22" y="2" width="5" height="4" rx="1.5" fill="#fbbf24"/><rect x="31" y="2" width="5" height="4" rx="1.5" fill="#fbbf24"/>
-    ${raeder}</svg>`;
-  return `<svg viewBox="0 0 76 40">
-    <path d="M4 28 L58 28 Q66 28 70 24 L70 22 Q70 19 66 19 L44 19 L38 13 Q35 11 31 11 L24 11 Q20 11 19 15 L17 19 L8 20 Q4 21 4 25 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
-    <path d="M24 15 L33 15 L36 19 L22 19 Z" fill="#cde4ff" opacity=".9"/>
-    <rect x="2" y="12" width="12" height="4" rx="1.5" fill="#2f3542"/>
-    <rect x="62" y="10" width="11" height="4" rx="1.5" fill="#2f3542"/><rect x="66" y="13" width="3" height="7" fill="#2f3542"/>
-    <circle cx="19" cy="31" r="8" fill="#15181f"/><circle cx="19" cy="31" r="3" fill="#9aa3b2"/>
-    <circle cx="58" cy="30" r="9" fill="#15181f"/><circle cx="58" cy="30" r="3.4" fill="#9aa3b2"/></svg>`;
+  const n=+id.slice(1), S=s=>`<svg viewBox="0 0 76 40">${s}</svg>`;
+  const k=`stroke="#0007" stroke-width="1.4"`;
+  switch(n){
+    case 1: return S(`<path d="M7 30 Q7 16 20 11 Q34 6 47 11 Q62 17 69 26 L69 30 Z" fill="${c}" ${k}/>
+      <path d="M17 16 Q27 11 37 14 L37 21 L14 21 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M41 15 Q52 19 59 24 L41 22 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="66" cy="25" r="2.4" fill="${LICHT}"/>${rad(21,31,7)}${rad(56,31,7)}`);
+    case 2: return S(`<path d="M15 31 L15 15 Q15 11 20 11 L44 11 Q49 11 51 15 L57 21 Q62 22 62 26 L62 31 Z" fill="${c}" ${k}/>
+      <rect x="20" y="14.5" width="12" height="7.5" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <rect x="34.5" y="14.5" width="11" height="7.5" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <circle cx="59" cy="25" r="2.2" fill="${LICHT}"/>${rad(23,32,6.2)}${rad(54,32,6.2)}`);
+    case 3: return S(`<path d="M7 31 L7 13 Q7 10 11 10 L50 10 Q55 10 58 14 L65 21 Q69 22 69 26 L69 31 Z" fill="${c}" ${k}/>
+      <rect x="11" y="13.5" width="13" height="8" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <rect x="26" y="13.5" width="12" height="8" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <path d="M40 13.5 L50 13.5 Q53 13.5 56 17.5 L40 21.5 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="66" cy="25" r="2.2" fill="${LICHT}"/>${rad(20,32,6.2)}${rad(57,32,6.2)}`);
+    case 4: return S(`<rect x="18" y="4" width="30" height="3.5" rx="1.75" fill="${DUNKEL}"/>
+      <path d="M10 30 L10 12 Q10 8 15 8 L46 8 Q52 8 55 13 L63 19 Q69 20 69 25 L69 30 Z" fill="${c}" ${k}/>
+      <rect x="15" y="12" width="13" height="8" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <rect x="30" y="12" width="12" height="8" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <path d="M44 12 L46 12 Q50 12 53 16 L44 19 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="66" cy="24" r="2.4" fill="${LICHT}"/>${rad(21,31,8)}${rad(57,31,8)}`);
+    case 5: return S(`<path d="M8 30 L8 20 L34 20 L34 12 Q34 9 39 9 L50 9 Q55 9 58 13 L65 19 Q69 20 69 25 L69 30 Z" fill="${c}" ${k}/>
+      <path d="M8 20 L8 30 L32 30 L32 20 Z" fill="#0004"/>
+      <rect x="38" y="12.5" width="11" height="7.5" rx="1.5" fill="${GLAS}" opacity=".9"/>
+      <path d="M51 12.5 L51 12.5 Q55 13 57 17 L51 19 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="66" cy="24" r="2.2" fill="${LICHT}"/>${rad(19,31,7)}${rad(57,31,7)}`);
+    case 6: return S(`<path d="M5 29 Q5 24 11 23 L22 21 Q28 13 38 13 L49 13 Q57 14 63 21 L69 24 Q72 25 72 28 L72 30 Q72 31 70 31 L7 31 Q5 31 5 29 Z" fill="${c}" ${k}/>
+      <path d="M26 20 Q31 15 38 15 L46 15 Q51 16 55 20 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="68" cy="26" r="2.2" fill="${LICHT}"/>${rad(20,31,7)}${rad(57,31,7)}`);
+    case 7: return S(`<path d="M5 29 Q5 24 11 23 L22 21 L27 18 L50 18 Q59 19 64 23 L69 25 Q72 26 72 28.5 L72 30 Q72 31 70 31 L7 31 Q5 31 5 29 Z" fill="${c}" ${k}/>
+      <path d="M27 18 L50 18 L49 22 L28 22 Z" fill="#0006"/>
+      <path d="M31 18 Q33.5 13.5 36 18 Z M40 18 Q42.5 13.5 45 18 Z" fill="${DUNKEL}"/>
+      <path d="M50 18 L56 13 L58 18 Z" fill="${GLAS}" opacity=".9" stroke="#0005" stroke-width="1"/>
+      <circle cx="68" cy="26" r="2.2" fill="${LICHT}"/>${rad(20,31,7)}${rad(57,31,7)}`);
+    case 8: return S(`<rect x="8" y="12" width="15" height="4" rx="1.5" fill="${DUNKEL}"/>
+      <path d="M6 30 Q6 23 13 22 L23 20 Q29 12 39 12 L50 12 Q58 13 64 20 L70 23 Q73 24 73 28 L73 30 Z" fill="${c}" ${k}/>
+      <path d="M27 19 Q32 14.5 39 14.5 L47 14.5 Q52 15 56 19 Z" fill="${GLAS}" opacity=".9"/>
+      <circle cx="33" cy="25" r="4.5" fill="#fff" opacity=".92"/><text x="33" y="27.4" font-size="6.5" font-weight="800" text-anchor="middle" fill="#111">7</text>
+      <rect x="60" y="8" width="4" height="4" rx="1" fill="${LICHT}"/><rect x="65" y="8" width="4" height="4" rx="1" fill="${LICHT}"/>
+      <circle cx="69" cy="26" r="2.2" fill="${LICHT}"/>${rad(20,31,7.4)}${rad(57,31,7.4)}`);
+    case 9: return S(`<rect x="9.5" y="12" width="4" height="13" fill="${TECH}"/>
+      <rect x="2" y="9" width="19" height="4" rx="1.5" fill="${c}" ${k}/>
+      <path d="M10 29 L40 29 L58 27 L66 26 Q68 25.6 68 24.6 Q68 23.6 66 23.4 L44 21 L38 16 Q35 14 31 14 L26 14 Q22 14 21 18 L19 23 L12 24 Q10 24.6 10 26.6 Z" fill="${c}" ${k}/>
+      <path d="M25 18 L32 18 L34.5 21 L23 21 Z" fill="${GLAS}" opacity=".9"/>
+      <rect x="65.5" y="26" width="3" height="4" fill="${TECH}"/>
+      <rect x="60" y="29" width="15" height="4" rx="1.5" fill="${c}" ${k}/>
+      ${rad(19,30,8)}${rad(55,30,8)}`);
+    default: return S(`<rect x="9.5" y="10" width="4" height="15" fill="${TECH}"/>
+      <rect x="1" y="5" width="21" height="4" rx="1.5" fill="${c}" ${k}/>
+      <rect x="3" y="11" width="17" height="3.5" rx="1.5" fill="${TECH}"/>
+      <path d="M10 29 L40 29 L58 27 L66 26 Q68 25.6 68 24.6 Q68 23.6 66 23.4 L44 21 L38 16 Q35 14 31 14 L26 14 Q22 14 21 18 L19 23 L12 24 Q10 24.6 10 26.6 Z" fill="${c}" ${k}/>
+      <path d="M21 25 L44 22.5" stroke="#fff" stroke-width="1.6" opacity=".55"/>
+      <path d="M25 18 L32 18 L34.5 21 L23 21 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M22 14.5 Q28.5 9 36 14.5" stroke="${TECH}" stroke-width="2.6" fill="none"/>
+      <rect x="65.5" y="26" width="3" height="4" fill="${TECH}"/>
+      <rect x="59" y="29" width="16" height="4.5" rx="1.5" fill="${c}" ${k}/>
+      <path d="M9 27 Q3 25.5 6 28.5 Q0 27.5 3 30.5" stroke="#f97316" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      ${rad(19,30,8.4)}${rad(55,30,8.4)}`);
+  }
 }
+// Alle Pferde teilen denselben Körper – unterschiedlich sind Mähne, Decke, Horn, Flügel …
 function svgPferd(id,c){
-  const mane = id==="p3" ? "#f8fafc" : "#2b2016";
-  const sattel = id==="p1" ? "" :
-    `<path d="M27 18 Q33 13 39 18 L38 22 L28 22 Z" fill="#7c3aed"/>
-     <path d="M30 22 L30 27" stroke="#5b21b6" stroke-width="1.6"/>
-     <rect x="28.4" y="26.6" width="3.2" height="2.2" rx="1" fill="#5b21b6"/>`;
-  return `<svg viewBox="0 0 76 50">
+  const n=+id.slice(1);
+  const O={
+    1:{mane:"#2b2016", gr:.88},                                  // Pony
+    2:{mane:"#4a3826", gr:.8, duenn:true},                       // Fohlen
+    3:{mane:"#2b2016", sattel:"#7c3aed"},                        // Reitpferd
+    4:{mane:"#f5deb3", gr:1},                                    // Haflinger
+    5:{mane:"#2b2016", decke:"#0ea5e9"},                         // Pferd mit Decke
+    6:{mane:"#2b2016", sattel:"#b45309", bandagen:true},         // Springpferd
+    7:{mane:"#1f2937", sattel:"#dc2626", schlank:true},          // Rennpferd
+    8:{mane:"#334155", panzer:true, sattel:"#64748b"},           // Ritterpferd
+    9:{mane:"#f9a8d4", horn:true, glitzer:true},                 // Einhorn
+    10:{mane:"#fde68a", horn:true, fluegel:true, glitzer:true}   // Pegasus
+  }[n] || {mane:"#2b2016"};
+  const m=O.mane, gr=O.gr||1;
+  const bein=O.schlank?4.6:5.5, koerper=O.duenn?.86:1;
+  const sattel = O.sattel ? `<path d="M27 18 Q33 13 39 18 L38 22 L28 22 Z" fill="${O.sattel}"/>
+     <path d="M30 22 L30 27" stroke="#0006" stroke-width="1.6"/>
+     <rect x="28.4" y="26.6" width="3.2" height="2.2" rx="1" fill="#0006"/>` : "";
+  const decke = O.decke ? `<path d="M22 18 Q32 13 42 18 L41 28 L23 28 Z" fill="${O.decke}" opacity=".95"/>
+     <path d="M22 23 h19" stroke="#fff" stroke-width="1.6" opacity=".7"/>` : "";
+  const panzer = O.panzer ? `<path d="M50 6 L58 2 L62 8 L54 12 Z" fill="#94a3b8"/>
+     <path d="M20 17 Q31 11 44 15 L44 19 Q31 15 20 21 Z" fill="#94a3b8" opacity=".9"/>` : "";
+  const bandagen = O.bandagen ? `<path d="M21.5 40 h4 M47.5 40 h4" stroke="#f8fafc" stroke-width="3.4" stroke-linecap="round"/>` : "";
+  const horn = O.horn ? `<path d="M60 3 L66 -6 L64 4 Z" fill="#fcd34d" stroke="#f59e0b" stroke-width=".8"/>` : "";
+  const fluegel = O.fluegel ? `<path d="M41 19 Q36 3 21 1 Q27 7 25 13 Q18 8 11 10 Q19 14 19 20 Q28 17 35 22 Z"
+       fill="#f8fafc" opacity=".97" stroke="#cbd5e1" stroke-width=".9" stroke-linejoin="round"/>
+     <path d="M33 18 Q31 10 26 6 M28 20 Q24 15 19 13" stroke="#cbd5e1" stroke-width="1.1" fill="none"/>` : "";
+  const glitzer = O.glitzer ? `<circle cx="14" cy="14" r="1.6" fill="#fcd34d"/><circle cx="68" cy="24" r="1.3" fill="#fcd34d"/>
+     <circle cx="24" cy="8" r="1.1" fill="#fff"/>` : "";
+  return `<svg viewBox="0 0 76 50"><g transform="translate(${((1-gr)*38).toFixed(1)},${((1-gr)*50).toFixed(1)}) scale(${gr})">
     <g opacity=".6">
-      <path d="M27 31 L26 38 L28 45" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M43 31 L44 38 L42 45" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/></g>
-    <path d="M18 21 Q8 23 6 36" stroke="${mane}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
-    <path d="M19 19 Q29 14 43 16 Q51 17 51 24 Q51 32 43 34 L25 34 Q17 32 17 26 Q17 21 19 19 Z" fill="${c}"/>
-    <path d="M22 32 L21 39 L23 46" stroke="${c}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
-    <path d="M47 32 L48 39 L46 46" stroke="${c}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <path d="M27 31 L26 38 L28 45" stroke="${c}" stroke-width="${bein}" fill="none" stroke-linecap="round"/>
+      <path d="M43 31 L44 38 L42 45" stroke="${c}" stroke-width="${bein}" fill="none" stroke-linecap="round"/></g>
+    <path d="M18 21 Q8 23 6 36" stroke="${m}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    <path d="M19 19 Q29 14 43 16 Q51 17 51 24 Q51 ${(32*koerper+2).toFixed(1)} 43 34 L25 34 Q17 32 17 26 Q17 21 19 19 Z" fill="${c}"/>
+    <path d="M22 32 L21 39 L23 46" stroke="${c}" stroke-width="${bein}" fill="none" stroke-linecap="round"/>
+    <path d="M47 32 L48 39 L46 46" stroke="${c}" stroke-width="${bein}" fill="none" stroke-linecap="round"/>
     <path d="M20 47 h6 M43.5 47 h6" stroke="#2b2016" stroke-width="3" stroke-linecap="round"/>
+    ${bandagen}
     <path d="M43 15 L53 5 L60 9 L51 22 Z" fill="${c}"/>
     <path d="M52 4 Q62 2 67 7 Q71 10 70 13 Q69 16 65 15 L56 13 Q50 9 52 4 Z" fill="${c}"/>
     <path d="M56 5 L56 0 L60 4 Z" fill="${c}"/>
     <circle cx="62" cy="9" r="1.6" fill="#1b1b1b"/><circle cx="68" cy="12" r="1.1" fill="#1b1b1b" opacity=".6"/>
-    <path d="M53 5 Q49 11 46 18" stroke="${mane}" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M57 5 Q60 6 61 9" stroke="${mane}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    ${sattel}</svg>`;
+    <path d="M53 5 Q49 11 46 18" stroke="${m}" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M57 5 Q60 6 61 9" stroke="${m}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    ${horn}${decke}${sattel}${panzer}${fluegel}${glitzer}
+  </g></svg>`;
 }
 function svgRakete(id,c){
-  const fluegel=`<path d="M18 16 L8 4 L10 18 Z" fill="#64748b"/><path d="M18 28 L8 40 L10 26 Z" fill="#64748b"/>`;
-  if(id==="r1") return `<svg viewBox="0 0 76 44">
-    <path d="M14 15 L48 12 Q62 14 70 22 Q62 30 48 32 L14 29 Q10 22 14 15 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
-    <circle cx="46" cy="22" r="6" fill="#0b1220" stroke="#cde4ff" stroke-width="2.5"/>${fluegel}</svg>`;
-  if(id==="r2") return `<svg viewBox="0 0 76 44">
-    <path d="M12 14 L46 11 Q63 13 71 22 Q63 31 46 33 L12 30 Q7 22 12 14 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
-    <circle cx="44" cy="22" r="6.5" fill="#0b1220" stroke="#cde4ff" stroke-width="2.5"/>
-    <circle cx="27" cy="22" r="4" fill="#0b1220" stroke="#cde4ff" stroke-width="2"/>
-    <rect x="16" y="4" width="4" height="10" rx="2" fill="#94a3b8"/><circle cx="18" cy="3" r="2.5" fill="#fbbf24"/>
-    ${fluegel}</svg>`;
-  return `<svg viewBox="0 0 76 44">
-    <path d="M10 18 L44 9 Q64 12 73 22 Q64 32 44 35 L10 26 Q6 22 10 18 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
-    <path d="M44 9 Q58 14 60 22 Q58 30 44 35 Z" fill="#0b1220" opacity=".35"/>
-    <circle cx="48" cy="22" r="6" fill="#0b1220" stroke="#7dd3fc" stroke-width="2.5"/>
-    <path d="M23 17 L11 5 L15 19 Z" fill="#475569"/><path d="M23 27 L11 39 L15 25 Z" fill="#475569"/>
-    <rect x="12" y="20" width="10" height="5" rx="2" fill="#7dd3fc" opacity=".8"/></svg>`;
+  const n=+id.slice(1), S=s=>`<svg viewBox="0 0 76 44">${s}</svg>`;
+  const k=`stroke="#0006" stroke-width="1.4"`, ST="#475569";
+  const luke=(x,y,r,ring)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#0b1220" stroke="${ring||GLAS}" stroke-width="2.4"/>`;
+  switch(n){
+    case 1: return S(`<path d="M20 16 L48 13 Q62 15 70 22 Q62 29 48 31 L20 28 Q16 22 20 16 Z" fill="${c}" ${k}/>
+      ${luke(48,22,5.4)}<path d="M24 17 L15 8 L17 19 Z" fill="${ST}"/><path d="M24 27 L15 36 L17 25 Z" fill="${ST}"/>`);
+    case 2: return S(`<path d="M14 15 L46 11 Q64 13 71 22 Q64 31 46 33 L14 29 Q9 22 14 15 Z" fill="${c}" ${k}/>
+      ${luke(45,22,6)}${luke(28,22,3.6)}
+      <rect x="18" y="3" width="3.4" height="12" rx="1.7" fill="#94a3b8"/><circle cx="19.7" cy="2.4" r="2.4" fill="#fbbf24"/>
+      <path d="M20 16 L10 7 L13 19 Z" fill="${ST}"/><path d="M20 28 L10 37 L13 25 Z" fill="${ST}"/>`);
+    case 3: return S(`<path d="M10 20 L44 10 Q65 13 73 22 Q65 31 44 34 L10 24 Q6 22 10 20 Z" fill="${c}" ${k}/>
+      ${luke(50,22,5.2,"#7dd3fc")}
+      <path d="M26 16 L14 4 L18 18 Z" fill="${ST}"/><path d="M26 28 L14 40 L18 26 Z" fill="${ST}"/>
+      <rect x="12" y="20" width="9" height="4.5" rx="2" fill="#7dd3fc" opacity=".85"/>`);
+    case 4: return S(`<path d="M14 24 L30 12 L44 10 Q66 12 73 22 Q66 32 44 34 L30 32 L14 24 Z" fill="${c}" ${k}/>
+      <path d="M30 12 L44 10 L44 34 L30 32 Z" fill="#fff" opacity=".18"/>
+      ${luke(52,22,5)}<path d="M28 22 L6 10 L10 22 L6 34 Z" fill="${ST}"/>
+      <rect x="22" y="4" width="4" height="9" rx="2" fill="${ST}"/>`);
+    case 5: return S(`<rect x="12" y="11" width="34" height="22" rx="4" fill="${c}" ${k}/>
+      <path d="M46 13 Q66 15 73 22 Q66 29 46 31 Z" fill="${c}" ${k}/>
+      <rect x="16" y="15" width="8" height="6" rx="1.5" fill="#0b1220" opacity=".55"/>
+      <rect x="16" y="23" width="8" height="6" rx="1.5" fill="#0b1220" opacity=".55"/>
+      <rect x="28" y="15" width="8" height="6" rx="1.5" fill="#0b1220" opacity=".55"/>
+      <rect x="28" y="23" width="8" height="6" rx="1.5" fill="#0b1220" opacity=".55"/>
+      ${luke(57,22,4.4)}<rect x="6" y="14" width="7" height="16" rx="2" fill="${ST}"/>`);
+    case 6: return S(`<path d="M10 22 L40 12 Q64 14 73 22 Q64 30 40 32 Z" fill="${c}" ${k}/>
+      <path d="M40 12 Q56 16 58 22 Q56 28 40 32 Z" fill="#0b1220" opacity=".3"/>
+      ${luke(50,22,5.2,"#7dd3fc")}
+      <path d="M26 18 L8 3 L13 20 Z" fill="${ST}"/><path d="M26 26 L8 41 L13 24 Z" fill="${ST}"/>
+      <rect x="12" y="19" width="10" height="6" rx="2" fill="#7dd3fc" opacity=".9"/>`);
+    case 7: return S(`<path d="M16 22 Q16 14 26 13 L48 11 Q68 14 74 22 Q68 30 48 33 L26 31 Q16 30 16 22 Z" fill="${c}" ${k}/>
+      <path d="M20 22 Q20 17 28 16 L48 14 L48 30 L28 28 Q20 27 20 22 Z" fill="#fff" opacity=".16"/>
+      ${luke(54,22,5,"#fbbf24")}
+      <path d="M30 13 L24 2 L36 11 Z" fill="${ST}"/><path d="M30 31 L24 42 L36 33 Z" fill="${ST}"/>
+      <rect x="8" y="18" width="9" height="8" rx="3" fill="#fbbf24" opacity=".9"/>`);
+    case 8: return S(`<ellipse cx="40" cy="26" rx="30" ry="8" fill="${c}" ${k}/>
+      <path d="M26 24 Q32 11 48 11 Q62 11 68 24 Z" fill="#0b1220" opacity=".55"/>
+      <path d="M28 23 Q34 14 47 14 Q59 14 65 23 Z" fill="${GLAS}" opacity=".55"/>
+      <circle cx="18" cy="27" r="2.4" fill="#fbbf24"/><circle cx="34" cy="31" r="2.4" fill="#fbbf24"/>
+      <circle cx="50" cy="31" r="2.4" fill="#fbbf24"/><circle cx="64" cy="27" r="2.4" fill="#fbbf24"/>`);
+    case 9: return S(`<path d="M8 22 L26 10 L48 8 Q70 12 75 22 Q70 32 48 36 L26 34 Z" fill="${c}" ${k}/>
+      <path d="M26 10 L48 8 L48 36 L26 34 Z" fill="#0b1220" opacity=".25"/>
+      ${luke(58,22,5.6,"#7dd3fc")}${luke(38,16,3,"#7dd3fc")}${luke(38,28,3,"#7dd3fc")}
+      <path d="M24 10 L10 0 L16 12 Z" fill="${ST}"/><path d="M24 34 L10 44 L16 32 Z" fill="${ST}"/>
+      <rect x="4" y="17" width="10" height="4.5" rx="2" fill="#7dd3fc" opacity=".9"/>
+      <rect x="4" y="23" width="10" height="4.5" rx="2" fill="#7dd3fc" opacity=".9"/>`);
+    default: return S(`<path d="M18 22 L44 9 Q70 13 76 22 Q70 31 44 35 Z" fill="${c}" ${k}/>
+      <path d="M44 9 Q62 15 64 22 Q62 29 44 35 Z" fill="#fff" opacity=".2"/>
+      ${luke(56,22,5,"#fcd34d")}
+      <path d="M30 16 L14 4 L20 18 Z" fill="#fcd34d"/><path d="M30 28 L14 40 L20 26 Z" fill="#fcd34d"/>
+      <path d="M18 22 L2 16 L12 22 L2 28 Z" fill="#f97316" opacity=".95"/>
+      <circle cx="26" cy="22" r="2" fill="#fff"/><circle cx="36" cy="14" r="1.4" fill="#fcd34d"/><circle cx="36" cy="30" r="1.4" fill="#fcd34d"/>`);
+  }
 }
 function fahrzeugSVG(id,c){
   if(id[0]==="a") return svgAuto(id,c);
