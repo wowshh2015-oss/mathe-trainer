@@ -154,6 +154,21 @@
   .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
   .credit a{color:var(--muted)}
 
+  /* ===== Baustelle / PIN ===== */
+  .pinOverlay{position:fixed;inset:0;background:rgba(5,10,22,.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+  .pinModal{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .pinModal h3{margin:0 0 8px;font-size:20px}
+  .pinModal p{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.5}
+  .pininput{width:100%;font-size:30px;text-align:center;letter-spacing:12px;padding:12px;border-radius:12px;
+    border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  .pinerr{color:var(--bad);font-size:13px;min-height:18px;margin:8px 0}
+  .baustelle{text-align:center;padding:12px 0}
+  .baustelle .zeichen{font-size:62px;line-height:1}
+  .baustelle h2{margin:12px 0 8px;font-size:23px}
+  .baustelle p{color:var(--muted);margin:0 auto 18px;font-size:15px;line-height:1.6;max-width:420px}
+  .testhinweis{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#fcd34d;
+    border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:center}
+
   /* ===== Garage ===== */
   .gitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;margin-top:6px}
   .ding{position:relative;background:#0b1220;border:2px solid var(--card2);border-radius:14px;
@@ -189,9 +204,22 @@
   <h1>🏎️ Rechen-Rallye</h1>
   <p class="sub">Runde für Runde – 5 Hindernisse pro Runde. Fahre so lange du magst.</p>
 
+  <!-- ===== BAUSTELLE ===== -->
+  <div id="baustelle" class="card hide">
+    <div class="baustelle">
+      <div class="zeichen">🚧</div>
+      <h2>Die Rechen-Rallye wird gerade gebaut</h2>
+      <p>Hier entsteht ein neues Spiel. Ganz bald könnt ihr losfahren –
+         schaut einfach in ein paar Tagen noch einmal vorbei!</p>
+      <a class="backbtn" href="index.html">← Zurück zu den Trainern</a>
+      <div style="margin-top:20px"><button class="ghost klein" id="testBtn">🔑 Zum Testen freischalten</button></div>
+    </div>
+  </div>
+
   <!-- ===== START ===== -->
   <div id="start" class="card">
     <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <div class="testhinweis hide" id="testhinweis">🚧 Testmodus – für die Kinder ist die Rallye noch gesperrt.</div>
     <label for="name">Name des Kindes</label>
     <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
     <div class="chips" id="nameChips"></div>
@@ -211,9 +239,10 @@
       <div class="btnrow">
         <button class="ghost klein" id="garageBtn">🔧 Garage</button>
       </div>
-      <div class="info" style="margin-top:14px">❤️❤️❤️ Pro Runde hast du <b>3 Herzen</b>. Eine falsche Antwort kostet ein Herz.
-        Sind alle Herzen weg, geht es kurz in die <b>Box</b> – dort wird repariert und du siehst die richtige Lösung.
-        Danach fährst du weiter: <b>eine Runde verlierst du nie</b>.<br>
+      <div class="info" style="margin-top:14px">❤️❤️❤️ Für <b>jedes Hindernis</b> hast du 3 Herzen. Eine falsche Antwort kostet ein Herz –
+        das Hindernis <b>bleibt stehen</b>, du probierst es noch einmal.
+        Nach drei Fehlversuchen geht es in die <b>Box</b>: dort siehst du die Lösung und fährst dasselbe Hindernis gleich noch einmal an.
+        <b>Eine Runde verlierst du nie.</b><br>
         🔧 Alle paar Runden gibt es etwas Neues für die Garage.</div>
       <div class="status" id="status">Verbinde …</div>
     </div>
@@ -256,6 +285,8 @@
   <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
 </div>
 
+<div id="pinOverlay" class="pinOverlay hide"><div class="pinModal" id="pinModal"></div></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
@@ -264,6 +295,9 @@ const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
              projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
 const APP="rallye", PRO_RUNDE=5, HERZEN=3, BOX_SEK=5, F1_RUNDEN=20, F1_ETAGE=50;
+// Solange true, sehen die Kinder nur die Baustelle. Zum Freigeben: auf false setzen.
+const BAUSTELLE=true, SUPER_PIN="4785";
+let lehrerPin="";
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
@@ -273,6 +307,7 @@ let welt="auto", fahrzeugId="a1", farbe="#e23b3b", strecke=1;
 let aufgaben=[], idx=0, richtig=0, herzen=HERZEN, falsch=[], gestellt=[], fehlerListe=[];
 let rundeNr=1, sauberSerie=0, rundeOhneFehler=true, rundeStart=0, sitzungRunden=0;
 let timer=null, zeitRest=0, letzteFalsch=null, inBox=false;
+let ersterFehler=true, boxenRunde=0;   // Herzen gehören zum Hindernis, nicht zur Runde
 
 //// ===== Strecken =====
 const STRECKEN=[
@@ -619,25 +654,29 @@ $("garageZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
 function starteRunde(){
   aufgaben=baueAufgaben(strecke); idx=0; richtig=0; herzen=HERZEN;
   falsch=[]; gestellt=[]; fehlerListe=[]; rundeOhneFehler=true; inBox=false;
+  ersterFehler=true; boxenRunde=0;
   rundeStart=Date.now();
   $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}</small>`;
   zeichneBahn($("bahn"));
   zeige("spiel");
   zeichneHerzen(); zeichneFortschritt();
-  naechstesHindernis();
+  naechstesHindernis(true);
 }
 $("startBtn").addEventListener("click", ()=>{
   rundeNr = sitzungRunden + 1;
   starteRunde();
 });
 
-function naechstesHindernis(){
+// neu=true: nächstes Hindernis (frische Herzen) · neu=false: dasselbe Hindernis noch einmal
+function naechstesHindernis(neu){
   if(richtig>=PRO_RUNDE){ rundeFertig(); return; }
   const a=aufgaben[idx % aufgaben.length];
+  if(neu){ herzen=HERZEN; ersterFehler=true; gestellt.push(a.key); }
   const h=bq(".hind");
   h.classList.remove("weg","hide");
   h.style.left = (6 + richtig*(66/PRO_RUNDE) + 21) + "%";   // immer direkt vor dem Fahrzeug
   h.innerHTML=a.html;
+  zeichneHerzen();
   $("rueck").textContent="";
   $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
   $("antwort").focus();
@@ -661,7 +700,7 @@ function zeitAbgelaufen(){
   if($("antwort").disabled) return;
   const a=aufgaben[idx % aufgaben.length];
   $("antwort").disabled=true; $("okBtn").disabled=true;
-  verarbeiteFalsch(a, "⏱ Zeit vorbei!");
+  verarbeiteFalsch(a, "⏱ Zeit vorbei – noch einmal!");
 }
 
 $("okBtn").addEventListener("click", pruefe);
@@ -674,7 +713,6 @@ function pruefe(){
   const ok = parseInt(roh,10)===a.antwort;
   stoppZeit();
   $("antwort").disabled=true; $("okBtn").disabled=true;
-  gestellt.push(a.key);
   if(ok){
     richtig++;
     const h=bq(".hind"); h.classList.add("weg");
@@ -684,28 +722,27 @@ function pruefe(){
     fahrtAn(fahrzeit);
     fahrzeugNach(richtig);
     idx++;
-    setTimeout(naechstesHindernis, fahrzeit+120);
+    setTimeout(()=>naechstesHindernis(true), fahrzeit+120);
   }else{
-    verarbeiteFalsch(a, `Falsch! ${a.text} = ${a.antwort}`);
+    verarbeiteFalsch(a, "Autsch! Das Hindernis steht noch – probier es noch einmal 💪");
   }
 }
+// Das Hindernis bleibt stehen, bis es gelöst ist. Erst nach drei Fehlversuchen hilft die Box.
 function verarbeiteFalsch(a, meldung){
   herzen--; rundeOhneFehler=false;
-  falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`);
+  if(ersterFehler){ falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`); ersterFehler=false; }
   letzteFalsch=a;
-  gestellt.includes(a.key) || gestellt.push(a.key);
   $("rueck").style.color="var(--bad)"; $("rueck").textContent=meldung;
   const f=bq(".fz"); if(f){ f.classList.add("wackel"); setTimeout(()=>f.classList.remove("wackel"),460); }
   zeichneHerzen();
-  idx++;
   if(herzen<=0) setTimeout(boxenstopp, 900);
-  else setTimeout(naechstesHindernis, 1400);
+  else setTimeout(()=>naechstesHindernis(false), 1300);
 }
 
 //// ===== Boxenstopp =====
 const BOXTEXT={ auto:["🔧","Boxenstopp – wird repariert!"], pferd:["🧰","Pause beim Hufschmied!"], rakete:["🛠️","Im Reparatur-Dock!"] };
 function boxenstopp(){
-  inBox=true;
+  inBox=true; boxenRunde++;
   const b=$("bahn");
   const [ic,titel]=BOXTEXT[welt]||BOXTEXT.auto;
   const a=letzteFalsch;
@@ -724,8 +761,7 @@ function boxenstopp(){
       ov.remove();
       herzen=HERZEN; inBox=false;
       zeichneHerzen();
-      if(a) aufgaben.splice(idx % aufgaben.length, 0, a);   // dieselbe Aufgabe kommt sofort wieder
-      naechstesHindernis();
+      naechstesHindernis(false);   // dasselbe Hindernis – jetzt kennt das Kind die Lösung
     }
   },1000);
 }
@@ -807,7 +843,7 @@ function speichere(dauer){
   e.runden=(+e.runden||0)+1;
   e.richtig=(+e.richtig||0)+richtig;
   e.falsch=(+e.falsch||0)+falsch.length;
-  e.boxenstopps=(+e.boxenstopps||0)+(rundeOhneFehler?0:(falsch.length>=HERZEN?Math.floor(falsch.length/HERZEN):0));
+  e.boxenstopps=(+e.boxenstopps||0)+boxenRunde;
   e.bestzeit = e.bestzeit ? Math.min(+e.bestzeit, dauer) : dauer;
   e.welt=welt;
   e.gestellt=(e.gestellt||[]).concat(gestellt).slice(-400);
@@ -821,6 +857,46 @@ function speichere(dauer){
   db.collection("ergebnisse").doc(id).set(daten)
     .catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
 }
+
+//// ===== Baustelle / Test-Zugang =====
+function testFrei(){ try{ return localStorage.getItem("rallye_test_frei")==="1"; }catch(e){ return false; } }
+function pinDialog(o){
+  return new Promise(resolve=>{
+    const m=$("pinModal");
+    m.innerHTML=`<h3>${o.title}</h3><p>${o.text}</p>
+      <input class="pininput" id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+      <div class="pinerr" id="pinErr"></div>
+      <button id="pinOk">OK</button>
+      <div style="margin-top:14px;font-size:13px"><a id="pinAb" style="color:var(--muted);cursor:pointer;text-decoration:underline">Abbrechen</a></div>`;
+    $("pinOverlay").classList.remove("hide");
+    const inp=$("pinInput"); inp.focus();
+    inp.addEventListener("input",()=>{ inp.value=inp.value.replace(/\D/g,"").slice(0,4); });
+    $("pinOk").addEventListener("click",()=>{
+      const v=inp.value;
+      if(v.length!==4){ $("pinErr").textContent="Bitte 4 Ziffern eingeben."; return; }
+      const err=o.check(v);
+      if(err){ $("pinErr").textContent=err; inp.value=""; inp.focus(); return; }
+      resolve({value:v});
+    });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") $("pinOk").click(); });
+    $("pinAb").addEventListener("click",()=>resolve({ab:true}));
+  });
+}
+function oeffneTest(){
+  $("baustelle").classList.add("hide");
+  $("start").classList.remove("hide");
+  $("testhinweis").classList.remove("hide");
+  if(!$("name").value) $("name").focus();
+}
+$("testBtn").addEventListener("click", async ()=>{
+  const r=await pinDialog({ title:"🔑 Test-Zugang",
+    text:"Die Rallye ist noch nicht für die Kinder freigegeben. Bitte die Lehrer-PIN eingeben.",
+    check:v=> (v===lehrerPin || v===SUPER_PIN) ? null : "Falsche PIN." });
+  $("pinOverlay").classList.add("hide");
+  if(r.ab) return;
+  try{ localStorage.setItem("rallye_test_frei","1"); }catch(e){}
+  oeffneTest();
+});
 
 //// ===== Namen =====
 $("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
@@ -867,6 +943,9 @@ function verbindeKind(){
     }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeStart(); });
 }
 (function init(){
+  const gesperrt = BAUSTELLE && !testFrei();
+  if(gesperrt){ $("baustelle").classList.remove("hide"); $("start").classList.add("hide"); }
+  else if(BAUSTELLE) $("testhinweis").classList.remove("hide");
   try{
     welt=localStorage.getItem("rallye_welt")||"auto";
     fahrzeugId=localStorage.getItem("rallye_fz")||"a1";
@@ -878,6 +957,10 @@ function verbindeKind(){
     firebase.initializeApp(CONF);
     db=firebase.firestore();
     db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    db.collection("einstellungen").doc("pin").get().then(d=>{
+      const p=d.exists?String((d.data()||{}).pin||""):"";
+      lehrerPin=/^\d{4}$/.test(p)?p:"";
+    }).catch(()=>{});
     db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
       const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
       chipsZeigen(namen);
