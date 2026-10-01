@@ -29,7 +29,7 @@
   .tile.wide{grid-column:1 / -1}
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
-  .tile.gesperrt{opacity:.55;cursor:default;border-style:dashed}
+  .tile.gesperrt{opacity:.6;border-style:dashed}
   .tile .ic{font-size:48px;line-height:1}
   .tile .t{font-size:22px;font-weight:800;margin-top:10px}
   .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
@@ -53,7 +53,7 @@
   </div>
 
   <div class="grid dis" id="grid">
-    <div class="tile t7 wide gesperrt"><div class="ic">🚧</div><div class="t">Rechen-Rallye</div><div class="d">wird gerade gebaut – bald geht es los!</div></div>
+    <a class="tile t7 wide gesperrt" data-page="rallye-trainer.html"><div class="ic">🚧</div><div class="t">Rechen-Rallye</div><div class="d">wird gerade gebaut – bald geht es los!</div></a>
     <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
     <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
     <a class="tile t3" data-page="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
