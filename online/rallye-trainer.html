@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rechen-Rallye">
+<title>Rechen-Rallye</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#0284c7;
+    --good:#22c55e; --bad:#ef4444; --gold:#fbbf24;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#12324a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px}
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:18px;font-weight:700;
+    padding:15px 20px;color:#042433;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:15px;padding:10px 14px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .backbtn:hover{color:var(--text)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips .lbl{color:var(--muted);font-size:12px;width:100%}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .chip:hover{border-color:var(--accent)}
+
+  /* ===== Welten-Auswahl ===== */
+  .welten{display:flex;gap:10px;margin:4px 0 2px}
+  .welt{flex:1;cursor:pointer;background:#0b1220;border:2px solid var(--card2);border-radius:14px;
+    padding:14px 8px;text-align:center;font-weight:700;font-size:14px;transition:.15s}
+  .welt .ic{display:block;font-size:30px;margin-bottom:4px}
+  .welt:hover{border-color:var(--accent)}
+  .welt.an{border-color:var(--accent);background:rgba(56,189,248,.12)}
+
+  /* ===== Strecken ===== */
+  .strecken{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .strecke{display:flex;align-items:center;gap:12px;cursor:pointer;background:#0b1220;
+    border:2px solid var(--card2);border-radius:14px;padding:12px 14px;transition:.15s}
+  .strecke:hover{border-color:var(--accent)}
+  .strecke.an{border-color:var(--accent);background:rgba(56,189,248,.12)}
+  .strecke.zu{opacity:.45;cursor:not-allowed}
+  .strecke .ic{font-size:26px;width:32px;text-align:center;flex:none}
+  .strecke .tx{flex:1;min-width:0}
+  .strecke .tx b{display:block;font-size:16px}
+  .strecke .tx span{display:block;font-size:13px;color:var(--muted)}
+  .strecke .zahl{flex:none;text-align:right;font-size:12px;color:var(--muted);line-height:1.4}
+  .strecke .zahl b{display:block;font-size:17px;color:var(--gold)}
+
+  /* ===== Die Bahn ===== */
+  .bahn{position:relative;height:200px;border-radius:16px;overflow:hidden;border:1px solid #23304a}
+  .bahn.auto   {background:linear-gradient(180deg,#14233f 0%,#28446b 62%,#3a5f85 100%)}
+  .bahn.pferd  {background:linear-gradient(180deg,#152b33 0%,#2b5547 62%,#3f7355 100%)}
+  .bahn.rakete {background:linear-gradient(180deg,#05060f 0%,#10132b 60%,#1b1f3d 100%)}
+  .deko{position:absolute;left:0;right:0;bottom:62px;height:70px;z-index:0;opacity:.5}
+  .bahn.rakete .deko{bottom:0;height:100%;opacity:.85;
+    background-image:radial-gradient(1.6px 1.6px at 12% 18%,#fff,transparent),radial-gradient(1.4px 1.4px at 31% 42%,#fff,transparent),
+      radial-gradient(1.8px 1.8px at 58% 12%,#fff,transparent),radial-gradient(1.3px 1.3px at 79% 34%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 44% 62%,#fff,transparent),radial-gradient(1.2px 1.2px at 91% 54%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 22% 72%,#fff,transparent),radial-gradient(1.3px 1.3px at 67% 78%,#fff,transparent)}
+  .dekoreihe{position:absolute;bottom:0;left:0;display:flex;gap:46px;font-size:34px;line-height:1;
+    animation:scroll-deko 9s linear infinite;animation-play-state:paused;white-space:nowrap}
+  .fahrt .dekoreihe{animation-play-state:running}
+  @keyframes scroll-deko{ from{transform:translateX(0)} to{transform:translateX(-160px)} }
+
+  .strasse{position:absolute;left:0;right:0;bottom:0;height:62px;z-index:1;
+    border-top:3px solid rgba(255,255,255,.22)}
+  .bahn.auto   .strasse{background:linear-gradient(180deg,#434a58,#2d323c)}
+  .bahn.pferd  .strasse{background:linear-gradient(180deg,#8a6a3c,#5f4826)}
+  .bahn.rakete .strasse{background:transparent;border-top:none}
+  .mittellinie{position:absolute;left:0;right:-200px;top:28px;height:5px;z-index:2;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.75) 0 26px,transparent 26px 56px);
+    animation:scroll-linie .5s linear infinite;animation-play-state:paused}
+  .bahn.pferd .mittellinie{background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 14px,transparent 14px 48px)}
+  .bahn.rakete .mittellinie{top:auto;bottom:26px;height:3px;
+    background:repeating-linear-gradient(90deg,rgba(160,200,255,.55) 0 34px,transparent 34px 74px)}
+  .fahrt .mittellinie{animation-play-state:running}
+  @keyframes scroll-linie{ from{transform:translateX(0)} to{transform:translateX(-56px)} }
+
+  .fahrzeug{position:absolute;bottom:22px;width:78px;height:44px;z-index:5;
+    transition:left .75s cubic-bezier(.3,.9,.4,1);filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+  .bahn.pferd .fahrzeug{height:50px;bottom:20px}
+  .fahrzeug.wackel{animation:wackel .45s ease-in-out}
+  @keyframes wackel{ 0%,100%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-7px) rotate(-5deg)}
+    60%{transform:translateX(5px) rotate(4deg)} }
+  .fahrzeug .flamme{position:absolute;left:-16px;bottom:12px;font-size:19px;opacity:0;transition:.2s}
+  .fahrt .fahrzeug .flamme{opacity:1;animation:flacker .22s linear infinite}
+  @keyframes flacker{ 0%,100%{transform:scaleX(1)} 50%{transform:scaleX(.6)} }
+
+  .hindernis{position:absolute;left:30%;bottom:24px;z-index:4;min-width:132px;padding:16px 14px;
+    text-align:center;font-size:27px;font-weight:800;letter-spacing:.5px;color:#fff;
+    transition:transform .5s,opacity .5s,left .75s cubic-bezier(.3,.9,.4,1);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+  .hindernis .blank{display:inline-block;min-width:.95em;padding:0 .1em;border:3px dashed var(--gold);
+    border-radius:10px;color:var(--gold);line-height:1.05}
+  .bahn.auto .hindernis{background:linear-gradient(180deg,#8b8f99,#555a66);
+    border-radius:40% 46% 18% 22%/46% 40% 22% 26%;border:3px solid #9aa0ad;text-shadow:0 2px 3px #0009}
+  .bahn.pferd .hindernis{background:linear-gradient(180deg,#b5813f,#8a5c27);
+    border-radius:8px;border:3px solid #d8a35a;box-shadow:0 10px 0 -4px #6b4620;text-shadow:0 2px 3px #0009}
+  .bahn.rakete .hindernis{background:radial-gradient(circle at 34% 30%,#7b8296,#3b4154);
+    border-radius:48% 40% 44% 52%/44% 50% 42% 48%;border:3px solid #8c93a8;text-shadow:0 2px 3px #0009}
+  .hindernis.weg{transform:translate(70px,-60px) rotate(55deg) scale(.3);opacity:0}
+
+  .boxstop{position:absolute;inset:0;z-index:9;background:rgba(5,10,22,.88);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px}
+  .boxstop .wz{font-size:40px;animation:dreh 1.1s linear infinite}
+  @keyframes dreh{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  .boxstop .t1{font-size:16px;font-weight:700;color:var(--accent)}
+  .boxstop .t2{font-size:30px;font-weight:800;color:var(--gold)}
+  .boxstop .t3{font-size:14px;color:var(--muted)}
+
+  .ziel{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;
+    font-size:74px;opacity:0;pointer-events:none}
+  .ziel.an{animation:zielflagge 1.1s ease-out}
+  @keyframes zielflagge{ 0%{opacity:0;transform:scale(.4)} 35%{opacity:1;transform:scale(1.15)}
+    100%{opacity:0;transform:scale(1.6)} }
+
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .rundenbadge{font-size:34px;font-weight:800;line-height:1}
+  .rundenbadge small{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
+  .herzen{font-size:26px;letter-spacing:3px}
+  .herzen .weg{opacity:.25;filter:grayscale(1)}
+  .fortschritt{display:flex;gap:5px;margin:14px 0 0}
+  .fortschritt i{flex:1;height:8px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .zeitbalken{height:6px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);margin-top:8px;overflow:hidden}
+  .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+  .antwortzeile{display:flex;gap:12px;margin-top:14px}
+  .antwortzeile input{flex:1;font-size:30px;text-align:center}
+  .rueck{height:26px;text-align:center;font-size:17px;font-weight:700;margin-top:10px}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.5}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  .stufe{display:inline-block;background:rgba(56,189,248,.14);color:#7dd3fc;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+
+  /* ===== Garage ===== */
+  .gitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;margin-top:6px}
+  .ding{position:relative;background:#0b1220;border:2px solid var(--card2);border-radius:14px;
+    padding:10px 6px 8px;text-align:center;cursor:pointer;transition:.15s}
+  .ding:hover{border-color:var(--accent)}
+  .ding.an{border-color:var(--accent);background:rgba(56,189,248,.12)}
+  .ding.zu{opacity:.4;cursor:not-allowed}
+  .ding .bild{height:42px;display:flex;align-items:center;justify-content:center;margin-bottom:5px}
+  .ding .bild svg{width:68px;height:40px}
+  .ding .nm{font-size:12px;font-weight:700;line-height:1.25}
+  .ding .ab{font-size:11px;color:var(--muted);margin-top:2px}
+  .farben{display:flex;flex-wrap:wrap;gap:9px;margin-top:6px}
+  .farbe{width:40px;height:40px;border-radius:50%;cursor:pointer;border:3px solid transparent;position:relative}
+  .farbe.an{border-color:#fff}
+  .farbe.zu{opacity:.35;cursor:not-allowed}
+  .farbe span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000a}
+  .rundenzaehler{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+  .rundenzaehler b{font-size:30px;color:var(--gold)}
+  h3{font-size:16px;margin:18px 0 6px}
+  h3:first-child{margin-top:0}
+
+  @media (max-width:430px){
+    body{padding:14px}
+    .bahn{height:176px}
+    .hindernis{font-size:22px;min-width:108px;padding:13px 11px}
+    .fahrzeug{width:64px;height:38px}
+    .rundenbadge{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🏎️ Rechen-Rallye</h1>
+  <p class="sub">Runde für Runde – 5 Hindernisse pro Runde. Fahre so lange du magst.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
+
+    <div id="startBox" class="hide" style="margin-top:18px">
+      <div class="rundenzaehler"><b id="gesamtRunden">0</b><span class="sub" style="margin:0">Runden insgesamt gefahren</span></div>
+
+      <h3>Womit möchtest du fahren?</h3>
+      <div class="welten" id="welten"></div>
+
+      <h3>Welche Strecke?</h3>
+      <div class="strecken" id="strecken"></div>
+
+      <div class="bahn" id="vorschau" style="margin-top:14px"></div>
+
+      <button class="full" id="startBtn" style="margin-top:14px">Losfahren ▶</button>
+      <div class="btnrow">
+        <button class="ghost klein" id="garageBtn">🔧 Garage</button>
+      </div>
+      <div class="info" style="margin-top:14px">❤️❤️❤️ Pro Runde hast du <b>3 Herzen</b>. Eine falsche Antwort kostet ein Herz.
+        Sind alle Herzen weg, geht es kurz in die <b>Box</b> – dort wird repariert und du siehst die richtige Lösung.
+        Danach fährst du weiter: <b>eine Runde verlierst du nie</b>.<br>
+        🔧 Alle paar Runden gibt es etwas Neues für die Garage.</div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <!-- ===== GARAGE ===== -->
+  <div id="garage" class="card hide">
+    <button class="backbtn" id="garageZu">← Zurück</button>
+    <div class="rundenzaehler"><b id="garRunden">0</b><span class="sub" style="margin:0">Runden insgesamt – dafür gibt es das hier</span></div>
+    <div id="garageInhalt"></div>
+  </div>
+
+  <!-- ===== SPIEL ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf">
+      <div class="rundenbadge" id="rundeGross">Runde 1<small id="rundeStufe"></small></div>
+      <div class="herzen" id="herzen"></div>
+    </div>
+    <div class="bahn" id="bahn"></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
+    <div class="antwortzeile">
+      <input type="text" id="antwort" inputmode="numeric" autocomplete="off" placeholder="?">
+      <button id="okBtn">OK</button>
+    </div>
+    <div class="rueck" id="rueck"></div>
+    <div class="btnrow"><button class="ghost klein" id="pauseBtn">⏸ Aufhören</button></div>
+  </div>
+
+  <!-- ===== ANGEBOT: nächste Strecke ===== -->
+  <div id="angebot" class="card hide">
+    <div class="gross" id="angTitel">🏁 Das läuft richtig gut!</div>
+    <div class="info" id="angText"></div>
+    <div class="btnrow">
+      <button id="angJa"></button>
+      <button class="ghost" id="angNein">Hier weiterfahren</button>
+    </div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+//// ===== Verbindung =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="rallye", PRO_RUNDE=5, HERZEN=3, BOX_SEK=5, F1_RUNDEN=20, F1_ETAGE=50;
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+
+let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false, marathonEtage=0;
+let welt="auto", fahrzeugId="a1", farbe="#e23b3b", strecke=1;
+let aufgaben=[], idx=0, richtig=0, herzen=HERZEN, falsch=[], gestellt=[], fehlerListe=[];
+let rundeNr=1, sauberSerie=0, rundeOhneFehler=true, rundeStart=0, sitzungRunden=0;
+let timer=null, zeitRest=0, letzteFalsch=null, inBox=false;
+
+//// ===== Strecken =====
+const STRECKEN=[
+  {nr:1, ic:"🏙️", name:"Stadt",       kurz:"Plus & Minus bis 20",
+   typen:["plus20ohne","minus20ohne"], plus:["plus20","minus20"], sek:0},
+  {nr:2, ic:"🌳", name:"Landstraße",  kurz:"bis 100 ohne Übergang & Zerlegen",
+   typen:["plus100ohne","minus100ohne","zerlegen20"], plus:["zehner"], sek:0},
+  {nr:3, ic:"⛰️", name:"Bergpass",    kurz:"bis 100 mit Übergang",
+   typen:["plus100","minus100"], plus:["zerlegen100"], sek:0},
+  {nr:4, ic:"🏁", name:"Rennstrecke", kurz:"Einmaleins",
+   typen:["kern"], plus:["mal"], sek:0},
+  {nr:5, ic:"🏆", name:"Formel 1",    kurz:"Einmaleins, Geteilt & bis 1000 – auf Zeit",
+   typen:["mal","geteilt","plus1000","minus1000"], plus:[], sek:15}
+];
+function st(n){ return STRECKEN.find(s=>s.nr===n) || STRECKEN[0]; }
+function f1Offen(){ return rundenAuf(3)>=F1_RUNDEN || marathonEtage>=F1_ETAGE; }
+function streckeOffen(n){ return n<5 ? true : f1Offen(); }
+
+//// ===== Garage =====
+const FAHRZEUGE=[
+  {id:"a1", welt:"auto",   name:"Stadtflitzer",   ab:0},
+  {id:"a2", welt:"auto",   name:"Rallye-Wagen",   ab:15},
+  {id:"a3", welt:"auto",   name:"Formel-Flitzer", ab:40},
+  {id:"p1", welt:"pferd",  name:"Pony",           ab:0},
+  {id:"p2", welt:"pferd",  name:"Reitpferd",      ab:15},
+  {id:"p3", welt:"pferd",  name:"Springpferd",    ab:40},
+  {id:"r1", welt:"rakete", name:"Kleine Rakete",  ab:0},
+  {id:"r2", welt:"rakete", name:"Forschungsschiff",ab:15},
+  {id:"r3", welt:"rakete", name:"Sternenjäger",   ab:40}
+];
+const FARBEN=[
+  {c:"#e23b3b", name:"Rot",    ab:0},
+  {c:"#3b82f6", name:"Blau",   ab:0},
+  {c:"#eab308", name:"Gelb",   ab:5},
+  {c:"#22c55e", name:"Grün",   ab:10},
+  {c:"#a855f7", name:"Lila",   ab:25},
+  {c:"#ec4899", name:"Pink",   ab:30},
+  {c:"#f1f5f9", name:"Weiß",   ab:55},
+  {c:"#1f2937", name:"Schwarz",ab:80}
+];
+const WELTEN=[
+  {id:"auto",   ic:"🏎️", name:"Rennstrecke"},
+  {id:"pferd",  ic:"🐴", name:"Reitweg"},
+  {id:"rakete", ic:"🚀", name:"Weltraum"}
+];
+const BOOST_AB=20;
+function gesamtRunden(){ return MEINE.reduce((s,e)=>s+(+e.runden||0),0); }
+function rundenAuf(n){ return MEINE.filter(e=>+e.strecke===n).reduce((s,e)=>s+(+e.runden||0),0); }
+function boost(){ return gesamtRunden()>=BOOST_AB; }
+
+//// ===== Fahrzeug-Bilder =====
+function svgAuto(id,c){
+  const raeder=`<circle cx="20" cy="31" r="7" fill="#15181f"/><circle cx="20" cy="31" r="2.8" fill="#9aa3b2"/>
+                <circle cx="56" cy="31" r="7" fill="#15181f"/><circle cx="56" cy="31" r="2.8" fill="#9aa3b2"/>`;
+  if(id==="a1") return `<svg viewBox="0 0 76 40">
+    <path d="M8 28 L12 15 Q14 10 21 10 L44 10 Q51 10 55 15 L64 19 Q70 21 70 27 L70 30 Q70 32 68 32 L10 32 Q8 32 8 30 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
+    <path d="M19 14 L30 14 L30 21 L15 21 Z" fill="#cde4ff" opacity=".9"/>
+    <path d="M34 14 L44 14 Q48 14 51 18 L34 21 Z" fill="#cde4ff" opacity=".9"/>${raeder}</svg>`;
+  if(id==="a2") return `<svg viewBox="0 0 76 40">
+    <path d="M6 27 L10 14 Q12 9 20 9 L48 9 Q55 9 59 14 L68 18 Q73 20 73 27 L73 31 Q73 33 71 33 L8 33 Q6 33 6 31 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
+    <path d="M18 13 L31 13 L31 20 L14 20 Z" fill="#cde4ff" opacity=".9"/>
+    <path d="M35 13 L47 13 Q51 13 55 18 L35 20 Z" fill="#cde4ff" opacity=".9"/>
+    <rect x="20" y="4" width="26" height="4" rx="2" fill="#2f3542"/>
+    <rect x="22" y="2" width="5" height="4" rx="1.5" fill="#fbbf24"/><rect x="31" y="2" width="5" height="4" rx="1.5" fill="#fbbf24"/>
+    ${raeder}</svg>`;
+  return `<svg viewBox="0 0 76 40">
+    <path d="M4 28 L58 28 Q66 28 70 24 L70 22 Q70 19 66 19 L44 19 L38 13 Q35 11 31 11 L24 11 Q20 11 19 15 L17 19 L8 20 Q4 21 4 25 Z" fill="${c}" stroke="#0007" stroke-width="1.5"/>
+    <path d="M24 15 L33 15 L36 19 L22 19 Z" fill="#cde4ff" opacity=".9"/>
+    <rect x="2" y="12" width="12" height="4" rx="1.5" fill="#2f3542"/>
+    <rect x="62" y="10" width="11" height="4" rx="1.5" fill="#2f3542"/><rect x="66" y="13" width="3" height="7" fill="#2f3542"/>
+    <circle cx="19" cy="31" r="8" fill="#15181f"/><circle cx="19" cy="31" r="3" fill="#9aa3b2"/>
+    <circle cx="58" cy="30" r="9" fill="#15181f"/><circle cx="58" cy="30" r="3.4" fill="#9aa3b2"/></svg>`;
+}
+function svgPferd(id,c){
+  const mane = id==="p3" ? "#f8fafc" : "#2b2016";
+  const sattel = id==="p1" ? "" :
+    `<path d="M27 18 Q33 13 39 18 L38 22 L28 22 Z" fill="#7c3aed"/>
+     <path d="M30 22 L30 27" stroke="#5b21b6" stroke-width="1.6"/>
+     <rect x="28.4" y="26.6" width="3.2" height="2.2" rx="1" fill="#5b21b6"/>`;
+  return `<svg viewBox="0 0 76 50">
+    <g opacity=".6">
+      <path d="M27 31 L26 38 L28 45" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M43 31 L44 38 L42 45" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+    <path d="M18 21 Q8 23 6 36" stroke="${mane}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    <path d="M19 19 Q29 14 43 16 Q51 17 51 24 Q51 32 43 34 L25 34 Q17 32 17 26 Q17 21 19 19 Z" fill="${c}"/>
+    <path d="M22 32 L21 39 L23 46" stroke="${c}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    <path d="M47 32 L48 39 L46 46" stroke="${c}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    <path d="M20 47 h6 M43.5 47 h6" stroke="#2b2016" stroke-width="3" stroke-linecap="round"/>
+    <path d="M43 15 L53 5 L60 9 L51 22 Z" fill="${c}"/>
+    <path d="M52 4 Q62 2 67 7 Q71 10 70 13 Q69 16 65 15 L56 13 Q50 9 52 4 Z" fill="${c}"/>
+    <path d="M56 5 L56 0 L60 4 Z" fill="${c}"/>
+    <circle cx="62" cy="9" r="1.6" fill="#1b1b1b"/><circle cx="68" cy="12" r="1.1" fill="#1b1b1b" opacity=".6"/>
+    <path d="M53 5 Q49 11 46 18" stroke="${mane}" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M57 5 Q60 6 61 9" stroke="${mane}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    ${sattel}</svg>`;
+}
+function svgRakete(id,c){
+  const fluegel=`<path d="M18 16 L8 4 L10 18 Z" fill="#64748b"/><path d="M18 28 L8 40 L10 26 Z" fill="#64748b"/>`;
+  if(id==="r1") return `<svg viewBox="0 0 76 44">
+    <path d="M14 15 L48 12 Q62 14 70 22 Q62 30 48 32 L14 29 Q10 22 14 15 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
+    <circle cx="46" cy="22" r="6" fill="#0b1220" stroke="#cde4ff" stroke-width="2.5"/>${fluegel}</svg>`;
+  if(id==="r2") return `<svg viewBox="0 0 76 44">
+    <path d="M12 14 L46 11 Q63 13 71 22 Q63 31 46 33 L12 30 Q7 22 12 14 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
+    <circle cx="44" cy="22" r="6.5" fill="#0b1220" stroke="#cde4ff" stroke-width="2.5"/>
+    <circle cx="27" cy="22" r="4" fill="#0b1220" stroke="#cde4ff" stroke-width="2"/>
+    <rect x="16" y="4" width="4" height="10" rx="2" fill="#94a3b8"/><circle cx="18" cy="3" r="2.5" fill="#fbbf24"/>
+    ${fluegel}</svg>`;
+  return `<svg viewBox="0 0 76 44">
+    <path d="M10 18 L44 9 Q64 12 73 22 Q64 32 44 35 L10 26 Q6 22 10 18 Z" fill="${c}" stroke="#0006" stroke-width="1.5"/>
+    <path d="M44 9 Q58 14 60 22 Q58 30 44 35 Z" fill="#0b1220" opacity=".35"/>
+    <circle cx="48" cy="22" r="6" fill="#0b1220" stroke="#7dd3fc" stroke-width="2.5"/>
+    <path d="M23 17 L11 5 L15 19 Z" fill="#475569"/><path d="M23 27 L11 39 L15 25 Z" fill="#475569"/>
+    <rect x="12" y="20" width="10" height="5" rx="2" fill="#7dd3fc" opacity=".8"/></svg>`;
+}
+function fahrzeugSVG(id,c){
+  if(id[0]==="a") return svgAuto(id,c);
+  if(id[0]==="p") return svgPferd(id,c);
+  return svgRakete(id,c);
+}
+function flammeIcon(){ return welt==="rakete" ? "🔥" : welt==="pferd" ? "💨" : "💨"; }
+
+//// ===== Aufgaben =====
+function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+function carries(a,b){ while(a>0||b>0){ if(a%10+b%10>=10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+function borrows(a,b){ while(b>0){ if(a%10<b%10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+const BOX='<span class="blank">?</span>';
+
+function mkPlus(zr,ueb){
+  for(let i=0;i<500;i++){
+    const a=rnd(1,zr-1), b=rnd(1,zr-1);
+    if(a+b>zr) continue;
+    const c=carries(a,b);
+    if(ueb==="ohne"&&c) continue;
+    if(ueb==="mit"&&!c) continue;
+    return {html:`${a} + ${b}`, text:`${a} + ${b}`, antwort:a+b, key:Math.min(a,b)+"+"+Math.max(a,b)};
+  }
+  return {html:"1 + 1", text:"1 + 1", antwort:2, key:"1+1"};
+}
+function mkMinus(zr,ueb){
+  for(let i=0;i<500;i++){
+    const a=rnd(2,zr), b=rnd(1,a-1);
+    const c=borrows(a,b);
+    if(ueb==="ohne"&&c) continue;
+    if(ueb==="mit"&&!c) continue;
+    return {html:`${a} − ${b}`, text:`${a} − ${b}`, antwort:a-b, key:a+"−"+b};
+  }
+  return {html:"2 − 1", text:"2 − 1", antwort:1, key:"2−1"};
+}
+function mkMal(){ const a=rnd(1,10), b=rnd(1,10);
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:Math.min(a,b)+"×"+Math.max(a,b)}; }
+function mkKern(){
+  let a,b;
+  if(Math.random()<0.25){ a=rnd(2,10); b=a; }
+  else { const k=[1,2,5,10]; a=k[rnd(0,3)]; b=rnd(1,10); if(Math.random()<0.5){ const t=a; a=b; b=t; } }
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:Math.min(a,b)+"×"+Math.max(a,b)};
+}
+function mkGeteilt(){ const a=rnd(1,10), b=rnd(1,10);
+  return {html:`${a*b} ÷ ${b}`, text:`${a*b} ÷ ${b}`, antwort:a, key:(a*b)+"÷"+b}; }
+function mkZerlegen(zr){
+  if(zr===20){
+    const z=rnd(11,20), t=rnd(Math.max(1,z-10), Math.min(10,z-1)), f=Math.random()<0.5;
+    return {html: f?`${t} + ${BOX} = ${z}`:`${z} = ${t} + ${BOX}`, text:`${z} = ${t} + ?`, antwort:z-t, key:z+"="+t};
+  }
+  const a=rnd(11,99);
+  const z=(a%10===0)?100:(Math.random()<0.3?100:Math.ceil(a/10)*10);
+  return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a};
+}
+function mkZehner(){
+  const z=rnd(1,9)*10, e=rnd(1,9), f=Math.random()<0.5;
+  return f ? {html:`${z} + ${e}`, text:`${z} + ${e}`, antwort:z+e, key:z+"+"+e}
+           : {html:`${z+e} − ${e}`, text:`${z+e} − ${e}`, antwort:z, key:(z+e)+"−"+e};
+}
+function mkTyp(typ){
+  switch(typ){
+    case "plus20ohne":   return mkPlus(20,"ohne");
+    case "minus20ohne":  return mkMinus(20,"ohne");
+    case "plus20":       return mkPlus(20,"mit");
+    case "minus20":      return mkMinus(20,"mit");
+    case "plus100ohne":  return mkPlus(100,"ohne");
+    case "minus100ohne": return mkMinus(100,"ohne");
+    case "plus100":      return mkPlus(100,"mit");
+    case "minus100":     return mkMinus(100,"mit");
+    case "plus1000":     return mkPlus(1000,"egal");
+    case "minus1000":    return mkMinus(1000,"egal");
+    case "mal":          return mkMal();
+    case "kern":         return mkKern();
+    case "geteilt":      return mkGeteilt();
+    case "zerlegen20":   return mkZerlegen(20);
+    case "zerlegen100":  return mkZerlegen(100);
+    case "zehner":       return mkZehner();
+  }
+  return mkPlus(20,"ohne");
+}
+// Ab 5 gefahrenen Runden auf dieser Strecke kommen die Zusatztypen dazu
+function typenFuer(n){
+  const s=st(n);
+  return rundenAuf(n)>=5 ? s.typen.concat(s.plus) : s.typen.slice();
+}
+function baueAufgaben(n){
+  const typen=typenFuer(n), q=[], seen=new Set();
+  let guard=0;
+  while(q.length<PRO_RUNDE+4 && guard++<600){
+    const t=mkTyp(typen[Math.floor(Math.random()*typen.length)]);
+    if(seen.has(t.key)) continue;
+    seen.add(t.key); q.push(t);
+  }
+  while(q.length<PRO_RUNDE+4) q.push(mkTyp(typen[0]));
+  return q;
+}
+
+//// ===== Bahn zeichnen =====
+// Die Umgebung richtet sich nach der Welt, der Streckentyp kommt als Akzent dazu
+const DEKO={
+  auto:  ["🏢","🏠","🏬","🌳","🏢","🏪"],
+  pferd: ["🌳","🌲","🐦","🏡","🌾","🐑"],
+  rakete:["⭐","🪐","✨","☄️","🌙","🛰️"]
+};
+function bahnHTML(){
+  const basis=(DEKO[welt]||DEKO.auto);
+  const deko=basis.concat(basis).map(d=>`<span>${d}</span>`).join("");
+  return `<div class="deko"><div class="dekoreihe">${deko}</div></div>
+    <div class="strasse"><div class="mittellinie"></div></div>
+    <div class="fahrzeug fz" style="left:6%">${fahrzeugSVG(fahrzeugId,farbe)}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
+    <div class="hindernis hide hind"></div>
+    <div class="ziel zielflagge">🏁</div>`;
+}
+// Vorschau und Spielbahn gibt es gleichzeitig – daher immer in der Spielbahn suchen
+const bq=s=>$("bahn").querySelector(s);
+function zeichneBahn(box){
+  box.className="bahn "+welt;
+  box.innerHTML=bahnHTML();
+}
+function fahrzeugNach(stelle){          // 0 … PRO_RUNDE
+  const f=bq(".fz"); if(!f) return;
+  f.style.left = (6 + stelle*(66/PRO_RUNDE)) + "%";
+}
+function fahrtAn(ms){
+  const b=$("bahn"); if(!b) return;
+  b.classList.add("fahrt");
+  setTimeout(()=>b.classList.remove("fahrt"), ms);
+}
+
+//// ===== Anzeige =====
+function zeige(id){ ["start","garage","spiel","angebot"].forEach(s=>$(s).classList.toggle("hide", s!==id)); }
+function zeichneHerzen(){
+  let h=""; for(let i=0;i<HERZEN;i++) h+=`<span class="${i<herzen?"":"weg"}">❤️</span>`;
+  $("herzen").innerHTML=h;
+}
+function zeichneFortschritt(){
+  let h=""; for(let i=0;i<PRO_RUNDE;i++) h+=`<i class="${i<richtig?"ok":""}"></i>`;
+  $("fortschritt").innerHTML=h;
+}
+function zeigeWelten(){
+  $("welten").innerHTML=WELTEN.map(w=>
+    `<div class="welt${w.id===welt?" an":""}" data-w="${w.id}"><span class="ic">${w.ic}</span>${w.name}</div>`).join("");
+  $("welten").querySelectorAll(".welt").forEach(el=>el.addEventListener("click",()=>{
+    welt=el.dataset.w;
+    const liste=FAHRZEUGE.filter(f=>f.welt===welt && f.ab<=gesamtRunden());
+    if(!liste.some(f=>f.id===fahrzeugId)) fahrzeugId=liste[liste.length-1].id;
+    merken(); zeigeStart();
+  }));
+}
+function zeigeStrecken(){
+  const g=gesamtRunden();
+  $("strecken").innerHTML=STRECKEN.map(s=>{
+    const offen=streckeOffen(s.nr), r=rundenAuf(s.nr), bz=bestzeit(s.nr);
+    const rechts = offen
+      ? `<b>${r}</b>${r===1?"Runde":"Runden"}${bz?`<br>⏱ ${bz} s`:""}`
+      : `🔒<br>ab ${F1_RUNDEN} Runden<br>am Bergpass`;
+    return `<div class="strecke${s.nr===strecke?" an":""}${offen?"":" zu"}" data-s="${s.nr}">
+      <span class="ic">${s.ic}</span>
+      <span class="tx"><b>${s.nr}. ${s.name}</b><span>${s.kurz}</span></span>
+      <span class="zahl">${rechts}</span></div>`;
+  }).join("");
+  $("strecken").querySelectorAll(".strecke").forEach(el=>el.addEventListener("click",()=>{
+    const n=+el.dataset.s;
+    if(!streckeOffen(n)) return;
+    strecke=n; merken(); zeigeStart();
+  }));
+}
+function zeigeStart(){
+  const g=gesamtRunden();
+  $("gesamtRunden").textContent=g;
+  zeigeWelten(); zeigeStrecken();
+  zeichneBahn($("vorschau"));
+  const h=$("vorschau").querySelector(".hind");
+  if(h){ h.classList.remove("hide"); h.innerHTML="7 + 8"; }
+  $("startBtn").textContent=`${st(strecke).ic} ${st(strecke).name} – losfahren ▶`;
+  $("startBox").classList.remove("hide");
+}
+function merken(){
+  try{
+    localStorage.setItem("rallye_welt",welt);
+    localStorage.setItem("rallye_fz",fahrzeugId);
+    localStorage.setItem("rallye_farbe",farbe);
+    localStorage.setItem("rallye_strecke",String(strecke));
+  }catch(e){}
+}
+function bestzeit(n){
+  const z=MEINE.filter(e=>+e.strecke===n && +e.bestzeit>0).map(e=>+e.bestzeit);
+  return z.length ? Math.min(...z) : 0;
+}
+
+//// ===== Garage =====
+function zeigeGarage(){
+  const g=gesamtRunden();
+  $("garRunden").textContent=g;
+  let h="";
+  WELTEN.forEach(w=>{
+    h+=`<h3>${w.ic} ${w.name}</h3><div class="gitter">`;
+    FAHRZEUGE.filter(f=>f.welt===w.id).forEach(f=>{
+      const offen=f.ab<=g;
+      h+=`<div class="ding${f.id===fahrzeugId?" an":""}${offen?"":" zu"}" data-f="${f.id}" data-w="${w.id}">
+            <div class="bild">${fahrzeugSVG(f.id, offen?farbe:"#64748b")}</div>
+            <div class="nm">${f.name}</div>
+            <div class="ab">${offen?"bereit":"🔒 ab "+f.ab+" Runden"}</div></div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`<h3>🎨 Farbe</h3><div class="farben">`;
+  FARBEN.forEach(f=>{
+    const offen=f.ab<=g;
+    h+=`<div class="farbe${f.c===farbe?" an":""}${offen?"":" zu"}" data-c="${f.c}" title="${f.name}"
+          style="background:${f.c}">${offen?"":`<span>${f.ab}</span>`}</div>`;
+  });
+  h+=`</div>`;
+  h+=`<h3>🔧 Tuning</h3><div class="info">${ boost()
+      ? "✅ <b>Boost</b> ist freigeschaltet – zwischen den Hindernissen bist du jetzt deutlich schneller unterwegs."
+      : `🔒 <b>Boost</b> ab ${BOOST_AB} Runden – dann flitzt du zwischen den Hindernissen.` }</div>`;
+  $("garageInhalt").innerHTML=h;
+  $("garageInhalt").querySelectorAll(".ding").forEach(el=>el.addEventListener("click",()=>{
+    if(el.classList.contains("zu")) return;
+    fahrzeugId=el.dataset.f; welt=el.dataset.w; merken(); zeigeGarage();
+  }));
+  $("garageInhalt").querySelectorAll(".farbe").forEach(el=>el.addEventListener("click",()=>{
+    if(el.classList.contains("zu")) return;
+    farbe=el.dataset.c; merken(); zeigeGarage();
+  }));
+}
+$("garageBtn").addEventListener("click", ()=>{ zeige("garage"); zeigeGarage(); });
+$("garageZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
+
+//// ===== Runde starten =====
+function starteRunde(){
+  aufgaben=baueAufgaben(strecke); idx=0; richtig=0; herzen=HERZEN;
+  falsch=[]; gestellt=[]; fehlerListe=[]; rundeOhneFehler=true; inBox=false;
+  rundeStart=Date.now();
+  $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}</small>`;
+  zeichneBahn($("bahn"));
+  zeige("spiel");
+  zeichneHerzen(); zeichneFortschritt();
+  naechstesHindernis();
+}
+$("startBtn").addEventListener("click", ()=>{
+  rundeNr = sitzungRunden + 1;
+  starteRunde();
+});
+
+function naechstesHindernis(){
+  if(richtig>=PRO_RUNDE){ rundeFertig(); return; }
+  const a=aufgaben[idx % aufgaben.length];
+  const h=bq(".hind");
+  h.classList.remove("weg","hide");
+  h.style.left = (6 + richtig*(66/PRO_RUNDE) + 21) + "%";   // immer direkt vor dem Fahrzeug
+  h.innerHTML=a.html;
+  $("rueck").textContent="";
+  $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
+  $("antwort").focus();
+  starteZeit();
+}
+function starteZeit(){
+  stoppZeit();
+  const sek=st(strecke).sek;
+  $("zeitbalken").classList.toggle("hide", !sek);
+  if(!sek) return;
+  zeitRest=sek;
+  $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{
+    zeitRest-=0.25;
+    $("zeitfuell").style.width=Math.max(0,(zeitRest/sek*100))+"%";
+    if(zeitRest<=0){ stoppZeit(); zeitAbgelaufen(); }
+  },250);
+}
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+function zeitAbgelaufen(){
+  if($("antwort").disabled) return;
+  const a=aufgaben[idx % aufgaben.length];
+  $("antwort").disabled=true; $("okBtn").disabled=true;
+  verarbeiteFalsch(a, "⏱ Zeit vorbei!");
+}
+
+$("okBtn").addEventListener("click", pruefe);
+$("antwort").addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
+function pruefe(){
+  if($("antwort").disabled || inBox) return;
+  const roh=$("antwort").value.trim();
+  if(roh==="") return;
+  const a=aufgaben[idx % aufgaben.length];
+  const ok = parseInt(roh,10)===a.antwort;
+  stoppZeit();
+  $("antwort").disabled=true; $("okBtn").disabled=true;
+  gestellt.push(a.key);
+  if(ok){
+    richtig++;
+    const h=bq(".hind"); h.classList.add("weg");
+    $("rueck").style.color="var(--good)"; $("rueck").textContent="Frei! Weiter geht's 👍";
+    zeichneFortschritt();
+    const fahrzeit = boost()?420:700;
+    fahrtAn(fahrzeit);
+    fahrzeugNach(richtig);
+    idx++;
+    setTimeout(naechstesHindernis, fahrzeit+120);
+  }else{
+    verarbeiteFalsch(a, `Falsch! ${a.text} = ${a.antwort}`);
+  }
+}
+function verarbeiteFalsch(a, meldung){
+  herzen--; rundeOhneFehler=false;
+  falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`);
+  letzteFalsch=a;
+  gestellt.includes(a.key) || gestellt.push(a.key);
+  $("rueck").style.color="var(--bad)"; $("rueck").textContent=meldung;
+  const f=bq(".fz"); if(f){ f.classList.add("wackel"); setTimeout(()=>f.classList.remove("wackel"),460); }
+  zeichneHerzen();
+  idx++;
+  if(herzen<=0) setTimeout(boxenstopp, 900);
+  else setTimeout(naechstesHindernis, 1400);
+}
+
+//// ===== Boxenstopp =====
+const BOXTEXT={ auto:["🔧","Boxenstopp – wird repariert!"], pferd:["🧰","Pause beim Hufschmied!"], rakete:["🛠️","Im Reparatur-Dock!"] };
+function boxenstopp(){
+  inBox=true;
+  const b=$("bahn");
+  const [ic,titel]=BOXTEXT[welt]||BOXTEXT.auto;
+  const a=letzteFalsch;
+  const ov=document.createElement("div");
+  ov.className="boxstop"; ov.id="boxOv";
+  ov.innerHTML=`<div class="wz">${ic}</div><div class="t1">${titel}</div>
+    <div class="t2">Merke: ${a?a.text+" = "+a.antwort:""}</div>
+    <div class="t3">Weiter in <b id="boxSek">${BOX_SEK}</b> s – dann kommt genau diese Aufgabe noch einmal.</div>`;
+  b.appendChild(ov);
+  let s=BOX_SEK;
+  const iv=setInterval(()=>{
+    s--;
+    const el=$("boxSek"); if(el) el.textContent=s;
+    if(s<=0){
+      clearInterval(iv);
+      ov.remove();
+      herzen=HERZEN; inBox=false;
+      zeichneHerzen();
+      if(a) aufgaben.splice(idx % aufgaben.length, 0, a);   // dieselbe Aufgabe kommt sofort wieder
+      naechstesHindernis();
+    }
+  },1000);
+}
+
+//// ===== Runde fertig =====
+function rundeFertig(){
+  stoppZeit();
+  const dauer=Math.round((Date.now()-rundeStart)/1000);
+  const zf=bq(".zielflagge");
+  if(zf){ zf.classList.remove("an"); void zf.offsetWidth; zf.classList.add("an"); }
+  sitzungRunden++;
+  sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
+  const vorher=gesamtRunden();
+  speichere(dauer);
+  const nachher=gesamtRunden();
+  $("rueck").style.color="var(--gold)";
+  $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`;
+  const neuFrei = freigeschaltetZwischen(vorher, nachher);
+  if(neuFrei.length) konfetti();
+  else if(nachher%10===0) konfetti();
+  setTimeout(()=>{
+    if(neuFrei.length){ zeigeAngebotNeu(neuFrei); return; }
+    if(sauberSerie>=3 && streckeWechselMoeglich()){ zeigeAngebotStrecke(); return; }
+    rundeNr=sitzungRunden+1;
+    starteRunde();
+  }, 1300);
+}
+function freigeschaltetZwischen(a,b){
+  const neu=[];
+  FAHRZEUGE.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
+  FARBEN.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`🎨 Farbe ${f.name}`); });
+  if(BOOST_AB>a && BOOST_AB<=b) neu.push("🔧 Boost");
+  if(strecke===3 && a<F1_RUNDEN && b>=F1_RUNDEN) neu.push("🏆 Strecke Formel 1");
+  return neu;
+}
+function streckeWechselMoeglich(){
+  return strecke<5 && streckeOffen(strecke+1);
+}
+function zeigeAngebotNeu(liste){
+  zeige("angebot");
+  $("angTitel").textContent="🎁 Neu in deiner Garage!";
+  $("angText").innerHTML=`Du hast jetzt <b>${gesamtRunden()} Runden</b> gefahren. Freigeschaltet:<br><br>`+
+    liste.map(x=>`<b>${x}</b>`).join("<br>");
+  $("angJa").textContent="🔧 Zur Garage";
+  $("angJa").onclick=()=>{ zeige("garage"); zeigeGarage(); };
+  $("angNein").textContent="Weiterfahren ▶";
+  $("angNein").onclick=()=>{ rundeNr=sitzungRunden+1; starteRunde(); };
+}
+function zeigeAngebotStrecke(){
+  const n=strecke+1, s=st(n);
+  zeige("angebot");
+  $("angTitel").textContent="🏁 Das läuft richtig gut!";
+  $("angText").innerHTML=`Du hast <b>3 Runden hintereinander ohne Fehler</b> geschafft. Stark!<br><br>
+    Möchtest du einmal die Strecke <b>${s.ic} ${s.name}</b> probieren? Dort gibt es ${s.kurz}.<br><br>
+    Du kannst <b>jederzeit wieder zurück</b> – deine Runden bleiben alle erhalten.`;
+  $("angJa").textContent=`${s.ic} ${s.name} probieren ▶`;
+  $("angJa").onclick=()=>{ strecke=n; sauberSerie=0; merken(); rundeNr=sitzungRunden+1; starteRunde(); };
+  $("angNein").onclick=()=>{ sauberSerie=0; rundeNr=sitzungRunden+1; starteRunde(); };
+}
+$("pauseBtn").addEventListener("click", ()=>{ stoppZeit(); inBox=false; zeige("start"); zeigeStart(); });
+
+//// ===== Speichern =====
+// Pro Kind · Strecke · Tag ein Eintrag, der mit jeder Runde fortgeschrieben wird.
+function heute(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
+  return `${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`; }
+function jetzt(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
+  return `${p(n.getHours())}:${p(n.getMinutes())}`; }
+function speichere(dauer){
+  const datum=heute();
+  let e=MEINE.find(x=>x.datum===datum && +x.strecke===strecke);
+  if(!e){
+    e={ key:KEY, app:APP, name:playerName, datum:datum, modus:"Rallye",
+        strecke:strecke, stufe:st(strecke).name, welt:welt,
+        runden:0, richtig:0, falsch:0, boxenstopps:0, bestzeit:0,
+        gestellt:[], fehler:[] };
+    MEINE.push(e);
+  }
+  e.zeit=jetzt();
+  e.runden=(+e.runden||0)+1;
+  e.richtig=(+e.richtig||0)+richtig;
+  e.falsch=(+e.falsch||0)+falsch.length;
+  e.boxenstopps=(+e.boxenstopps||0)+(rundeOhneFehler?0:(falsch.length>=HERZEN?Math.floor(falsch.length/HERZEN):0));
+  e.bestzeit = e.bestzeit ? Math.min(+e.bestzeit, dauer) : dauer;
+  e.welt=welt;
+  e.gestellt=(e.gestellt||[]).concat(gestellt).slice(-400);
+  e.fehler=(e.fehler||[]).concat(falsch).slice(-200);
+  const ges=(+e.richtig)+(+e.falsch);
+  e.prozent = ges ? Math.round(e.richtig/ges*100) : 0;
+  if(!db) return;
+  const id=`${APP}_${datum}_${playerName}_s${strecke}`.replace(/[\/\s.]/g,"_");
+  e._id=id;
+  const daten=Object.assign({},e); delete daten._id;
+  db.collection("ergebnisse").doc(id).set(daten)
+    .catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+
+//// ===== Namen =====
+$("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
+$("name").addEventListener("change", ()=>{
+  $("name").value=capName($("name").value); playerName=$("name").value;
+  try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){}
+  verbindeKind();
+});
+function chipsZeigen(namen){
+  const box=$("nameChips");
+  if(!namen.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+namen.map(n=>`<span class="chip">${esc(n)}</span>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+    $("name").value=c.textContent; $("name").dispatchEvent(new Event("change"));
+  }));
+}
+
+//// ===== Cloud =====
+function verbindeKind(){
+  if(!playerName) return;
+  if(!db){   // ohne Cloud trotzdem spielbar – es wird nur nichts gespeichert
+    $("status").textContent="⚠️ Keine Verbindung – du kannst fahren, die Runden werden aber nicht gespeichert.";
+    zeigeStart(); return;
+  }
+  if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+  // Marathon-Stand (für die Freigabe der Formel 1)
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==","marathon").where("name","==",playerName)
+    .get().then(s=>{
+      let m=0; s.forEach(d=>{ const x=d.data(); if(x.bestanden==="Ja") m=Math.max(m,+x.etage||0); });
+      marathonEtage=m;
+      if(!$("start").classList.contains("hide")) zeigeStart();
+    }).catch(()=>{});
+  unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName)
+    .onSnapshot(snap=>{
+      const lokal=MEINE.filter(e=>!e._id);
+      MEINE=[]; snap.forEach(d=>{ const x=d.data(); x._id=d.id; MEINE.push(x); });
+      lokal.forEach(e=>MEINE.push(e));
+      cloudOk=true;
+      const g=gesamtRunden();
+      $("status").textContent=`☁️ Verbunden · ${g} ${g===1?"Runde":"Runden"} gespeichert`;
+      if(!$("spiel").classList.contains("hide") || !$("angebot").classList.contains("hide")) return;
+      if(!$("garage").classList.contains("hide")){ zeigeGarage(); return; }
+      zeigeStart();
+    }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeStart(); });
+}
+(function init(){
+  try{
+    welt=localStorage.getItem("rallye_welt")||"auto";
+    fahrzeugId=localStorage.getItem("rallye_fz")||"a1";
+    farbe=localStorage.getItem("rallye_farbe")||"#e23b3b";
+    strecke=+(localStorage.getItem("rallye_strecke")||1)||1;
+  }catch(e){}
+  if(!FAHRZEUGE.some(f=>f.id===fahrzeugId && f.welt===welt)) fahrzeugId=FAHRZEUGE.find(f=>f.welt===welt).id;
+  try{
+    firebase.initializeApp(CONF);
+    db=firebase.firestore();
+    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
+      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
+      chipsZeigen(namen);
+    }).catch(()=>{});
+  }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ $("name").value=capName(n); playerName=capName(n);
+    $("menuLink").href="index.html#name="+encodeURIComponent(playerName);
+    zeigeStart(); setTimeout(verbindeKind, 400); }
+  else $("name").focus();
+})();
+
+//// ===== Konfetti =====
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d");
+  const re=()=>{ c.width=innerWidth; c.height=innerHeight; }; re(); addEventListener("resize",re);
+  const col=["#38bdf8","#22c55e","#fbbf24","#ef4444","#a855f7","#ec4899"], ps=[];
+  for(let i=0;i<140;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,
+    c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const end=Date.now()+3000;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr; if(p.y>c.height+20){p.y=-20;p.x=Math.random()*c.width;}
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore(); });
+    if(Date.now()<end) requestAnimationFrame(f); else { removeEventListener("resize",re); c.remove(); }
+  })();
+}
+</script>
+</body>
+</html>

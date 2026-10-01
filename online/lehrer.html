@@ -84,7 +84,7 @@
     color:#bbf7d0;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700}
   .kind svg{width:16px;height:19px;flex:none}
   .hhLeer{color:var(--muted);font-size:13px}
-  body.beamer .card:not(#hochhausCard), body.beamer h1, body.beamer .sub, body.beamer .credit{display:none!important}
+  body.beamer .card:not(#hochhausCard):not(#rallyeCard), body.beamer h1, body.beamer .sub, body.beamer .credit{display:none!important}
   body.beamer{padding:10px}
   body.beamer .app{max-width:1600px}
   body.beamer .hhEtage{min-height:58px;font-size:18px}
@@ -150,6 +150,11 @@
     <div id="hochhaus"></div>
   </div>
 
+  <div class="card" id="rallyeCard">
+    <h2>🏎️ Rechen-Rallye <small>gemeinsames Rundenkonto – ohne Rangliste</small></h2>
+    <div id="rallye"></div>
+  </div>
+
   <div class="card noprint">
     <h2>✏️ Namen zusammenführen <small>wenn dasselbe Kind verschieden geschrieben wurde</small></h2>
     <div class="chips" id="vorschlaege" style="margin-bottom:12px"></div>
@@ -192,6 +197,7 @@ const CONFIG={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mat
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
 const SUPER_PIN="4785";
 const APPS={
+  rallye:       {label:"Rallye",        ic:"🏎️"},
   marathon:     {label:"Marathon",      ic:"🏢"},
   einmaleins:   {label:"Einmaleins",    ic:"✖️"},
   einsdurcheins:{label:"Einsdurcheins", ic:"➗"},
@@ -207,6 +213,10 @@ let db=null, ALLE=[], pin=null, tage=0, entsperrt=false;
 
 //// ===== Bezeichnungen je Programm =====
 function uebungLabel(e){
+  if(e.modus==="Rallye"){
+    const r=+e.runden||0;
+    return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
+  }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
@@ -284,6 +294,7 @@ function render(){
     : '<div class="empty">Noch keine Daten.</div>';
 
   renderHochhaus();
+  renderRallye();
   fuelleNamen();
 
   // Filter füllen
@@ -307,6 +318,39 @@ function render(){
             <td class="${cls}">${erg}</td></tr>`;
         }).join("") + "</tbody></table>"
     : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
+}
+
+//// ===== Rechen-Rallye: gemeinsames Rundenkonto =====
+const RSTRECKE=["–","🏙️ Stadt","🌳 Landstraße","⛰️ Bergpass","🏁 Rennstrecke","🏆 Formel 1"];
+function renderRallye(){
+  const r=ALLE.filter(e=>e.app==="rallye");
+  const box=$("rallye");
+  if(!r.length){ box.innerHTML='<div class="hhLeer">Noch niemand ist die Rechen-Rallye gefahren.</div>'; return; }
+  const summe=r.reduce((s,e)=>s+(+e.runden||0),0);
+  const ziel=(Math.floor(summe/100)+1)*100;
+  const proKind={};
+  r.forEach(e=>{
+    const n=e.name; if(!proKind[n]) proKind[n]={runden:0,strecke:0,best:0};
+    proKind[n].runden += (+e.runden||0);
+    proKind[n].strecke = Math.max(proKind[n].strecke, +e.strecke||0);
+    const b=+e.bestzeit||0; if(b && (!proKind[n].best || b<proKind[n].best)) proKind[n].best=b;
+  });
+  const namen=Object.keys(proKind).sort((a,b)=>a.localeCompare(b,"de"));
+  let html=`<div style="text-align:center;margin:6px 0 4px">
+      <div style="font-size:46px;font-weight:800;color:#fbbf24;line-height:1">${summe}</div>
+      <div style="color:var(--muted);font-size:15px">Runden hat unsere Klasse zusammen geschafft</div>
+      <div style="height:12px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);margin:12px auto 6px;max-width:460px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,summe/ziel*100)}%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
+      <div style="color:var(--muted);font-size:13px">Nächstes gemeinsames Ziel: <b>${ziel} Runden</b></div>
+    </div>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px">`+
+    namen.map(n=>{
+      const k=proKind[n];
+      return `<span style="background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:8px 14px;font-size:14px">
+        <b>${esc(n)}</b> · ${k.runden} ${k.runden===1?"Runde":"Runden"} · ${RSTRECKE[k.strecke]||"–"}${k.best?` · ⏱ ${k.best} s`:""}</span>`;
+    }).join("")+`</div>`;
+  html+=`<div class="status">${namen.length===1?"1 Kind fährt":namen.length+" Kinder fahren"} mit · die Strecke wählt jedes Kind selbst – wer sicher fährt, wird von der Rallye gefragt, ob er die nächste probieren möchte.</div>`;
+  box.innerHTML=html;
 }
 
 //// ===== Hochhaus der Klasse (Rechen-Marathon) =====
