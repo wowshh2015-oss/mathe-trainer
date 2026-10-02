@@ -104,6 +104,7 @@
   .fortschritt i{flex:1;height:8px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
   .fortschritt i.ok{background:var(--good);border-color:var(--good)}
   .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px}
+  .frage.lang{font-size:30px;letter-spacing:0}
   .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
   .antwortzeile{display:flex;gap:12px}
   .antwortzeile input{flex:1;font-size:30px;text-align:center}
@@ -197,7 +198,12 @@ const PLAN=[
   {bis:20,  typen:["mal"],                                               label:"Einmaleins"},
   {bis:25,  typen:["mal","geteilt"],                                     label:"Einmaleins & Einsdurcheins"},
   {bis:30,  typen:["plus100","minus100","mal","geteilt"],                label:"alles gemischt"},
-  {bis:9999,typen:["plus1000","minus1000","mal","geteilt","zerlegen100"],label:"Bonus-Etagen"}
+  {bis:60,  typen:["plus1000","minus1000","mal","geteilt","zerlegen100"],label:"alles bis 1000"},
+  {bis:120, typen:["malZehner","geteiltZehner","plus1000","minus1000"],  label:"Mal & Geteilt mit Zehnerzahlen"},
+  {bis:200, typen:["platzMal","platzGeteilt","mal","geteilt"],           label:"Umkehraufgaben – finde die Lücke"},
+  {bis:300, typen:["grossMal","verdoppeln","halbieren","malZehner"],     label:"Großes Einmaleins"},
+  {bis:9999,typen:["grossMal","malZehner","geteiltZehner","platzMal","platzGeteilt",
+                   "verdoppeln","halbieren","plus1000","minus1000"],     label:"Meister-Etagen"}
 ];
 function planFuer(e){ return PLAN.find(p=>e<=p.bis) || PLAN[PLAN.length-1]; }
 function istPruefung(e){ return e%PRUEF===0; }
@@ -253,6 +259,39 @@ function mkZerlegen(zr){
     return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a}; }
   return {html:`67 + ${BOX} = 70`, text:"70 = 67 + ?", antwort:3, key:"70=67"};
 }
+// ===== Aufgaben für die hohen Etagen =====
+function mkMalZehner(){
+  const a=rnd(2,9), z=rnd(2,9)*10, f=Math.random()<0.5;
+  return {html: f?`${a} × ${z}`:`${z} × ${a}`, text:`${a} × ${z}`, antwort:a*z, key:a+"×"+z};
+}
+function mkGeteiltZehner(){
+  const a=rnd(2,9), b=rnd(2,9), p=a*b*10;
+  return Math.random()<0.5
+    ? {html:`${p} ÷ ${b*10}`, text:`${p} ÷ ${b*10}`, antwort:a,    key:p+"÷"+(b*10)}
+    : {html:`${p} ÷ ${b}`,    text:`${p} ÷ ${b}`,    antwort:a*10, key:p+"÷"+b};
+}
+function mkPlatzMal(){
+  const a=rnd(2,10), b=rnd(2,10), k=Math.min(a,b)+"×"+Math.max(a,b);
+  return Math.random()<0.5
+    ? {html:`${a} × ${BOX} = ${a*b}`, text:`${a} × ? = ${a*b}`, antwort:b, key:k}
+    : {html:`${BOX} × ${b} = ${a*b}`, text:`? × ${b} = ${a*b}`, antwort:a, key:k};
+}
+function mkPlatzGeteilt(){
+  const a=rnd(2,10), b=rnd(2,10), p=a*b;
+  return {html:`${p} ÷ ${BOX} = ${a}`, text:`${p} ÷ ? = ${a}`, antwort:b, key:p+"÷"+b};
+}
+function mkGrossMal(){
+  const a=rnd(11,20), b=rnd(2,9);
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:a+"×"+b};
+}
+function mkVerdoppeln(){
+  const n=rnd(11,250);
+  return {html:`Das Doppelte von ${n}`, text:`Doppelte von ${n}`, antwort:n*2, key:"D"+n};
+}
+function mkHalbieren(){
+  const n=rnd(6,150)*2;
+  return {html:`Die Hälfte von ${n}`, text:`Hälfte von ${n}`, antwort:n/2, key:"H"+n};
+}
 function mkTyp(typ){
   switch(typ){
     case "plus20ohne":  return mkPlus(20,"ohne");
@@ -267,6 +306,13 @@ function mkTyp(typ){
     case "geteilt":     return mkGeteilt();
     case "zerlegen20":  return mkZerlegen(20);
     case "zerlegen100": return mkZerlegen(100);
+    case "malZehner":    return mkMalZehner();
+    case "geteiltZehner":return mkGeteiltZehner();
+    case "platzMal":     return mkPlatzMal();
+    case "platzGeteilt": return mkPlatzGeteilt();
+    case "grossMal":     return mkGrossMal();
+    case "verdoppeln":   return mkVerdoppeln();
+    case "halbieren":    return mkHalbieren();
   }
   return mkPlus(20,"ohne");
 }
@@ -356,6 +402,7 @@ function naechsteAufgabe(){
   if(herzen<=0){ fertig(false); return; }
   const a=aufgaben[idx % aufgaben.length];
   $("frage").innerHTML=a.html;
+  $("frage").classList.toggle("lang", a.text.length>14);
   zeichneHerzen(); zeichneFortschritt();
   $("rueck").textContent="";
   $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
