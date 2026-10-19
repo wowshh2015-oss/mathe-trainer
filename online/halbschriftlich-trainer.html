@@ -168,6 +168,10 @@
       <button data-ueb="mit">mit Übergang<small>72 − 25</small></button>
       <button data-ueb="mix">gemischt<small>alles</small></button>
     </div>
+    <h3>🧠 Meine Aufgaben <small>genau das, womit du zuletzt Mühe hattest</small></h3>
+    <div class="reihen" style="grid-template-columns:1fr">
+      <button id="meineBtn">🧠 Meine Aufgaben<small id="meineInfo">wird geladen …</small></button>
+    </div>
     <div class="info" style="margin-top:18px">Im Trainingsraum gibt es <b>keine Zeit</b> und keine Punkte.
       Jeder Schritt wird sofort geprüft – wenn er nicht stimmt, siehst du die richtige Zahl und rechnest mit ihr weiter.</div>
   </div>
@@ -259,6 +263,32 @@ const SCHRITTNAMEN={
 //// ===== Aufgaben =====
 function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
 
+// ===== Bauplan je Verfahren (auch für "Meine Aufgaben" aus alten Fehlern) =====
+function bauSchrittAdd(a,b){
+  const z=Math.floor(b/10)*10, e=b%10;
+  return {verf:"schrittAdd", a:a, b:b, ueb:((a%10)+(b%10)>=10)?"mit":"ohne", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
+    schritte:[ {l:a,   op:"+", r:z, erg:a+z, abh:false},
+               {l:a+z, op:"+", r:e, erg:a+b, abh:true } ]};
+}
+function bauStellenAdd(a,b){
+  const ea=a%10, eb=b%10, za=a-ea, zb=b-eb;
+  return {verf:"stellenAdd", a:a, b:b, ueb:(ea+eb>=10)?"mit":"ohne", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
+    schritte:[ {l:za,    op:"+", r:zb,    erg:za+zb, abh:false},
+               {l:ea,    op:"+", r:eb,    erg:ea+eb, abh:false},
+               {l:za+zb, op:"+", r:ea+eb, erg:a+b,   abh:true } ]};
+}
+function bauSchrittSub(a,b){
+  const z=Math.floor(b/10)*10, e=b%10;
+  return {verf:"schrittSub", a:a, b:b, ueb:((a%10)<(b%10))?"mit":"ohne", fact:`${a}−${b}`, kopf:`${a} − ${b}`,
+    schritte:[ {l:a,   op:"−", r:z, erg:a-z, abh:false},
+               {l:a-z, op:"−", r:e, erg:a-b, abh:true } ]};
+}
+function bauNach(verf,a,b){
+  if(verf==="stellenAdd") return bauStellenAdd(a,b);
+  if(verf==="schrittSub") return bauSchrittSub(a,b);
+  return bauSchrittAdd(a,b);
+}
+
 // 47 + 25  ->  47 + 20 = 67 ·  67 + 5 = 72
 function mkSchrittAdd(ueb){
   for(let i=0;i<800;i++){
@@ -268,13 +298,9 @@ function mkSchrittAdd(ueb){
     const ue=(a%10)+(b%10)>=10;
     if(ueb==="ohne" && ue) continue;
     if(ueb==="mit" && !ue) continue;
-    const z=Math.floor(b/10)*10, e=b%10;
-    return {verf:"schrittAdd", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}+${b}`,
-      kopf:`${a} + ${b}`,
-      schritte:[ {l:a,     op:"+", r:z, erg:a+z,  abh:false},
-                 {l:a+z,   op:"+", r:e, erg:a+b,  abh:true } ]};
+    return bauSchrittAdd(a,b);
   }
-  return mkSchrittAdd("mix");
+  return bauSchrittAdd(47,25);
 }
 // 47 + 25  ->  40 + 20 = 60 ·  7 + 5 = 12 ·  60 + 12 = 72
 function mkStellenAdd(ueb){
@@ -282,17 +308,12 @@ function mkStellenAdd(ueb){
     const a=rnd(11,88), b=rnd(11,88);
     if(a+b>100) continue;
     if(a%10===0 || b%10===0) continue;
-    const ea=a%10, eb=b%10, za=a-ea, zb=b-eb;
-    const ue=ea+eb>=10;
+    const ue=(a%10)+(b%10)>=10;
     if(ueb==="ohne" && ue) continue;
     if(ueb==="mit" && !ue) continue;
-    return {verf:"stellenAdd", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}+${b}`,
-      kopf:`${a} + ${b}`,
-      schritte:[ {l:za,    op:"+", r:zb,    erg:za+zb, abh:false},
-                 {l:ea,    op:"+", r:eb,    erg:ea+eb, abh:false},
-                 {l:za+zb, op:"+", r:ea+eb, erg:a+b,   abh:true } ]};
+    return bauStellenAdd(a,b);
   }
-  return mkStellenAdd("mix");
+  return bauStellenAdd(47,25);
 }
 // 72 − 25  ->  72 − 20 = 52 ·  52 − 5 = 47
 function mkSchrittSub(ueb){
@@ -302,13 +323,9 @@ function mkSchrittSub(ueb){
     const ue=(a%10)<(b%10);
     if(ueb==="ohne" && ue) continue;
     if(ueb==="mit" && !ue) continue;
-    const z=Math.floor(b/10)*10, e=b%10;
-    return {verf:"schrittSub", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}−${b}`,
-      kopf:`${a} − ${b}`,
-      schritte:[ {l:a,   op:"−", r:z, erg:a-z, abh:false},
-                 {l:a-z, op:"−", r:e, erg:a-b, abh:true } ]};
+    return bauSchrittSub(a,b);
   }
-  return mkSchrittSub("mix");
+  return bauSchrittSub(72,25);
 }
 function mkAufgabe(verf, ueb){
   const art = ueb==="mix" ? (Math.random()<0.5?"ohne":"mit") : ueb;
@@ -326,6 +343,88 @@ function baueSatz(verf, ueb, anzahl){
   }
   while(liste.length<anzahl) liste.push(mkAufgabe(verf, ueb));
   return liste;
+}
+
+//// ===== Meine Aufgaben: alte Fehler zurückholen =====
+let MEINE=[];                       // eigene Durchgänge, neueste zuerst
+function tsKey(e){
+  const [t,m,j]=String(e.datum||"01.01.2000").split(".");
+  return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`;
+}
+function ladeMeine(){
+  if(!db || !playerName) return;
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+    .then(s=>{
+      MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
+      MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      zeigeMeineInfo();
+    }).catch(()=>{});
+}
+// wie in den anderen Trainern: 3× hintereinander richtig = gelernt
+function serie(fact){
+  let s=0;
+  for(const e of MEINE){
+    if(!(e.gestellt||[]).includes(fact)) continue;
+    if((e.fehler||[]).includes(fact)) return s;
+    s++;
+    if(s>=3) return s;
+  }
+  return s;
+}
+function offeneFehler(){
+  const map=new Map();                       // fact -> {verf, anzahl}
+  MEINE.forEach(e=>{
+    (e.fehler||[]).forEach(f=>{
+      if(!map.has(f)) map.set(f,{verf:e.verfahren||"schrittAdd", anzahl:0});
+      map.get(f).anzahl++;
+    });
+  });
+  return [...map.entries()]
+    .filter(([f])=>serie(f)<3)
+    .sort((a,b)=>b[1].anzahl-a[1].anzahl);
+}
+function schwaechsterSchritt(){
+  const sum={};
+  MEINE.forEach(e=>Object.entries(e.schrittfehler||{}).forEach(([n,c])=>{ sum[n]=(sum[n]||0)+(+c||0); }));
+  const s=Object.entries(sum).sort((a,b)=>b[1]-a[1]);
+  return s.length?s[0][0]:null;
+}
+function verfahrenZuSchritt(n){
+  if(n==="Zehner"||n==="Einer"||n==="Teilsummen") return "stellenAdd";
+  return null;                                 // Zehner-/Einerschritt gibt es in + und −
+}
+function factZuAufgabe(fact, verf){
+  const m=String(fact).match(/^(\d+)([+−])(\d+)$/);
+  if(!m) return null;
+  const a=+m[1], b=+m[3];
+  if(m[2]==="−") return bauSchrittSub(a,b);
+  return bauNach(verf==="stellenAdd"?"stellenAdd":"schrittAdd", a, b);
+}
+function baueMeine(anzahl){
+  const offen=offeneFehler(), liste=[], gesehen=new Set();
+  offen.forEach(([fact,info])=>{
+    if(liste.length>=anzahl) return;
+    const a=factZuAufgabe(fact, info.verf);
+    if(a && !gesehen.has(a.fact)){ gesehen.add(a.fact); liste.push(a); }
+  });
+  // auffüllen: bevorzugt das Verfahren, bei dem der schwächste Schritt vorkommt
+  const schwach=schwaechsterSchritt();
+  const fuellVerf = verfahrenZuSchritt(schwach) || (offen[0] ? offen[0][1].verf : "schrittAdd");
+  let schutz=0;
+  while(liste.length<anzahl && schutz++<400){
+    const a=mkAufgabe(fuellVerf, schwach==="Zehnerschritt"||schwach==="Zehner" ? "mix" : "mit");
+    if(gesehen.has(a.fact)) continue;
+    gesehen.add(a.fact); liste.push(a);
+  }
+  return liste;
+}
+function zeigeMeineInfo(){
+  const offen=offeneFehler(), btn=$("meineBtn"), info=$("meineInfo");
+  if(!MEINE.length){ info.textContent="noch nichts geübt – fang oben an"; btn.disabled=true; return; }
+  btn.disabled=false;
+  if(!offen.length){ info.textContent="alles gelernt ⭐ – hier kommt gemischtes Üben"; return; }
+  const s=schwaechsterSchritt();
+  info.textContent = `${offen.length} offene Aufgabe${offen.length===1?"":"n"}` + (s?` · schwächster Schritt: ${s}`:"");
 }
 
 //// ===== Anzeige =====
@@ -365,12 +464,14 @@ function zeichneWeg(){
 //// ===== Ablauf =====
 function starte(){
   const anzahl = modus==="Test" ? PRO_TEST : PRO_TRAINING;
-  aufgaben=baueSatz(verfahren, modus==="Test" ? "mix" : uebArt, anzahl);
+  aufgaben = (modus==="Training" && uebArt==="mine")
+    ? baueMeine(anzahl)
+    : baueSatz(verfahren, modus==="Test" ? "mix" : uebArt, anzahl);
   nr=0; richtig=0; falschListe=[]; gestellt=[]; fehler=[]; schrittFehler={}; erledigt=[];
   startZeit=Date.now();
   $("spielTitel").textContent = modus==="Test"
     ? `${VERFAHREN[verfahren].name} · ${STUFENNAMEN[stufe]}`
-    : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`;
+    : (uebArt==="mine" ? "🧠 Meine Aufgaben" : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`);
   zeige("spiel");
   naechsteAufgabe();
 }
@@ -505,6 +606,7 @@ function fertig(){
   $("nochmal").textContent = modus==="Test" ? "Test nochmal ▶" : "Nochmal üben ▶";
   if(bestanden && modus==="Test") konfetti();
   speichere(prozent, bestanden, dauer);
+  setTimeout(ladeMeine, 1200);        // Fehlerliste für "Meine Aufgaben" frisch halten
 }
 function tippText(sf){
   if(!sf.length) return "⭐ Alle Schritte saßen. Der Rechenweg sitzt – super!";
@@ -527,9 +629,10 @@ function speichere(prozent, bestanden, dauer){
     key:KEY, app:APP, name:playerName,
     datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`,
     zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
-    modus:modus, verfahren:verfahren, verfahrenName:VERFAHREN[verfahren].name,
-    reihe:`${verfahren}-${modus==="Test"?"mix":uebArt}`, zr:100,
-    stufe: modus==="Test" ? STUFENNAMEN[stufe] : UEB[uebArt],
+    modus:modus, verfahren:verfahren,
+    verfahrenName: (modus==="Training" && uebArt==="mine") ? "Meine Aufgaben" : VERFAHREN[verfahren].name,
+    reihe: (modus==="Training" && uebArt==="mine") ? "mine" : `${verfahren}-${modus==="Test"?"mix":uebArt}`, zr:100,
+    stufe: modus==="Test" ? STUFENNAMEN[stufe] : (uebArt==="mine" ? "eigene Fehler" : UEB[uebArt]),
     richtig:richtig, falsch:(modus==="Test"?PRO_TEST:PRO_TRAINING)-richtig,
     prozent:prozent, bestanden: modus==="Test" ? (bestanden?"Ja":"Nein") : "–",
     dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(),
@@ -559,6 +662,12 @@ document.querySelectorAll("#training .reihen").forEach(box=>{
     modus="Training"; verfahren=v; uebArt=b.dataset.ueb; starte();
   }));
 });
+$("meineBtn").addEventListener("click", ()=>{
+  const offen=offeneFehler();
+  modus="Training"; uebArt="mine";
+  verfahren = offen.length ? (offen[0][1].verf||"schrittAdd") : (verfahrenZuSchritt(schwaechsterSchritt())||"schrittAdd");
+  starte();
+});
 let testV=null;
 document.querySelectorAll("#testVerfahren button").forEach(b=>b.addEventListener("click", ()=>{
   document.querySelectorAll("#testVerfahren button").forEach(x=>x.classList.remove("an"));
@@ -577,7 +686,7 @@ $("name").addEventListener("input", ()=>{ playerName=capName($("name").value); }
 $("name").addEventListener("change", ()=>{
   $("name").value=capName($("name").value); playerName=$("name").value;
   try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){}
-  if(playerName) $("menue").classList.remove("hide");
+  if(playerName){ $("menue").classList.remove("hide"); ladeMeine(); }
 });
 function chipsZeigen(namen){
   const box=$("nameChips");
@@ -606,7 +715,7 @@ function chipsZeigen(namen){
   if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
   if(n){ $("name").value=capName(n); playerName=capName(n);
     $("menuLink").href="index.html#name="+encodeURIComponent(playerName);
-    $("menue").classList.remove("hide"); }
+    $("menue").classList.remove("hide"); setTimeout(ladeMeine, 500); }
   else $("name").focus();
 })();
 

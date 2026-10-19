@@ -194,11 +194,12 @@ const PLAN=[
   {bis:3,   typen:["plus20ohne","minus20ohne"],                          label:"Plus & Minus bis 20"},
   {bis:6,   typen:["plus20","minus20","zerlegen20"],                     label:"bis 20 mit Übergang & Zerlegen"},
   {bis:10,  typen:["plus100","minus100"],                                label:"Plus & Minus bis 100"},
-  {bis:15,  typen:["plus100","minus100","zerlegen100"],                  label:"bis 100 gemischt"},
+  {bis:15,  typen:["plus100","minus100","zerlegen100","zehnerschritt"],  label:"bis 100 gemischt"},
   {bis:20,  typen:["mal"],                                               label:"Einmaleins"},
   {bis:25,  typen:["mal","geteilt"],                                     label:"Einmaleins & Einsdurcheins"},
-  {bis:30,  typen:["plus100","minus100","mal","geteilt"],                label:"alles gemischt"},
-  {bis:60,  typen:["plus1000","minus1000","mal","geteilt","zerlegen100"],label:"alles bis 1000"},
+  {bis:30,  typen:["plus100","minus100","mal","geteilt","einerschritt"], label:"alles gemischt"},
+  {bis:60,  typen:["plus1000","minus1000","mal","geteilt","zerlegen100",
+                   "zehnerschritt","einerschritt"],                      label:"alles bis 1000"},
   {bis:120, typen:["malZehner","geteiltZehner","plus1000","minus1000"],  label:"Mal & Geteilt mit Zehnerzahlen"},
   {bis:200, typen:["platzMal","platzGeteilt","mal","geteilt"],           label:"Umkehraufgaben – finde die Lücke"},
   {bis:300, typen:["grossMal","verdoppeln","halbieren","malZehner"],     label:"Großes Einmaleins"},
@@ -259,6 +260,35 @@ function mkZerlegen(zr){
     return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a}; }
   return {html:`67 + ${BOX} = 70`, text:"70 = 67 + ?", antwort:3, key:"70=67"};
 }
+// ===== Halbschriftliche Teilschritte (kommen aus dem Rechenwege-Trainer zurück) =====
+function mkZehnerschritt(){
+  if(Math.random()<0.5){                                  // 47 + 20
+    const a=rnd(11,79)||11, z=rnd(1,Math.max(1,Math.floor((100-a)/10)))*10;
+    return {html:`${a} + ${z}`, text:`${a} + ${z}`, antwort:a+z, key:Math.min(a,z)+"+"+Math.max(a,z)};
+  }
+  const a=rnd(21,99), z=rnd(1,Math.floor(a/10))*10;       // 72 − 20
+  return {html:`${a} − ${z}`, text:`${a} − ${z}`, antwort:a-z, key:a+"−"+z};
+}
+function mkEinerschritt(){
+  if(Math.random()<0.5){                                  // 67 + 5  (mit Übergang)
+    for(let i=0;i<300;i++){
+      const a=rnd(11,94), e=rnd(2,9);
+      if(a%10===0) continue;
+      if(a%10+e<10) continue;
+      if(a+e>100) continue;
+      return {html:`${a} + ${e}`, text:`${a} + ${e}`, antwort:a+e, key:Math.min(a,e)+"+"+Math.max(a,e)};
+    }
+    return {html:"67 + 5", text:"67 + 5", antwort:72, key:"5+67"};
+  }
+  for(let i=0;i<300;i++){                                 // 52 − 5  (mit Übergang)
+    const a=rnd(11,99), e=rnd(2,9);
+    if(a%10===0) continue;
+    if(a%10>=e) continue;
+    return {html:`${a} − ${e}`, text:`${a} − ${e}`, antwort:a-e, key:a+"−"+e};
+  }
+  return {html:"52 − 5", text:"52 − 5", antwort:47, key:"52−5"};
+}
+
 // ===== Aufgaben für die hohen Etagen =====
 function mkMalZehner(){
   const a=rnd(2,9), z=rnd(2,9)*10, f=Math.random()<0.5;
@@ -313,6 +343,8 @@ function mkTyp(typ){
     case "grossMal":     return mkGrossMal();
     case "verdoppeln":   return mkVerdoppeln();
     case "halbieren":    return mkHalbieren();
+    case "zehnerschritt":return mkZehnerschritt();
+    case "einerschritt": return mkEinerschritt();
   }
   return mkPlus(20,"ohne");
 }

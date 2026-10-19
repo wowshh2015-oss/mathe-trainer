@@ -34,6 +34,21 @@
   .tile .t{font-size:22px;font-weight:800;margin-top:10px}
   .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
   .t1{--ac:#38bdf8;--soft:rgba(56,189,248,.10)}.t2{--ac:#a78bfa;--soft:rgba(167,139,250,.10)}.t3{--ac:#34d399;--soft:rgba(52,211,153,.10)}.t4{--ac:#fb923c;--soft:rgba(251,146,60,.10)}.t5{--ac:#f472b6;--soft:rgba(244,114,182,.10)}.t6{--ac:#f59e0b;--soft:rgba(245,158,11,.12)}.t7{--ac:#38bdf8;--soft:rgba(56,189,248,.12)}.t8{--ac:#2dd4bf;--soft:rgba(45,212,191,.12)}
+  /* ===== Begrüßung mit eigener Statistik ===== */
+  .hallo{text-align:left}
+  .hallo .gruss{font-size:19px;font-weight:800;line-height:1.45}
+  .hallo .seit{color:var(--muted);font-size:13.5px;margin-top:6px;line-height:1.5}
+  .erfolge{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .erfolg{background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600}
+  .hallo h4{font-size:13px;color:var(--muted);margin:18px 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .tipp{display:flex;align-items:center;gap:11px;background:#0b1220;border:1px solid var(--card2);
+    border-radius:14px;padding:12px 14px;margin-bottom:8px;text-decoration:none;color:var(--text);transition:.15s}
+  .tipp:hover{border-color:#38bdf8;background:rgba(56,189,248,.08)}
+  .tipp .ic{font-size:25px;flex:none;line-height:1}
+  .tipp .tx{flex:1;font-size:14px;line-height:1.45}
+  .tipp .tx b{font-size:15px;display:block;margin-bottom:1px}
+  .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
+  .hallo .laden{color:var(--muted);font-size:14px}
   .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
   .credit{margin-top:18px;color:var(--muted);font-size:13px}
   .credit strong{color:#38bdf8}
@@ -52,6 +67,8 @@
     <div class="chips" id="nameChips"></div>
   </div>
 
+  <div class="card hallo hide" id="hallo"></div>
+
   <div class="grid dis" id="grid">
     <a class="tile t7 wide" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde – Auto, Pferd oder Rakete · 5 Strecken</div></a>
     <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
@@ -66,6 +83,8 @@
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a></p>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
@@ -102,6 +121,171 @@ $("name").addEventListener("input",update);
   $("name").value=n;
   renderChips(); update();
   if(!n) $("name").focus();
+})();
+
+//// ===== Persönliche Begrüßung aus dem Klassen-Archiv =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const SEITEN={
+  einmaleins:     {datei:"einmaleins-trainer.html",      ic:"✖️", name:"Einmaleins"},
+  einsdurcheins:  {datei:"einsdurcheins-trainer.html",   ic:"➗", name:"Einsdurcheins"},
+  plus:           {datei:"plus-trainer.html",            ic:"➕", name:"Plus"},
+  minus:          {datei:"minus-trainer.html",           ic:"➖", name:"Minus"},
+  zerlegen:       {datei:"zerlegen-trainer.html",        ic:"🧩", name:"Zerlegen"},
+  halbschriftlich:{datei:"halbschriftlich-trainer.html", ic:"🪜", name:"Rechenwege"},
+  marathon:       {datei:"marathon-trainer.html",        ic:"🏢", name:"Rechen-Marathon"},
+  rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"}
+};
+let hdb=null, halloTimer=null, halloFuer="";
+function hTs(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
+function tageHer(s){
+  const [t,m,j]=String(s||"").split(".");
+  const d=new Date(+j,(+m||1)-1,+t||1), heute=new Date();
+  d.setHours(0,0,0,0); heute.setHours(0,0,0,0);
+  return Math.round((heute-d)/86400000);
+}
+// Aufgaben, die noch nicht dreimal hintereinander richtig waren
+function offeneFehler(rows){
+  const facts=new Set();
+  rows.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  let offen=0;
+  facts.forEach(f=>{
+    let s=0;
+    for(const e of rows){
+      if(!(e.gestellt||[]).includes(f)) continue;
+      if((e.fehler||[]).includes(f)) break;
+      s++; if(s>=3) break;
+    }
+    if(s<3) offen++;
+  });
+  return offen;
+}
+function tippHTML(ic, titel, text, datei, name){
+  return `<a class="tipp" href="${datei}#name=${encodeURIComponent(name)}">
+    <span class="ic">${ic}</span><span class="tx"><b>${titel}</b>${text}</span><span class="pfeil">›</span></a>`;
+}
+function zeigeHallo(rows, name){
+  const box=$("hallo");
+  box.classList.remove("hide");
+  if(!rows.length){
+    box.innerHTML=`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
+      <div class="seit">Das ist dein erstes Mal hier. Such dir unten einfach etwas aus – viel Spaß!</div>`;
+    return;
+  }
+  rows.sort((a,b)=>hTs(b).localeCompare(hTs(a)));
+  const letzte=rows[0], her=tageHer(letzte.datum), tage=new Set(rows.map(e=>e.datum));
+
+  let gruss;
+  if(her<=0)       gruss=`👋 Hallo ${esc(name)}! Schön, dass du heute noch einmal übst.`;
+  else if(her===1) gruss=`🔥 Hallo ${esc(name)}! Gestern warst du auch da – stark, dass du dranbleibst.`;
+  else if(her<=6)  gruss=`👋 Hallo ${esc(name)}! Schön, dass du wieder da bist.`;
+  else             gruss=`😊 Hallo ${esc(name)}! Du warst ${her} Tage nicht hier – schön, dass du wieder da bist!`;
+  const nTage=`<b>${tage.size}</b> Tag${tage.size===1?"":"en"}`;
+  const nDurch=`<b>${rows.length}</b> ${rows.length===1?"Durchgang":"Durchgänge"}`;
+  const seit = her<=0
+    ? `Du hast schon an ${nTage} geübt – zusammen ${nDurch}. Weiter so!`
+    : `Zuletzt warst du am <b>${letzte.datum}</b> hier${her===1?" – gestern":` – das ist <b>${her} Tage</b> her`}.
+       Insgesamt ${nDurch} an ${nTage}.`;
+
+  // ===== Erfolge =====
+  const erfolge=[];
+  const tests=rows.filter(e=>e.modus==="Test"), bestanden=tests.filter(e=>e.bestanden==="Ja");
+  if(bestanden.length) erfolge.push(`🏅 ${bestanden.length}× Test bestanden`);
+  const mEtage=rows.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  if(mEtage) erfolge.push(`🏢 Etage ${mEtage}${Math.floor(mEtage/5)?` · ${Math.floor(mEtage/5)}× 🏅`:""}`);
+  const runden=rows.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
+  if(runden) erfolge.push(`🏎️ ${runden} Runden gefahren`);
+  const mitProzent=rows.filter(e=>typeof e.prozent==="number");
+  if(mitProzent.length){
+    const schnitt=Math.round(mitProzent.reduce((s,e)=>s+e.prozent,0)/mitProzent.length);
+    erfolge.push(`📊 im Schnitt ${schnitt} % richtig`);
+  }
+  const proApp={};
+  rows.forEach(e=>{ if(!proApp[e.app]) proApp[e.app]=[]; proApp[e.app].push(e); });
+  const beste=Object.entries(proApp)
+    .map(([a,r])=>{ const p=r.filter(x=>typeof x.prozent==="number"); return [a, p.length?Math.round(p.reduce((s,x)=>s+x.prozent,0)/p.length):0, r.length]; })
+    .filter(x=>x[2]>=2 && SEITEN[x[0]]).sort((a,b)=>b[1]-a[1])[0];
+  if(beste && beste[1]>=85) erfolge.push(`⭐ stark in ${SEITEN[beste[0]].name} (${beste[1]} %)`);
+
+  // ===== Empfehlungen =====
+  const tipps=[];
+  // 1) offene Fehleraufgaben
+  const mitFehlern=Object.entries(proApp)
+    .filter(([a])=>SEITEN[a] && a!=="marathon" && a!=="rallye")
+    .map(([a,r])=>[a, offeneFehler(r)])
+    .filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  if(mitFehlern.length){
+    const [app,anz]=mitFehlern[0], s=SEITEN[app];
+    tipps.push(tippHTML(s.ic, `🧠 Meine Aufgaben bei ${s.name}`,
+      anz===1 ? `Dort wartet <b>eine Aufgabe</b>, mit der du zuletzt Mühe hattest.`
+              : `Dort warten <b>${anz} Aufgaben</b>, mit denen du zuletzt Mühe hattest.`, s.datei, name));
+  }
+  // 2) lange nicht geübt
+  const lange=Object.entries(proApp)
+    .filter(([a])=>SEITEN[a])
+    .map(([a,r])=>{ r.sort((x,y)=>hTs(y).localeCompare(hTs(x))); return [a, tageHer(r[0].datum)]; })
+    .filter(x=>x[1]>=7).sort((a,b)=>b[1]-a[1]);
+  if(lange.length && tipps.length<3){
+    const [app,tg]=lange[0], s=SEITEN[app];
+    tipps.push(tippHTML(s.ic, `${s.name} wartet auf dich`,
+      `Hier warst du seit <b>${tg} Tagen</b> nicht mehr. Schaffst du heute eine Runde?`, s.datei, name));
+  }
+  // 3) noch nie ausprobiert
+  const neu=Object.keys(SEITEN).filter(a=>!proApp[a]);
+  if(neu.length && tipps.length<3){
+    const s=SEITEN[neu[0]];
+    tipps.push(tippHTML(s.ic, `Neu für dich: ${s.name}`, `Das hast du noch nie probiert – schau doch mal rein!`, s.datei, name));
+  }
+  // 4) knapp an der Urkunde vorbei
+  const knapp=tests.filter(e=>e.bestanden==="Nein" && e.prozent>=70).sort((a,b)=>b.prozent-a.prozent)[0];
+  if(knapp && tipps.length<3 && SEITEN[knapp.app]){
+    const s=SEITEN[knapp.app];
+    tipps.push(tippHTML("🎯", `Fast geschafft bei ${s.name}`,
+      `Dein bester Test war <b>${knapp.prozent} %</b> – ab 90 % gibt es die Urkunde. Das packst du!`, s.datei, name));
+  }
+  // 5) Marathon / Rallye weiterziehen
+  if(tipps.length<3 && mEtage){
+    const naechste=(Math.floor(mEtage/5)+1)*5;
+    tipps.push(tippHTML("🏢", `Weiter im Rechen-Marathon`,
+      `Du stehst auf <b>Etage ${mEtage}</b>. Bis zur nächsten Prüfungsetage mit Medaille sind es noch <b>${naechste-mEtage}</b>.`,
+      SEITEN.marathon.datei, name));
+  }
+  if(tipps.length<3 && runden){
+    const naechste=(Math.floor(runden/20)+1)*20;
+    tipps.push(tippHTML("🏎️", `Weiter in der Rechen-Rallye`,
+      `Du hast <b>${runden} Runden</b> gefahren – noch <b>${naechste-runden}</b> bis zum nächsten Fahrzeug in der Garage.`,
+      SEITEN.rallye.datei, name));
+  }
+
+  box.innerHTML =
+    `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
+    (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
+    (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"");
+}
+function starteHallo(){
+  const name=capName($("name").value);
+  const box=$("hallo");
+  if(!name){ box.classList.add("hide"); halloFuer=""; return; }
+  if(name===halloFuer) return;
+  halloFuer=name;
+  if(!hdb){ box.classList.add("hide"); return; }
+  box.classList.remove("hide");
+  box.innerHTML=`<div class="laden">☁️ Einen Moment, ich schaue nach, was du schon geschafft hast …</div>`;
+  hdb.collection("ergebnisse").where("key","==",KEY).where("name","==",name).get()
+    .then(s=>{ const rows=[]; s.forEach(d=>rows.push(d.data())); if(capName($("name").value)===name) zeigeHallo(rows,name); })
+    .catch(()=>{ box.classList.add("hide"); });
+}
+(function halloInit(){
+  try{
+    firebase.initializeApp(CONF);
+    hdb=firebase.firestore();
+    hdb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+  }catch(e){ hdb=null; }
+  const alt=window.update;
+  window.update=function(){ alt(); clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,500); };
+  $("name").addEventListener("change", ()=>{ clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,150); });
+  setTimeout(starteHallo, 700);
 })();
 </script>
 </body>
