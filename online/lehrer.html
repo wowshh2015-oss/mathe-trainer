@@ -150,6 +150,11 @@
     <div id="hochhaus"></div>
   </div>
 
+  <div class="card" id="wegeCard">
+    <h2>🪜 Rechenwege <small>halbschriftlich – an welchem Schritt hakt es?</small></h2>
+    <div id="wege"></div>
+  </div>
+
   <div class="card" id="rallyeCard">
     <h2>🏎️ Rechen-Rallye <small>gemeinsames Rundenkonto – ohne Rangliste</small></h2>
     <div id="rallye"></div>
@@ -197,6 +202,7 @@ const CONFIG={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mat
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
 const SUPER_PIN="4785";
 const APPS={
+  halbschriftlich:{label:"Rechenwege", ic:"🪜"},
   rallye:       {label:"Rallye",        ic:"🏎️"},
   marathon:     {label:"Marathon",      ic:"🏢"},
   einmaleins:   {label:"Einmaleins",    ic:"✖️"},
@@ -213,6 +219,11 @@ let db=null, ALLE=[], pin=null, tage=0, entsperrt=false;
 
 //// ===== Bezeichnungen je Programm =====
 function uebungLabel(e){
+  if(e.app==="halbschriftlich"){
+    const sf=e.schrittfehler||{};
+    const liste=Object.entries(sf).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`${n} ${c}×`).join(", ");
+    return `${e.verfahrenName||""} · ${e.stufe||""}${liste?` · Fehler: ${liste}`:""}`.trim();
+  }
   if(e.modus==="Rallye"){
     const r=+e.runden||0;
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
@@ -295,6 +306,7 @@ function render(){
 
   renderHochhaus();
   renderRallye();
+  renderWege();
   fuelleNamen();
 
   // Filter füllen
@@ -318,6 +330,40 @@ function render(){
             <td class="${cls}">${erg}</td></tr>`;
         }).join("") + "</tbody></table>"
     : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
+}
+
+//// ===== Rechenwege: an welchem Schritt scheitert welches Kind? =====
+function renderWege(){
+  const r=ALLE.filter(e=>e.app==="halbschriftlich");
+  const box=$("wege");
+  if(!r.length){ box.innerHTML='<div class="hhLeer">Noch niemand hat die Rechenwege geübt.</div>'; return; }
+  const proKind={};
+  r.forEach(e=>{
+    const n=e.name;
+    if(!proKind[n]) proKind[n]={laeufe:0, richtig:0, gesamt:0, schritte:{}, letzte:e.datum};
+    const k=proKind[n];
+    k.laeufe++;
+    k.richtig += (+e.richtig||0);
+    k.gesamt  += (+e.richtig||0)+(+e.falsch||0);
+    Object.entries(e.schrittfehler||{}).forEach(([s,c])=>{ k.schritte[s]=(k.schritte[s]||0)+(+c||0); });
+    k.letzte=e.datum;
+  });
+  const namen=Object.keys(proKind).sort((a,b)=>a.localeCompare(b,"de"));
+  const gesamtSchritte={};
+  namen.forEach(n=>Object.entries(proKind[n].schritte).forEach(([s,c])=>{ gesamtSchritte[s]=(gesamtSchritte[s]||0)+c; }));
+  const topKlasse=Object.entries(gesamtSchritte).sort((a,b)=>b[1]-a[1])[0];
+  let html=`<table><tr><th>Kind</th><th>Durchgänge</th><th>richtig</th><th>Hakt am meisten bei</th><th>zuletzt</th></tr>`;
+  namen.forEach(n=>{
+    const k=proKind[n];
+    const proz=k.gesamt?Math.round(k.richtig/k.gesamt*100):0;
+    const sort=Object.entries(k.schritte).sort((a,b)=>b[1]-a[1]);
+    const schwach = sort.length ? `<b>${sort[0][0]}</b> (${sort[0][1]}×)`+(sort.length>1?` · ${sort.slice(1).map(([s,c])=>`${s} ${c}×`).join(", ")}`:"") : "–";
+    const cls = proz>=90?"ok":(proz<70?"no":"");
+    html+=`<tr><td><b>${esc(n)}</b></td><td>${k.laeufe}</td><td class="${cls}">${proz} %</td><td>${schwach}</td><td>${k.letzte}</td></tr>`;
+  });
+  html+=`</table>`;
+  if(topKlasse) html+=`<div class="status">In der ganzen Klasse scheitert am häufigsten der Schritt <b>${topKlasse[0]}</b> (${topKlasse[1]}× insgesamt) – lohnt sich als gemeinsame Übung.</div>`;
+  box.innerHTML=html;
 }
 
 //// ===== Rechen-Rallye: gemeinsames Rundenkonto =====

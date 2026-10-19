@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rechenwege">
+<title>Halbschriftlich rechnen ☁️</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#2dd4bf; --accent2:#0d9488;
+    --good:#22c55e; --bad:#ef4444; --gold:#fbbf24;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#0d3b3a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px}
+  .app{width:100%;max-width:660px}
+  h1{font-size:27px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    padding:14px 18px;color:#04312e;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:15px;padding:10px 14px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .backbtn:hover{color:var(--text)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips .lbl{color:var(--muted);font-size:12px;width:100%}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .chip:hover{border-color:var(--accent)}
+  h3{font-size:16px;margin:20px 0 8px;display:flex;align-items:center;gap:8px}
+  h3:first-child{margin-top:4px}
+  h3 small{font-weight:600;color:var(--muted);font-size:12px}
+
+  .modi{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  .modus{cursor:pointer;background:#0b1220;border:2px solid var(--card2);border-radius:16px;padding:20px 12px;text-align:center;transition:.15s}
+  .modus:hover{border-color:var(--accent);background:rgba(45,212,191,.09)}
+  .modus .ic{font-size:34px;line-height:1}
+  .modus .t{font-size:18px;font-weight:800;margin-top:8px}
+  .modus .d{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+  .reihen{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .reihen button{font-size:15px;padding:13px 6px;background:#0b1220;color:var(--text);border:2px solid var(--card2);font-weight:700}
+  .reihen button:hover{border-color:var(--accent);background:rgba(45,212,191,.10)}
+  .reihen button small{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:3px}
+
+  .stufen{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+  .stufen button{background:#0b1220;color:var(--text);border:2px solid var(--card2);font-weight:700}
+  .stufen button small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:3px}
+  .stufen button.an{border-color:var(--accent);background:rgba(45,212,191,.12)}
+
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .stufe{display:inline-block;background:rgba(45,212,191,.14);color:#5eead4;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .zaehler{font-size:14px;color:var(--muted);font-weight:700}
+  .fortschritt{display:flex;gap:4px;margin:0 0 16px}
+  .fortschritt i{flex:1;height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .fortschritt i.no{background:var(--bad);border-color:var(--bad)}
+  .zeitbalken{height:6px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);margin:0 0 16px;overflow:hidden}
+  .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+
+  /* ===== Rechenweg ===== */
+  .aufgabe{font-size:40px;font-weight:800;text-align:center;letter-spacing:1px;margin:2px 0 4px}
+  .trennlinie{height:2px;background:var(--card2);margin:12px 0 16px;border-radius:2px}
+  .weg{display:flex;flex-direction:column;gap:11px}
+  .schritt{display:flex;align-items:center;gap:10px;opacity:.38;transition:.2s}
+  .schritt.aktiv{opacity:1}
+  .schritt.fertig{opacity:1}
+  .schritt .nr{flex:none;width:24px;height:24px;border-radius:50%;background:#0b1220;border:1px solid var(--card2);
+    font-size:12px;font-weight:800;color:var(--muted);display:flex;align-items:center;justify-content:center}
+  .schritt.aktiv .nr{border-color:var(--accent);color:var(--accent)}
+  .schritt .term{flex:1;text-align:right;font-size:27px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
+  .schritt .term .unbekannt{color:var(--muted);opacity:.7}
+  .schritt .feld{flex:none;width:104px;font-size:26px;font-weight:800;text-align:center;padding:9px 6px;
+    border-radius:11px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  .schritt .feld:focus{border-color:var(--accent)}
+  .schritt .feld:disabled{opacity:1}
+  .schritt.richtig .feld{border-color:var(--good);color:var(--good)}
+  .schritt.falsch .feld{border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+  .schritt .mark{flex:none;width:30px;font-size:21px;text-align:center}
+  .schritt .korrektur{color:var(--good);font-weight:800;font-size:20px}
+  .schrittname{font-size:11.5px;color:var(--muted);font-weight:700;margin-left:34px;margin-top:-6px}
+
+  .rueck{min-height:30px;text-align:center;font-size:17px;font-weight:700;margin-top:14px}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.55}
+  .info b{color:var(--text)}
+  .merksatz{background:rgba(45,212,191,.10);border:1px solid rgba(45,212,191,.3);border-radius:12px;
+    padding:12px 14px;font-size:14px;color:#99f6e4;line-height:1.55;margin-top:14px}
+  .gross{font-size:25px;font-weight:800;text-align:center;margin:4px 0 12px}
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin:4px 0 14px}
+  .tile{background:#0b1220;border:1px solid var(--card2);border-radius:12px;padding:12px 8px;text-align:center}
+  .tile .v{font-size:25px;font-weight:800}
+  .tile .k{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--card2);text-align:left}
+  th{color:var(--muted);font-size:12px;font-weight:700}
+  .status{font-size:13px;color:var(--muted);margin-top:12px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+
+  @media (max-width:440px){
+    body{padding:14px}
+    .aufgabe{font-size:32px}
+    .schritt .term{font-size:21px}
+    .schritt .feld{width:82px;font-size:22px}
+    .schritt .mark{width:22px;font-size:18px}
+    .reihen{grid-template-columns:1fr}
+    .reihen button small{display:inline;margin-left:6px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🪜 Halbschriftlich rechnen ☁️</h1>
+  <p class="sub">Den Rechenweg Schritt für Schritt aufschreiben – wie im Heft.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
+
+    <div id="menue" class="hide" style="margin-top:18px">
+      <div class="modi">
+        <div class="modus" id="zumTraining"><div class="ic">💪</div><div class="t">Trainingsraum</div>
+          <div class="d">In Ruhe üben – ohne Zeit</div></div>
+        <div class="modus" id="zumTest"><div class="ic">🎯</div><div class="t">Test</div>
+          <div class="d">12 Aufgaben auf Zeit</div></div>
+      </div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <!-- ===== TRAININGSRAUM ===== -->
+  <div id="training" class="card hide">
+    <button class="backbtn" id="trainingZu">← Zurück</button>
+    <h3>➕ Schrittweise <small>erst der Zehner, dann die Einer</small></h3>
+    <div class="reihen" data-verfahren="schrittAdd">
+      <button data-ueb="ohne">ohne Übergang<small>43 + 25</small></button>
+      <button data-ueb="mit">mit Übergang<small>47 + 25</small></button>
+      <button data-ueb="mix">gemischt<small>alles</small></button>
+    </div>
+    <h3>➕ Stellenweise <small>Zehner und Einer getrennt, dann zusammen</small></h3>
+    <div class="reihen" data-verfahren="stellenAdd">
+      <button data-ueb="ohne">ohne Übergang<small>43 + 25</small></button>
+      <button data-ueb="mit">mit Übergang<small>47 + 25</small></button>
+      <button data-ueb="mix">gemischt<small>alles</small></button>
+    </div>
+    <h3>➖ Schrittweise <small>beim Minus immer schrittweise</small></h3>
+    <div class="reihen" data-verfahren="schrittSub">
+      <button data-ueb="ohne">ohne Übergang<small>68 − 25</small></button>
+      <button data-ueb="mit">mit Übergang<small>72 − 25</small></button>
+      <button data-ueb="mix">gemischt<small>alles</small></button>
+    </div>
+    <div class="info" style="margin-top:18px">Im Trainingsraum gibt es <b>keine Zeit</b> und keine Punkte.
+      Jeder Schritt wird sofort geprüft – wenn er nicht stimmt, siehst du die richtige Zahl und rechnest mit ihr weiter.</div>
+  </div>
+
+  <!-- ===== TEST-AUSWAHL ===== -->
+  <div id="testwahl" class="card hide">
+    <button class="backbtn" id="testwahlZu">← Zurück</button>
+    <h3>Welches Verfahren?</h3>
+    <div class="reihen" id="testVerfahren">
+      <button data-v="schrittAdd">➕ Schrittweise</button>
+      <button data-v="stellenAdd">➕ Stellenweise</button>
+      <button data-v="schrittSub">➖ Schrittweise</button>
+    </div>
+    <h3>Welche Stufe?</h3>
+    <div class="stufen" id="testStufen">
+      <button data-s="0">Leicht<small>45 Sek.</small></button>
+      <button data-s="1">Mittel<small>35 Sek.</small></button>
+      <button data-s="2">Schwer<small>25 Sek.</small></button>
+    </div>
+    <button class="full" id="testStart" style="margin-top:18px" disabled>Test starten ▶</button>
+    <div class="info" style="margin-top:14px">12 Aufgaben, gemischt ohne und mit Übergang.
+      <b>Bestanden ab 90 % richtig.</b> Eine Aufgabe zählt nur dann als richtig, wenn <b>alle Schritte</b> stimmen.</div>
+  </div>
+
+  <!-- ===== SPIEL ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf">
+      <span class="stufe" id="spielTitel">Schrittweise</span>
+      <span class="zaehler" id="zaehler">1 von 10</span>
+    </div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
+    <div class="aufgabe" id="aufgabe">47 + 25</div>
+    <div class="trennlinie"></div>
+    <div class="weg" id="weg"></div>
+    <div class="rueck" id="rueck"></div>
+    <div class="btnrow"><button class="ghost klein" id="abbrechen">⏸ Aufhören</button></div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div class="tiles" id="ergTiles"></div>
+    <div id="ergSchritte"></div>
+    <div id="ergFehler"></div>
+    <div class="merksatz" id="ergTipp"></div>
+    <div class="btnrow">
+      <button id="nochmal">Nochmal ▶</button>
+      <button class="ghost" id="zumMenue">🏠 Menü</button>
+    </div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+//// ===== Verbindung =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="halbschriftlich";
+const PRO_TRAINING=10, PRO_TEST=12, PASS=90;
+const ZEITEN=[45,35,25], STUFENNAMEN=["Leicht","Mittel","Schwer"];
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+
+let db=null, playerName="", cloudOk=false;
+let modus="Training", verfahren="schrittAdd", uebArt="mix", stufe=null;
+let aufgaben=[], nr=0, richtig=0, falschListe=[], gestellt=[], fehler=[];
+let schrittFehler={}, aktiv=null, aktSchritt=0, aufgabeOk=true, startZeit=0;
+let timer=null, zeitRest=0;
+
+//// ===== Bezeichnungen =====
+const VERFAHREN={
+  schrittAdd:{name:"Schrittweise +", lang:"Schrittweise addieren", zeichen:"+"},
+  stellenAdd:{name:"Stellenweise +", lang:"Stellenweise addieren", zeichen:"+"},
+  schrittSub:{name:"Schrittweise −", lang:"Schrittweise subtrahieren", zeichen:"−"}
+};
+const UEB={ohne:"ohne Übergang", mit:"mit Übergang", mix:"gemischt"};
+const SCHRITTNAMEN={
+  schrittAdd:["Zehnerschritt","Einerschritt"],
+  schrittSub:["Zehnerschritt","Einerschritt"],
+  stellenAdd:["Zehner","Einer","Teilsummen"]
+};
+
+//// ===== Aufgaben =====
+function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+
+// 47 + 25  ->  47 + 20 = 67 ·  67 + 5 = 72
+function mkSchrittAdd(ueb){
+  for(let i=0;i<800;i++){
+    const a=rnd(11,88), b=rnd(11,88);
+    if(a+b>100) continue;
+    if(a%10===0 || b%10===0) continue;
+    const ue=(a%10)+(b%10)>=10;
+    if(ueb==="ohne" && ue) continue;
+    if(ueb==="mit" && !ue) continue;
+    const z=Math.floor(b/10)*10, e=b%10;
+    return {verf:"schrittAdd", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}+${b}`,
+      kopf:`${a} + ${b}`,
+      schritte:[ {l:a,     op:"+", r:z, erg:a+z,  abh:false},
+                 {l:a+z,   op:"+", r:e, erg:a+b,  abh:true } ]};
+  }
+  return mkSchrittAdd("mix");
+}
+// 47 + 25  ->  40 + 20 = 60 ·  7 + 5 = 12 ·  60 + 12 = 72
+function mkStellenAdd(ueb){
+  for(let i=0;i<800;i++){
+    const a=rnd(11,88), b=rnd(11,88);
+    if(a+b>100) continue;
+    if(a%10===0 || b%10===0) continue;
+    const ea=a%10, eb=b%10, za=a-ea, zb=b-eb;
+    const ue=ea+eb>=10;
+    if(ueb==="ohne" && ue) continue;
+    if(ueb==="mit" && !ue) continue;
+    return {verf:"stellenAdd", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}+${b}`,
+      kopf:`${a} + ${b}`,
+      schritte:[ {l:za,    op:"+", r:zb,    erg:za+zb, abh:false},
+                 {l:ea,    op:"+", r:eb,    erg:ea+eb, abh:false},
+                 {l:za+zb, op:"+", r:ea+eb, erg:a+b,   abh:true } ]};
+  }
+  return mkStellenAdd("mix");
+}
+// 72 − 25  ->  72 − 20 = 52 ·  52 − 5 = 47
+function mkSchrittSub(ueb){
+  for(let i=0;i<800;i++){
+    const a=rnd(21,99), b=rnd(11,a-1);
+    if(a%10===0 || b%10===0) continue;
+    const ue=(a%10)<(b%10);
+    if(ueb==="ohne" && ue) continue;
+    if(ueb==="mit" && !ue) continue;
+    const z=Math.floor(b/10)*10, e=b%10;
+    return {verf:"schrittSub", a:a, b:b, ueb:ue?"mit":"ohne", fact:`${a}−${b}`,
+      kopf:`${a} − ${b}`,
+      schritte:[ {l:a,   op:"−", r:z, erg:a-z, abh:false},
+                 {l:a-z, op:"−", r:e, erg:a-b, abh:true } ]};
+  }
+  return mkSchrittSub("mix");
+}
+function mkAufgabe(verf, ueb){
+  const art = ueb==="mix" ? (Math.random()<0.5?"ohne":"mit") : ueb;
+  if(verf==="stellenAdd") return mkStellenAdd(art);
+  if(verf==="schrittSub") return mkSchrittSub(art);
+  return mkSchrittAdd(art);
+}
+function baueSatz(verf, ueb, anzahl){
+  const liste=[], gesehen=new Set();
+  let schutz=0;
+  while(liste.length<anzahl && schutz++<900){
+    const a=mkAufgabe(verf, ueb);
+    if(gesehen.has(a.fact)) continue;
+    gesehen.add(a.fact); liste.push(a);
+  }
+  while(liste.length<anzahl) liste.push(mkAufgabe(verf, ueb));
+  return liste;
+}
+
+//// ===== Anzeige =====
+function zeige(id){ ["start","training","testwahl","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); }
+
+let erledigt=[];
+function zeichneFortschritt(){
+  const gesamt = modus==="Test" ? PRO_TEST : PRO_TRAINING;
+  let h="";
+  for(let i=0;i<gesamt;i++) h+=`<i class="${erledigt[i]===true?"ok":erledigt[i]===false?"no":""}"></i>`;
+  $("fortschritt").innerHTML=h;
+}
+
+function zahlOderFrage(wert, sichtbar){
+  return sichtbar ? wert : `<span class="unbekannt">?</span>`;
+}
+function zeichneWeg(){
+  const namen=SCHRITTNAMEN[aktiv.verf]||[];
+  let h="";
+  aktiv.schritte.forEach((s,i)=>{
+    const offen = i<=aktSchritt;                 // linke Zahl erst zeigen, wenn sie bekannt ist
+    const sichtbar = !s.abh || i<=aktSchritt;
+    const zustand = i<aktSchritt ? "fertig" : (i===aktSchritt ? "aktiv" : "");
+    h+=`<div class="schritt ${zustand}" id="s${i}">
+          <span class="nr">${i+1}</span>
+          <span class="term">${zahlOderFrage(s.l,sichtbar)} ${s.op} ${s.r} =</span>
+          <input class="feld" id="f${i}" inputmode="numeric" autocomplete="off" ${i===aktSchritt?"":"disabled"}>
+          <span class="mark" id="m${i}"></span>
+        </div>
+        ${namen[i]?`<div class="schrittname">${namen[i]}</div>`:""}`;
+  });
+  $("weg").innerHTML=h;
+  const f=$("f"+aktSchritt);
+  if(f){ f.addEventListener("keydown",e=>{ if(e.key==="Enter") pruefeSchritt(); }); f.focus(); }
+}
+
+//// ===== Ablauf =====
+function starte(){
+  const anzahl = modus==="Test" ? PRO_TEST : PRO_TRAINING;
+  aufgaben=baueSatz(verfahren, modus==="Test" ? "mix" : uebArt, anzahl);
+  nr=0; richtig=0; falschListe=[]; gestellt=[]; fehler=[]; schrittFehler={}; erledigt=[];
+  startZeit=Date.now();
+  $("spielTitel").textContent = modus==="Test"
+    ? `${VERFAHREN[verfahren].name} · ${STUFENNAMEN[stufe]}`
+    : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`;
+  zeige("spiel");
+  naechsteAufgabe();
+}
+function naechsteAufgabe(){
+  const gesamt = modus==="Test" ? PRO_TEST : PRO_TRAINING;
+  if(nr>=gesamt){ fertig(); return; }
+  aktiv=aufgaben[nr]; aktSchritt=0; aufgabeOk=true;
+  gestellt.push(aktiv.fact);
+  $("zaehler").textContent=`${nr+1} von ${gesamt}`;
+  $("aufgabe").textContent=aktiv.kopf;
+  $("rueck").textContent="";
+  zeichneFortschritt();
+  zeichneWeg();
+  starteZeit();
+}
+function starteZeit(){
+  stoppZeit();
+  $("zeitbalken").classList.toggle("hide", modus!=="Test");
+  if(modus!=="Test") return;
+  const sek=ZEITEN[stufe];
+  zeitRest=sek; $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{
+    zeitRest-=0.25;
+    $("zeitfuell").style.width=Math.max(0,zeitRest/sek*100)+"%";
+    if(zeitRest<=0){ stoppZeit(); zeitAbgelaufen(); }
+  },250);
+}
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+function zeitAbgelaufen(){
+  // alle noch offenen Schritte als Fehler werten und die Lösung zeigen
+  for(let i=aktSchritt;i<aktiv.schritte.length;i++){
+    markiereFalsch(i, null);
+  }
+  aufgabeOk=false;
+  $("rueck").style.color="var(--bad)";
+  $("rueck").textContent="⏱ Zeit vorbei!";
+  abschliessen(1500);
+}
+function merkeSchrittFehler(i){
+  const n=(SCHRITTNAMEN[aktiv.verf]||[])[i] || ("Schritt "+(i+1));
+  schrittFehler[n]=(schrittFehler[n]||0)+1;
+}
+function markiereFalsch(i, eingabe){
+  const row=$("s"+i), feld=$("f"+i), mark=$("m"+i);
+  if(!row) return;
+  row.classList.remove("aktiv"); row.classList.add("fertig","falsch");
+  feld.value = eingabe===null||eingabe===undefined||eingabe==="" ? "–" : eingabe;
+  feld.disabled=true;
+  mark.innerHTML=`<span class="korrektur">${aktiv.schritte[i].erg}</span>`;
+  merkeSchrittFehler(i);
+}
+function pruefeSchritt(){
+  const feld=$("f"+aktSchritt);
+  if(!feld || feld.disabled) return;
+  const roh=feld.value.trim();
+  if(roh==="") return;
+  const s=aktiv.schritte[aktSchritt];
+  const ok = parseInt(roh,10)===s.erg;
+  const row=$("s"+aktSchritt), mark=$("m"+aktSchritt);
+  feld.disabled=true; row.classList.remove("aktiv"); row.classList.add("fertig");
+  if(ok){
+    row.classList.add("richtig"); mark.textContent="✓";
+  }else{
+    row.classList.add("falsch"); feld.value=roh;
+    mark.innerHTML=`<span class="korrektur">${s.erg}</span>`;
+    merkeSchrittFehler(aktSchritt);
+    aufgabeOk=false;
+  }
+  aktSchritt++;
+  if(aktSchritt<aktiv.schritte.length){
+    // nächste Zeile freischalten (linke Zahl ist jetzt bekannt)
+    const nz=aktiv.schritte[aktSchritt], zeile=$("s"+aktSchritt);
+    zeile.classList.add("aktiv");
+    zeile.querySelector(".term").innerHTML=`${nz.l} ${nz.op} ${nz.r} =`;
+    const nf=$("f"+aktSchritt);
+    nf.disabled=false;
+    nf.addEventListener("keydown",e=>{ if(e.key==="Enter") pruefeSchritt(); });
+    nf.focus();
+    return;
+  }
+  stoppZeit();
+  if(aufgabeOk){
+    $("rueck").style.color="var(--good)";
+    $("rueck").textContent="Richtig gerechnet! 👍";
+  }else{
+    $("rueck").style.color="var(--bad)";
+    $("rueck").textContent=`${aktiv.kopf} = ${aktiv.schritte[aktiv.schritte.length-1].erg}`;
+  }
+  abschliessen(aufgabeOk?900:1900);
+}
+function abschliessen(wartezeit){
+  stoppZeit();
+  if(aufgabeOk) richtig++;
+  else { falschListe.push(aktiv); fehler.push(aktiv.fact); }
+  erledigt[nr]=aufgabeOk;
+  zeichneFortschritt();
+  nr++;
+  setTimeout(naechsteAufgabe, wartezeit);
+}
+
+//// ===== Ergebnis =====
+function fertig(){
+  stoppZeit();
+  const gesamt = modus==="Test" ? PRO_TEST : PRO_TRAINING;
+  const prozent = Math.round(richtig/gesamt*100);
+  const bestanden = prozent>=PASS;
+  const dauer = Math.round((Date.now()-startZeit)/1000);
+  zeige("ergebnis");
+  if(modus==="Test"){
+    $("ergTitel").innerHTML = bestanden
+      ? `🎉 Bestanden – ${prozent} % richtig!`
+      : `💪 ${prozent} % richtig – ab ${PASS} % ist bestanden`;
+  }else{
+    $("ergTitel").innerHTML = `${richtig} von ${gesamt} Aufgaben ganz richtig`;
+  }
+  $("ergTiles").innerHTML=
+    `<div class="tile"><div class="v">${richtig}</div><div class="k">richtig</div></div>
+     <div class="tile"><div class="v">${gesamt-richtig}</div><div class="k">mit Fehler</div></div>
+     <div class="tile"><div class="v">${prozent} %</div><div class="k">richtig</div></div>
+     <div class="tile"><div class="v">${dauer}s</div><div class="k">gebraucht</div></div>`;
+
+  const sf=Object.entries(schrittFehler).sort((a,b)=>b[1]-a[1]);
+  $("ergSchritte").innerHTML = sf.length
+    ? `<h3>🔍 Wo ist es schiefgegangen?</h3><table><tr><th>Schritt</th><th>Fehler</th></tr>`+
+      sf.map(([n,c])=>`<tr><td>${n}</td><td>${c}×</td></tr>`).join("")+`</table>`
+    : "";
+  $("ergFehler").innerHTML = falschListe.length
+    ? `<h3>Diese Aufgaben noch einmal üben</h3><div class="info">${
+        falschListe.map(a=>`${a.kopf} = <b>${a.schritte[a.schritte.length-1].erg}</b>`).join(" &nbsp;·&nbsp; ")}</div>`
+    : "";
+  $("ergTipp").innerHTML = tippText(sf);
+  $("nochmal").textContent = modus==="Test" ? "Test nochmal ▶" : "Nochmal üben ▶";
+  if(bestanden && modus==="Test") konfetti();
+  speichere(prozent, bestanden, dauer);
+}
+function tippText(sf){
+  if(!sf.length) return "⭐ Alle Schritte saßen. Der Rechenweg sitzt – super!";
+  const [name,anzahl]=sf[0];
+  if(name==="Zehnerschritt")
+    return "💡 Der <b>Zehnerschritt</b> macht noch Mühe. Merke: beim ersten Schritt ändert sich nur der Zehner – die Einer der ersten Zahl bleiben genau stehen. 47 + 20 = 67.";
+  if(name==="Einerschritt")
+    return "💡 Der <b>Einerschritt</b> macht noch Mühe. Hier passiert der Zehnerübergang: 67 + 5 – erst auf den runden Zehner (67 + 3 = 70), dann der Rest (70 + 2 = 72).";
+  if(name==="Teilsummen")
+    return "💡 Das <b>Zusammenzählen am Ende</b> macht noch Mühe. Zehner und Einer sind richtig – jetzt beide Teilergebnisse addieren: 60 + 12 = 72.";
+  if(name==="Zehner") return "💡 Die <b>Zehner</b> getrennt rechnen: bei 47 + 25 sind das 40 + 20 = 60.";
+  if(name==="Einer")   return "💡 Die <b>Einer</b> getrennt rechnen: bei 47 + 25 sind das 7 + 5 = 12.";
+  return "💡 Übe diesen Schritt noch einmal in Ruhe im Trainingsraum.";
+}
+
+//// ===== Speichern =====
+function speichere(prozent, bestanden, dauer){
+  const n=new Date(), p=x=>String(x).padStart(2,"0");
+  const eintrag={
+    key:KEY, app:APP, name:playerName,
+    datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`,
+    zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
+    modus:modus, verfahren:verfahren, verfahrenName:VERFAHREN[verfahren].name,
+    reihe:`${verfahren}-${modus==="Test"?"mix":uebArt}`, zr:100,
+    stufe: modus==="Test" ? STUFENNAMEN[stufe] : UEB[uebArt],
+    richtig:richtig, falsch:(modus==="Test"?PRO_TEST:PRO_TRAINING)-richtig,
+    prozent:prozent, bestanden: modus==="Test" ? (bestanden?"Ja":"Nein") : "–",
+    dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(),
+    schrittfehler:schrittFehler
+  };
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag)
+    .catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+
+//// ===== Bedienung =====
+$("zumTraining").addEventListener("click", ()=>{ zeige("training"); });
+$("zumTest").addEventListener("click", ()=>{ stufe=null; verfahren="schrittAdd";
+  $("testStart").disabled=true;
+  document.querySelectorAll("#testVerfahren button, #testStufen button").forEach(b=>b.classList.remove("an"));
+  zeige("testwahl"); });
+$("trainingZu").addEventListener("click", ()=>zeige("start"));
+$("testwahlZu").addEventListener("click", ()=>zeige("start"));
+$("abbrechen").addEventListener("click", ()=>{ stoppZeit(); zeige("start"); });
+$("zumMenue").addEventListener("click", ()=>zeige("start"));
+$("nochmal").addEventListener("click", ()=>starte());
+
+document.querySelectorAll("#training .reihen").forEach(box=>{
+  const v=box.dataset.verfahren;
+  box.querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>{
+    modus="Training"; verfahren=v; uebArt=b.dataset.ueb; starte();
+  }));
+});
+let testV=null;
+document.querySelectorAll("#testVerfahren button").forEach(b=>b.addEventListener("click", ()=>{
+  document.querySelectorAll("#testVerfahren button").forEach(x=>x.classList.remove("an"));
+  b.classList.add("an"); testV=b.dataset.v; verfahren=testV;
+  $("testStart").disabled = (stufe===null);
+}));
+document.querySelectorAll("#testStufen button").forEach(b=>b.addEventListener("click", ()=>{
+  document.querySelectorAll("#testStufen button").forEach(x=>x.classList.remove("an"));
+  b.classList.add("an"); stufe=+b.dataset.s;
+  $("testStart").disabled = (testV===null);
+}));
+$("testStart").addEventListener("click", ()=>{ modus="Test"; starte(); });
+
+//// ===== Namen =====
+$("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
+$("name").addEventListener("change", ()=>{
+  $("name").value=capName($("name").value); playerName=$("name").value;
+  try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){}
+  if(playerName) $("menue").classList.remove("hide");
+});
+function chipsZeigen(namen){
+  const box=$("nameChips");
+  if(!namen.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+namen.map(n=>`<span class="chip">${esc(n)}</span>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+    $("name").value=c.textContent; $("name").dispatchEvent(new Event("change"));
+  }));
+}
+
+//// ===== Start =====
+(function init(){
+  try{
+    firebase.initializeApp(CONF);
+    db=firebase.firestore();
+    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
+      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
+      chipsZeigen(namen);
+      cloudOk=true;
+      $("status").textContent="☁️ Verbunden – die Ergebnisse landen in der Klassenübersicht.";
+    }).catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); });
+  }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ $("name").value=capName(n); playerName=capName(n);
+    $("menuLink").href="index.html#name="+encodeURIComponent(playerName);
+    $("menue").classList.remove("hide"); }
+  else $("name").focus();
+})();
+
+//// ===== Konfetti =====
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d");
+  const re=()=>{ c.width=innerWidth; c.height=innerHeight; }; re(); addEventListener("resize",re);
+  const col=["#2dd4bf","#22c55e","#fbbf24","#38bdf8","#a855f7","#ec4899"], ps=[];
+  for(let i=0;i<140;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,
+    c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const end=Date.now()+3000;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr; if(p.y>c.height+20){p.y=-20;p.x=Math.random()*c.width;}
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore(); });
+    if(Date.now()<end) requestAnimationFrame(f); else { removeEventListener("resize",re); c.remove(); }
+  })();
+}
+</script>
+</body>
+</html>
