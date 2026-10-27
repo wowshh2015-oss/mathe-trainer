@@ -50,25 +50,49 @@
   .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
   .hallo .laden{color:var(--muted);font-size:14px}
   /* ===== Lernweg-Fenster ===== */
-  .lwOverlay{position:fixed;inset:0;background:rgba(5,10,22,.86);z-index:900;display:flex;
-    align-items:center;justify-content:center;padding:18px;overflow-y:auto}
+  .lwOverlay{position:fixed;inset:0;background:rgba(5,10,22,.9);z-index:900;display:flex;
+    align-items:flex-start;justify-content:center;padding:18px;overflow-y:auto;overscroll-behavior:contain}
+  body.lwOffen{overflow:hidden}
+  a.lwSt{text-decoration:none;color:inherit;transition:.15s}
+  a.lwSt:hover{filter:brightness(1.15)}
   .lwBox{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:20px;
     padding:24px 22px;max-width:540px;width:100%;box-shadow:var(--shadow);text-align:left;margin:auto}
-  .lwBox h3{margin:0 0 6px;font-size:22px}
-  .lwSub{color:var(--muted);font-size:14px;margin:0 0 18px;line-height:1.5}
-  .lwStation{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:13px;
-    border:1px solid transparent;margin-bottom:6px}
-  .lwStation .lwIc{flex:none;font-size:20px;width:24px;text-align:center}
-  .lwStation .lwTx{flex:1;min-width:0}
-  .lwStation .lwTx b{display:block;font-size:15px}
-  .lwStation .lwTx span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px;line-height:1.4}
-  .lwStation.fertig .lwTx b{color:#4ade80}
-  .lwStation.offen{opacity:.5}
-  .lwStation.aktuell{background:rgba(56,189,248,.12);border-color:#38bdf8}
-  .lwStation.aktuell .lwTx b{color:#7dd3fc}
-  .lwStation.spiel{background:#0b1220;border-color:var(--card2);margin-top:10px}
+  .lwBox .gruss{font-size:18px;font-weight:800;line-height:1.4}
+  .lwBox .seit{color:var(--muted);font-size:13.5px;margin-top:5px;line-height:1.5}
+  .lwAbschnitt{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;
+    letter-spacing:.5px;margin:20px 0 9px}
+  .lwAbschnitt small{text-transform:none;letter-spacing:0;font-weight:600}
+  .lwSt{display:flex;gap:11px;padding:11px 12px;border-radius:13px;background:#0b1220;
+    border:1px solid var(--card2);border-left-width:6px;margin-bottom:8px}
+  .lwSt.gruen{border-left-color:#22c55e}
+  .lwSt.gelb{border-left-color:#eab308}
+  .lwSt.grau{border-left-color:#475569}
+  .lwSt.grau .inhalt{opacity:.7}
+  .lwSt.jetzt{box-shadow:0 0 0 2px #38bdf8;border-color:#38bdf8;border-left-color:#eab308}
+  .lwSt.jetzt.grau{border-left-color:#475569}
+  .lwSt .gesicht{font-size:27px;flex:none;line-height:1;width:30px;text-align:center}
+  .lwSt .inhalt{flex:1;min-width:0}
+  .lwSt .zeile1{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .lwSt .titel{font-size:15px;font-weight:800}
+  .lwSt .stufe{display:block;font-size:10.5px;color:var(--muted);font-weight:800;
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
+  .lwSt .pill{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .pill.gruen{background:rgba(34,197,94,.16);color:#4ade80}
+  .pill.gelb{background:rgba(234,179,8,.16);color:#facc15}
+  .pill.grau{background:rgba(148,163,184,.12);color:#94a3b8}
+  .pill.jetzt{background:#38bdf8;color:#042433}
+  .lwSt .details{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.55}
+  .lwSt .details b{color:var(--text)}
+  .lwSpiele{display:flex;gap:8px;flex-wrap:wrap}
+  .lwSpiel{flex:1;min-width:170px;background:#0b1220;border:1px solid var(--card2);border-radius:13px;
+    padding:10px 12px;font-size:13px;color:var(--muted);line-height:1.45}
+  .lwSpiel b{color:var(--text);font-size:14px}
   .lwEmpf{background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.32);color:#fde68a;
-    border-radius:13px;padding:12px 14px;font-size:14px;line-height:1.55;margin:16px 0 4px}
+    border-radius:13px;padding:13px 15px;font-size:14px;line-height:1.55}
+  .lwEmpf ol{margin:8px 0 0;padding-left:20px}
+  .lwEmpf li{margin-bottom:7px}
+  .lwEmpf li span{color:#d6c48a;font-size:12.5px}
+  .lwLegende{font-size:11.5px;color:var(--muted);margin-top:4px}
   .lwBtns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
   .lwBtns a,.lwBtns button{flex:1;font-family:inherit;font-size:16px;font-weight:700;border:none;
     border-radius:12px;padding:14px 16px;cursor:pointer;text-align:center;text-decoration:none;
@@ -192,6 +216,25 @@ function tippHTML(ic, titel, text, datei, name){
   return `<a class="tipp" href="${datei}#name=${encodeURIComponent(name)}">
     <span class="ic">${ic}</span><span class="tx"><b>${titel}</b>${text}</span><span class="pfeil">›</span></a>`;
 }
+// rows: neueste zuerst
+function begruessung(rows, name){
+  if(!rows.length) return {
+    gruss:`👋 Hallo ${esc(name)}! Schön, dass du da bist.`,
+    seit:`Das ist dein erstes Mal hier. Ich zeige dir, womit du am besten anfängst.` };
+  const letzte=rows[0], her=tageHer(letzte.datum), tage=new Set(rows.map(e=>e.datum));
+  let gruss;
+  if(her<=0)       gruss=`👋 Hallo ${esc(name)}! Schön, dass du heute noch einmal übst.`;
+  else if(her===1) gruss=`🔥 Hallo ${esc(name)}! Gestern warst du auch da – stark, dass du dranbleibst.`;
+  else if(her<=6)  gruss=`👋 Hallo ${esc(name)}! Schön, dass du wieder da bist.`;
+  else             gruss=`😊 Hallo ${esc(name)}! Du warst ${her} Tage nicht hier – schön, dass du wieder da bist!`;
+  const nTage=`<b>${tage.size}</b> Tag${tage.size===1?"":"en"}`;
+  const nDurch=`<b>${rows.length}</b> ${rows.length===1?"Durchgang":"Durchgänge"}`;
+  const seit = her<=0
+    ? `Du hast schon an ${nTage} geübt – zusammen ${nDurch}. Weiter so!`
+    : `Zuletzt warst du am <b>${letzte.datum}</b> hier${her===1?" – gestern":` – das ist <b>${her} Tage</b> her`}.
+       Insgesamt ${nDurch} an ${nTage}.`;
+  return {gruss, seit};
+}
 function zeigeHallo(rows, name){
   const box=$("hallo");
   box.classList.remove("hide");
@@ -204,19 +247,7 @@ function zeigeHallo(rows, name){
     return;
   }
   rows.sort((a,b)=>hTs(b).localeCompare(hTs(a)));
-  const letzte=rows[0], her=tageHer(letzte.datum), tage=new Set(rows.map(e=>e.datum));
-
-  let gruss;
-  if(her<=0)       gruss=`👋 Hallo ${esc(name)}! Schön, dass du heute noch einmal übst.`;
-  else if(her===1) gruss=`🔥 Hallo ${esc(name)}! Gestern warst du auch da – stark, dass du dranbleibst.`;
-  else if(her<=6)  gruss=`👋 Hallo ${esc(name)}! Schön, dass du wieder da bist.`;
-  else             gruss=`😊 Hallo ${esc(name)}! Du warst ${her} Tage nicht hier – schön, dass du wieder da bist!`;
-  const nTage=`<b>${tage.size}</b> Tag${tage.size===1?"":"en"}`;
-  const nDurch=`<b>${rows.length}</b> ${rows.length===1?"Durchgang":"Durchgänge"}`;
-  const seit = her<=0
-    ? `Du hast schon an ${nTage} geübt – zusammen ${nDurch}. Weiter so!`
-    : `Zuletzt warst du am <b>${letzte.datum}</b> hier${her===1?" – gestern":` – das ist <b>${her} Tage</b> her`}.
-       Insgesamt ${nDurch} an ${nTage}.`;
+  const {gruss, seit}=begruessung(rows, name);
 
   // ===== Erfolge =====
   const erfolge=[];
@@ -296,74 +327,124 @@ function zeigeHallo(rows, name){
   $("lwOeffnen").addEventListener("click", zeigeLernweg);
   lernwegVorbereiten(rows, name);
 }
-//// ===== Lernweg: feste Reihenfolge, Spiele zum Schluss =====
+//// ===== Lernweg: feste Reihenfolge vom Leichten zum Schweren, Spiele zum Schluss =====
 const STATIONEN=[
   {app:"zerlegen",        ic:"🧩", name:"Zerlegen",
-   warum:"Das Zerlegen ist die Grundlage für alles Weitere. Damit fängst du an."},
+   warum:"Die Grundlage für alles Rechnen. Auch wenn du es schon gut kannst: Mach den Test, damit sie ganz sicher sitzt."},
   {app:"halbschriftlich", ic:"🪜", name:"Rechenwege",
-   warum:"Jetzt der Rechenweg für Plus und Minus – ohne und mit Zehnerübergang. Das ist sehr wichtig."},
+   warum:"Plus und Minus – ohne und mit Zehnerübergang. Das ist die Basis für das Rechnen bis 100."},
   {app:"plus",            ic:"➕", name:"Plus",
-   warum:"Jetzt wird das Plusrechnen richtig sicher und schnell."},
+   warum:"Plusrechnen sicher und schnell – mit Test."},
   {app:"minus",           ic:"➖", name:"Minus",
-   warum:"Jetzt ist Minus dran."},
+   warum:"Minusrechnen sicher und schnell – mit Test."},
   {app:"einmaleins",      ic:"✖️", name:"Einmaleins",
-   warum:"Jetzt kommt das Malnehmen – das Einmaleins."},
+   warum:"Das Malnehmen – mit Test."},
   {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins",
-   warum:"Zum Schluss das Teilen – die Umkehrung vom Malnehmen."}
+   warum:"Das Teilen, die Umkehrung vom Malnehmen – mit Test."}
 ];
 let LW_ROWS=[], LW_NAME="";
-function stationStatus(app){
-  const r=LW_ROWS.filter(e=>e.app===app);
-  if(!r.length) return {s:"offen", text:"noch nicht begonnen"};
-  const best=r.filter(e=>e.modus==="Test" && e.bestanden==="Ja")
-              .reduce((m,e)=>Math.max(m,+e.prozent||0),0);
-  if(best) return {s:"fertig", text:`Test bestanden · ${best} % richtig`};
+function nAufgaben(n){ return n===1 ? "1 Aufgabe" : `${n} Aufgaben`; }
+// Alles, was ein Kind und seine Eltern über eine Stufe wissen müssen
+function stationInfo(app){
+  const r=LW_ROWS.filter(e=>e.app===app);          // neueste zuerst
+  const i={anzahl:r.length};
+  if(!r.length){ i.farbe="grau"; return i; }
+  const mitP=r.filter(e=>typeof e.prozent==="number");
+  i.schnitt = mitP.length ? Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length) : null;
   const tests=r.filter(e=>e.modus==="Test");
-  if(tests.length){
-    const b=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
-    return {s:"angefangen", text:`schon geübt · bester Test ${b} % – ab 90 % geschafft`};
-  }
-  return {s:"angefangen", text:`${r.length}× geübt – der Test fehlt noch`};
+  i.tests=tests.length;
+  i.bestanden=tests.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+  i.besterTest=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+  i.offen=offeneFehler(r);
+  i.zuletzt=r[0].datum;
+  i.farbe = i.bestanden ? "gruen" : "gelb";
+  return i;
+}
+function stationDetails(z){
+  if(z.farbe==="grau") return "Hier warst du noch nicht.";
+  const teile=[`<b>${z.anzahl}×</b> geübt`];
+  if(z.schnitt!==null) teile.push(`im Schnitt <b>${z.schnitt} %</b> richtig`);
+  if(z.bestanden)      teile.push(`Test bestanden mit <b>${z.bestanden} %</b>`);
+  else if(z.tests)     teile.push(`Test noch nicht bestanden (bester: ${z.besterTest} %)`);
+  else                 teile.push(`noch kein Test gemacht`);
+  let zeile2 = z.offen ? `🔁 ${nAufgaben(z.offen)} noch zu üben` : "✨ keine offenen Fehler";
+  zeile2 += ` · zuletzt am ${z.zuletzt}`;
+  return teile.join(" · ")+"<br>"+zeile2;
 }
 function zeigeLernweg(){
   const box=$("lwBox"), name=LW_NAME;
-  const zustand=STATIONEN.map(st=>Object.assign({}, st, stationStatus(st.app)));
-  const offenIdx=zustand.findIndex(z=>z.s!=="fertig");
-  const allesFertig = offenIdx===-1;
-  let liste="";
-  zustand.forEach((z,i)=>{
-    const aktuell = i===offenIdx;
-    const kl = z.s==="fertig" ? "fertig" : (aktuell ? "aktuell" : (z.s==="offen" ? "offen" : ""));
-    const haken = z.s==="fertig" ? "✅" : (aktuell ? "👉" : "⬜");
-    liste+=`<div class="lwStation ${kl}">
-      <span class="lwIc">${haken}</span>
-      <span class="lwTx"><b>${i+1}. ${z.ic} ${z.name}</b><span>${z.text}</span></span></div>`;
-  });
-  liste+=`<div class="lwStation spiel">
-    <span class="lwIc">${allesFertig?"🎉":"🔒"}</span>
-    <span class="lwTx"><b>🏢 Marathon &amp; 🏎️ Rallye</b><span>${
-      allesFertig ? "Alles geschafft – jetzt darfst du dich austoben!"
-                  : "Die Spiele kommen zum Schluss. Erst die Stationen oben!"}</span></span></div>`;
+  const zustand=STATIONEN.map(st=>Object.assign({}, st, stationInfo(st.app)));
+  const jetztIdx=zustand.findIndex(z=>z.farbe!=="gruen");
+  const allesFertig = jetztIdx===-1;
+  const {gruss, seit}=begruessung(LW_ROWS, name);
 
-  let empf, knopf="";
+  // ===== Die sechs Stufen =====
+  let stufen="";
+  zustand.forEach((z,i)=>{
+    const jetzt = i===jetztIdx;
+    const gesicht = z.farbe==="gruen" ? "😊" : (z.farbe==="gelb" ? "😐" : "⚪");
+    const pill = jetzt ? `<span class="pill jetzt">👉 jetzt dran</span>`
+      : z.farbe==="gruen" ? `<span class="pill gruen">✓ gefestigt</span>`
+      : z.farbe==="gelb"  ? `<span class="pill gelb">noch nicht gefestigt</span>`
+      :                     `<span class="pill grau">noch nicht begonnen</span>`;
+    stufen+=`<a class="lwSt ${z.farbe}${jetzt?" jetzt":""}" href="${SEITEN[z.app].datei}#name=${encodeURIComponent(name)}">
+      <span class="gesicht">${gesicht}</span>
+      <div class="inhalt">
+        <div class="zeile1"><span><span class="stufe">Stufe ${i+1}</span><span class="titel">${z.ic} ${z.name}</span></span>${pill}</div>
+        <div class="details">${stationDetails(z)}</div>
+      </div></a>`;
+  });
+
+  // ===== Spiele =====
+  const mEtage=LW_ROWS.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const mMal=LW_ROWS.filter(e=>e.app==="marathon").length;
+  const runden=LW_ROWS.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
+  const spiele=`<div class="lwSpiele">
+     <div class="lwSpiel">🏢 <b>Rechen-Marathon</b><br>${mMal ? `Etage <b>${mEtage}</b>${Math.floor(mEtage/5)?` · ${Math.floor(mEtage/5)}× 🏅`:""}` : "noch nicht gespielt"}</div>
+     <div class="lwSpiel">🏎️ <b>Rechen-Rallye</b><br>${runden ? `<b>${runden}</b> Runde${runden===1?"":"n"} gefahren` : "noch nicht gespielt"}</div>
+   </div>`;
+  const vielGespielt = (mMal+runden)>=5;
+
+  // ===== Empfehlung =====
+  let empf, knopf;
   if(allesFertig){
-    empf=`🎉 <b>Stark, ${esc(name)}!</b> Du hast alle sechs Stationen geschafft. Jetzt kannst du im Marathon klettern und in der Rallye Runden drehen – und zwischendurch mit „Meine Aufgaben" alles frisch halten.`;
+    const auffrischen=zustand.filter(z=>z.offen).slice(0,2)
+      .map(z=>`<li><b>${z.ic} ${z.name}</b> – unter „Meine Aufgaben" warten noch ${nAufgaben(z.offen)} zum Auffrischen.</li>`).join("");
+    empf=`🎉 <b>Stark, ${esc(name)}!</b> Du hast alle sechs Stufen gefestigt. Jetzt darfst du dich im Marathon und in der Rallye austoben.`+
+      (auffrischen?`<ol>${auffrischen}</ol>`:"");
     knopf=`<a href="rallye-trainer.html#name=${encodeURIComponent(name)}">🏎️ Zur Rallye ›</a>`;
   }else{
-    const z=zustand[offenIdx], vorher=offenIdx>0?zustand[offenIdx-1]:null;
-    const lob = (vorher && vorher.s==="fertig") ? `<b>${vorher.name} sitzt – super gemacht!</b> ` : "";
-    empf=`${lob}👉 <b>Das ist jetzt dran: ${z.ic} ${z.name}.</b><br>${z.warum}`;
-    const seite=SEITEN[z.app];
-    knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} ${z.name} üben ›</a>`;
+    const vorher=jetztIdx>0?zustand[jetztIdx-1]:null;
+    let kopf="";
+    if(vorher && vorher.farbe==="gruen") kopf+=`<b>${vorher.name} sitzt – super gemacht!</b> `;
+    if(vielGespielt) kopf+=`Du warst schon fleißig in den Spielen – toll! Am meisten Spaß machen sie aber, wenn die Grundlagen sitzen. `;
+    kopf+=`<b>Unsere Empfehlung – vom Leichten zum Schweren:</b>`;
+    const schritte=zustand.filter(z=>z.farbe!=="gruen").slice(0,3).map(z=>{
+      let tat;
+      if(z.farbe==="grau")  tat="Im Trainingsraum anfangen und danach den Test machen.";
+      else if(!z.tests)     tat="Du hast schon geübt – jetzt den Test machen. Ab 90 % ist die Stufe gefestigt.";
+      else                  tat=`Den Test noch einmal versuchen – dein bester war ${z.besterTest} %, ab 90 % ist die Stufe gefestigt.`;
+      return `<li><b>${z.ic} ${z.name}:</b> ${tat}<br><span>${z.warum}</span></li>`;
+    }).join("");
+    empf=`${kopf}<ol>${schritte}</ol>`;
+    const z=zustand[jetztIdx], seite=SEITEN[z.app];
+    knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
   }
+
   box.innerHTML=
-    `<h3>🧭 Dein Lernweg, ${esc(name)}</h3>
-     <p class="lwSub">So kommst du am besten voran – eine Station nach der anderen. Jede baut auf der davor auf.</p>
-     ${liste}
+    `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>
+     <div class="lwAbschnitt">🧭 Dein Lernweg <small>– Stufe für Stufe</small></div>
+     ${stufen}
+     <div class="lwLegende">😊 gefestigt (Test ab 90 %) · 😐 angefangen, noch nicht gefestigt · ⚪ noch nicht begonnen</div>
+     <div class="lwAbschnitt">🎮 Spiele <small>– ${allesFertig?"jetzt freigegeben 🎉":"am besten erst nach den sechs Stufen"}</small></div>
+     ${spiele}
+     <div class="lwAbschnitt">💡 Was jetzt?</div>
      <div class="lwEmpf">${empf}</div>
      <div class="lwBtns">${knopf}<button class="spaeter" id="lwZu">Später</button></div>`;
-  $("lwZu").addEventListener("click", ()=>$("lwOverlay").classList.add("hide"));
+  $("lwZu").addEventListener("click", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen"); });
   $("lwOverlay").classList.remove("hide");
+  document.body.classList.add("lwOffen");
+  $("lwOverlay").scrollTop=0;
 }
 function lernwegVorbereiten(rows, name){
   LW_ROWS=rows; LW_NAME=name;
