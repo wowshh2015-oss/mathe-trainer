@@ -49,6 +49,32 @@
   .tipp .tx b{font-size:15px;display:block;margin-bottom:1px}
   .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
   .hallo .laden{color:var(--muted);font-size:14px}
+  /* ===== Lernweg-Fenster ===== */
+  .lwOverlay{position:fixed;inset:0;background:rgba(5,10,22,.86);z-index:900;display:flex;
+    align-items:center;justify-content:center;padding:18px;overflow-y:auto}
+  .lwBox{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:20px;
+    padding:24px 22px;max-width:540px;width:100%;box-shadow:var(--shadow);text-align:left;margin:auto}
+  .lwBox h3{margin:0 0 6px;font-size:22px}
+  .lwSub{color:var(--muted);font-size:14px;margin:0 0 18px;line-height:1.5}
+  .lwStation{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:13px;
+    border:1px solid transparent;margin-bottom:6px}
+  .lwStation .lwIc{flex:none;font-size:20px;width:24px;text-align:center}
+  .lwStation .lwTx{flex:1;min-width:0}
+  .lwStation .lwTx b{display:block;font-size:15px}
+  .lwStation .lwTx span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px;line-height:1.4}
+  .lwStation.fertig .lwTx b{color:#4ade80}
+  .lwStation.offen{opacity:.5}
+  .lwStation.aktuell{background:rgba(56,189,248,.12);border-color:#38bdf8}
+  .lwStation.aktuell .lwTx b{color:#7dd3fc}
+  .lwStation.spiel{background:#0b1220;border-color:var(--card2);margin-top:10px}
+  .lwEmpf{background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.32);color:#fde68a;
+    border-radius:13px;padding:12px 14px;font-size:14px;line-height:1.55;margin:16px 0 4px}
+  .lwBtns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .lwBtns a,.lwBtns button{flex:1;font-family:inherit;font-size:16px;font-weight:700;border:none;
+    border-radius:12px;padding:14px 16px;cursor:pointer;text-align:center;text-decoration:none;
+    background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433}
+  .lwBtns button.spaeter{background:transparent;color:var(--text);border:2px solid var(--card2);flex:0 0 auto;padding:12px 18px}
+  .lwLink{display:inline-block;margin-top:14px;color:#7dd3fc;font-size:13.5px;font-weight:700;cursor:pointer;text-decoration:underline}
   .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
   .credit{margin-top:18px;color:var(--muted);font-size:13px}
   .credit strong{color:#38bdf8}
@@ -68,6 +94,7 @@
   </div>
 
   <div class="card hallo hide" id="hallo"></div>
+  <div class="lwOverlay hide" id="lwOverlay"><div class="lwBox" id="lwBox"></div></div>
 
   <div class="grid dis" id="grid">
     <a class="tile t7 wide" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde – Auto, Pferd oder Rakete · 5 Strecken</div></a>
@@ -170,7 +197,10 @@ function zeigeHallo(rows, name){
   box.classList.remove("hide");
   if(!rows.length){
     box.innerHTML=`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
-      <div class="seit">Das ist dein erstes Mal hier. Such dir unten einfach etwas aus – viel Spaß!</div>`;
+      <div class="seit">Das ist dein erstes Mal hier. Ich zeige dir, womit du am besten anfängst.</div>
+      <span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
+    $("lwOeffnen").addEventListener("click", zeigeLernweg);
+    lernwegVorbereiten(rows, name);
     return;
   }
   rows.sort((a,b)=>hTs(b).localeCompare(hTs(a)));
@@ -261,7 +291,88 @@ function zeigeHallo(rows, name){
   box.innerHTML =
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
     (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
-    (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"");
+    (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"")+
+    `<span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
+  $("lwOeffnen").addEventListener("click", zeigeLernweg);
+  lernwegVorbereiten(rows, name);
+}
+//// ===== Lernweg: feste Reihenfolge, Spiele zum Schluss =====
+const STATIONEN=[
+  {app:"zerlegen",        ic:"🧩", name:"Zerlegen",
+   warum:"Das Zerlegen ist die Grundlage für alles Weitere. Damit fängst du an."},
+  {app:"halbschriftlich", ic:"🪜", name:"Rechenwege",
+   warum:"Jetzt der Rechenweg für Plus und Minus – ohne und mit Zehnerübergang. Das ist sehr wichtig."},
+  {app:"plus",            ic:"➕", name:"Plus",
+   warum:"Jetzt wird das Plusrechnen richtig sicher und schnell."},
+  {app:"minus",           ic:"➖", name:"Minus",
+   warum:"Jetzt ist Minus dran."},
+  {app:"einmaleins",      ic:"✖️", name:"Einmaleins",
+   warum:"Jetzt kommt das Malnehmen – das Einmaleins."},
+  {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins",
+   warum:"Zum Schluss das Teilen – die Umkehrung vom Malnehmen."}
+];
+let LW_ROWS=[], LW_NAME="";
+function stationStatus(app){
+  const r=LW_ROWS.filter(e=>e.app===app);
+  if(!r.length) return {s:"offen", text:"noch nicht begonnen"};
+  const best=r.filter(e=>e.modus==="Test" && e.bestanden==="Ja")
+              .reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+  if(best) return {s:"fertig", text:`Test bestanden · ${best} % richtig`};
+  const tests=r.filter(e=>e.modus==="Test");
+  if(tests.length){
+    const b=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+    return {s:"angefangen", text:`schon geübt · bester Test ${b} % – ab 90 % geschafft`};
+  }
+  return {s:"angefangen", text:`${r.length}× geübt – der Test fehlt noch`};
+}
+function zeigeLernweg(){
+  const box=$("lwBox"), name=LW_NAME;
+  const zustand=STATIONEN.map(st=>Object.assign({}, st, stationStatus(st.app)));
+  const offenIdx=zustand.findIndex(z=>z.s!=="fertig");
+  const allesFertig = offenIdx===-1;
+  let liste="";
+  zustand.forEach((z,i)=>{
+    const aktuell = i===offenIdx;
+    const kl = z.s==="fertig" ? "fertig" : (aktuell ? "aktuell" : (z.s==="offen" ? "offen" : ""));
+    const haken = z.s==="fertig" ? "✅" : (aktuell ? "👉" : "⬜");
+    liste+=`<div class="lwStation ${kl}">
+      <span class="lwIc">${haken}</span>
+      <span class="lwTx"><b>${i+1}. ${z.ic} ${z.name}</b><span>${z.text}</span></span></div>`;
+  });
+  liste+=`<div class="lwStation spiel">
+    <span class="lwIc">${allesFertig?"🎉":"🔒"}</span>
+    <span class="lwTx"><b>🏢 Marathon &amp; 🏎️ Rallye</b><span>${
+      allesFertig ? "Alles geschafft – jetzt darfst du dich austoben!"
+                  : "Die Spiele kommen zum Schluss. Erst die Stationen oben!"}</span></span></div>`;
+
+  let empf, knopf="";
+  if(allesFertig){
+    empf=`🎉 <b>Stark, ${esc(name)}!</b> Du hast alle sechs Stationen geschafft. Jetzt kannst du im Marathon klettern und in der Rallye Runden drehen – und zwischendurch mit „Meine Aufgaben" alles frisch halten.`;
+    knopf=`<a href="rallye-trainer.html#name=${encodeURIComponent(name)}">🏎️ Zur Rallye ›</a>`;
+  }else{
+    const z=zustand[offenIdx], vorher=offenIdx>0?zustand[offenIdx-1]:null;
+    const lob = (vorher && vorher.s==="fertig") ? `<b>${vorher.name} sitzt – super gemacht!</b> ` : "";
+    empf=`${lob}👉 <b>Das ist jetzt dran: ${z.ic} ${z.name}.</b><br>${z.warum}`;
+    const seite=SEITEN[z.app];
+    knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} ${z.name} üben ›</a>`;
+  }
+  box.innerHTML=
+    `<h3>🧭 Dein Lernweg, ${esc(name)}</h3>
+     <p class="lwSub">So kommst du am besten voran – eine Station nach der anderen. Jede baut auf der davor auf.</p>
+     ${liste}
+     <div class="lwEmpf">${empf}</div>
+     <div class="lwBtns">${knopf}<button class="spaeter" id="lwZu">Später</button></div>`;
+  $("lwZu").addEventListener("click", ()=>$("lwOverlay").classList.add("hide"));
+  $("lwOverlay").classList.remove("hide");
+}
+function lernwegVorbereiten(rows, name){
+  LW_ROWS=rows; LW_NAME=name;
+  let schonGezeigt=false;
+  try{ schonGezeigt = sessionStorage.getItem("lernweg_gezeigt")===name; }catch(e){}
+  if(!schonGezeigt){
+    try{ sessionStorage.setItem("lernweg_gezeigt", name); }catch(e){}
+    zeigeLernweg();
+  }
 }
 function starteHallo(){
   const name=capName($("name").value);

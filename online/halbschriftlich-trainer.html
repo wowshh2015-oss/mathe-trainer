@@ -150,7 +150,12 @@
   <!-- ===== TRAININGSRAUM ===== -->
   <div id="training" class="card hide">
     <button class="backbtn" id="trainingZu">← Zurück</button>
-    <h3>➕ Schrittweise <small>erst der Zehner, dann die Einer</small></h3>
+    <h3>🔟 Bis 20 – über den Zehner <small>erst bis zur 10, dann der Rest</small></h3>
+    <div class="reihen" style="grid-template-columns:1fr 1fr">
+      <button data-v20="schrittAdd20">➕ Plus über den Zehner<small>8 + 5</small></button>
+      <button data-v20="schrittSub20">➖ Minus über den Zehner<small>13 − 5</small></button>
+    </div>
+    <h3>➕ Schrittweise <small>bis 100 · erst der Zehner, dann die Einer</small></h3>
     <div class="reihen" data-verfahren="schrittAdd">
       <button data-ueb="ohne">ohne Übergang<small>43 + 25</small></button>
       <button data-ueb="mit">mit Übergang<small>47 + 25</small></button>
@@ -181,6 +186,8 @@
     <button class="backbtn" id="testwahlZu">← Zurück</button>
     <h3>Welches Verfahren?</h3>
     <div class="reihen" id="testVerfahren">
+      <button data-v="schrittAdd20">🔟 Plus bis 20<small>über den Zehner</small></button>
+      <button data-v="schrittSub20">🔟 Minus bis 20<small>über den Zehner</small></button>
       <button data-v="schrittAdd">➕ Schrittweise</button>
       <button data-v="stellenAdd">➕ Stellenweise</button>
       <button data-v="schrittSub">➖ Schrittweise</button>
@@ -249,6 +256,8 @@ let timer=null, zeitRest=0;
 
 //// ===== Bezeichnungen =====
 const VERFAHREN={
+  schrittAdd20:{name:"Über den Zehner +", lang:"Plus über den Zehner bis 20", zeichen:"+"},
+  schrittSub20:{name:"Über den Zehner −", lang:"Minus über den Zehner bis 20", zeichen:"−"},
   schrittAdd:{name:"Schrittweise +", lang:"Schrittweise addieren", zeichen:"+"},
   stellenAdd:{name:"Stellenweise +", lang:"Stellenweise addieren", zeichen:"+"},
   schrittSub:{name:"Schrittweise −", lang:"Schrittweise subtrahieren", zeichen:"−"}
@@ -283,9 +292,26 @@ function bauSchrittSub(a,b){
     schritte:[ {l:a,   op:"−", r:z, erg:a-z, abh:false},
                {l:a-z, op:"−", r:e, erg:a-b, abh:true } ]};
 }
+// bis 20: nicht Zehner/Einer, sondern erst bis zur 10 und dann der Rest
+function bauSchrittAdd20(a,b){
+  const bis10=10-a, rest=b-bis10;
+  return {verf:"schrittAdd20", a:a, b:b, ueb:"mit", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
+    namen:["Schritt zur 10","Rest dazu"],
+    schritte:[ {l:a,  op:"+", r:bis10, erg:10,  abh:false},
+               {l:10, op:"+", r:rest,  erg:a+b, abh:true } ]};
+}
+function bauSchrittSub20(a,b){
+  const bis10=a-10, rest=b-bis10;
+  return {verf:"schrittSub20", a:a, b:b, ueb:"mit", fact:`${a}−${b}`, kopf:`${a} − ${b}`,
+    namen:["Schritt zur 10","Rest wegnehmen"],
+    schritte:[ {l:a,  op:"−", r:bis10, erg:10,  abh:false},
+               {l:10, op:"−", r:rest,  erg:a-b, abh:true } ]};
+}
 function bauNach(verf,a,b){
-  if(verf==="stellenAdd") return bauStellenAdd(a,b);
-  if(verf==="schrittSub") return bauSchrittSub(a,b);
+  if(verf==="schrittAdd20") return bauSchrittAdd20(a,b);
+  if(verf==="schrittSub20") return bauSchrittSub20(a,b);
+  if(verf==="stellenAdd")   return bauStellenAdd(a,b);
+  if(verf==="schrittSub")   return bauSchrittSub(a,b);
   return bauSchrittAdd(a,b);
 }
 
@@ -327,7 +353,25 @@ function mkSchrittSub(ueb){
   }
   return bauSchrittSub(72,25);
 }
+function mkSchrittAdd20(){
+  for(let i=0;i<300;i++){
+    const a=rnd(2,9), b=rnd(2,9);
+    if(a+b<=10 || a+b>18) continue;
+    return bauSchrittAdd20(a,b);
+  }
+  return bauSchrittAdd20(8,5);
+}
+function mkSchrittSub20(){
+  for(let i=0;i<300;i++){
+    const a=rnd(11,18), b=rnd(2,9);
+    if(a-b>=10 || a-b<2) continue;
+    return bauSchrittSub20(a,b);
+  }
+  return bauSchrittSub20(13,5);
+}
 function mkAufgabe(verf, ueb){
+  if(verf==="schrittAdd20") return mkSchrittAdd20();
+  if(verf==="schrittSub20") return mkSchrittSub20();
   const art = ueb==="mix" ? (Math.random()<0.5?"ohne":"mit") : ueb;
   if(verf==="stellenAdd") return mkStellenAdd(art);
   if(verf==="schrittSub") return mkSchrittSub(art);
@@ -397,8 +441,10 @@ function factZuAufgabe(fact, verf){
   const m=String(fact).match(/^(\d+)([+−])(\d+)$/);
   if(!m) return null;
   const a=+m[1], b=+m[3];
-  if(m[2]==="−") return bauSchrittSub(a,b);
-  return bauNach(verf==="stellenAdd"?"stellenAdd":"schrittAdd", a, b);
+  const minus = m[2]==="−";
+  if(VERFAHREN[verf] && ((minus && verf.indexOf("Sub")>0) || (!minus && verf.indexOf("Add")>0)))
+    return bauNach(verf, a, b);
+  return minus ? bauSchrittSub(a,b) : bauSchrittAdd(a,b);
 }
 function baueMeine(anzahl){
   const offen=offeneFehler(), liste=[], gesehen=new Set();
@@ -442,7 +488,7 @@ function zahlOderFrage(wert, sichtbar){
   return sichtbar ? wert : `<span class="unbekannt">?</span>`;
 }
 function zeichneWeg(){
-  const namen=SCHRITTNAMEN[aktiv.verf]||[];
+  const namen=aktiv.namen||SCHRITTNAMEN[aktiv.verf]||[];
   let h="";
   aktiv.schritte.forEach((s,i)=>{
     const offen = i<=aktSchritt;                 // linke Zahl erst zeigen, wenn sie bekannt ist
@@ -471,7 +517,9 @@ function starte(){
   startZeit=Date.now();
   $("spielTitel").textContent = modus==="Test"
     ? `${VERFAHREN[verfahren].name} · ${STUFENNAMEN[stufe]}`
-    : (uebArt==="mine" ? "🧠 Meine Aufgaben" : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`);
+    : (uebArt==="mine" ? "🧠 Meine Aufgaben"
+       : /20$/.test(verfahren) ? `${VERFAHREN[verfahren].name} · bis 20`
+       : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`);
   zeige("spiel");
   naechsteAufgabe();
 }
@@ -511,7 +559,7 @@ function zeitAbgelaufen(){
   abschliessen(1500);
 }
 function merkeSchrittFehler(i){
-  const n=(SCHRITTNAMEN[aktiv.verf]||[])[i] || ("Schritt "+(i+1));
+  const n=(aktiv.namen||SCHRITTNAMEN[aktiv.verf]||[])[i] || ("Schritt "+(i+1));
   schrittFehler[n]=(schrittFehler[n]||0)+1;
 }
 function markiereFalsch(i, eingabe){
@@ -617,6 +665,12 @@ function tippText(sf){
     return "💡 Der <b>Einerschritt</b> macht noch Mühe. Hier passiert der Zehnerübergang: 67 + 5 – erst auf den runden Zehner (67 + 3 = 70), dann der Rest (70 + 2 = 72).";
   if(name==="Teilsummen")
     return "💡 Das <b>Zusammenzählen am Ende</b> macht noch Mühe. Zehner und Einer sind richtig – jetzt beide Teilergebnisse addieren: 60 + 12 = 72.";
+  if(name==="Schritt zur 10")
+    return "💡 Der <b>Schritt zur 10</b> macht noch Mühe. Frage dich immer: <b>Wie weit ist es bis zur 10?</b> Bei 8 fehlen noch 2 – also 8 + 2 = 10.";
+  if(name==="Rest dazu")
+    return "💡 Der <b>Rest</b> macht noch Mühe. Bei 8 + 5 gehen 2 bis zur 10 – dann bleiben vom 5 noch <b>3</b> übrig: 10 + 3 = 13.";
+  if(name==="Rest wegnehmen")
+    return "💡 Der <b>Rest</b> macht noch Mühe. Bei 13 − 5 gehen 3 bis zur 10 – dann musst du vom 5 noch <b>2</b> wegnehmen: 10 − 2 = 8.";
   if(name==="Zehner") return "💡 Die <b>Zehner</b> getrennt rechnen: bei 47 + 25 sind das 40 + 20 = 60.";
   if(name==="Einer")   return "💡 Die <b>Einer</b> getrennt rechnen: bei 47 + 25 sind das 7 + 5 = 12.";
   return "💡 Übe diesen Schritt noch einmal in Ruhe im Trainingsraum.";
@@ -656,12 +710,15 @@ $("abbrechen").addEventListener("click", ()=>{ stoppZeit(); zeige("start"); });
 $("zumMenue").addEventListener("click", ()=>zeige("start"));
 $("nochmal").addEventListener("click", ()=>starte());
 
-document.querySelectorAll("#training .reihen").forEach(box=>{
+document.querySelectorAll("#training .reihen[data-verfahren]").forEach(box=>{
   const v=box.dataset.verfahren;
   box.querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>{
     modus="Training"; verfahren=v; uebArt=b.dataset.ueb; starte();
   }));
 });
+document.querySelectorAll("#training button[data-v20]").forEach(b=>b.addEventListener("click", ()=>{
+  modus="Training"; verfahren=b.dataset.v20; uebArt="mit"; starte();
+}));
 $("meineBtn").addEventListener("click", ()=>{
   const offen=offeneFehler();
   modus="Training"; uebArt="mine";
