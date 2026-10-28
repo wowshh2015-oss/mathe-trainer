@@ -49,6 +49,8 @@
   .tipp .tx b{font-size:15px;display:block;margin-bottom:1px}
   .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
   .hallo .laden{color:var(--muted);font-size:14px}
+  .hide{display:none!important}
+
   /* ===== Lernweg-Fenster ===== */
   .lwOverlay{position:fixed;inset:0;background:rgba(5,10,22,.9);z-index:900;display:flex;
     align-items:flex-start;justify-content:center;padding:18px;overflow-y:auto;overscroll-behavior:contain}
@@ -446,6 +448,8 @@ function zeigeLernweg(){
   document.body.classList.add("lwOffen");
   $("lwOverlay").scrollTop=0;
 }
+// Beim Verlassen der Seite schließen – sonst holt der Browser sie mit „Zurück" samt offenem Fenster aus dem Cache
+addEventListener("pagehide", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen"); });
 function lernwegVorbereiten(rows, name){
   LW_ROWS=rows; LW_NAME=name;
   let schonGezeigt=false;
