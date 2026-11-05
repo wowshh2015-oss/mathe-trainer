@@ -70,6 +70,11 @@
   .timerbar{height:10px;border-radius:999px;background:#0b1220;overflow:hidden;margin-bottom:24px}
   .timerfill{height:100%;width:100%;background:var(--good);transition:width .1s linear,background .2s}
   .question{font-size:52px;font-weight:800;text-align:center;margin:10px 0 24px;letter-spacing:1px}
+  .question .bsp{display:inline-flex;flex-direction:column;align-items:center;vertical-align:top}
+  .question .aeste{width:1.5em;height:.45em;stroke:var(--muted);stroke-width:3;fill:none;stroke-linecap:round}
+  .question .blaetter{display:flex;gap:.25em;font-size:.42em;line-height:1.35}
+  .question .blatt{min-width:1.7em;border:2px dashed var(--card2);border-radius:8px;padding:0 .2em;color:var(--muted);text-align:center}
+  .question .blatt.voll{border-style:solid;border-color:var(--good);color:var(--good)}
   .question .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
   .answerrow{display:flex;gap:12px}
   .answerrow input{flex:1;font-size:30px;text-align:center}
@@ -428,12 +433,39 @@ let timer=null, totalTime=0, pCorrect=10, pWrong=-5;
 
 // Aufgabe = [a,b].  Plus: 47+38 und 38+47 sind dieselbe Aufgabe. Minus: nicht.
 // Aufgabe = [Ziel, gegebener Teil, Form]  ·  Form 0: "7 = 3 + ?"   Form 1: "3 + ? = 7"
+// Über den Zehner:  Form 2 = [x+y, Zehner, 2, x, y]   "47 + 8 = 50 + ?"
+//                   Form 3 = [Zehner, x−y, 3, x, y]   "53 − 7 = 50 − ?"   (Antwort immer a − b)
 function factKey(a,b){ return a+"="+b; }
-function factText(k){ const [z,t]=k.split("="); return `${z} = ${t} + ?`; }
-function factParts(k){ return k.split("=").map(Number); }
+function aufgabeKey(t){
+  if(t[2]===2) return `${t[3]}+${t[4]}=${t[1]}`;
+  if(t[2]===3) return `${t[3]}−${t[4]}=${t[0]}`;
+  return factKey(t[0],t[1]);
+}
+function taskFromKey(k){
+  let m=k.match(/^(\d+)\+(\d+)=(\d+)$/); if(m){ const x=+m[1], y=+m[2]; return [x+y, +m[3], 2, x, y]; }
+  m=k.match(/^(\d+)−(\d+)=(\d+)$/);    if(m){ const x=+m[1], y=+m[2]; return [+m[3], x-y, 3, x, y]; }
+  const [a,b]=k.split("=").map(Number); return [a, b, Math.random()<0.5?0:1];
+}
+function factParts(k){ return taskFromKey(k).slice(0,2); }
 function result(a,b){ return a-b; }
-function frage(a,b,form){ const box='<span class="blank">?</span>'; return form ? `${b} + ${box} = ${a}` : `${a} = ${b} + ${box}`; }
-function loesung(a,b,form){ const r=a-b; return form ? `${b} + ${r} = ${a}` : `${a} = ${b} + ${r}`; }
+// zwei Äste unter der zweiten Zahl – ohne Zahlen, damit die Zerlegung nicht verraten wird
+function baum(y){
+  return `<span class="bsp"><span>${y}</span><svg class="aeste" viewBox="0 0 60 18" aria-hidden="true"><path d="M30 2 L10 16 M30 2 L50 16"/></svg>`+
+         `<span class="blaetter"><span class="blatt" id="blattL">?</span><span class="blatt" id="blattR">?</span></span></span>`;
+}
+function frage(a,b,form,x,y){
+  const box='<span class="blank">?</span>';
+  if(form===2) return `${x} + ${baum(y)} = ${b} + ${box}`;
+  if(form===3) return `${x} − ${baum(y)} = ${a} − ${box}`;
+  return form ? `${b} + ${box} = ${a}` : `${a} = ${b} + ${box}`;
+}
+function loesung(a,b,form,x,y){
+  const r=a-b;
+  if(form===2){ const z=b-x; return `${x} + ${y} = ${b} + ${r}   (${y} = ${z} + ${r})`; }
+  if(form===3){ const z=x-a; return `${x} − ${y} = ${a} − ${r}   (${y} = ${z} + ${r})`; }
+  return form ? `${b} + ${r} = ${a}` : `${a} = ${b} + ${r}`;
+}
+function factText(k){ const t=taskFromKey(k); return t[2]>=2 ? frage(t[0],t[1],t[2],t[3],t[4]).replace(/<[^>]+>/g,"").replace(/\?\?/,"").replace(/\s+/g," ") : `${t[0]} = ${t[1]} + ?`; }
 
 function show(id){ screens.forEach(s=>$(s).classList.toggle("hide", s!==id)); }
 
@@ -488,13 +520,15 @@ $("startTestBtn").addEventListener("click", startTest);
 const TYPEN={
   10:[["zerlegen","🧩","Zerlegen","7 = 3 + ?"],["partner","🤝","Partner zur 10","6 + ? = 10"],["mix","🎲","gemischt","beides durcheinander"]],
   20:[["zerlegen","🧩","Zerlegen","15 = 8 + ?"],["zehner","🔟","Zehner &amp; Einer","14 = 10 + ?"],["mix","🎲","gemischt","beides durcheinander"]],
-  100:[["zehner","🔟","Zehner &amp; Einer","67 = 60 + ?"],["voll","🎯","Voller Zehner","67 + ? = 70"],["mix","🎲","gemischt","beides durcheinander"]]
+  100:[["zehner","🔟","Zehner &amp; Einer","67 = 60 + ?"],["voll","🎯","Voller Zehner","67 + ? = 70"],
+       ["uebergang","🌉","Über den Zehner","47 + 8 = 50 + ?"],["frei","✂️","Frei zerlegen","54 = 26 + ?"],
+       ["bis100","💯","Bis 100","37 + ? = 100"],["mix","🎲","gemischt","vor allem die schweren Aufgaben"]]
 };
-const TYPLABEL={zerlegen:"Zerlegen", partner:"Partner zur 10", zehner:"Zehner & Einer", voll:"Voller Zehner", mix:"gemischt"};
+const TYPLABEL={zerlegen:"Zerlegen", partner:"Partner zur 10", zehner:"Zehner & Einer", voll:"Voller Zehner", uebergang:"Über den Zehner", frei:"Frei zerlegen", bis100:"Bis 100", mix:"gemischt"};
 (function buildUeb(){
   const g=$("uebgrid"); let html="";
   [10,20,100].forEach(zr=>{
-    const sub = zr===10 ? "Zahlen bis 10 zerlegen" : zr===20 ? "Zahlen bis 20 zerlegen" : "Zehner, Einer und volle Zehner";
+    const sub = zr===10 ? "Zahlen bis 10 zerlegen" : zr===20 ? "Zahlen bis 20 zerlegen" : "vom Zehner bis zum freien Zerlegen";
     const ic  = zr===10 ? "🐣" : zr===20 ? "🐥" : "🦅";
     html+=`<div class="zrblock"><div class="zrhead">${ic} Bis ${zr} <small>${sub}</small></div><div class="ueb3">`;
     TYPEN[zr].forEach(a=>{ html+=`<div class="uebbtn" data-reihe="${zr}-${a[0]}"><div class="ic">${a[1]}</div>${a[2]}<small>${a[0]==="mix"?a[3]:"z. B. "+a[3]}</small></div>`; });
@@ -509,9 +543,13 @@ function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 // erzeugt EINE Aufgabe: [Ziel, gegebener Teil, Form]
 function mkTask(zr,typ){
-  if(typ==="mix") typ = zr===10 ? (Math.random()<0.5?"zerlegen":"partner")
-                      : zr===20 ? (Math.random()<0.5?"zerlegen":"zehner")
-                                : (Math.random()<0.5?"zehner":"voll");
+  if(typ==="mix"){
+    const r=Math.random();
+    typ = zr===10 ? (r<0.5?"zerlegen":"partner")
+        : zr===20 ? (r<0.5?"zerlegen":"zehner")
+        // bis 100 vor allem die Aufgaben, bei denen man wirklich zerlegen muss
+        : (r<0.35?"uebergang" : r<0.70?"frei" : r<0.85?"bis100" : r<0.925?"zehner" : "voll");
+  }
   const f=()=>Math.random()<0.5?0:1;
   if(zr===10){
     if(typ==="partner") return [10, rnd(1,9), f()];
@@ -521,6 +559,31 @@ function mkTask(zr,typ){
     if(typ==="zehner") return [rnd(11,19), 10, f()];
     // beide Teile höchstens 10 -> echte Zerlegung über den Zehner (17 = 8 + 9)
     const z=rnd(11,20); return [z, rnd(Math.max(1,z-10), Math.min(10,z-1)), f()];
+  }
+  if(typ==="uebergang"){                  // 47 + 8 = 50 + ?   bzw.   53 − 7 = 50 − ?
+    for(let i=0;i<200;i++){
+      if(Math.random()<0.5){
+        const x=rnd(12,88), y=rnd(3,9);
+        if(x%10===0 || x%10+y<=10 || x+y>100) continue;
+        return [x+y, Math.ceil(x/10)*10, 2, x, y];
+      }
+      const x=rnd(21,98), y=rnd(3,9);
+      if(x%10===0 || x%10>=y) continue;
+      return [Math.floor(x/10)*10, x-y, 3, x, y];
+    }
+    return [55,50,2,47,8];
+  }
+  if(typ==="frei"){                       // 54 = 26 + ?   – beide Teile ohne runde Zahl
+    for(let i=0;i<200;i++){
+      const z=rnd(31,99), t=rnd(11,z-11);
+      if(z%10===0 || t%10===0 || (z-t)%10===0) continue;
+      return [z, t, f()];
+    }
+    return [54,26,0];
+  }
+  if(typ==="bis100"){                     // 37 + ? = 100
+    for(let i=0;i<60;i++){ const t=rnd(11,89); if(t%10===0) continue; return [100, t, f()]; }
+    return [100,37,1];
   }
   if(typ==="voll"){                       // 67 + ? = 70   bzw.   67 + ? = 100
     for(let i=0;i<60;i++){ const a=rnd(11,99); if(a%10===0) continue; return [Math.random()<0.25?100:Math.ceil(a/10)*10, a, 1]; }
@@ -532,7 +595,7 @@ function mkTask(zr,typ){
 function buildSet(zr,typ,n){
   const q=[], seen=new Set(); let guard=0;
   while(q.length<n && guard++<3000){
-    const t=mkTask(zr,typ), k=factKey(t[0],t[1]);
+    const t=mkTask(zr,typ), k=aufgabeKey(t);
     if(seen.has(k)) continue;
     seen.add(k); q.push(t);
   }
@@ -589,18 +652,18 @@ function buildMine(){
   const A=analyse(nameKey);
   if(!A.durchgaenge) return "nodata";
   const N=CONFIG.trainQuestions, chosen=[], seen=new Set();
-  const add=(a,b)=>{ const k=factKey(a,b); if(seen.has(k)) return; seen.add(k); chosen.push([a,b,Math.random()<0.5?0:1]); };
+  const add=t=>{ const k=aufgabeKey(t); if(seen.has(k)) return; seen.add(k); chosen.push(t); };
   const rank={hot:0,mid:1,low:2};
   // 1) offene Fehleraufgaben: Dauerbrenner zuerst
   A.facts.filter(f=>masteredStreak(nameKey,f.k)<3)
     .sort((x,y)=>rank[grade(x).cls]-rank[grade(y).cls] || y.wrong-x.wrong || y.quote-x.quote)
-    .forEach(f=>{ if(chosen.length<N){ const [a,b]=factParts(f.k); add(a,b); } });
+    .forEach(f=>{ if(chosen.length<N) add(taskFromKey(f.k)); });
   if(!chosen.length) return "clean";
   // 2) Nachbaraufgaben aus den schwächsten Bereichen
-  A.bereiche.forEach(b=>{ let g=0; while(chosen.length<N && g++<60){ const t=mkTask(b.zr,b.ueb); add(t[0],t[1]); } });
+  A.bereiche.forEach(b=>{ let g=0; while(chosen.length<N && g++<60) add(mkTask(b.zr,b.ueb)); });
   // 3) auffüllen im meistgeübten Zahlenraum
   const zr=prefZr(nameKey); let guard=0;
-  while(chosen.length<N && guard++<500){ const t=mkTask(zr, Math.random()<0.5?"ohne":"mit"); add(t[0],t[1]); }
+  while(chosen.length<N && guard++<500) add(mkTask(zr,"mix"));
   return shuffle(chosen);
 }
 function beginQuiz(){
@@ -613,8 +676,8 @@ function beginQuiz(){
 }
 function nextQuestion(){
   if(idx>=order.length){ finish(); return; }
-  const [a,b,form]=order[idx];
-  $("question").innerHTML = frage(a,b,form);
+  const [a,b,form,x,y]=order[idx];
+  $("question").innerHTML = frage(a,b,form,x,y);
   $("progress").textContent = `Aufgabe ${idx+1} / ${order.length}`;
   $("livescore").textContent = `Punkte: ${score}`;
   $("feedback").textContent = "";
@@ -641,11 +704,16 @@ $("answer").addEventListener("keydown",e=>{ if(e.key==="Enter") submit(false); }
 function submit(timeout){
   if(mode==="test") clearInterval(timer);
   $("answer").disabled=true; $("okBtn").disabled=true;
-  const [a,b,form]=order[idx];
+  const [a,b,form,x,y]=order[idx];
   const right=result(a,b);
   const given=parseInt($("answer").value,10);
   const isCorrect = !timeout && given===right;
-  const key=factKey(a,b);
+  const key=aufgabeKey(order[idx]);
+  if(form>=2){                            // Zerlegung im Baum zeigen
+    const L=$("blattL"), R=$("blattR");
+    if(L){ L.textContent = form===2 ? b-x : x-a; L.classList.add("voll"); }
+    if(R){ R.textContent = right; R.classList.add("voll"); }
+  }
   askedFacts.push(key);
   if(!isCorrect) wrongFacts.push(key);
   const fb=$("feedback");
@@ -657,11 +725,11 @@ function submit(timeout){
   }else{
     wrong++;
     if(mode==="test") score+=pWrong;
-    mistakes.push(loesung(a,b,form));
+    mistakes.push(loesung(a,b,form,x,y));
     fb.style.color="var(--bad)";
     const pts = mode==="test" ? `   ${pWrong}` : "";
-    fb.textContent = timeout ? `Zeit abgelaufen!  ${loesung(a,b,form)}${pts}`
-                             : `Falsch!  ${loesung(a,b,form)}${pts}`;
+    fb.textContent = timeout ? `Zeit abgelaufen!  ${loesung(a,b,form,x,y)}${pts}`
+                             : `Falsch!  ${loesung(a,b,form,x,y)}${pts}`;
   }
   if(mode==="test") $("livescore").textContent=`Punkte: ${score}`;
   idx++;
@@ -713,7 +781,7 @@ function reiheLabel(r){
   const [zr,typ]=String(r).split("-");
   return `bis ${zr} · ${TYPLABEL[typ]||typ}`;
 }
-function reiheSort(r){ if(r==="mine") return 99999; const [zr,typ]=String(r).split("-"); return (+zr)*10 + ({zerlegen:0,partner:1,zehner:1,voll:2,mix:3}[typ]||0); }
+function reiheSort(r){ if(r==="mine") return 99999; const [zr,typ]=String(r).split("-"); return (+zr)*10 + ({zerlegen:0,partner:1,zehner:1,voll:2,uebergang:3,frei:4,bis100:5,mix:9}[typ]||0); }
 
 $("againBtn").addEventListener("click", ()=>{
   if(mode==="training" && selectedReihe!=null) startTraining(selectedReihe);
@@ -926,6 +994,7 @@ function analysableChildren(){
 }
 // Bereich einer Aufgabe: Zahlenraum
 function catOf(k){
+  if(/[+−]/.test(k)) return {zr:100, ueb:"mix", label:"bis 100", sort:100};   // "über den Zehner" gehört immer zu bis 100
   const z=factParts(k)[0];
   const zr = z<=10?10 : z<=20?20 : 100;
   return {zr, ueb:"mix", label:`bis ${zr}`, sort:zr};

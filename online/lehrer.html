@@ -236,7 +236,8 @@ function uebungLabel(e){
   if(e.app==="einsdurcheins") return r==="mix"?"Gemischt":r==="kern"?"Kernaufgaben":"÷ "+r;
   const [zr,typ]=r.split("-");
   if(e.app==="zerlegen"){
-    const T={zerlegen:"Zerlegen",partner:"Partner zur 10",zehner:"Zehner & Einer",voll:"Voller Zehner",mix:"gemischt"};
+    const T={zerlegen:"Zerlegen",partner:"Partner zur 10",zehner:"Zehner & Einer",voll:"Voller Zehner",
+             uebergang:"Über den Zehner",frei:"Frei zerlegen",bis100:"Bis 100",mix:"gemischt"};
     return `bis ${zr} · ${T[typ]||typ||"–"}`;
   }
   return `bis ${zr} · ${typ==="mix"?"gemischt":typ?typ+" Übergang":"–"}`;
