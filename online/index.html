@@ -476,7 +476,7 @@ function starteHallo(){
   try{
     firebase.initializeApp(CONF);
     hdb=firebase.firestore();
-    hdb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
   }catch(e){ hdb=null; }
   const alt=window.update;
   window.update=function(){ alt(); clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,500); };

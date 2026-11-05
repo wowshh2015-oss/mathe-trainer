@@ -312,20 +312,36 @@ let timer=null, zeitRest=0, letzteFalsch=null, inBox=false;
 let ersterFehler=true, boxenRunde=0;   // Herzen gehören zum Hindernis, nicht zur Runde
 
 //// ===== Strecken =====
+// Jede Strecke wird mit den gefahrenen Runden schwerer (ab = Runden auf dieser Strecke)
 const STRECKEN=[
-  {nr:1, ic:"🏙️", name:"Stadt",       kurz:"Plus & Minus bis 20",
-   typen:["plus20ohne","minus20ohne"], plus:["plus20","minus20"], sek:0},
-  {nr:2, ic:"🌳", name:"Landstraße",  kurz:"bis 100 ohne Übergang & Zerlegen",
-   typen:["plus100ohne","minus100ohne","zerlegen20"], plus:["zehner"], sek:0},
-  {nr:3, ic:"⛰️", name:"Bergpass",    kurz:"bis 100 mit Übergang",
-   typen:["plus100","minus100"], plus:["zerlegen100"], sek:0},
-  {nr:4, ic:"🏁", name:"Rennstrecke", kurz:"Einmaleins",
-   typen:["kern"], plus:["mal"], sek:0},
-  {nr:5, ic:"🏆", name:"Formel 1",    kurz:"Einmaleins, Geteilt & bis 1000 – auf Zeit",
-   typen:["mal","geteilt","plus1000","minus1000"], plus:[], sek:15}
+  {nr:1, ic:"🏙️", name:"Stadt",       kurz:"Plus & Minus bis 20", sek:0, stufen:[
+    {ab:0,  typen:["plus20ohne","minus20ohne"]},
+    {ab:5,  typen:["plus20ohne","minus20ohne","plus20","minus20"]},
+    {ab:15, typen:["plus20","minus20"]},
+    {ab:30, typen:["plus20","minus20","zerlegen20"]} ]},
+  {nr:2, ic:"🌳", name:"Landstraße",  kurz:"bis 100 ohne Übergang & Zerlegen", sek:0, stufen:[
+    {ab:0,  typen:["plus100ohne","minus100ohne","zerlegen20"]},
+    {ab:5,  typen:["plus100ohne","minus100ohne","zerlegen20","zehner"]},
+    {ab:15, typen:["plus100ohne","minus100ohne","zerlegen100"]},
+    {ab:30, typen:["plus100ohne","minus100ohne","plus100","minus100"]} ]},
+  {nr:3, ic:"⛰️", name:"Bergpass",    kurz:"bis 100 mit Übergang", sek:0, stufen:[
+    {ab:0,  typen:["plus100","minus100"]},
+    {ab:5,  typen:["plus100","minus100","zerlegen100"]},
+    {ab:20, typen:["plus100","minus100","plus1000","minus1000"]} ]},
+  {nr:4, ic:"🏁", name:"Rennstrecke", kurz:"Einmaleins", sek:0, stufen:[
+    {ab:0,  typen:["kern"]},
+    {ab:5,  typen:["kern","mal"]},
+    {ab:15, typen:["malSchwer","geteilt"]},
+    {ab:30, typen:["malSchwer","geteiltSchwer","malZehner"]} ]},
+  {nr:5, ic:"🏆", name:"Formel 1",    kurz:"Einmaleins, Geteilt & bis 1000 – auf Zeit", sek:15, stufen:[
+    {ab:0,  typen:["mal","geteilt","plus1000","minus1000"]},
+    {ab:15, typen:["malSchwer","geteiltSchwer","plus1000","minus1000"]},
+    {ab:30, typen:["malSchwer","geteiltSchwer","malZehner","grossMal"]} ]}
 ];
 function st(n){ return STRECKEN.find(s=>s.nr===n) || STRECKEN[0]; }
-function f1Offen(){ return rundenAuf(3)>=F1_RUNDEN || marathonEtage>=F1_ETAGE; }
+function levelFuer(n){ const r=rundenAuf(n), s=st(n); let i=0; s.stufen.forEach((x,k)=>{ if(r>=x.ab) i=k; }); return i; }
+// Formel 1: 20 Runden am Bergpass ODER auf der Rennstrecke (oder Etage 50 im Marathon)
+function f1Offen(){ return rundenAuf(3)>=F1_RUNDEN || rundenAuf(4)>=F1_RUNDEN || marathonEtage>=F1_ETAGE; }
 function streckeOffen(n){ return n<5 ? true : f1Offen(); }
 
 //// ===== Garage =====
@@ -577,6 +593,15 @@ function mkKern(){
 }
 function mkGeteilt(){ const a=rnd(1,10), b=rnd(1,10);
   return {html:`${a*b} ÷ ${b}`, text:`${a*b} ÷ ${b}`, antwort:a, key:(a*b)+"÷"+b}; }
+// ohne die leichten Faktoren 1, 2 und 10
+function mkMalSchwer(){ const a=rnd(3,9), b=rnd(3,9);
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:Math.min(a,b)+"×"+Math.max(a,b)}; }
+function mkGeteiltSchwer(){ const a=rnd(3,9), b=rnd(3,9);
+  return {html:`${a*b} ÷ ${b}`, text:`${a*b} ÷ ${b}`, antwort:a, key:(a*b)+"÷"+b}; }
+function mkMalZehner(){ const a=rnd(2,9), z=rnd(2,9)*10;
+  return {html:`${a} × ${z}`, text:`${a} × ${z}`, antwort:a*z, key:a+"×"+z}; }
+function mkGrossMal(){ const a=rnd(11,19), b=rnd(3,9);
+  return {html:`${a} × ${b}`, text:`${a} × ${b}`, antwort:a*b, key:a+"×"+b}; }
 function mkZerlegen(zr){
   if(zr===20){
     const z=rnd(11,20), t=rnd(Math.max(1,z-10), Math.min(10,z-1)), f=Math.random()<0.5;
@@ -609,14 +634,14 @@ function mkTyp(typ){
     case "zerlegen20":   return mkZerlegen(20);
     case "zerlegen100":  return mkZerlegen(100);
     case "zehner":       return mkZehner();
+    case "malSchwer":    return mkMalSchwer();
+    case "geteiltSchwer":return mkGeteiltSchwer();
+    case "malZehner":    return mkMalZehner();
+    case "grossMal":     return mkGrossMal();
   }
   return mkPlus(20,"ohne");
 }
-// Ab 5 gefahrenen Runden auf dieser Strecke kommen die Zusatztypen dazu
-function typenFuer(n){
-  const s=st(n);
-  return rundenAuf(n)>=5 ? s.typen.concat(s.plus) : s.typen.slice();
-}
+function typenFuer(n){ return st(n).stufen[levelFuer(n)].typen.slice(); }
 function baueAufgaben(n){
   const typen=typenFuer(n), q=[], seen=new Set();
   let guard=0;
@@ -691,8 +716,8 @@ function zeigeStrecken(){
   $("strecken").innerHTML=STRECKEN.map(s=>{
     const offen=streckeOffen(s.nr), r=rundenAuf(s.nr), bz=bestzeit(s.nr);
     const rechts = offen
-      ? `<b>${r}</b>${r===1?"Runde":"Runden"}${bz?`<br>⏱ ${bz} s`:""}`
-      : `🔒<br>ab ${F1_RUNDEN} Runden<br>am Bergpass`;
+      ? `<b>${r}</b>${r===1?"Runde":"Runden"}<br>Level ${levelFuer(s.nr)+1} von ${s.stufen.length}${bz?`<br>⏱ ${bz} s`:""}`
+      : `🔒<br>ab ${F1_RUNDEN} Runden<br>Bergpass oder<br>Rennstrecke`;
     return `<div class="strecke${s.nr===strecke?" an":""}${offen?"":" zu"}" data-s="${s.nr}">
       <span class="ic">${s.ic}</span>
       <span class="tx"><b>${s.nr}. ${s.name}</b><span>${s.kurz}</span></span>
@@ -772,16 +797,14 @@ function starteRunde(){
   falsch=[]; gestellt=[]; fehlerListe=[]; rundeOhneFehler=true; inBox=false;
   ersterFehler=true; boxenRunde=0;
   rundeStart=Date.now();
+  rundeNr=rundenAuf(strecke)+1;
   $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}</small>`;
   zeichneBahn($("bahn"));
   zeige("spiel");
   zeichneHerzen(); zeichneFortschritt();
   naechstesHindernis(true);
 }
-$("startBtn").addEventListener("click", ()=>{
-  rundeNr = sitzungRunden + 1;
-  starteRunde();
-});
+$("startBtn").addEventListener("click", starteRunde);
 
 // neu=true: nächstes Hindernis (frische Herzen) · neu=false: dasselbe Hindernis noch einmal
 function naechstesHindernis(neu){
@@ -890,18 +913,19 @@ function rundeFertig(){
   if(zf){ zf.classList.remove("an"); void zf.offsetWidth; zf.classList.add("an"); }
   sitzungRunden++;
   sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
-  const vorher=gesamtRunden();
+  const vorher=gesamtRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
   speichere(dauer);
   const nachher=gesamtRunden();
   $("rueck").style.color="var(--gold)";
   $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`;
   const neuFrei = freigeschaltetZwischen(vorher, nachher);
+  if(!f1Vorher && f1Offen()) neuFrei.push("🏆 Strecke Formel 1");
+  if(levelFuer(strecke)>levelVorher) neuFrei.push(`⬆️ ${st(strecke).name}: Level ${levelFuer(strecke)+1} – jetzt wird es schwerer`);
   if(neuFrei.length) konfetti();
   else if(nachher%10===0) konfetti();
   setTimeout(()=>{
     if(neuFrei.length){ zeigeAngebotNeu(neuFrei); return; }
     if(sauberSerie>=3 && streckeWechselMoeglich()){ zeigeAngebotStrecke(); return; }
-    rundeNr=sitzungRunden+1;
     starteRunde();
   }, 1300);
 }
@@ -910,7 +934,6 @@ function freigeschaltetZwischen(a,b){
   FAHRZEUGE.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
   FARBEN.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`🎨 Farbe ${f.name}`); });
   if(BOOST_AB>a && BOOST_AB<=b) neu.push("🔧 Boost");
-  if(strecke===3 && a<F1_RUNDEN && b>=F1_RUNDEN) neu.push("🏆 Strecke Formel 1");
   return neu;
 }
 function streckeWechselMoeglich(){
@@ -924,7 +947,7 @@ function zeigeAngebotNeu(liste){
   $("angJa").textContent="🔧 Zur Garage";
   $("angJa").onclick=()=>{ zeige("garage"); zeigeGarage(); };
   $("angNein").textContent="Weiterfahren ▶";
-  $("angNein").onclick=()=>{ rundeNr=sitzungRunden+1; starteRunde(); };
+  $("angNein").onclick=()=>{ starteRunde(); };
 }
 function zeigeAngebotStrecke(){
   const n=strecke+1, s=st(n);
@@ -934,8 +957,8 @@ function zeigeAngebotStrecke(){
     Möchtest du einmal die Strecke <b>${s.ic} ${s.name}</b> probieren? Dort gibt es ${s.kurz}.<br><br>
     Du kannst <b>jederzeit wieder zurück</b> – deine Runden bleiben alle erhalten.`;
   $("angJa").textContent=`${s.ic} ${s.name} probieren ▶`;
-  $("angJa").onclick=()=>{ strecke=n; sauberSerie=0; merken(); rundeNr=sitzungRunden+1; starteRunde(); };
-  $("angNein").onclick=()=>{ sauberSerie=0; rundeNr=sitzungRunden+1; starteRunde(); };
+  $("angJa").onclick=()=>{ strecke=n; sauberSerie=0; merken(); starteRunde(); };
+  $("angNein").onclick=()=>{ sauberSerie=0; starteRunde(); };
 }
 $("pauseBtn").addEventListener("click", ()=>{ stoppZeit(); inBox=false; zeige("start"); zeigeStart(); });
 
@@ -1072,7 +1095,7 @@ function verbindeKind(){
   try{
     firebase.initializeApp(CONF);
     db=firebase.firestore();
-    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
     db.collection("einstellungen").doc("pin").get().then(d=>{
       const p=d.exists?String((d.data()||{}).pin||""):"";
       lehrerPin=/^\d{4}$/.test(p)?p:"";

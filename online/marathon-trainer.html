@@ -544,7 +544,7 @@ function verbindeKind(){
   try{
     firebase.initializeApp(CONF);
     db=firebase.firestore();
-    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
     db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
       const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
       chipsZeigen(namen);
@@ -555,6 +555,12 @@ function verbindeKind(){
   if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
   if(n){ $("name").value=capName(n); playerName=capName(n); $("menuLink").href="index.html#name="+encodeURIComponent(playerName); setTimeout(verbindeKind, 400); }
   else $("name").focus();
+  // Das Haus braucht die gespeicherten Etagen. Kommt keine Antwort, lieber eine klare Meldung als ein leerer Bildschirm.
+  setTimeout(()=>{
+    if(playerName && $("turmBox").classList.contains("hide"))
+      $("nameChips").insertAdjacentHTML("afterend",
+        '<div class="info" style="margin-top:14px">⚠️ Die Verbindung zum Klassen-Archiv dauert ungewöhnlich lange. Bitte die Seite neu laden. Hilft das nicht, kurz die WLAN-Verbindung prüfen.</div>');
+  }, 9000);
 })();
 
 //// ===== Konfetti =====

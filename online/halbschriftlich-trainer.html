@@ -75,24 +75,36 @@
   /* ===== Rechenweg ===== */
   .aufgabe{font-size:40px;font-weight:800;text-align:center;letter-spacing:1px;margin:2px 0 4px}
   .trennlinie{height:2px;background:var(--card2);margin:12px 0 16px;border-radius:2px}
-  .weg{display:flex;flex-direction:column;gap:11px}
-  .schritt{display:flex;align-items:center;gap:10px;opacity:.38;transition:.2s}
+  .weg{display:flex;flex-direction:column;gap:2px}
+  .hinweis{background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.28);border-radius:12px;
+    padding:10px 13px;font-size:13.5px;color:#a7f3e8;line-height:1.5;margin-bottom:6px}
+  .schritt{display:flex;align-items:center;gap:10px;opacity:.38;transition:.2s;margin-top:10px}
   .schritt.aktiv{opacity:1}
   .schritt.fertig{opacity:1}
   .schritt .nr{flex:none;width:24px;height:24px;border-radius:50%;background:#0b1220;border:1px solid var(--card2);
     font-size:12px;font-weight:800;color:var(--muted);display:flex;align-items:center;justify-content:center}
   .schritt.aktiv .nr{border-color:var(--accent);color:var(--accent)}
-  .schritt .term{flex:1;text-align:right;font-size:27px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
-  .schritt .term .unbekannt{color:var(--muted);opacity:.7}
-  .schritt .feld{flex:none;width:104px;font-size:26px;font-weight:800;text-align:center;padding:9px 6px;
-    border-radius:11px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
-  .schritt .feld:focus{border-color:var(--accent)}
-  .schritt .feld:disabled{opacity:1}
-  .schritt.richtig .feld{border-color:var(--good);color:var(--good)}
-  .schritt.falsch .feld{border-color:var(--bad);color:var(--bad);text-decoration:line-through}
-  .schritt .mark{flex:none;width:30px;font-size:21px;text-align:center}
-  .schritt .korrektur{color:var(--good);font-weight:800;font-size:20px}
-  .schrittname{font-size:11.5px;color:var(--muted);font-weight:700;margin-left:34px;margin-top:-6px}
+  .schritt .term{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    gap:8px;font-size:26px;font-weight:800}
+  .schritt .z.unbekannt{color:var(--muted);opacity:.7}
+  .schritt .z.neu{color:#5eead4}
+  .feld{width:72px;height:50px;font-family:inherit;font-size:24px;font-weight:800;text-align:center;border-radius:11px;
+    border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none;
+    display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+  input.feld{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.2)}
+  .feld.leer{border-style:dashed}
+  .feld.richtig{border-color:var(--good);color:var(--good)}
+  .feld.falsch{border-color:var(--bad);width:auto;min-width:72px;gap:6px}
+  .feld.falsch s{color:var(--bad);font-size:18px}
+  .feld.falsch b{color:var(--good)}
+  .kopf20{display:inline-flex;align-items:flex-start;gap:14px}
+  .bspalte{display:inline-flex;flex-direction:column;align-items:center}
+  .aeste{width:78px;height:24px;stroke:var(--muted);stroke-width:2.5;fill:none;stroke-linecap:round;margin-top:2px}
+  .blaetter{display:flex;gap:12px}
+  .blatt{min-width:46px;height:42px;border-radius:10px;border:2px dashed var(--card2);font-size:22px;
+    display:flex;align-items:center;justify-content:center;color:var(--muted);padding:0 6px}
+  .blatt.voll{border-style:solid;border-color:#5eead4;color:#5eead4}
+  .schrittname{font-size:11.5px;color:var(--muted);font-weight:700;margin-left:34px;margin-top:2px}
 
   .rueck{min-height:30px;text-align:center;font-size:17px;font-weight:700;margin-top:14px}
   .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.55}
@@ -116,9 +128,9 @@
   @media (max-width:440px){
     body{padding:14px}
     .aufgabe{font-size:32px}
-    .schritt .term{font-size:21px}
-    .schritt .feld{width:82px;font-size:22px}
-    .schritt .mark{width:22px;font-size:18px}
+    .schritt .term{font-size:20px;gap:6px}
+    .feld{width:56px;height:44px;font-size:20px}
+    .feld.falsch{min-width:56px}
     .reihen{grid-template-columns:1fr}
     .reihen button small{display:inline;margin-left:6px}
   }
@@ -194,9 +206,9 @@
     </div>
     <h3>Welche Stufe?</h3>
     <div class="stufen" id="testStufen">
-      <button data-s="0">Leicht<small>45 Sek.</small></button>
-      <button data-s="1">Mittel<small>35 Sek.</small></button>
-      <button data-s="2">Schwer<small>25 Sek.</small></button>
+      <button data-s="0">Leicht<small>12 Sek. pro Feld</small></button>
+      <button data-s="1">Mittel<small>9 Sek. pro Feld</small></button>
+      <button data-s="2">Schwer<small>7 Sek. pro Feld</small></button>
     </div>
     <button class="full" id="testStart" style="margin-top:18px" disabled>Test starten ▶</button>
     <div class="info" style="margin-top:14px">12 Aufgaben, gemischt ohne und mit Übergang.
@@ -243,7 +255,7 @@ const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe
              projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
 const APP="halbschriftlich";
 const PRO_TRAINING=10, PRO_TEST=12, PASS=90;
-const ZEITEN=[45,35,25], STUFENNAMEN=["Leicht","Mittel","Schwer"];
+const ZEIT_PRO_FELD=[12,9,7], STUFENNAMEN=["Leicht","Mittel","Schwer"];   // Sekunden je Eingabefeld
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
@@ -251,7 +263,7 @@ function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase
 let db=null, playerName="", cloudOk=false;
 let modus="Training", verfahren="schrittAdd", uebArt="mix", stufe=null;
 let aufgaben=[], nr=0, richtig=0, falschListe=[], gestellt=[], fehler=[];
-let schrittFehler={}, aktiv=null, aktSchritt=0, aufgabeOk=true, startZeit=0;
+let schrittFehler={}, aktiv=null, aktFeld=0, felder=[], aufgabeOk=true, startZeit=0;
 let timer=null, zeitRest=0;
 
 //// ===== Bezeichnungen =====
@@ -273,39 +285,62 @@ const SCHRITTNAMEN={
 function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
 
 // ===== Bauplan je Verfahren (auch für "Meine Aufgaben" aus alten Fehlern) =====
+// Eine Aufgabe besteht aus Zeilen. Teile einer Zeile: Zahl oder Zeichen · {f:i} = Eingabefeld i ·
+// {w:i} = Wert von Feld i, sichtbar erst, wenn das Kind dieses Feld gelöst hat.
+// Die Zerlegung ist immer ein eigenes Feld – das Kind findet sie selbst, sie wird nie vorgegeben.
+const HINWEISE={
+  schrittAdd20:"Fülle erst bis zur 10 auf. Dafür zerlegst du die zweite Zahl – den Rest rechnest du danach dazu.",
+  schrittSub20:"Geh erst zurück bis zur 10. Dafür zerlegst du die zweite Zahl – den Rest nimmst du danach weg.",
+  schrittAdd:"Zerlege die zweite Zahl in Zehner und Einer. Erst die Zehner dazu, dann die Einer.",
+  schrittSub:"Zerlege die zweite Zahl in Zehner und Einer. Erst die Zehner weg, dann die Einer.",
+  stellenAdd:"Zerlege beide Zahlen in Zehner und Einer. Zehner plus Zehner, Einer plus Einer – dann beides zusammen."
+};
+function neueAufgabe(verf,a,b,ueb,op,zeilen,felder,extra){
+  return Object.assign({verf:verf, a:a, b:b, ueb:ueb, fact:`${a}${op}${b}`, kopf:`${a} ${op} ${b}`,
+    zeilen:zeilen, felder:felder, ergebnis:felder[felder.length-1].soll, hinweis:HINWEISE[verf]}, extra||{});
+}
 function bauSchrittAdd(a,b){
   const z=Math.floor(b/10)*10, e=b%10;
-  return {verf:"schrittAdd", a:a, b:b, ueb:((a%10)+(b%10)>=10)?"mit":"ohne", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
-    schritte:[ {l:a,   op:"+", r:z, erg:a+z, abh:false},
-               {l:a+z, op:"+", r:e, erg:a+b, abh:true } ]};
+  return neueAufgabe("schrittAdd",a,b,((a%10)+e>=10)?"mit":"ohne","+",
+    [ {name:"Zehnerschritt", teile:[a,"+",{f:0},"=",{f:1}]},
+      {name:"Einerschritt",  teile:[{w:1},"+",{f:2},"=",{f:3}]} ],
+    [ {soll:z,name:"Zerlegen"}, {soll:a+z,name:"Zehnerschritt"}, {soll:e,name:"Zerlegen"}, {soll:a+b,name:"Einerschritt"} ]);
 }
 function bauStellenAdd(a,b){
   const ea=a%10, eb=b%10, za=a-ea, zb=b-eb;
-  return {verf:"stellenAdd", a:a, b:b, ueb:(ea+eb>=10)?"mit":"ohne", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
-    schritte:[ {l:za,    op:"+", r:zb,    erg:za+zb, abh:false},
-               {l:ea,    op:"+", r:eb,    erg:ea+eb, abh:false},
-               {l:za+zb, op:"+", r:ea+eb, erg:a+b,   abh:true } ]};
+  return neueAufgabe("stellenAdd",a,b,(ea+eb>=10)?"mit":"ohne","+",
+    [ {name:"Zehner",   teile:[{f:0},"+",{f:1},"=",{f:2}]},
+      {name:"Einer",    teile:[{f:3},"+",{f:4},"=",{f:5}]},
+      {name:"Zusammen", teile:[{w:2},"+",{w:5},"=",{f:6}]} ],
+    [ {soll:za,name:"Zerlegen"}, {soll:zb,name:"Zerlegen"}, {soll:za+zb,name:"Zehner"},
+      {soll:ea,name:"Zerlegen"}, {soll:eb,name:"Zerlegen"}, {soll:ea+eb,name:"Einer"},
+      {soll:a+b,name:"Teilsummen"} ]);
 }
 function bauSchrittSub(a,b){
   const z=Math.floor(b/10)*10, e=b%10;
-  return {verf:"schrittSub", a:a, b:b, ueb:((a%10)<(b%10))?"mit":"ohne", fact:`${a}−${b}`, kopf:`${a} − ${b}`,
-    schritte:[ {l:a,   op:"−", r:z, erg:a-z, abh:false},
-               {l:a-z, op:"−", r:e, erg:a-b, abh:true } ]};
+  return neueAufgabe("schrittSub",a,b,((a%10)<e)?"mit":"ohne","−",
+    [ {name:"Zehnerschritt", teile:[a,"−",{f:0},"=",{f:1}]},
+      {name:"Einerschritt",  teile:[{w:1},"−",{f:2},"=",{f:3}]} ],
+    [ {soll:z,name:"Zerlegen"}, {soll:a-z,name:"Zehnerschritt"}, {soll:e,name:"Zerlegen"}, {soll:a-b,name:"Einerschritt"} ]);
 }
 // bis 20: nicht Zehner/Einer, sondern erst bis zur 10 und dann der Rest
 function bauSchrittAdd20(a,b){
   const bis10=10-a, rest=b-bis10;
-  return {verf:"schrittAdd20", a:a, b:b, ueb:"mit", fact:`${a}+${b}`, kopf:`${a} + ${b}`,
-    namen:["Schritt zur 10","Rest dazu"],
-    schritte:[ {l:a,  op:"+", r:bis10, erg:10,  abh:false},
-               {l:10, op:"+", r:rest,  erg:a+b, abh:true } ]};
+  return neueAufgabe("schrittAdd20",a,b,"mit","+",
+    [ {name:"Bis zur 10", teile:[a,"+",{f:0},"=",10]},
+      {name:"Zerlegen",   teile:[b,"=",{w:0},"+",{f:1}]},
+      {name:"Rest dazu",  teile:[10,"+",{w:1},"=",{f:2}]} ],
+    [ {soll:bis10,name:"Bis zur 10"}, {soll:rest,name:"Zerlegen"}, {soll:a+b,name:"Rest dazu"} ],
+    {baum:{links:0, rechts:1}});
 }
 function bauSchrittSub20(a,b){
   const bis10=a-10, rest=b-bis10;
-  return {verf:"schrittSub20", a:a, b:b, ueb:"mit", fact:`${a}−${b}`, kopf:`${a} − ${b}`,
-    namen:["Schritt zur 10","Rest wegnehmen"],
-    schritte:[ {l:a,  op:"−", r:bis10, erg:10,  abh:false},
-               {l:10, op:"−", r:rest,  erg:a-b, abh:true } ]};
+  return neueAufgabe("schrittSub20",a,b,"mit","−",
+    [ {name:"Zurück zur 10", teile:[a,"−",{f:0},"=",10]},
+      {name:"Zerlegen",      teile:[b,"=",{w:0},"+",{f:1}]},
+      {name:"Rest weg",      teile:[10,"−",{w:1},"=",{f:2}]} ],
+    [ {soll:bis10,name:"Zurück zur 10"}, {soll:rest,name:"Zerlegen"}, {soll:a-b,name:"Rest weg"} ],
+    {baum:{links:0, rechts:1}});
 }
 function bauNach(verf,a,b){
   if(verf==="schrittAdd20") return bauSchrittAdd20(a,b);
@@ -484,26 +519,35 @@ function zeichneFortschritt(){
   $("fortschritt").innerHTML=h;
 }
 
-function zahlOderFrage(wert, sichtbar){
-  return sichtbar ? wert : `<span class="unbekannt">?</span>`;
+function zeichneKopf(){
+  if(!aktiv.baum){ $("aufgabe").textContent=aktiv.kopf; return; }
+  const blatt=i=> felder[i].fertig ? `<span class="blatt voll">${aktiv.felder[i].soll}</span>` : `<span class="blatt">?</span>`;
+  $("aufgabe").innerHTML=`<span class="kopf20"><span>${aktiv.a}</span><span>${aktiv.verf==="schrittSub20"?"−":"+"}</span>
+    <span class="bspalte"><span>${aktiv.b}</span>
+      <svg class="aeste" viewBox="0 0 78 24" aria-hidden="true"><path d="M39 2 L13 22 M39 2 L65 22"/></svg>
+      <span class="blaetter">${blatt(aktiv.baum.links)}${blatt(aktiv.baum.rechts)}</span></span></span>`;
+}
+function teilHTML(t){
+  if(typeof t!=="object") return `<span class="z">${t}</span>`;
+  if("w" in t) return felder[t.w].fertig ? `<span class="z neu">${aktiv.felder[t.w].soll}</span>` : `<span class="z unbekannt">?</span>`;
+  const i=t.f, st=felder[i];
+  if(i===aktFeld) return `<input class="feld" id="feld${i}" inputmode="numeric" autocomplete="off" aria-label="Feld ${i+1}">`;
+  if(!st.fertig)  return `<span class="feld leer"></span>`;
+  if(st.ok)       return `<span class="feld richtig">${esc(st.wert)}</span>`;
+  return `<span class="feld falsch"><s>${esc(st.wert||"–")}</s><b>${aktiv.felder[i].soll}</b></span>`;
 }
 function zeichneWeg(){
-  const namen=aktiv.namen||SCHRITTNAMEN[aktiv.verf]||[];
-  let h="";
-  aktiv.schritte.forEach((s,i)=>{
-    const offen = i<=aktSchritt;                 // linke Zahl erst zeigen, wenn sie bekannt ist
-    const sichtbar = !s.abh || i<=aktSchritt;
-    const zustand = i<aktSchritt ? "fertig" : (i===aktSchritt ? "aktiv" : "");
-    h+=`<div class="schritt ${zustand}" id="s${i}">
-          <span class="nr">${i+1}</span>
-          <span class="term">${zahlOderFrage(s.l,sichtbar)} ${s.op} ${s.r} =</span>
-          <input class="feld" id="f${i}" inputmode="numeric" autocomplete="off" ${i===aktSchritt?"":"disabled"}>
-          <span class="mark" id="m${i}"></span>
-        </div>
-        ${namen[i]?`<div class="schrittname">${namen[i]}</div>`:""}`;
+  zeichneKopf();
+  let h = aktiv.hinweis ? `<div class="hinweis">💡 ${aktiv.hinweis}</div>` : "";
+  aktiv.zeilen.forEach((z,i)=>{
+    const ids=z.teile.filter(t=>typeof t==="object" && "f" in t).map(t=>t.f);
+    const zustand = ids.includes(aktFeld) ? "aktiv" : (ids.every(j=>felder[j].fertig) ? "fertig" : "");
+    h+=`<div class="schritt ${zustand}"><span class="nr">${i+1}</span>
+          <span class="term">${z.teile.map(teilHTML).join("")}</span></div>
+        <div class="schrittname">${z.name}</div>`;
   });
   $("weg").innerHTML=h;
-  const f=$("f"+aktSchritt);
+  const f=$("feld"+aktFeld);
   if(f){ f.addEventListener("keydown",e=>{ if(e.key==="Enter") pruefeSchritt(); }); f.focus(); }
 }
 
@@ -526,10 +570,10 @@ function starte(){
 function naechsteAufgabe(){
   const gesamt = modus==="Test" ? PRO_TEST : PRO_TRAINING;
   if(nr>=gesamt){ fertig(); return; }
-  aktiv=aufgaben[nr]; aktSchritt=0; aufgabeOk=true;
+  aktiv=aufgaben[nr]; aktFeld=0; aufgabeOk=true;
+  felder=aktiv.felder.map(()=>({fertig:false}));
   gestellt.push(aktiv.fact);
   $("zaehler").textContent=`${nr+1} von ${gesamt}`;
-  $("aufgabe").textContent=aktiv.kopf;
   $("rueck").textContent="";
   zeichneFortschritt();
   zeichneWeg();
@@ -539,7 +583,7 @@ function starteZeit(){
   stoppZeit();
   $("zeitbalken").classList.toggle("hide", modus!=="Test");
   if(modus!=="Test") return;
-  const sek=ZEITEN[stufe];
+  const sek=ZEIT_PRO_FELD[stufe]*aktiv.felder.length;
   zeitRest=sek; $("zeitfuell").style.width="100%";
   timer=setInterval(()=>{
     zeitRest-=0.25;
@@ -548,67 +592,39 @@ function starteZeit(){
   },250);
 }
 function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
-function zeitAbgelaufen(){
-  // alle noch offenen Schritte als Fehler werten und die Lösung zeigen
-  for(let i=aktSchritt;i<aktiv.schritte.length;i++){
-    markiereFalsch(i, null);
-  }
-  aufgabeOk=false;
-  $("rueck").style.color="var(--bad)";
-  $("rueck").textContent="⏱ Zeit vorbei!";
-  abschliessen(1500);
-}
 function merkeSchrittFehler(i){
-  const n=(aktiv.namen||SCHRITTNAMEN[aktiv.verf]||[])[i] || ("Schritt "+(i+1));
+  const n=aktiv.felder[i].name || ("Feld "+(i+1));
   schrittFehler[n]=(schrittFehler[n]||0)+1;
 }
-function markiereFalsch(i, eingabe){
-  const row=$("s"+i), feld=$("f"+i), mark=$("m"+i);
-  if(!row) return;
-  row.classList.remove("aktiv"); row.classList.add("fertig","falsch");
-  feld.value = eingabe===null||eingabe===undefined||eingabe==="" ? "–" : eingabe;
-  feld.disabled=true;
-  mark.innerHTML=`<span class="korrektur">${aktiv.schritte[i].erg}</span>`;
-  merkeSchrittFehler(i);
+function zeitAbgelaufen(){
+  // alle noch offenen Felder als Fehler werten und die Lösung zeigen
+  for(let i=aktFeld;i<felder.length;i++){ felder[i]={fertig:true, ok:false, wert:""}; merkeSchrittFehler(i); }
+  aktFeld=felder.length; aufgabeOk=false;
+  zeichneWeg();
+  $("rueck").style.color="var(--bad)";
+  $("rueck").textContent=`⏱ Zeit vorbei! ${aktiv.kopf} = ${aktiv.ergebnis}`;
+  abschliessen(2100);
 }
 function pruefeSchritt(){
-  const feld=$("f"+aktSchritt);
-  if(!feld || feld.disabled) return;
+  const feld=$("feld"+aktFeld);
+  if(!feld) return;
   const roh=feld.value.trim();
   if(roh==="") return;
-  const s=aktiv.schritte[aktSchritt];
-  const ok = parseInt(roh,10)===s.erg;
-  const row=$("s"+aktSchritt), mark=$("m"+aktSchritt);
-  feld.disabled=true; row.classList.remove("aktiv"); row.classList.add("fertig");
-  if(ok){
-    row.classList.add("richtig"); mark.textContent="✓";
-  }else{
-    row.classList.add("falsch"); feld.value=roh;
-    mark.innerHTML=`<span class="korrektur">${s.erg}</span>`;
-    merkeSchrittFehler(aktSchritt);
-    aufgabeOk=false;
-  }
-  aktSchritt++;
-  if(aktSchritt<aktiv.schritte.length){
-    // nächste Zeile freischalten (linke Zahl ist jetzt bekannt)
-    const nz=aktiv.schritte[aktSchritt], zeile=$("s"+aktSchritt);
-    zeile.classList.add("aktiv");
-    zeile.querySelector(".term").innerHTML=`${nz.l} ${nz.op} ${nz.r} =`;
-    const nf=$("f"+aktSchritt);
-    nf.disabled=false;
-    nf.addEventListener("keydown",e=>{ if(e.key==="Enter") pruefeSchritt(); });
-    nf.focus();
-    return;
-  }
+  const ok = parseInt(roh,10)===aktiv.felder[aktFeld].soll;
+  felder[aktFeld]={fertig:true, ok:ok, wert:roh};
+  if(!ok){ merkeSchrittFehler(aktFeld); aufgabeOk=false; }
+  aktFeld++;
+  zeichneWeg();
+  if(aktFeld<felder.length) return;
   stoppZeit();
   if(aufgabeOk){
     $("rueck").style.color="var(--good)";
     $("rueck").textContent="Richtig gerechnet! 👍";
   }else{
     $("rueck").style.color="var(--bad)";
-    $("rueck").textContent=`${aktiv.kopf} = ${aktiv.schritte[aktiv.schritte.length-1].erg}`;
+    $("rueck").textContent=`${aktiv.kopf} = ${aktiv.ergebnis}`;
   }
-  abschliessen(aufgabeOk?900:1900);
+  abschliessen(aufgabeOk?900:2100);
 }
 function abschliessen(wartezeit){
   stoppZeit();
@@ -648,7 +664,7 @@ function fertig(){
     : "";
   $("ergFehler").innerHTML = falschListe.length
     ? `<h3>Diese Aufgaben noch einmal üben</h3><div class="info">${
-        falschListe.map(a=>`${a.kopf} = <b>${a.schritte[a.schritte.length-1].erg}</b>`).join(" &nbsp;·&nbsp; ")}</div>`
+        falschListe.map(a=>`${a.kopf} = <b>${a.ergebnis}</b>`).join(" &nbsp;·&nbsp; ")}</div>`
     : "";
   $("ergTipp").innerHTML = tippText(sf);
   $("nochmal").textContent = modus==="Test" ? "Test nochmal ▶" : "Nochmal üben ▶";
@@ -665,11 +681,15 @@ function tippText(sf){
     return "💡 Der <b>Einerschritt</b> macht noch Mühe. Hier passiert der Zehnerübergang: 67 + 5 – erst auf den runden Zehner (67 + 3 = 70), dann der Rest (70 + 2 = 72).";
   if(name==="Teilsummen")
     return "💡 Das <b>Zusammenzählen am Ende</b> macht noch Mühe. Zehner und Einer sind richtig – jetzt beide Teilergebnisse addieren: 60 + 12 = 72.";
-  if(name==="Schritt zur 10")
+  if(name==="Zerlegen")
+    return "💡 Das <b>Zerlegen</b> macht noch Mühe. Frage dich: <b>Wie viel brauche ich jetzt – und was bleibt übrig?</b> Bei 9 + 9 brauchst du 1 bis zur 10, dann bleiben von der 9 noch 8.";
+  if(name==="Bis zur 10" || name==="Schritt zur 10")
     return "💡 Der <b>Schritt zur 10</b> macht noch Mühe. Frage dich immer: <b>Wie weit ist es bis zur 10?</b> Bei 8 fehlen noch 2 – also 8 + 2 = 10.";
+  if(name==="Zurück zur 10")
+    return "💡 Der <b>Schritt zurück zur 10</b> macht noch Mühe. Bei 13 musst du <b>3</b> wegnehmen, um bei 10 zu sein.";
   if(name==="Rest dazu")
     return "💡 Der <b>Rest</b> macht noch Mühe. Bei 8 + 5 gehen 2 bis zur 10 – dann bleiben vom 5 noch <b>3</b> übrig: 10 + 3 = 13.";
-  if(name==="Rest wegnehmen")
+  if(name==="Rest wegnehmen" || name==="Rest weg")
     return "💡 Der <b>Rest</b> macht noch Mühe. Bei 13 − 5 gehen 3 bis zur 10 – dann musst du vom 5 noch <b>2</b> wegnehmen: 10 − 2 = 8.";
   if(name==="Zehner") return "💡 Die <b>Zehner</b> getrennt rechnen: bei 47 + 25 sind das 40 + 20 = 60.";
   if(name==="Einer")   return "💡 Die <b>Einer</b> getrennt rechnen: bei 47 + 25 sind das 7 + 5 = 12.";
@@ -759,7 +779,7 @@ function chipsZeigen(namen){
   try{
     firebase.initializeApp(CONF);
     db=firebase.firestore();
-    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
     db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
       const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
       chipsZeigen(namen);

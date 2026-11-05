@@ -775,7 +775,7 @@ function cloudInit(){
   try{
     firebase.initializeApp(CLOUD.config);
     db=firebase.firestore();
-    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
     cloudSubscribe();
     db.collection("einstellungen").doc("pin").onSnapshot(d=>{
       if(d.exists && !pinDirty){ const p=d.data().pin; if(/^\d{4}$/.test(String(p))) archivPin=String(p); }
