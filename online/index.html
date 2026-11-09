@@ -46,9 +46,24 @@
   .tipp:hover{border-color:#38bdf8;background:rgba(56,189,248,.08)}
   .tipp .ic{font-size:25px;flex:none;line-height:1}
   .tipp .tx{flex:1;font-size:14px;line-height:1.45}
-  .tipp .tx b{font-size:15px;display:block;margin-bottom:1px}
+  .tipp .tx > b:first-child{font-size:15px;display:block;margin-bottom:1px}
   .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
   .hallo .laden{color:var(--muted);font-size:14px}
+  /* ===== Rallye-Pokal ===== */
+  a.pokalband{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--text);position:relative;overflow:hidden;
+    background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(251,191,36,.05));border:2px solid rgba(251,191,36,.5);
+    border-radius:16px;padding:12px 16px;margin:0 0 14px}
+  a.pokalband::after{content:"";position:absolute;top:0;bottom:0;width:60px;left:-80px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:glanz 3.2s 1s ease-in-out infinite}
+  @keyframes glanz{ 0%{left:-80px} 45%,100%{left:110%} }
+  .pokalband .pk{font-size:50px;line-height:1;flex:none;animation:pokalRein 1s cubic-bezier(.2,1.4,.4,1) both,pokalWipp 2.6s 1s ease-in-out infinite}
+  .pokalband .tx{flex:1;min-width:0;font-size:13.5px;color:#fde68a;line-height:1.45}
+  .pokalband .tx b{display:block;font-size:19px;color:#fbbf24}
+  .pokalband .neu{position:absolute;top:8px;right:10px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;
+    border-radius:999px;padding:2px 9px;animation:pochen 1s ease-in-out infinite}
+  @keyframes pokalRein{ 0%{transform:scale(0) rotate(-200deg);opacity:0} 100%{transform:scale(1) rotate(0);opacity:1} }
+  @keyframes pokalWipp{ 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg) scale(1.08)} }
+  @keyframes pochen{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
   .hide{display:none!important}
 
   /* ===== Lernweg-Fenster ===== */
@@ -218,6 +233,38 @@ function tippHTML(ic, titel, text, datei, name){
   return `<a class="tipp" href="${datei}#name=${encodeURIComponent(name)}">
     <span class="ic">${ic}</span><span class="tx"><b>${titel}</b>${text}</span><span class="pfeil">›</span></a>`;
 }
+// ===== Rallye-Pokal (gleiche Stufen wie in rallye-trainer.html) =====
+const RALLYE_TITEL=[
+  {ic:"🥉", name:"Rallye-Fahrer",   g:50},
+  {ic:"🥈", name:"Rallye-Ass",      g:100},
+  {ic:"🥇", name:"Rallye-Meister",  g:180},
+  {ic:"🏆", name:"Rallye-Champion", p:100},
+  {ic:"👑", name:"Rallye-Legende",  p:300}
+];
+function rallyeStand(rows){
+  const r=rows.filter(e=>e.app==="rallye");
+  const g=r.reduce((s,e)=>s+(+e.runden||0),0), p=r.reduce((s,e)=>s+(+e.profi||0),0);
+  const ok=t=>t.g ? g>=t.g : p>=t.p;
+  const erreicht=RALLYE_TITEL.filter(ok), akt=erreicht[erreicht.length-1]||null, naechster=RALLYE_TITEL.find(t=>!ok(t))||null;
+  const sterne = p>=300 ? Math.floor((p-300)/100) : 0;
+  return {g, p, akt, naechster, sterne};
+}
+function pokalHTML(rows, name){
+  const s=rallyeStand(rows);
+  if(!s.akt) return "";
+  const titel=s.akt.name+(s.akt===RALLYE_TITEL[4]&&s.sterne?" "+"⭐".repeat(Math.min(s.sterne,5)):"");
+  let ziel;
+  if(!s.naechster)        ziel=`noch ${100-((s.p-300)%100)} Profi-Runden bis zum nächsten ⭐`;
+  else if(s.naechster.g)  ziel=`noch ${s.naechster.g-s.g} Runden bis ${s.naechster.ic} ${s.naechster.name}`;
+  else                    ziel=`noch ${s.naechster.p-s.p} Profi-Runden bis ${s.naechster.ic} ${s.naechster.name}`;
+  // „NEU" zeigen, bis das Kind den Pokal auf dieser Startseite einmal gesehen hat
+  let neu=false;
+  try{ const k="rallye_pokal_"+name.toLowerCase(); neu = localStorage.getItem(k)!==titel; localStorage.setItem(k,titel); }catch(e){}
+  return `<a class="pokalband" href="rallye-trainer.html#name=${encodeURIComponent(name)}">
+    <span class="pk">${s.akt.ic}</span>
+    <span class="tx"><b>${esc(titel)}</b>${s.g} Runden in der Rechen-Rallye${s.p?` · ${s.p} Profi-Runden`:""}<br>${ziel}</span>
+    ${neu?'<span class="neu">NEU!</span>':""}</a>`;
+}
 // rows: neueste zuerst
 function begruessung(rows, name){
   if(!rows.length) return {
@@ -241,6 +288,7 @@ function zeigeHallo(rows, name){
   const box=$("hallo");
   box.classList.remove("hide");
   if(!rows.length){
+    POKAL_HTML="";
     box.innerHTML=`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
       <div class="seit">Das ist dein erstes Mal hier. Ich zeige dir, womit du am besten anfängst.</div>
       <span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
@@ -317,11 +365,14 @@ function zeigeHallo(rows, name){
   if(tipps.length<3 && runden){
     const naechste=(Math.floor(runden/20)+1)*20;
     tipps.push(tippHTML("🏎️", `Weiter in der Rechen-Rallye`,
-      `Du hast <b>${runden} Runden</b> gefahren – noch <b>${naechste-runden}</b> bis zum nächsten Fahrzeug in der Garage.`,
+      runden>=180
+        ? `Deine Garage ist voll – in der <b>Profi-Garage</b> warten neue Fahrzeuge. Profi-Runden gibt es auf Bergpass, Rennstrecke und Formel 1.`
+        : `Du hast <b>${runden} Runden</b> gefahren – noch <b>${naechste-runden}</b> bis zum nächsten Fahrzeug in der Garage.`,
       SEITEN.rallye.datei, name));
   }
 
-  box.innerHTML =
+  POKAL_HTML=pokalHTML(rows, name);
+  box.innerHTML = POKAL_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
     (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
     (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"")+
@@ -344,7 +395,7 @@ const STATIONEN=[
   {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins",
    warum:"Das Teilen, die Umkehrung vom Malnehmen – mit Test."}
 ];
-let LW_ROWS=[], LW_NAME="";
+let LW_ROWS=[], LW_NAME="", POKAL_HTML="";
 function nAufgaben(n){ return n===1 ? "1 Aufgabe" : `${n} Aufgaben`; }
 // Alles, was ein Kind und seine Eltern über eine Stufe wissen müssen
 function stationInfo(app){
@@ -433,7 +484,7 @@ function zeigeLernweg(){
     knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
   }
 
-  box.innerHTML=
+  box.innerHTML= POKAL_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>
      <div class="lwAbschnitt">🧭 Dein Lernweg <small>– Stufe für Stufe</small></div>
      ${stufen}

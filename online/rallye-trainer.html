@@ -192,6 +192,33 @@
   h3{font-size:16px;margin:18px 0 6px}
   h3:first-child{margin-top:0}
 
+  /* ===== Pokale & Profi-Garage ===== */
+  .titelzeile{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(251,191,36,.16),rgba(251,191,36,.04));
+    border:1px solid rgba(251,191,36,.38);border-radius:14px;padding:10px 14px;margin:-2px 0 12px}
+  .titelzeile .pk{font-size:38px;line-height:1;flex:none;animation:pokalWipp 2.6s ease-in-out infinite}
+  .titelzeile .tt{flex:1;min-width:0;font-size:13px;color:var(--muted);line-height:1.45}
+  .titelzeile .tt b{display:block;font-size:17px;color:var(--gold)}
+  @keyframes pokalWipp{ 0%,100%{transform:rotate(-6deg) scale(1)} 50%{transform:rotate(6deg) scale(1.08)} }
+  .profiinfo{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.38);color:#e9d5ff;
+    border-radius:12px;padding:10px 14px;font-size:13.5px;line-height:1.5;margin:0 0 12px}
+  .profiinfo b{color:#f5d0fe}
+  .profitag{display:inline-block;background:rgba(168,85,247,.22);color:#e9d5ff;border-radius:999px;
+    padding:1px 8px;font-size:11px;font-weight:800;margin-left:6px;vertical-align:1px}
+  .ding.profi{border-color:rgba(168,85,247,.5)}
+  .ding.profi.an{border-color:#c084fc;background:rgba(168,85,247,.16)}
+  .farbe.profi span{color:#fff;text-shadow:0 1px 2px #000}
+  .pokale{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:6px}
+  .pokal{background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:10px 6px;text-align:center}
+  .pokal .p1{font-size:34px;line-height:1.1}
+  .pokal .p2{font-size:12.5px;font-weight:800;margin-top:4px}
+  .pokal .p3{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+  .pokal.ja{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.08)}
+  .pokal.nein .p1{filter:grayscale(1);opacity:.35}
+  .pokalGross{text-align:center;margin:0 0 12px}
+  .pokalGross .p1{font-size:92px;line-height:1;display:inline-block;animation:pokalRein 1.1s cubic-bezier(.2,1.4,.4,1) both,pokalWipp 2.6s 1.1s ease-in-out infinite}
+  .pokalGross .p2{font-size:24px;font-weight:800;color:var(--gold);margin-top:8px}
+  @keyframes pokalRein{ 0%{transform:scale(0) rotate(-200deg);opacity:0} 100%{transform:scale(1) rotate(0);opacity:1} }
+
   @media (max-width:430px){
     body{padding:14px}
     .bahn{height:176px}
@@ -228,6 +255,8 @@
 
     <div id="startBox" class="hide" style="margin-top:18px">
       <div class="rundenzaehler"><b id="gesamtRunden">0</b><span class="sub" style="margin:0">Runden insgesamt gefahren</span></div>
+      <div id="titelZeile"></div>
+      <div id="profiZeile"></div>
 
       <h3>Womit möchtest du fahren?</h3>
       <div class="welten" id="welten"></div>
@@ -276,6 +305,7 @@
 
   <!-- ===== ANGEBOT: nächste Strecke ===== -->
   <div id="angebot" class="card hide">
+    <div class="pokalGross hide" id="angPokal"></div>
     <div class="gross" id="angTitel">🏁 Das läuft richtig gut!</div>
     <div class="info" id="angText"></div>
     <div class="btnrow">
@@ -288,6 +318,33 @@
 </div>
 
 <div id="pinOverlay" class="pinOverlay hide"><div class="pinModal" id="pinModal"></div></div>
+
+<!-- Sonderlackierungen der Profi-Garage: einmal global, nie mit display:none (sonst malt Safari/Chrome sie nicht) -->
+<svg width="0" height="0" style="position:absolute;left:-9999px" aria-hidden="true"><defs>
+  <linearGradient id="lk-silber" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f8fafc"/><stop offset=".35" stop-color="#94a3b8"/><stop offset=".6" stop-color="#e2e8f0"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+  <linearGradient id="lk-gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fef9c3"/><stop offset=".3" stop-color="#eab308"/><stop offset=".6" stop-color="#fde047"/><stop offset="1" stop-color="#a16207"/></linearGradient>
+  <linearGradient id="lk-feuer" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fde047"/><stop offset=".45" stop-color="#f97316"/><stop offset="1" stop-color="#b91c1c"/></linearGradient>
+  <linearGradient id="lk-eis" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f0f9ff"/><stop offset=".35" stop-color="#7dd3fc"/><stop offset=".65" stop-color="#e0f2fe"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+  <linearGradient id="lk-neon" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#a3e635"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#e879f9"/></linearGradient>
+  <linearGradient id="lk-regenbogen" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#ef4444"/><stop offset=".2" stop-color="#f97316"/><stop offset=".4" stop-color="#facc15"/>
+    <stop offset=".6" stop-color="#22c55e"/><stop offset=".8" stop-color="#3b82f6"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+  <linearGradient id="lk-rb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ef4444"/><stop offset=".2" stop-color="#f97316"/><stop offset=".4" stop-color="#facc15"/>
+    <stop offset=".6" stop-color="#22c55e"/><stop offset=".8" stop-color="#3b82f6"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+  <linearGradient id="lk-diamant" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".25" stop-color="#a5f3fc"/><stop offset=".5" stop-color="#f5d0fe"/>
+    <stop offset=".75" stop-color="#ffffff"/><stop offset="1" stop-color="#67e8f9"/></linearGradient>
+  <pattern id="lk-galaxie" patternUnits="userSpaceOnUse" width="24" height="24">
+    <rect width="24" height="24" fill="#3b0764"/><circle cx="18" cy="18" r="9" fill="#6d28d9" opacity=".55"/>
+    <circle cx="4" cy="5" r="1.2" fill="#fff"/><circle cx="15" cy="3" r=".8" fill="#f0abfc"/><circle cx="19" cy="14" r="1.2" fill="#fff"/>
+    <circle cx="8" cy="17" r=".9" fill="#a5b4fc"/><circle cx="12" cy="10" r=".7" fill="#fff"/><circle cx="3" cy="21" r=".8" fill="#fff"/></pattern>
+</defs></svg>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -357,6 +414,19 @@ STUFEN.forEach((ab,i)=>{
   FAHRZEUGE.push({id:"p"+(i+1), welt:"pferd",  name:PFERD_NAMEN[i],  ab:ab});
   FAHRZEUGE.push({id:"r"+(i+1), welt:"rakete", name:RAKETE_NAMEN[i], ab:ab});
 });
+// ===== Profi-Garage =====
+// Nach 180 Runden ist die Grund-Garage voll. Ab dann zählen nur noch Profi-Runden:
+// Runden auf Bergpass, Rennstrecke und Formel 1 – also dort, wo es mathematisch etwas zu lernen gibt.
+const GARAGE_VOLL=180, PROFI_STRECKEN=[3,4,5];
+const PROFI_STUFEN=[20,50,90,130,180];
+const AUTO_PROFI  =["Monster-Truck","Limousine","Renn-Laster","Schwebeauto","Raketenauto"];
+const PFERD_PROFI =["Zebra-Pferd","Feuerpferd","Regenbogen-Einhorn","Drachenpferd","Sternen-Pegasus"];
+const RAKETE_PROFI=["Mondfähre","Weltraum-Wal","Drachenschiff","Ringschiff","Galaxie-Kreuzer"];
+PROFI_STUFEN.forEach((pab,i)=>{
+  FAHRZEUGE.push({id:"a"+(i+11), welt:"auto",   name:AUTO_PROFI[i],   ab:GARAGE_VOLL, pab:pab});
+  FAHRZEUGE.push({id:"p"+(i+11), welt:"pferd",  name:PFERD_PROFI[i],  ab:GARAGE_VOLL, pab:pab});
+  FAHRZEUGE.push({id:"r"+(i+11), welt:"rakete", name:RAKETE_PROFI[i], ab:GARAGE_VOLL, pab:pab});
+});
 const FARBEN=[
   {c:"#e23b3b", name:"Rot",     ab:0},
   {c:"#3b82f6", name:"Blau",    ab:0},
@@ -367,8 +437,39 @@ const FARBEN=[
   {c:"#14b8a6", name:"Türkis",  ab:105},
   {c:"#f97316", name:"Orange",  ab:125},
   {c:"#f1f5f9", name:"Weiß",    ab:145},
-  {c:"#1f2937", name:"Schwarz", ab:165}
+  {c:"#1f2937", name:"Schwarz", ab:165},
+  // Sonderlackierungen (Profi-Runden)
+  {c:"url(#lk-silber)",    name:"Silber",    ab:GARAGE_VOLL, pab:10,  css:"linear-gradient(135deg,#f8fafc,#94a3b8 35%,#e2e8f0 60%,#64748b)"},
+  {c:"url(#lk-gold)",      name:"Gold",      ab:GARAGE_VOLL, pab:35,  css:"linear-gradient(135deg,#fef9c3,#eab308 30%,#fde047 60%,#a16207)"},
+  {c:"url(#lk-feuer)",     name:"Feuer",     ab:GARAGE_VOLL, pab:70,  css:"linear-gradient(180deg,#fde047,#f97316 45%,#b91c1c)"},
+  {c:"url(#lk-eis)",       name:"Eis",       ab:GARAGE_VOLL, pab:110, css:"linear-gradient(135deg,#f0f9ff,#7dd3fc 35%,#e0f2fe 65%,#0ea5e9)"},
+  {c:"url(#lk-neon)",      name:"Neon",      ab:GARAGE_VOLL, pab:155, css:"linear-gradient(90deg,#a3e635,#22d3ee,#e879f9)"},
+  {c:"url(#lk-regenbogen)",name:"Regenbogen",ab:GARAGE_VOLL, pab:205, css:"linear-gradient(90deg,#ef4444,#f97316,#facc15,#22c55e,#3b82f6,#a855f7)"},
+  {c:"url(#lk-galaxie)",   name:"Galaxie",   ab:GARAGE_VOLL, pab:250, css:"radial-gradient(1.5px 1.5px at 30% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 70% 60%,#fff,transparent),radial-gradient(1px 1px at 45% 80%,#fff,transparent),radial-gradient(circle at 70% 70%,#6d28d9,#3b0764 70%)"},
+  {c:"url(#lk-diamant)",   name:"Diamant",   ab:GARAGE_VOLL, pab:300, css:"linear-gradient(135deg,#fff,#a5f3fc 25%,#f5d0fe 50%,#fff 75%,#67e8f9)"}
 ];
+// ===== Pokale =====
+const TITEL=[
+  {ic:"🥉", name:"Rallye-Fahrer",   ziel:"50 Runden",                 ok:(g,p)=>g>=50},
+  {ic:"🥈", name:"Rallye-Ass",      ziel:"100 Runden",                ok:(g,p)=>g>=100},
+  {ic:"🥇", name:"Rallye-Meister",  ziel:"180 Runden – Garage voll",  ok:(g,p)=>g>=GARAGE_VOLL},
+  {ic:"🏆", name:"Rallye-Champion", ziel:"100 Profi-Runden",          ok:(g,p)=>p>=100},
+  {ic:"👑", name:"Rallye-Legende",  ziel:"300 Profi-Runden",          ok:(g,p)=>p>=300}
+];
+// Nach der Legende: alle 100 Profi-Runden ein Stern dazu – das Ziel geht nie aus
+function legendenSterne(p){ return p>=300 ? Math.floor((p-300)/100) : 0; }
+function titelStand(g,p){
+  const erreicht=TITEL.filter(t=>t.ok(g,p));
+  const akt=erreicht[erreicht.length-1]||null, naechster=TITEL.find(t=>!t.ok(g,p))||null;
+  return {akt, naechster, sterne:legendenSterne(p), anzahl:erreicht.length};
+}
+function titelName(t,sterne){ return t ? t.name+(t===TITEL[TITEL.length-1]&&sterne?" "+"⭐".repeat(Math.min(sterne,5))+(sterne>5?"×"+sterne:""):"") : ""; }
+function nochBis(t,g,p){
+  if(!t) return {zahl:100-((p-300)%100), was:"Profi-Runden bis zum nächsten ⭐"};
+  const m=String(t.ziel).match(/^(\d+)/), z=+m[1];
+  return t.ziel.includes("Profi") ? {zahl:z-p, was:`Profi-Runden bis ${t.ic} ${t.name}`}
+                                  : {zahl:z-g, was:`Runden bis ${t.ic} ${t.name}`};
+}
 const WELTEN=[
   {id:"auto",   ic:"🏎️", name:"Rennstrecke"},
   {id:"pferd",  ic:"🐴", name:"Reitweg"},
@@ -378,6 +479,16 @@ const BOOST_AB=30;
 function gesamtRunden(){ return MEINE.reduce((s,e)=>s+(+e.runden||0),0); }
 function rundenAuf(n){ return MEINE.filter(e=>+e.strecke===n).reduce((s,e)=>s+(+e.runden||0),0); }
 function boost(){ return gesamtRunden()>=BOOST_AB; }
+function profiRunden(){ return MEINE.reduce((s,e)=>s+(+e.profi||0),0); }
+// Ist ein Fahrzeug / eine Farbe bei g Runden und p Profi-Runden offen?
+function istOffen(x,g,p){
+  if(g===undefined){ g=gesamtRunden(); p=profiRunden(); }
+  return x.pab ? (g>=GARAGE_VOLL && p>=x.pab) : x.ab<=g;
+}
+function sperrText(x,g){
+  if(!x.pab) return "🔒 ab "+x.ab+" Runden";
+  return g<GARAGE_VOLL ? "🔒 Profi-Garage" : "⭐ ab "+x.pab+" Profi-R.";
+}
 
 //// ===== Fahrzeug-Bilder =====
 const GLAS='#cde4ff', DUNKEL='#2f3542', LICHT='#fde68a', TECH='#64748b';
@@ -431,6 +542,41 @@ function svgAuto(id,c){
       <rect x="65.5" y="26" width="3" height="4" fill="${TECH}"/>
       <rect x="60" y="29" width="15" height="4" rx="1.5" fill="${c}" ${k}/>
       ${rad(19,30,8)}${rad(55,30,8)}`);
+    // ===== Profi-Garage =====
+    case 11: return S(`<rect x="14" y="17" width="48" height="3.4" rx="1.5" fill="${TECH}"/>
+      <path d="M17 20 L22 25 M59 20 L54 25" stroke="${TECH}" stroke-width="2.4"/>
+      <path d="M5 19 L5 10 Q5 8 8 8 L37 8 L41 2.5 Q42 1 45 1 L57 1 Q60 1 62 4 L65 9 Q70 10 70 13 L70 19 Z" fill="${c}" ${k}/>
+      <path d="M44.5 3.6 L56 3.6 Q58 3.6 59.3 6 L60.6 8.6 L43 8.6 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M9 14 L33 14" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+      <circle cx="67" cy="13" r="2.2" fill="${LICHT}"/>
+      <circle cx="18" cy="29" r="10.4" fill="#15181f" stroke="#2b303b" stroke-width="2.4" stroke-dasharray="3 2.2"/><circle cx="18" cy="29" r="4" fill="#9aa3b2"/>
+      <circle cx="58" cy="29" r="10.4" fill="#15181f" stroke="#2b303b" stroke-width="2.4" stroke-dasharray="3 2.2"/><circle cx="58" cy="29" r="4" fill="#9aa3b2"/>`);
+    case 12: return S(`<path d="M2 30 Q2 24 8 23 L17 22 L23 15.5 Q25 14 29 14 L52 14 Q55.5 14 58 17.5 L61.5 22 L69 23 Q74 24 74 28 L74 30 Q74 31.5 72 31.5 L4 31.5 Q2 31.5 2 30 Z" fill="${c}" ${k}/>
+      <path d="M25 21 L28 16.5 L36 16.5 L36 21 Z M38 16.5 L46 16.5 L46 21 L38 21 Z M48 16.5 L52 16.5 Q54 16.5 56 19 L57.5 21 L48 21 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M5 26 L71 26" stroke="#e2e8f0" stroke-width="1.2" opacity=".75"/>      <circle cx="71" cy="25" r="2" fill="${LICHT}"/>${rad(14,32,6.2)}${rad(61,32,6.2)}`);
+    case 13: return S(`<path d="M3 30 L3 18 L38 18 L38 30 Z" fill="${c}" ${k}/>
+      <path d="M3 18 L38 18 L38 22 L3 22 Z" fill="#0004"/>
+      <circle cx="20" cy="25" r="4.4" fill="#fff" opacity=".92"/><text x="20" y="27.4" font-size="6.5" font-weight="800" text-anchor="middle" fill="#111">1</text>
+      <rect x="36.5" y="0" width="3" height="11" rx="1.2" fill="${TECH}"/>
+      <path d="M40 30 L40 8 Q40 5 44 5 L59 5 Q63 5 65 9 L70 18 Q73 19 73 23 L73 30 Z" fill="${c}" ${k}/>
+      <path d="M57 8 L61 8 Q63 8 64 10 L67.5 17 L57 17 Z" fill="${GLAS}" opacity=".9"/>
+      <rect x="42" y="2" width="16" height="3" rx="1.5" fill="${DUNKEL}"/>
+      <circle cx="70.5" cy="23" r="2" fill="${LICHT}"/>${rad(12,31,6.6)}${rad(28,31,6.6)}${rad(61,31,6.6)}`);
+    case 14: return S(`<ellipse cx="38" cy="36" rx="27" ry="2.6" fill="#38bdf8" opacity=".55"/>
+      <rect x="11" y="26" width="15" height="4.4" rx="2.2" fill="${TECH}"/><rect x="50" y="26" width="15" height="4.4" rx="2.2" fill="${TECH}"/>
+      <rect x="13" y="30" width="11" height="2" rx="1" fill="#7dd3fc"/><rect x="52" y="30" width="11" height="2" rx="1" fill="#7dd3fc"/>
+      <path d="M3 24 Q3 19 11 18 L23 16 Q30 9 40 9 L50 9 Q60 10 66 17 L72 20 Q75 22 73 25 L70 27.5 L8 27.5 Q3 27.5 3 24 Z" fill="${c}" ${k}/>
+      <path d="M27 16 Q32 11.5 40 11.5 L48 11.5 Q55 12 60 16 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M9 22.5 L68 22.5" stroke="#7dd3fc" stroke-width="1.5" opacity=".85"/>
+      <circle cx="71" cy="22.5" r="1.8" fill="${LICHT}"/>`);
+    case 15: return S(`<path d="M17 22 L11 7 L21 7 L28 21 Z" fill="${c}" ${k}/>
+      <rect x="6" y="12.5" width="19" height="9" rx="4.5" fill="#94a3b8" stroke="#0006" stroke-width="1"/>
+      <rect x="3" y="14" width="4.5" height="6" rx="1" fill="${DUNKEL}"/>
+      <path d="M3.5 15 L0 17 L3.5 19 Z" fill="#f97316"/>
+      <path d="M13 30 Q13 23 19 22 L28 21 Q33 13 42 13 L52 13 Q60 14 66 21 L71 23 Q74 24 74 28 L74 30 Z" fill="${c}" ${k}/>
+      <path d="M32 20 Q36 15.5 42 15.5 L50 15.5 Q55 16 59 20 Z" fill="${GLAS}" opacity=".9"/>
+      <path d="M30 25 L64 25" stroke="#fff" stroke-width="1.6" opacity=".5"/>
+      <circle cx="71" cy="26" r="2" fill="${LICHT}"/>${rad(25,31,7)}${rad(61,31,7)}`);
     default: return S(`<rect x="9.5" y="10" width="4" height="15" fill="${TECH}"/>
       <rect x="1" y="5" width="21" height="4" rx="1.5" fill="${c}" ${k}/>
       <rect x="3" y="11" width="17" height="3.5" rx="1.5" fill="${TECH}"/>
@@ -457,7 +603,12 @@ function svgPferd(id,c){
     7:{mane:"#1f2937", sattel:"#dc2626", schlank:true},          // Rennpferd
     8:{mane:"#334155", panzer:true, sattel:"#64748b"},           // Ritterpferd
     9:{mane:"#f9a8d4", horn:true, glitzer:true},                 // Einhorn
-    10:{mane:"#fde68a", horn:true, fluegel:true, glitzer:true}   // Pegasus
+    10:{mane:"#fde68a", horn:true, fluegel:true, glitzer:true},  // Pegasus
+    11:{mane:"#111827", streifen:true},                          // Zebra-Pferd
+    12:{mane:"#f97316", feuer:true},                             // Feuerpferd
+    13:{mane:"url(#lk-rb)", horn:true, glitzer:true},            // Regenbogen-Einhorn
+    14:{mane:"#1f2937", drache:true},                            // Drachenpferd
+    15:{mane:"#fde68a", horn:true, fluegel:"gold", glitzer:true, sterne:true} // Sternen-Pegasus
   }[n] || {mane:"#2b2016"};
   const m=O.mane, gr=O.gr||1;
   const bein=O.schlank?4.6:5.5, koerper=O.duenn?.86:1;
@@ -470,11 +621,27 @@ function svgPferd(id,c){
      <path d="M20 17 Q31 11 44 15 L44 19 Q31 15 20 21 Z" fill="#94a3b8" opacity=".9"/>` : "";
   const bandagen = O.bandagen ? `<path d="M21.5 40 h4 M47.5 40 h4" stroke="#f8fafc" stroke-width="3.4" stroke-linecap="round"/>` : "";
   const horn = O.horn ? `<path d="M60 3 L66 -6 L64 4 Z" fill="#fcd34d" stroke="#f59e0b" stroke-width=".8"/>` : "";
+  const fl1 = O.fluegel==="gold" ? "#fde68a" : "#f8fafc", fl2 = O.fluegel==="gold" ? "#d97706" : "#cbd5e1";
   const fluegel = O.fluegel ? `<path d="M41 19 Q36 3 21 1 Q27 7 25 13 Q18 8 11 10 Q19 14 19 20 Q28 17 35 22 Z"
-       fill="#f8fafc" opacity=".97" stroke="#cbd5e1" stroke-width=".9" stroke-linejoin="round"/>
-     <path d="M33 18 Q31 10 26 6 M28 20 Q24 15 19 13" stroke="#cbd5e1" stroke-width="1.1" fill="none"/>` : "";
+       fill="${fl1}" opacity=".97" stroke="${fl2}" stroke-width=".9" stroke-linejoin="round"/>
+     <path d="M33 18 Q31 10 26 6 M28 20 Q24 15 19 13" stroke="${fl2}" stroke-width="1.1" fill="none"/>` : "";
   const glitzer = O.glitzer ? `<circle cx="14" cy="14" r="1.6" fill="#fcd34d"/><circle cx="68" cy="24" r="1.3" fill="#fcd34d"/>
      <circle cx="24" cy="8" r="1.1" fill="#fff"/>` : "";
+  const streifen = O.streifen ? `<path d="M25 18.5 Q23 25 25.5 32.5 M31 16.5 Q29 24 31.5 33.5 M37 16 Q35 24 37.5 33.5 M43 16.5 Q41 24 43.5 33 M48 19 Q46.5 25 48.5 30
+       M46 14.5 L50.5 18.5 M49 10.5 L54 14.5 M53 6.5 L57.5 10" stroke="#111827" stroke-width="2.1" fill="none" stroke-linecap="round" opacity=".7"/>` : "";
+  const feuer = O.feuer ? `<path d="M18 21 Q6 15 3 25 Q8 22 9.5 27 Q2 30 5 39 Q11 31 17 27 Z" fill="#f97316"/>
+     <path d="M17 22.5 Q10 20 8.5 26 Q12 24.5 13 28 Z" fill="#fde047"/>
+     <path d="M53 4 Q49 -1 47 6 Q44 3 43.5 10 Q40 10 42 17 L49 15 Z" fill="#f97316"/>
+     <path d="M51 6 Q48.5 4 47.5 9 Q46 8.5 46 13 L49.5 12 Z" fill="#fde047"/>
+     <path d="M20 47 h6 M43.5 47 h6" stroke="#fb923c" stroke-width="3.4" stroke-linecap="round"/>` : "";
+  const drache = O.drache ? `<path d="M40 18 L31 1 L29 9 L23 3 L22 11 L15 7 L19 20 Z" fill="#4c1d95" stroke="#2e1065" stroke-width=".9" stroke-linejoin="round"/>
+     <path d="M31 2 L29 17 M23 4 L25 18" stroke="#2e1065" stroke-width="1" fill="none"/>
+     <path d="M47 13 L48 9 L50 11.5 L51.5 7 L53 9.5 L54 5 L55.5 7" stroke="#4c1d95" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+     <circle cx="62" cy="9" r="1.7" fill="#ef4444"/>` : "";
+  const sterne = O.sterne ? `<path d="M22 18 Q32 13 42 18 L41 28 L23 28 Z" fill="#1e3a8a" opacity=".95"/>
+     <path d="M27 21 l.9 1.9 2 .2 -1.5 1.3 .5 2 -1.9 -1.1 -1.8 1.1 .5 -2 -1.5 -1.3 2 -.2 Z" fill="#fde047"/>
+     <path d="M36 22 l.7 1.4 1.5 .2 -1.1 1 .4 1.5 -1.5 -.8 -1.3 .8 .3 -1.5 -1.1 -1 1.5 -.2 Z" fill="#fde047"/>
+     <circle cx="32" cy="19.5" r=".8" fill="#fff"/><circle cx="38.5" cy="26.5" r=".7" fill="#fff"/>` : "";
   return `<svg viewBox="0 0 76 50"><g transform="translate(${((1-gr)*38).toFixed(1)},${((1-gr)*50).toFixed(1)}) scale(${gr})">
     <g opacity=".6">
       <path d="M27 31 L26 38 L28 45" stroke="${c}" stroke-width="${bein}" fill="none" stroke-linecap="round"/>
@@ -491,7 +658,7 @@ function svgPferd(id,c){
     <circle cx="62" cy="9" r="1.6" fill="#1b1b1b"/><circle cx="68" cy="12" r="1.1" fill="#1b1b1b" opacity=".6"/>
     <path d="M53 5 Q49 11 46 18" stroke="${m}" stroke-width="4" fill="none" stroke-linecap="round"/>
     <path d="M57 5 Q60 6 61 9" stroke="${m}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    ${horn}${decke}${sattel}${panzer}${fluegel}${glitzer}
+    ${streifen}${horn}${decke}${sterne}${sattel}${panzer}${fluegel}${drache}${feuer}${glitzer}
   </g></svg>`;
 }
 function svgRakete(id,c){
@@ -541,6 +708,43 @@ function svgRakete(id,c){
       <path d="M24 10 L10 0 L16 12 Z" fill="${ST}"/><path d="M24 34 L10 44 L16 32 Z" fill="${ST}"/>
       <rect x="4" y="17" width="10" height="4.5" rx="2" fill="#7dd3fc" opacity=".9"/>
       <rect x="4" y="23" width="10" height="4.5" rx="2" fill="#7dd3fc" opacity=".9"/>`);
+    // ===== Profi-Garage =====
+    case 11: return S(`<path d="M24 30 L13 40 M52 30 L63 40" stroke="${TECH}" stroke-width="2.6" stroke-linecap="round"/>
+      <rect x="9" y="39" width="8" height="2.6" rx="1.3" fill="${TECH}"/><rect x="59" y="39" width="8" height="2.6" rx="1.3" fill="${TECH}"/>
+      <rect x="20" y="20" width="36" height="11" rx="2" fill="${c}" ${k}/>
+      <path d="M20 20 L56 20 L56 31 L20 31 Z" fill="#0003"/>
+      <path d="M25 8 L51 8 L58 20 L18 20 Z" fill="${c}" ${k}/>
+      ${luke(38,14,4)}
+      <rect x="36.8" y="1" width="2.4" height="7" fill="#94a3b8"/><circle cx="38" cy="1.5" r="1.8" fill="#fbbf24"/>
+      <rect x="32" y="31" width="12" height="3" fill="${ST}"/><path d="M34 34 L38 41 L42 34 Z" fill="#f97316" opacity=".9"/>`);
+    case 12: return S(`<path d="M13 22 L2 11 L5 22 L2 33 Z" fill="${c}" ${k}/>
+      <path d="M10 22 Q14 10 36 10 Q62 10 71 22 Q66 34 40 34 Q20 34 10 22 Z" fill="${c}" ${k}/>
+      <path d="M18 27 Q40 37 66 26 Q52 32.5 32 31.5 Q24 31 18 27 Z" fill="#fff" opacity=".4"/>
+      <circle cx="61" cy="19" r="1.9" fill="#0b1220"/>
+      ${luke(44,20,3.8)}${luke(32,20,3)}
+      <path d="M50 10 Q48 4 43 3 M50 10 Q52 4 57 3 M50 10 L50 2" stroke="#7dd3fc" stroke-width="1.6" fill="none" stroke-linecap="round"/>`);
+    case 13: return S(`<path d="M10 22 L1 18 L5 22 L1 26 Z" fill="#f97316"/>
+      <path d="M30 14 L21 1 L38 8 L45 13.5 Z" fill="${c}" ${k} opacity=".9"/>
+      <path d="M30 30 L21 43 L38 36 L45 30.5 Z" fill="${c}" ${k} opacity=".9"/>
+      <path d="M8 22 L26 13 L50 14 Q58 16 60 22 Q58 28 50 30 L26 31 Z" fill="${c}" ${k}/>
+      <path d="M56 16 L68 12 L75 16 L70 19 L75 22 L66 25.5 L57 27.5 Z" fill="${c}" ${k}/>
+      <path d="M62 13.5 L59.5 6 L65.5 12 Z" fill="#fbbf24"/>
+      <circle cx="67" cy="15" r="1.5" fill="#fbbf24"/>
+      <path d="M22 18 l3 2.5 l3 -2.5 l3 2.5 l3 -2.5 l3 2.5 l3 -2.5" stroke="#0005" stroke-width="1.2" fill="none"/>
+      ${luke(46,22,3.6,"#fbbf24")}`);
+    case 14: return S(`<path d="M8 22 Q38 10 68 22" stroke="#fbbf24" stroke-width="3.2" fill="none" opacity=".8"/>
+      <circle cx="38" cy="22" r="13" fill="${c}" ${k}/>
+      <path d="M28 14 Q34 10 42 11" stroke="#fff" stroke-width="2" fill="none" opacity=".45" stroke-linecap="round"/>
+      ${luke(38,19,4.2)}
+      <path d="M8 22 Q38 36 68 22" stroke="#fbbf24" stroke-width="3.4" fill="none"/>
+      <circle cx="8" cy="22" r="2" fill="#fde68a"/><circle cx="68" cy="22" r="2" fill="#fde68a"/>`);
+    case 15: return S(`<rect x="0" y="14" width="7" height="4" rx="1.5" fill="#7dd3fc"/><rect x="0" y="20" width="7" height="4" rx="1.5" fill="#7dd3fc"/><rect x="0" y="26" width="7" height="4" rx="1.5" fill="#7dd3fc"/>
+      <path d="M6 15 L20 9 L56 8 Q72 12 76 22 Q72 32 56 36 L20 35 L6 29 Z" fill="${c}" ${k}/>
+      <path d="M24 9 L44 8.5 L42 15 L26 15.5 Z" fill="#0b1220" opacity=".4"/>
+      <path d="M12 22 L66 22" stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+      <circle cx="22" cy="27.5" r="1.4" fill="#fde68a"/><circle cx="29" cy="28" r="1.4" fill="#fde68a"/><circle cx="36" cy="28" r="1.4" fill="#fde68a"/><circle cx="43" cy="28" r="1.4" fill="#fde68a"/>
+      <path d="M30 9 L24 1 L38 8.5 Z M30 35 L24 43 L38 35.5 Z" fill="${ST}"/>
+      ${luke(62,22,4.6,"#fcd34d")}`);
     default: return S(`<path d="M18 22 L44 9 Q70 13 76 22 Q70 31 44 35 Z" fill="${c}" ${k}/>
       <path d="M44 9 Q62 15 64 22 Q62 29 44 35 Z" fill="#fff" opacity=".2"/>
       ${luke(56,22,5,"#fcd34d")}
@@ -706,7 +910,7 @@ function zeigeWelten(){
     `<div class="welt${w.id===welt?" an":""}" data-w="${w.id}"><span class="ic">${w.ic}</span>${w.name}</div>`).join("");
   $("welten").querySelectorAll(".welt").forEach(el=>el.addEventListener("click",()=>{
     welt=el.dataset.w;
-    const liste=FAHRZEUGE.filter(f=>f.welt===welt && f.ab<=gesamtRunden());
+    const liste=FAHRZEUGE.filter(f=>f.welt===welt && istOffen(f));
     if(!liste.some(f=>f.id===fahrzeugId)) fahrzeugId=liste[liste.length-1].id;
     merken(); zeigeStart();
   }));
@@ -720,7 +924,7 @@ function zeigeStrecken(){
       : `🔒<br>ab ${F1_RUNDEN} Runden<br>Bergpass oder<br>Rennstrecke`;
     return `<div class="strecke${s.nr===strecke?" an":""}${offen?"":" zu"}" data-s="${s.nr}">
       <span class="ic">${s.ic}</span>
-      <span class="tx"><b>${s.nr}. ${s.name}</b><span>${s.kurz}</span></span>
+      <span class="tx"><b>${s.nr}. ${s.name}${g>=GARAGE_VOLL-30 && PROFI_STRECKEN.includes(s.nr)?'<span class="profitag">⭐ Profi</span>':""}</b><span>${s.kurz}</span></span>
       <span class="zahl">${rechts}</span></div>`;
   }).join("");
   $("strecken").querySelectorAll(".strecke").forEach(el=>el.addEventListener("click",()=>{
@@ -732,12 +936,39 @@ function zeigeStrecken(){
 function zeigeStart(){
   const g=gesamtRunden();
   $("gesamtRunden").textContent=g;
+  zeigeTitelUndProfi();
   zeigeWelten(); zeigeStrecken();
   zeichneBahn($("vorschau"));
   const h=$("vorschau").querySelector(".hind");
   if(h){ h.classList.remove("hide"); h.innerHTML="7 + 8"; }
   $("startBtn").textContent=`${st(strecke).ic} ${st(strecke).name} – losfahren ▶`;
   $("startBox").classList.remove("hide");
+}
+// Was kommt als Nächstes in die Garage – und wie viele (Profi-)Runden fehlen noch?
+function naechstesDing(g,p){
+  let best=null;
+  FAHRZEUGE.concat(FARBEN).forEach(x=>{
+    if(istOffen(x,g,p)) return;
+    const fehlt = !x.pab ? x.ab-g : (g<GARAGE_VOLL ? null : x.pab-p);
+    if(fehlt===null) return;
+    if(!best || fehlt<best.fehlt) best={x, fehlt, profi:!!x.pab};
+  });
+  return best;
+}
+function zeigeTitelUndProfi(){
+  const g=gesamtRunden(), p=profiRunden(), t=titelStand(g,p);
+  const n=nochBis(t.naechster,g,p);
+  $("titelZeile").innerHTML = t.akt
+    ? `<div class="titelzeile"><span class="pk">${t.akt.ic}</span><span class="tt"><b>${titelName(t.akt,t.sterne)}</b>
+        Noch <b style="display:inline;font-size:13px">${n.zahl}</b> ${n.was}</span></div>`
+    : `<div class="info" style="margin:-2px 0 12px">🏆 Noch <b>${n.zahl}</b> ${n.was} – deinem ersten Pokal!</div>`;
+  if(g<GARAGE_VOLL){ $("profiZeile").innerHTML=""; return; }
+  const nd=naechstesDing(g,p);
+  const naechst = nd ? `Als Nächstes: <b>${nd.x.name}</b> – noch <b>${nd.fehlt}</b> Profi-Runde${nd.fehlt===1?"":"n"}.`
+                     : `Die Profi-Garage ist komplett – jetzt geht es um die Sterne der Legende!`;
+  const warnung = PROFI_STRECKEN.includes(strecke) ? ""
+    : `<br>⚠️ Auf ${st(strecke).ic} ${st(strecke).name} zählen <b>keine</b> Profi-Runden. Dafür auf ⛰️ Bergpass, 🏁 Rennstrecke oder 🏆 Formel 1 fahren.`;
+  $("profiZeile").innerHTML=`<div class="profiinfo">⭐ <b>Profi-Runden: ${p}</b> · ${naechst}${warnung}</div>`;
 }
 function merken(){
   try{
@@ -754,25 +985,36 @@ function bestzeit(n){
 
 //// ===== Garage =====
 function zeigeGarage(){
-  const g=gesamtRunden();
+  const g=gesamtRunden(), p=profiRunden(), t=titelStand(g,p);
   $("garRunden").textContent=g;
   let h="";
+  h += g>=GARAGE_VOLL
+    ? `<div class="profiinfo">⭐ <b>Profi-Garage offen!</b> Du hast <b>${p} Profi-Runde${p===1?"":"n"}</b>.
+        Neue Fahrzeuge und Sonderlackierungen gibt es jetzt nur noch für Runden auf ⛰️ Bergpass, 🏁 Rennstrecke und 🏆 Formel 1.</div>`
+    : `<div class="profiinfo">⭐ Bei <b>${GARAGE_VOLL} Runden</b> öffnet die <b>Profi-Garage</b> – mit 15 neuen Fahrzeugen und 8 Sonderlackierungen. Noch <b>${GARAGE_VOLL-g}</b> Runden!</div>`;
   WELTEN.forEach(w=>{
     h+=`<h3>${w.ic} ${w.name}</h3><div class="gitter">`;
     FAHRZEUGE.filter(f=>f.welt===w.id).forEach(f=>{
-      const offen=f.ab<=g;
-      h+=`<div class="ding${f.id===fahrzeugId?" an":""}${offen?"":" zu"}" data-f="${f.id}" data-w="${w.id}">
+      const offen=istOffen(f,g,p);
+      h+=`<div class="ding${f.pab?" profi":""}${f.id===fahrzeugId?" an":""}${offen?"":" zu"}" data-f="${f.id}" data-w="${w.id}">
             <div class="bild">${fahrzeugSVG(f.id, offen?farbe:"#64748b")}</div>
             <div class="nm">${f.name}</div>
-            <div class="ab">${offen?"bereit":"🔒 ab "+f.ab+" Runden"}</div></div>`;
+            <div class="ab">${offen?"bereit":sperrText(f,g)}</div></div>`;
     });
     h+=`</div>`;
   });
   h+=`<h3>🎨 Farbe</h3><div class="farben">`;
   FARBEN.forEach(f=>{
-    const offen=f.ab<=g;
-    h+=`<div class="farbe${f.c===farbe?" an":""}${offen?"":" zu"}" data-c="${f.c}" title="${f.name}"
-          style="background:${f.c}">${offen?"":`<span>${f.ab}</span>`}</div>`;
+    const offen=istOffen(f,g,p);
+    h+=`<div class="farbe${f.pab?" profi":""}${f.c===farbe?" an":""}${offen?"":" zu"}" data-c="${f.c}" title="${f.name}${f.pab?" (ab "+f.pab+" Profi-Runden)":""}"
+          style="background:${f.css||f.c}">${offen?"":`<span>${f.pab?"⭐"+f.pab:f.ab}</span>`}</div>`;
+  });
+  h+=`</div>`;
+  h+=`<h3>🏆 Pokale</h3><div class="pokale">`;
+  TITEL.forEach(x=>{
+    const ja=x.ok(g,p);
+    h+=`<div class="pokal ${ja?"ja":"nein"}"><div class="p1">${x.ic}</div><div class="p2">${ja?titelName(x,t.sterne):x.name}</div>
+          <div class="p3">${ja?"✓ geschafft":x.ziel}</div></div>`;
   });
   h+=`</div>`;
   h+=`<h3>🔧 Tuning</h3><div class="info">${ boost()
@@ -913,28 +1155,49 @@ function rundeFertig(){
   if(zf){ zf.classList.remove("an"); void zf.offsetWidth; zf.classList.add("an"); }
   sitzungRunden++;
   sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
-  const vorher=gesamtRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
+  const vorher=gesamtRunden(), pVorher=profiRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
+  const tVorher=titelStand(vorher,pVorher);
   speichere(dauer);
-  const nachher=gesamtRunden();
+  const nachher=gesamtRunden(), pNachher=profiRunden();
+  const tNachher=titelStand(nachher,pNachher);
   $("rueck").style.color="var(--gold)";
-  $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`;
-  const neuFrei = freigeschaltetZwischen(vorher, nachher);
+  $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`+(pNachher>pVorher?` · ⭐ Profi-Runde ${pNachher}`:"");
+  const neuFrei = freigeschaltetZwischen(vorher, pVorher, nachher, pNachher);
   if(!f1Vorher && f1Offen()) neuFrei.push("🏆 Strecke Formel 1");
   if(levelFuer(strecke)>levelVorher) neuFrei.push(`⬆️ ${st(strecke).name}: Level ${levelFuer(strecke)+1} – jetzt wird es schwerer`);
-  if(neuFrei.length) konfetti();
+  if(vorher<GARAGE_VOLL && nachher>=GARAGE_VOLL) neuFrei.push("⭐ Die Profi-Garage ist offen!");
+  // neuer Pokal (oder neuer Legenden-Stern)?
+  const neuerPokal = tNachher.anzahl>tVorher.anzahl || tNachher.sterne>tVorher.sterne ? tNachher : null;
+  if(neuFrei.length || neuerPokal) konfetti();
   else if(nachher%10===0) konfetti();
   setTimeout(()=>{
+    if(neuerPokal){ zeigeAngebotPokal(neuerPokal, neuFrei); return; }
     if(neuFrei.length){ zeigeAngebotNeu(neuFrei); return; }
     if(sauberSerie>=3 && streckeWechselMoeglich()){ zeigeAngebotStrecke(); return; }
     starteRunde();
   }, 1300);
 }
-function freigeschaltetZwischen(a,b){
+function freigeschaltetZwischen(a,pa,b,pb){
   const neu=[];
-  FAHRZEUGE.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
-  FARBEN.forEach(f=>{ if(f.ab>a && f.ab<=b) neu.push(`🎨 Farbe ${f.name}`); });
+  FAHRZEUGE.forEach(f=>{ if(!istOffen(f,a,pa) && istOffen(f,b,pb)) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
+  FARBEN.forEach(f=>{ if(!istOffen(f,a,pa) && istOffen(f,b,pb)) neu.push(`🎨 ${f.pab?"Sonderlackierung":"Farbe"} ${f.name}`); });
   if(BOOST_AB>a && BOOST_AB<=b) neu.push("🔧 Boost");
   return neu;
+}
+function zeigeAngebotPokal(t, liste){
+  zeige("angebot");
+  $("angPokal").innerHTML=`<div class="p1">${t.akt.ic}</div><div class="p2">${titelName(t.akt,t.sterne)}</div>`;
+  $("angPokal").classList.remove("hide");
+  $("angTitel").textContent = t.sterne && t.akt===TITEL[TITEL.length-1] ? "⭐ Ein neuer Stern!" : "🏆 Neuer Pokal!";
+  const n=nochBis(t.naechster, gesamtRunden(), profiRunden());
+  $("angText").innerHTML=`Wahnsinn, ${esc(playerName)}! Du bist jetzt <b>${titelName(t.akt,t.sterne)}</b>.
+    Dein Pokal steht ab sofort in deiner Garage und auf der Startseite des Mathe-Trainers.<br><br>
+    Nächstes Ziel: noch <b>${n.zahl}</b> ${n.was}.`+
+    (liste.length ? `<br><br>Außerdem neu:<br>`+liste.map(x=>`<b>${x}</b>`).join("<br>") : "");
+  $("angJa").textContent="🔧 Zur Garage";
+  $("angJa").onclick=()=>{ $("angPokal").classList.add("hide"); zeige("garage"); zeigeGarage(); };
+  $("angNein").textContent="Weiterfahren ▶";
+  $("angNein").onclick=()=>{ $("angPokal").classList.add("hide"); starteRunde(); };
 }
 function streckeWechselMoeglich(){
   return strecke<5 && streckeOffen(strecke+1);
@@ -942,7 +1205,9 @@ function streckeWechselMoeglich(){
 function zeigeAngebotNeu(liste){
   zeige("angebot");
   $("angTitel").textContent="🎁 Neu in deiner Garage!";
-  $("angText").innerHTML=`Du hast jetzt <b>${gesamtRunden()} Runden</b> gefahren. Freigeschaltet:<br><br>`+
+  const g=gesamtRunden(), p=profiRunden();
+  $("angText").innerHTML=(g>GARAGE_VOLL ? `Du hast jetzt <b>${p} Profi-Runde${p===1?"":"n"}</b> gefahren. Freigeschaltet:<br><br>`
+                                        : `Du hast jetzt <b>${g} Runden</b> gefahren. Freigeschaltet:<br><br>`)+
     liste.map(x=>`<b>${x}</b>`).join("<br>");
   $("angJa").textContent="🔧 Zur Garage";
   $("angJa").onclick=()=>{ zeige("garage"); zeigeGarage(); };
@@ -969,7 +1234,7 @@ function heute(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
 function jetzt(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
   return `${p(n.getHours())}:${p(n.getMinutes())}`; }
 function speichere(dauer){
-  const datum=heute();
+  const datum=heute(), gVorher=gesamtRunden();
   let e=MEINE.find(x=>x.datum===datum && +x.strecke===strecke);
   if(!e){
     e={ key:KEY, app:APP, name:playerName, datum:datum, modus:"Rallye",
@@ -980,6 +1245,8 @@ function speichere(dauer){
   }
   e.zeit=jetzt();
   e.runden=(+e.runden||0)+1;
+  // Profi-Runde: erst wenn die Grund-Garage voll ist, und nur auf den schweren Strecken
+  if(gVorher>=GARAGE_VOLL && PROFI_STRECKEN.includes(strecke)) e.profi=(+e.profi||0)+1;
   e.richtig=(+e.richtig||0)+richtig;
   e.falsch=(+e.falsch||0)+falsch.length;
   e.boxenstopps=(+e.boxenstopps||0)+boxenRunde;
