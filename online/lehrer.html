@@ -217,6 +217,16 @@
     <div id="rallye"></div>
   </div>
 
+  <div class="card noprint" id="sterneCard">
+    <h2>⭐ Sterne der Klasse <small>nur hier sichtbar – die Kinder sehen keine Rangliste · ⭐ Fleiß · 🌟 Können</small></h2>
+    <div class="row" style="margin-bottom:12px">
+      <label style="color:var(--muted);font-size:14px">Wofür? (sieht das Kind)</label>
+      <input type="text" id="sGrund" placeholder="z. B. sauber im Heft gearbeitet" autocomplete="off" style="flex:1;min-width:220px" maxlength="60">
+    </div>
+    <div class="scroll"><div id="sterneListe"></div></div>
+    <div id="sternGaben" style="margin-top:14px"></div>
+  </div>
+
   <div class="card noprint" id="tankCard">
     <h2>⛽ Tank auffüllen <small>Sprit für Rallye und Marathon verschenken – z. B. für gute Arbeit im Heft</small></h2>
     <div class="row" style="margin-bottom:12px">
@@ -271,6 +281,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
+<script src="sterne.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -386,6 +397,7 @@ function render(){
   renderSchwer(rows);
   renderTiere();
   renderTank();
+  renderSterne();
   renderArten(rows);
   renderHochhaus();
   renderRallye();
@@ -559,6 +571,48 @@ function renderArten(rows){
   $("arten").innerHTML=h;
 }
 
+//// ===== Sterne der Klasse (nur für die Lehrkraft) =====
+function renderSterne(){
+  const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n);
+  if(!namen.length){ $("sterneListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
+  const liste=namen.map(n=>({n, s:Sterne.stand(ALLE.filter(e=>e.name===n).concat(GESCHENKE.filter(e=>e.name===n)))}))
+    .sort((a,b)=>b.s.silber-a.s.silber || b.s.gold-a.s.gold || a.n.localeCompare(b.n,"de"));
+  const kn=(k,t,sil,gol)=>`<button class="ghost" style="padding:5px 10px;font-size:13px" data-kind="${esc(k)}" data-sil="${sil}" data-gol="${gol}">${t}</button>`;
+  $("sterneListe").innerHTML=`<table><thead><tr><th>Kind</th><th>⭐ Sterne</th><th>🌟 Gold</th><th>heute</th><th>Übungstage</th><th>Sticker</th><th>verschenken</th></tr></thead><tbody>`+
+    liste.map(x=>`<tr><td class="nm">${esc(x.n)}</td><td><b>${x.s.silber}</b></td><td><b>${x.s.gold}</b></td>
+      <td class="${x.s.heute?"ok":""}">${x.s.heute?"+"+x.s.heute:"–"}</td><td>${x.s.tage}</td><td>${x.s.sticker+Math.min(30,x.s.gold)}</td>
+      <td>${kn(x.n,"+5 ⭐",5,0)} ${kn(x.n,"+10 ⭐",10,0)} ${kn(x.n,"+1 🌟",0,1)} ${kn(x.n,"andere …","?","?")}</td></tr>`).join("")+"</tbody></table>";
+  $("sterneListe").querySelectorAll("button[data-kind]").forEach(b=>b.addEventListener("click",()=>{
+    let sil=b.dataset.sil, gol=b.dataset.gol;
+    if(sil==="?"){
+      const t=prompt(`Sterne für ${b.dataset.kind}:\n\nZahl = silberne Sterne (z. B. 20)\nZahl mit g = goldene Sterne (z. B. 2g)\nMit Minus davor wird abgezogen.`, "20");
+      if(t===null) return;
+      const m=String(t).trim().match(/^(-?\d+)\s*(g?)$/i);
+      if(!m || !+m[1] || Math.abs(+m[1])>2000){ alert("Bitte eine Zahl eingeben, z. B. 20 oder 2g."); return; }
+      sil = m[2] ? 0 : +m[1]; gol = m[2] ? +m[1] : 0;
+    }
+    schenkeSterne(b.dataset.kind, +sil, +gol);
+  }));
+  const letzte=GESCHENKE.filter(e=>e.app==="sterngeschenk").sort((a,b)=>ts(b).localeCompare(ts(a))).slice(0,8);
+  $("sternGaben").innerHTML = letzte.length
+    ? `<div style="color:var(--muted);font-size:13px;margin-bottom:6px">Zuletzt verschenkt:</div><div class="chips">`+
+      letzte.map(e=>`<span class="chip">${esc(e.name)} <b>${e.silber?(e.silber>0?"+":"")+e.silber+" ⭐":""}${e.gold?(e.gold>0?" +":" ")+e.gold+" 🌟":""}</b>${e.grund?` · ${esc(e.grund)}`:""} · ${e.datum}
+        <a data-weg="${esc(e._id)}" title="rückgängig machen" style="cursor:pointer;color:#fca5a5;margin-left:6px">✕</a></span>`).join("")+`</div>`
+    : "";
+  $("sternGaben").querySelectorAll("a[data-weg]").forEach(a=>a.addEventListener("click", async ()=>{
+    if(!confirm("Dieses Geschenk rückgängig machen?")) return;
+    try{ await db.collection("ergebnisse").doc(a.dataset.weg).delete(); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  }));
+}
+async function schenkeSterne(name, silber, gold){
+  const n=new Date(), p=x=>String(x).padStart(2,"0");
+  const e={ key:KEY, app:"sterngeschenk", modus:"Geschenk", name:name, silber:silber, gold:gold, grund:$("sGrund").value.trim().slice(0,60),
+            datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}` };
+  const id=`sterngeschenk_${e.datum}_${e.zeit}_${name}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  try{ await db.collection("ergebnisse").doc(id).set(e); }
+  catch(err){ alert("⚠️ Nicht gespeichert: "+(err.code||err)); }
+}
+
 //// ===== Tank auffüllen =====
 function renderTank(){
   const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
@@ -581,7 +635,7 @@ function renderTank(){
     }
     schenke(b.dataset.kind, +m);
   }));
-  const letzte=GESCHENKE.slice().sort((a,b)=>ts(b).localeCompare(ts(a))).slice(0,8);
+  const letzte=GESCHENKE.filter(e=>e.app==="tankgeschenk").sort((a,b)=>ts(b).localeCompare(ts(a))).slice(0,8);
   $("gabenListe").innerHTML = letzte.length
     ? `<div style="color:var(--muted);font-size:13px;margin-bottom:6px">Zuletzt verschenkt:</div><div class="chips">`+
       letzte.map(e=>`<span class="chip">${esc(e.name)} <b>${e.menge>0?"+":""}${e.menge}</b>${e.grund?` · ${esc(e.grund)}`:""} · ${e.datum}
@@ -883,7 +937,7 @@ async function entsperren(){
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
       ALLE=[]; GESCHENKE=[];
-      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; (x.app==="tankgeschenk"?GESCHENKE:ALLE).push(x); });
+      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; ((x.app==="tankgeschenk"||x.app==="sterngeschenk")?GESCHENKE:ALLE).push(x); });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
       if(entsperrt) render();

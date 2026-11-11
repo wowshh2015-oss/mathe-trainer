@@ -159,6 +159,7 @@
 <script src="anmeldung.js"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
+<script src="sterne.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
@@ -307,15 +308,17 @@ function begruessung(rows, name){
 }
 function zeigeHallo(rows, name){
   const mitGeschenken=rows;                              // für den Tank
-  rows=rows.filter(e=>e.app!=="tankgeschenk");           // Geschenke der Lehrkraft sind keine Durchgänge
+  rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk");   // Geschenke der Lehrkraft sind keine Durchgänge
+  STERN_HTML=Sterne.bandHTML(mitGeschenken, name);       // Sterne und Sticker-Album (sterne.js)
   const box=$("hallo");
   box.classList.remove("hide");
   if(!rows.length){
     POKAL_HTML="";
-    box.innerHTML=`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
+    box.innerHTML=STERN_HTML+`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
       <div class="seit">Das ist dein erstes Mal hier. Ich zeige dir, womit du am besten anfängst.</div>
       <span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
     $("lwOeffnen").addEventListener("click", zeigeLernweg);
+    Sterne.verbinde(box);
     lernwegVorbereiten(rows, name);
     return;
   }
@@ -404,12 +407,13 @@ function zeigeHallo(rows, name){
   }
 
   POKAL_HTML=pokalHTML(rows, name);
-  box.innerHTML = POKAL_HTML +
+  box.innerHTML = POKAL_HTML + STERN_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
     (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
     (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"")+
     `<span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
   $("lwOeffnen").addEventListener("click", zeigeLernweg);
+  Sterne.verbinde(box);
   lernwegVorbereiten(rows, name);
 }
 //// ===== Lernweg: feste Reihenfolge vom Leichten zum Schweren, Spiele zum Schluss =====
@@ -427,7 +431,7 @@ const STATIONEN=[
   {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins",
    warum:"Das Teilen, die Umkehrung vom Malnehmen – mit Test."}
 ];
-let LW_ROWS=[], LW_NAME="", POKAL_HTML="";
+let LW_ROWS=[], LW_NAME="", POKAL_HTML="", STERN_HTML="";
 function nAufgaben(n){ return n===1 ? "1 Aufgabe" : `${n} Aufgaben`; }
 // Alles, was ein Kind und seine Eltern über eine Stufe wissen müssen
 function stationInfo(app){
@@ -516,7 +520,7 @@ function zeigeLernweg(){
     knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
   }
 
-  box.innerHTML= POKAL_HTML +
+  box.innerHTML= POKAL_HTML + STERN_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>
      <div class="lwAbschnitt">🧭 Dein Lernweg <small>– Stufe für Stufe</small></div>
      ${stufen}
@@ -527,12 +531,14 @@ function zeigeLernweg(){
      <div class="lwEmpf">${empf}</div>
      <div class="lwBtns">${knopf}<button class="spaeter" id="lwZu">Später</button></div>`;
   $("lwZu").addEventListener("click", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen"); });
+  Sterne.verbinde(box);
   $("lwOverlay").classList.remove("hide");
   document.body.classList.add("lwOffen");
   $("lwOverlay").scrollTop=0;
 }
 // Beim Verlassen der Seite schließen – sonst holt der Browser sie mit „Zurück" samt offenem Fenster aus dem Cache
-addEventListener("pagehide", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen"); });
+addEventListener("pagehide", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen");
+  document.querySelectorAll(".stOv").forEach(o=>o.remove()); });
 function lernwegVorbereiten(rows, name){
   LW_ROWS=rows; LW_NAME=name;
   let schonGezeigt=false;
