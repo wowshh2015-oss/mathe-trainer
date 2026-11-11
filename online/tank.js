@@ -126,8 +126,8 @@ window.Tank=(function(){
       <div class="tkBalken"><i style="width:${Math.min(100, mal/(40/kosten)*100)}%"></i></div>
       ${s.neuestes?`<div class="tkGabe">🎁 <b>+${Math.floor(s.neuestes.menge/kosten)} ${o.ic}</b> von deiner Lehrkraft${s.neuestes.grund?` – ${esc(s.neuestes.grund)}`:""}</div>`:""}
       ${ang.length?`<div class="tkTitel">Hier kannst du tanken</div>`+ang.map(a=>
-        `<a class="tkAng" href="${a.datei}#name=${encodeURIComponent(name)}"><span class="a1">${a.ic}</span>
-          <span class="a2"><b>${esc(a.titel)}</b>${esc(a.text)}</span><span class="a3">+${Math.floor(a.plus/kosten)} ${o.ic}</span></a>`).join("")
+        `<a class="tkAng" data-emp="${a.app}" href="${a.datei}#name=${encodeURIComponent(name)}"><span class="a1">${a.ic}</span>
+          <span class="a2"><b>${esc(a.titel)}</b>${esc(a.text)} ⭐ Dazu gibt es die Hälfte mehr Sterne.</span><span class="a3">+${Math.floor(a.plus/kosten)} ${o.ic}</span></a>`).join("")
         +`<div class="tkKlein">Eine Runde zählt, wenn du mindestens 8 Aufgaben richtig hast. Der Tank gilt für Rallye und Marathon zusammen.</div>`:""}
     </div>`;
   }

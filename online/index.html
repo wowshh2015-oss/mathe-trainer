@@ -48,6 +48,7 @@
   .tipp .tx{flex:1;font-size:14px;line-height:1.45}
   .tipp .tx > b:first-child{font-size:15px;display:block;margin-bottom:1px}
   .tipp .pfeil{flex:none;color:var(--muted);font-size:17px}
+  .empPlus{display:inline-block;background:rgba(251,191,36,.18);color:#fde68a;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;vertical-align:1px;margin-left:4px}
   .hallo .laden{color:var(--muted);font-size:14px}
   /* ===== Rallye-Pokal ===== */
   a.pokalband{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--text);position:relative;overflow:hidden;
@@ -252,8 +253,10 @@ function offeneFehler(rows){
   return offen;
 }
 function tippHTML(ic, titel, text, datei, name){
-  return `<a class="tipp" href="${datei}#name=${encodeURIComponent(name)}">
-    <span class="ic">${ic}</span><span class="tx"><b>${titel}</b>${text}</span><span class="pfeil">›</span></a>`;
+  // Vorschläge für den Lernweg sind Empfehlungen: wer ihnen folgt, bekommt 50 % mehr Sterne (sterne.js)
+  const app=Object.keys(SEITEN).find(a=>SEITEN[a].datei===datei), emp = app && app!=="marathon" && app!=="rallye";
+  return `<a class="tipp"${emp?` data-emp="${app}"`:""} href="${datei}#name=${encodeURIComponent(name)}">
+    <span class="ic">${ic}</span><span class="tx"><b>${titel}${emp?' <span class="empPlus">⭐ +50 %</span>':""}</b>${text}</span><span class="pfeil">›</span></a>`;
 }
 // ===== Rallye-Pokal (gleiche Stufen wie in rallye-trainer.html) =====
 const RALLYE_TITEL=[
@@ -472,11 +475,11 @@ function zeigeLernweg(){
   zustand.forEach((z,i)=>{
     const jetzt = i===jetztIdx;
     const gesicht = z.farbe==="gruen" ? "😊" : (z.farbe==="gelb" ? "😐" : "⚪");
-    const pill = jetzt ? `<span class="pill jetzt">👉 jetzt dran</span>`
+    const pill = jetzt ? `<span class="pill jetzt">👉 jetzt dran · ⭐ +50 %</span>`
       : z.farbe==="gruen" ? `<span class="pill gruen">✓ gefestigt</span>`
       : z.farbe==="gelb"  ? `<span class="pill gelb">noch nicht gefestigt</span>`
       :                     `<span class="pill grau">noch nicht begonnen</span>`;
-    stufen+=`<a class="lwSt ${z.farbe}${jetzt?" jetzt":""}" href="${SEITEN[z.app].datei}#name=${encodeURIComponent(name)}">
+    stufen+=`<a class="lwSt ${z.farbe}${jetzt?" jetzt":""}"${jetzt?` data-emp="${z.app}"`:""} href="${SEITEN[z.app].datei}#name=${encodeURIComponent(name)}">
       <span class="gesicht">${gesicht}</span>
       <div class="inhalt">
         <div class="zeile1"><span><span class="stufe">Stufe ${i+1}</span><span class="titel">${z.ic} ${z.name}</span></span>${pill}</div>
@@ -517,7 +520,7 @@ function zeigeLernweg(){
     }).join("");
     empf=`${kopf}<ol>${schritte}</ol>`;
     const z=zustand[jetztIdx], seite=SEITEN[z.app];
-    knopf=`<a href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
+    knopf=`<a data-emp="${z.app}" href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
   }
 
   box.innerHTML= POKAL_HTML + STERN_HTML +

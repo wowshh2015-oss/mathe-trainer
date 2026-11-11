@@ -12,6 +12,15 @@ window.Sterne=(function(){
   // Marathon je geschaffter Etage: bis 50 → 1, bis 150 → 2, darüber 3; Prüfungsetagen (jede 5.) +2
   function etagenSterne(et){ return (et<=50?1:et<=150?2:3) + (et%5===0?2:0); }
   const GOLD_STUFE={Leicht:1, Mittel:2, Schwer:3};
+  const BONUS_EMPFOHLEN=1.5;
+  // Empfehlung merken: Wer auf der Startseite (oder an der Tankstelle) auf einen Vorschlag des Programms tippt,
+  // bekommt für die nächste gültige Runde in diesem Bereich 50 % mehr Sterne. Der Durchgang trägt dann „empfohlen".
+  function empfohlen(app){ try{ return sessionStorage.getItem("mathe_emp")===app; }catch(e){ return false; } }
+  function empfehlungErledigt(){ try{ sessionStorage.removeItem("mathe_emp"); }catch(e){} }
+  if(typeof document!=="undefined") document.addEventListener("click", ev=>{
+    const a=ev.target && ev.target.closest ? ev.target.closest("a[data-emp]") : null;
+    if(a){ try{ sessionStorage.setItem("mathe_emp", a.dataset.emp); }catch(e){} }
+  }, true);
   const PRO_STICKER=10;
   const ALBEN=[
     {id:"tiere",   ic:"🐾", name:"Tiere",
@@ -53,7 +62,10 @@ window.Sterne=(function(){
         if(!fest[e.app]){ fest[e.app]=true; G(W.fest, d); }                    // Stufe des Lernwegs gefestigt
       }
       const k=d+e.app; proTag[k]=(proTag[k]||0)+1;
-      if(bestanden || proTag[k]<=PRO_TAG) S(neu ? W.neu : String(e.reihe)==="mine" ? W.mine : W.runde, d);
+      if(bestanden || proTag[k]<=PRO_TAG){
+        const basis = neu ? W.neu : String(e.reihe)==="mine" ? W.mine : W.runde;
+        S(e.empfohlen ? Math.ceil(basis*BONUS_EMPFOHLEN) : basis, d);      // der Empfehlung gefolgt: die Hälfte mehr
+      }
       if(!tagDa[d]){ tagDa[d]=true; S(W.tag, d); }                             // Tagesstern: lieber jeden Tag ein bisschen
     });
     // Spiele (ab dem Stichtag)
@@ -190,7 +202,7 @@ window.Sterne=(function(){
     setTimeout(()=>{ t.classList.add("weg"); setTimeout(()=>t.remove(), 600); }, 5200);
   }
   // a, b: Stand vorher und nachher (aus stand()). genau=false: die Zeilen stammen nur aus EINEM Programm.
-  function zeigeUnterschied(a, b, name, genau, hinweis){
+  function zeigeUnterschied(a, b, name, genau, hinweis, bonus){
     let dS=b.silber-a.silber, dG=b.gold-a.gold;
     if(!genau && !a.lernHeute && b.lernHeute){        // Tagesstern nur einmal am Tag, auch wenn vorher woanders geübt wurde
       let schon=""; try{ schon=localStorage.getItem(tagKey(name))||""; }catch(e){}
@@ -210,6 +222,7 @@ window.Sterne=(function(){
       zusatz = sticker>0 ? `<small>🎉 ${sticker===1?"Ein neuer Sticker wartet":sticker+" neue Sticker warten"} in deinem Album!</small>`
                          : `<small>Du hast jetzt ${neuS} ⭐ – noch ${PRO_STICKER-(neuS%PRO_STICKER)} bis zum nächsten Sticker.</small>`;
     }
+    if(bonus) zusatz=`<small style="color:#fde68a">✨ Mit Bonus – du hast gemacht, was dir empfohlen wurde!</small>`+zusatz;
     meldung(`${dS>0?`<b>+${dS} ⭐</b>`:""}${dS>0&&dG>0?" &nbsp; ":""}${dG>0?`<b class="g">+${dG} 🌟</b>`:""}${zusatz}`);
   }
   // Die fünf Trainer mit LOG (Plus, Minus, Einmaleins, Einsdurcheins, Zerlegen): beim Speichern mitzählen
@@ -221,10 +234,15 @@ window.Sterne=(function(){
       const app=CLOUD.app, key=String(playerName||"").trim().toLowerCase();
       const meine=()=>LOG.filter(e=>String(e.name||"").trim().toLowerCase()===key).map(e=>Object.assign({},e,{app}));
       let vor=null; try{ vor=stand(meine()); }catch(e){}
+      const emp=empfohlen(app);
+      if(emp && arguments[0] && typeof arguments[0]==="object") arguments[0].empfohlen=true;
       const r=orig.apply(this, arguments);
-      try{ if(vor) zeigeUnterschied(vor, stand(meine()), playerName, false, true); }catch(e){}
+      try{
+        if(vor){ const nach=stand(meine()); if(emp && nach.silber>vor.silber) empfehlungErledigt();
+          zeigeUnterschied(vor, nach, playerName, false, true, emp && nach.silber>vor.silber); }
+      }catch(e){}
       return r;
     };
   });
-  return {stand, bandHTML, verbinde, oeffneAlbum, offenIm, zeigeUnterschied, ALBEN, GLITZER, PRO_STICKER};
+  return {stand, bandHTML, verbinde, oeffneAlbum, offenIm, zeigeUnterschied, empfohlen, empfehlungErledigt, ALBEN, GLITZER, PRO_STICKER};
 })();

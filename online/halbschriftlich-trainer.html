@@ -715,7 +715,12 @@ function speichere(prozent, bestanden, dauer){
     schrittfehler:schrittFehler
   };
   // Sterne sofort zeigen (sterne.js) und den neuen Durchgang gleich in die eigene Liste aufnehmen
-  try{ const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); Sterne.zeigeUnterschied(vor, Sterne.stand(MEINE), playerName, false, true); }catch(e){}
+  try{
+    const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
+    const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nach=Sterne.stand(MEINE);
+    if(emp && nach.silber>vor.silber) Sterne.empfehlungErledigt();
+    Sterne.zeigeUnterschied(vor, nach, playerName, false, true, emp && nach.silber>vor.silber);
+  }catch(e){}
   if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
   const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
   db.collection("ergebnisse").doc(id).set(eintrag)
