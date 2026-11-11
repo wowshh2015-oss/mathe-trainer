@@ -213,6 +213,11 @@
   </div>
 
   <div class="card noprint">
+    <h2>🐾 Geheimtiere <small>damit meldet sich jedes Kind an · vergessen? → zurücksetzen, dann wählt das Kind beim nächsten Mal neu</small></h2>
+    <div id="tiere"></div>
+  </div>
+
+  <div class="card noprint">
     <h2>✏️ Namen zusammenführen <small>wenn dasselbe Kind verschieden geschrieben wurde</small></h2>
     <div class="chips" id="vorschlaege" style="margin-bottom:12px"></div>
     <div class="row">
@@ -360,6 +365,7 @@ function render(){
 
   renderLernstand();
   renderSchwer(rows);
+  renderTiere();
   renderHochhaus();
   renderRallye();
   renderWege();
@@ -510,6 +516,25 @@ function zeigeBlatt(name){
   $("blatt").classList.remove("hide"); document.body.classList.add("blattOffen"); $("blatt").scrollTop=0;
   $("blattDruck").addEventListener("click",()=>window.print());
   $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
+}
+
+//// ===== Geheimtiere =====
+const TIERBILD={hund:"🐶",katze:"🐱",hase:"🐰",fuchs:"🦊",baer:"🐻",panda:"🐼",loewe:"🦁",frosch:"🐸",affe:"🐵",pinguin:"🐧",einhorn:"🦄",schildkroete:"🐢"};
+let KONTEN=[];
+function renderTiere(){
+  const box=$("tiere");
+  const mit=KONTEN.filter(k=>k.tier).sort((a,b)=>String(a.name).localeCompare(String(b.name),"de"));
+  if(!mit.length){ box.innerHTML='<div class="empty">Noch kein Kind hat ein Geheimtier gewählt. Das passiert automatisch bei der nächsten Anmeldung.</div>'; return; }
+  box.innerHTML=`<table><thead><tr><th>Kind</th><th>Geheimtier</th><th>gewählt am</th><th>Fehlversuche</th><th></th></tr></thead><tbody>`+
+    mit.map(k=>`<tr><td class="nm">${esc(k.name)}</td><td style="font-size:22px">${TIERBILD[k.tier]||"?"}</td><td>${esc(k.seit||"–")}</td>
+      <td class="${k.fehl?"warn":""}">${k.fehl?`⚠️ ${k.fehl}× falsch getippt${k.fehlAm?" · zuletzt "+esc(k.fehlAm):""}`:"–"}</td>
+      <td><button class="ghost" data-reset="${esc(k._id)}" data-name="${esc(k.name)}">Zurücksetzen</button></td></tr>`).join("")+`</tbody></table>
+    <div class="status">Viele Fehlversuche bei einem Namen können bedeuten, dass ein anderes Kind hineinwollte.</div>`;
+  box.querySelectorAll("button[data-reset]").forEach(b=>b.addEventListener("click", async ()=>{
+    if(!confirm(`Geheimtier von „${b.dataset.name}" zurücksetzen?\n\nBeim nächsten Anmelden sucht sich das Kind ein neues Tier aus.`)) return;
+    try{ await db.collection("einstellungen").doc(b.dataset.reset).set({key:KEY, name:b.dataset.name, tier:"", fehl:0}); }
+    catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  }));
 }
 
 //// ===== Sicherung =====
@@ -769,6 +794,10 @@ async function entsperren(){
       pin=/^\d{4}$/.test(p)?p:"0000";
       if(!entsperrt && !$("pinModal").innerHTML) entsperren();
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
+    db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
+      KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); } });
+      if(entsperrt) renderTiere();
+    }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
       ALLE=[];
       snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; ALLE.push(x); });

@@ -130,7 +130,10 @@
 
   <div class="card">
     <label for="name">Wie heißt du?</label>
-    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div style="display:flex;gap:10px">
+      <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off" style="flex:1;min-width:0">
+      <button id="losBtn" style="flex:none;font-family:inherit;font-size:18px;font-weight:700;border:none;border-radius:12px;padding:0 20px;cursor:pointer;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433">Los ▶</button>
+    </div>
     <div class="chips" id="nameChips"></div>
   </div>
 
@@ -153,6 +156,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="anmeldung.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
@@ -168,16 +172,29 @@ function renderChips(){
   const names=knownNames(), box=$("nameChips");
   if(!names.length){ box.innerHTML=""; return; }
   box.innerHTML='<span class="lbl">Oder Namen anklicken:</span>'+names.map(n=>`<span class="chip" data-name="${esc(n)}">${esc(n)}</span>`).join("");
-  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ $("name").value=c.dataset.name; update(); }));
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ $("name").value=c.dataset.name; update(); anmelden(); }));
 }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
-$("name").addEventListener("change",()=>{ $("name").value=capName($("name").value); update(); });
+$("name").addEventListener("change",()=>{ $("name").value=capName($("name").value); update(); anmelden(); });
+$("name").addEventListener("keydown",e=>{ if(e.key==="Enter") $("name").blur(); });
+$("losBtn").addEventListener("click",()=>{ $("name").value=capName($("name").value); update(); anmelden(); });
+// Die Trainer öffnen sich erst, wenn das Kind sein Geheimtier getippt hat (anmeldung.js)
 function update(){
+  const n=capName($("name").value), frei=Anmeldung.ok(n);
+  $("grid").classList.toggle("dis",!frei);
+  $("losBtn").style.display = (n && !frei) ? "" : "none";
+  $("hint").textContent = frei ? `Hallo ${n}! Wähle dein Training.`
+    : n ? "Tippe auf „Los“ – dann fragt dich das Programm nach deinem Geheimtier."
+        : "Gib zuerst deinen Namen ein – dann wähle dein Training.";
+  document.querySelectorAll(".tile[data-page]").forEach(a=>a.href = a.dataset.page + (frei ? "#name="+encodeURIComponent(n) : ""));
+  try{ if(frei) localStorage.setItem("mathe_name",n); }catch(e){}
+}
+async function anmelden(){
   const n=capName($("name").value);
-  $("grid").classList.toggle("dis",!n);
-  $("hint").textContent = n ? `Hallo ${n}! Wähle dein Training.` : "Gib zuerst deinen Namen ein – dann wähle dein Training.";
-  document.querySelectorAll(".tile[data-page]").forEach(a=>a.href = a.dataset.page + (n ? "#name="+encodeURIComponent(n) : ""));
-  try{ if(n) localStorage.setItem("mathe_name",n); }catch(e){}
+  if(!n || Anmeldung.ok(n)){ update(); return; }
+  const r=await Anmeldung.pruefe(n);
+  if(!r && capName($("name").value)===n){ $("name").value=""; try{ localStorage.removeItem("mathe_name"); }catch(e){} $("name").focus(); }
+  update();
 }
 $("name").addEventListener("input",update);
 
@@ -186,6 +203,8 @@ $("name").addEventListener("input",update);
   const m=location.hash.match(/name=([^&]+)/);
   let n = m ? decodeURIComponent(m[1]) : "";
   if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  // „Namen wechseln" aus einem Trainer: abmelden und mit leerem Feld beginnen
+  if(location.hash==="#wechsel"){ Anmeldung.abmelden(); n=""; try{ localStorage.removeItem("mathe_name"); }catch(e){} history.replaceState(null,"",location.pathname); }
   $("name").value=n;
   renderChips(); update();
   if(!n) $("name").focus();
@@ -513,7 +532,7 @@ function lernwegVorbereiten(rows, name){
 function starteHallo(){
   const name=capName($("name").value);
   const box=$("hallo");
-  if(!name){ box.classList.add("hide"); halloFuer=""; return; }
+  if(!name || !Anmeldung.ok(name)){ box.classList.add("hide"); halloFuer=""; return; }
   if(name===halloFuer) return;
   halloFuer=name;
   if(!hdb){ box.classList.add("hide"); return; }
@@ -533,6 +552,8 @@ function starteHallo(){
   window.update=function(){ alt(); clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,500); };
   $("name").addEventListener("change", ()=>{ clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,150); });
   setTimeout(starteHallo, 700);
+  // Name vom letzten Besuch: gleich nach dem Geheimtier fragen
+  if(capName($("name").value) && !Anmeldung.ok($("name").value)) setTimeout(anmelden, 300);
 })();
 </script>
 </body>
