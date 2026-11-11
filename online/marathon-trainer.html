@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Rechen-Marathon">
 <title>Rechen-Marathon</title>
 <script src="anmeldung.js"></script>
+<script src="sterne.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -505,7 +506,9 @@ function pruefe(){
 function fertig(geschafft){
   const hochVorher=hoechsteGeschafft();
   const dauer=Math.round((Date.now()-startZeit)/1000);
+  let sternVor=null; try{ sternVor=Sterne.stand(tankRows()); }catch(e){}
   speichere(geschafft, dauer);
+  try{ if(sternVor) Sterne.zeigeUnterschied(sternVor, Sterne.stand(tankRows()), playerName, true); }catch(e){}
   zeige("ergebnis");
   const neuHoch = geschafft ? Math.max(hochVorher, etage) : hochVorher;
   let ziel=etage, text="";

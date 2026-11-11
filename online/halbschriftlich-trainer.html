@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Rechenwege">
 <title>Halbschriftlich rechnen ☁️</title>
 <script src="anmeldung.js"></script>
+<script src="sterne.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -713,6 +714,8 @@ function speichere(prozent, bestanden, dauer){
     dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(),
     schrittfehler:schrittFehler
   };
+  // Sterne sofort zeigen (sterne.js) und den neuen Durchgang gleich in die eigene Liste aufnehmen
+  try{ const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); Sterne.zeigeUnterschied(vor, Sterne.stand(MEINE), playerName, false, true); }catch(e){}
   if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
   const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
   db.collection("ergebnisse").doc(id).set(eintrag)

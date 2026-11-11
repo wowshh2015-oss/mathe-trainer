@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Rechen-Rallye">
 <title>Rechen-Rallye</title>
 <script src="anmeldung.js"></script>
+<script src="sterne.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -1203,7 +1204,9 @@ function rundeFertig(){
   sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
   const vorher=gesamtRunden(), pVorher=profiRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
   const tVorher=titelStand(vorher,pVorher);
+  let sternVor=null; try{ sternVor=Sterne.stand(tankRows()); }catch(e){}
   speichere(dauer);
+  try{ if(sternVor) Sterne.zeigeUnterschied(sternVor, Sterne.stand(tankRows()), playerName, true); }catch(e){}
   const nachher=gesamtRunden(), pNachher=profiRunden();
   const tNachher=titelStand(nachher,pNachher);
   $("rueck").style.color="var(--gold)";

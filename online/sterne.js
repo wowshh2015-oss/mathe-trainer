@@ -6,7 +6,11 @@
 window.Sterne=(function(){
   const STICHTAG_SPIEL="20261112";     // Spiele zählen ab hier; die Lernarbeit davor zählt komplett mit
   const LERN=["zerlegen","halbschriftlich","plus","minus","einmaleins","einsdurcheins"];
-  const W={runde:3, mine:5, neu:5, tag:2, proRunden:10, etage:1, pruefung:3, fest:2, proSicher:5}, PRO_TAG=3;
+  const W={runde:3, mine:5, neu:5, tag:2, proRunden:10, fest:2, proSicher:5}, PRO_TAG=3;
+  // Spiele: je schwerer, desto mehr. Rallye je 10 Runden: Stadt/Landstraße 1, Bergpass/Rennstrecke 2, Formel 1 3 Sterne.
+  const RALLYE_GEWICHT=[1,1,1,2,2,3];
+  // Marathon je geschaffter Etage: bis 50 → 1, bis 150 → 2, darüber 3; Prüfungsetagen (jede 5.) +2
+  function etagenSterne(et){ return (et<=50?1:et<=150?2:3) + (et%5===0?2:0); }
   const GOLD_STUFE={Leicht:1, Mittel:2, Schwer:3};
   const PRO_STICKER=10;
   const ALBEN=[
@@ -53,10 +57,11 @@ window.Sterne=(function(){
       if(!tagDa[d]){ tagDa[d]=true; S(W.tag, d); }                             // Tagesstern: lieber jeden Tag ein bisschen
     });
     // Spiele (ab dem Stichtag)
-    const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG_SPIEL).reduce((s,e)=>s+(+e.runden||0),0);
+    const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG_SPIEL)
+        .reduce((s,e)=>s+(+e.runden||0)*(RALLYE_GEWICHT[+e.strecke]||1),0);
     silber+=Math.floor(runden/W.proRunden);
     rows.filter(e=>e.app==="marathon" && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL)
-        .forEach(e=>S((+e.etage||0)%5===0 ? W.pruefung : W.etage, tag(e)));
+        .forEach(e=>S(etagenSterne(+e.etage||1), tag(e)));
     // Aufgaben, die alle Wiederholungen (2, 7, 21 Tage) geschafft haben
     let sicher=0;
     if(window.Wdh) LERN.forEach(a=>{ const r=rows.filter(e=>e.app===a); if(r.length) sicher+=Wdh.zaehle(r).sicher; });
@@ -66,7 +71,7 @@ window.Sterne=(function(){
     gaben.forEach(e=>{ S(+e.silber||0, tag(e)); G(+e.gold||0, tag(e)); });
     const neuestes=gaben.find(e=>((+e.silber||0)>0 || (+e.gold||0)>0) && tageHer(e)<=3) || null;
     silber=Math.max(0,silber); gold=Math.max(0,gold);
-    return { silber, gold, heute:Math.max(0,heute), goldHeute:Math.max(0,goldHeute), tage:Object.keys(tagDa).length, sicher, neuestes,
+    return { silber, gold, heute:Math.max(0,heute), goldHeute:Math.max(0,goldHeute), tage:Object.keys(tagDa).length, lernHeute:!!tagDa[H], sicher, neuestes,
              sticker:Math.floor(silber/PRO_STICKER), bisNaechster:PRO_STICKER-(silber%PRO_STICKER) };
   }
   // Die Sticker verteilen sich reihum auf die fünf Alben: Nr. 1 Tiere, Nr. 2 Dinos, Nr. 3 Weltraum …
@@ -105,6 +110,14 @@ window.Sterne=(function(){
     .stSt.neu::after{content:"NEU";position:absolute;top:-7px;right:-6px;background:#ef4444;color:#fff;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 6px}
     .stGlitzer .stSt.da{border-color:#f0abfc;background:linear-gradient(135deg,rgba(240,171,252,.18),rgba(103,232,249,.14))}
     @keyframes stPop{ 0%{transform:scale(.2) rotate(-25deg);opacity:0} 100%{transform:scale(1) rotate(0);opacity:1} }
+    .stToast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:3000;background:linear-gradient(135deg,#1e293b,#0b1220);
+      border:2px solid #fbbf24;color:#f1f5f9;border-radius:18px;padding:13px 22px;text-align:center;font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+      box-shadow:0 10px 30px rgba(0,0,0,.5);animation:stHoch .5s cubic-bezier(.2,1.4,.4,1) both;max-width:92vw;transition:opacity .5s,transform .5s;pointer-events:none}
+    .stToast b{font-size:28px;color:#fff} .stToast b.g{color:#fde047}
+    .stToast small{display:block;font-size:13.5px;color:#cbd5e1;margin-top:3px;font-weight:600}
+    .stToast.grau{border-color:#475569;font-size:15px;font-weight:700}
+    .stToast.weg{opacity:0;transform:translateX(-50%) translateY(20px)}
+    @keyframes stHoch{ 0%{opacity:0;transform:translateX(-50%) translateY(40px) scale(.7)} 100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} }
     .stZu{font-family:inherit;width:100%;margin-top:14px;font-size:16px;font-weight:700;border:2px solid #334155;border-radius:12px;padding:12px;cursor:pointer;background:transparent;color:#f1f5f9}
     @media (max-width:430px){ .stGitter{grid-template-columns:repeat(5,1fr)} .stSt{font-size:28px} }`;
     document.head.appendChild(s);
@@ -120,6 +133,7 @@ window.Sterne=(function(){
     const plus = alt ? s.silber-(+alt.silber||0) : 0;
     const neuSt = alt ? (s.sticker-(+alt.sticker||0)) + (s.gold-(+alt.gold||0)) : 0;
     try{ localStorage.setItem(gesehenKey(name), JSON.stringify({silber:s.silber, gold:s.gold, sticker:s.sticker})); }catch(e){}
+    merkeStand(name, s.silber, s.gold); if(s.lernHeute) merkeTag(name);
     const voll = s.sticker>=albumVoll();
     const text = (plus>0 ? `<b>+${plus} ⭐ seit deinem letzten Besuch!</b> ` : s.heute>0 ? `Heute schon <b>+${s.heute} ⭐</b>. ` : "")+
       (voll ? "Dein Album ist voll – stark!" : `Noch <b>${s.bisNaechster} ⭐</b> bis zum nächsten Sticker.`);
@@ -163,5 +177,54 @@ window.Sterne=(function(){
     }
     zeichne();
   }
-  return {stand, bandHTML, verbinde, oeffneAlbum, offenIm, ALBEN, GLITZER, PRO_STICKER};
+  // ===== Sofort nach jeder Runde: „+3 ⭐" =====
+  function standKey(name){ return "sterne_stand_"+String(name).toLowerCase(); }
+  function tagKey(name){ return "sterne_tag_"+String(name).toLowerCase(); }
+  function merkeStand(name, silber, gold){ try{ localStorage.setItem(standKey(name), JSON.stringify({silber, gold})); }catch(e){} }
+  function merkeTag(name){ try{ localStorage.setItem(tagKey(name), heuteTag()); }catch(e){} }
+  function meldung(html, farbe){
+    stil();
+    document.querySelectorAll(".stToast").forEach(t=>t.remove());
+    const t=document.createElement("div"); t.className="stToast"+(farbe?" "+farbe:""); t.innerHTML=html;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.classList.add("weg"); setTimeout(()=>t.remove(), 600); }, 5200);
+  }
+  // a, b: Stand vorher und nachher (aus stand()). genau=false: die Zeilen stammen nur aus EINEM Programm.
+  function zeigeUnterschied(a, b, name, genau, hinweis){
+    let dS=b.silber-a.silber, dG=b.gold-a.gold;
+    if(!genau && !a.lernHeute && b.lernHeute){        // Tagesstern nur einmal am Tag, auch wenn vorher woanders geübt wurde
+      let schon=""; try{ schon=localStorage.getItem(tagKey(name))||""; }catch(e){}
+      if(schon===heuteTag()) dS-=W.tag;
+    }
+    if(b.lernHeute) merkeTag(name);
+    if(dS<=0 && dG<=0){
+      if(hinweis) meldung(`Diesmal noch keine Sterne.<small>Sterne gibt es ab 8 richtigen Aufgaben – und für höchstens 3 Runden je Bereich am Tag.</small>`, "grau");
+      return;
+    }
+    let alt=null; try{ alt=JSON.parse(localStorage.getItem(standKey(name))||"null"); }catch(e){}
+    let zusatz="";
+    if(alt){
+      const neuS=(+alt.silber||0)+Math.max(0,dS), neuG=(+alt.gold||0)+Math.max(0,dG);
+      merkeStand(name, neuS, neuG);
+      const sticker=Math.floor(neuS/PRO_STICKER)-Math.floor((+alt.silber||0)/PRO_STICKER) + Math.max(0,dG);
+      zusatz = sticker>0 ? `<small>🎉 ${sticker===1?"Ein neuer Sticker wartet":sticker+" neue Sticker warten"} in deinem Album!</small>`
+                         : `<small>Du hast jetzt ${neuS} ⭐ – noch ${PRO_STICKER-(neuS%PRO_STICKER)} bis zum nächsten Sticker.</small>`;
+    }
+    meldung(`${dS>0?`<b>+${dS} ⭐</b>`:""}${dS>0&&dG>0?" &nbsp; ":""}${dG>0?`<b class="g">+${dG} 🌟</b>`:""}${zusatz}`);
+  }
+  // Die fünf Trainer mit LOG (Plus, Minus, Einmaleins, Einsdurcheins, Zerlegen): beim Speichern mitzählen
+  if(typeof document!=="undefined") document.addEventListener("DOMContentLoaded", ()=>{
+    let da=false; try{ da = typeof saveEntry==="function" && Array.isArray(LOG) && !!CLOUD.app; }catch(e){}
+    if(!da) return;
+    const orig=saveEntry;
+    window.saveEntry=function(){
+      const app=CLOUD.app, key=String(playerName||"").trim().toLowerCase();
+      const meine=()=>LOG.filter(e=>String(e.name||"").trim().toLowerCase()===key).map(e=>Object.assign({},e,{app}));
+      let vor=null; try{ vor=stand(meine()); }catch(e){}
+      const r=orig.apply(this, arguments);
+      try{ if(vor) zeigeUnterschied(vor, stand(meine()), playerName, false, true); }catch(e){}
+      return r;
+    };
+  });
+  return {stand, bandHTML, verbinde, oeffneAlbum, offenIm, zeigeUnterschied, ALBEN, GLITZER, PRO_STICKER};
 })();
