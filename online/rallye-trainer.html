@@ -986,6 +986,17 @@ function zeigeTank(){
   const w=TANKWORT[welt]||TANKWORT.auto;
   $("tankZeile").innerHTML=Tank.boxHTML(tankRows(), playerName, {ic:w[0], wort:w[1], einheit:["Runde","Runden"], kosten:1});
 }
+// Geschenke der Lehrkraft kommen sofort an – auch wenn das Kind gerade vor dem leeren Tank sitzt
+let unsubGabe=null;
+function hoereGeschenke(){
+  if(!db || !playerName) return;
+  if(unsubGabe){ try{ unsubGabe(); }catch(e){} unsubGabe=null; }
+  unsubGabe=db.collection("ergebnisse").where("key","==",KEY).where("app","==","tankgeschenk").where("name","==",playerName)
+    .onSnapshot(snap=>{
+      ANDERE=ANDERE.filter(e=>e.app!=="tankgeschenk"); snap.forEach(d=>ANDERE.push(d.data()));
+      if(tankBereit && !$("start").classList.contains("hide") && $("spiel").classList.contains("hide")) zeigeStart();
+    }, ()=>{});
+}
 function ladeAndere(){
   if(!db || !playerName) return;
   db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
@@ -1364,7 +1375,7 @@ function verbindeKind(){
   }
   if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
   // Alle anderen Durchgänge des Kindes: Marathon-Stand (Formel 1) und Tank
-  ladeAndere();
+  ladeAndere(); hoereGeschenke();
   unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName)
     .onSnapshot(snap=>{
       const lokal=MEINE.filter(e=>!e._id);

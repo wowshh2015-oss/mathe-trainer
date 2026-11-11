@@ -305,6 +305,8 @@ function begruessung(rows, name){
   return {gruss, seit};
 }
 function zeigeHallo(rows, name){
+  const mitGeschenken=rows;                              // für den Tank
+  rows=rows.filter(e=>e.app!=="tankgeschenk");           // Geschenke der Lehrkraft sind keine Durchgänge
   const box=$("hallo");
   box.classList.remove("hide");
   if(!rows.length){
@@ -328,7 +330,7 @@ function zeigeHallo(rows, name){
   const runden=rows.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   if(runden) erfolge.push(`🏎️ ${runden} Runden gefahren`);
   // Tank für die Spiele (tank.js): Rallye und Marathon kosten Sprit, Lernrunden füllen ihn auf
-  const tank=Tank.stand(rows).rest;
+  const tank=Tank.stand(mitGeschenken).rest;
   if(runden || mEtage) erfolge.push(tank ? `⛽ Tank: ${tank} Runden` : `⛽ Tank leer`);
   const mitProzent=rows.filter(e=>typeof e.prozent==="number");
   if(mitProzent.length){

@@ -20,6 +20,7 @@ window.Tank=(function(){
 
   function tag(e){ const p=String(e.datum||"").split("."); return (p[2]||"")+(p[1]||"")+(p[0]||""); }
   function ts(e){ return tag(e)+String(e.zeit||"").replace(":",""); }
+  function tageHer(e){ const p=String(e.datum||"").split("."), d=new Date(+p[2],(+p[1])-1,+p[0]), h=new Date(); h.setHours(0,0,0,0); return Math.round((h-d)/86400000); }
   function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
   // Eine Runde zählt nur, wenn wirklich gerechnet wurde
   function zaehlt(e){
@@ -46,7 +47,11 @@ window.Tank=(function(){
     const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG).reduce((s,e)=>s+(+e.runden||0),0);
     const etagen=rows.filter(e=>e.app==="marathon" && tag(e)>=STICHTAG).length;
     const verbraucht=runden+etagen*KOSTEN_ETAGE;
-    return {verdient, verbraucht, rest:Math.max(0, START+verdient-verbraucht)};
+    // Geschenke der Lehrkraft (Klassenübersicht → „Tank auffüllen"), z. B. für gute Arbeit im Heft
+    const gaben=rows.filter(e=>e.app==="tankgeschenk").sort((a,b)=>ts(b).localeCompare(ts(a)));
+    const geschenkt=gaben.reduce((s,e)=>s+(+e.menge||0),0);
+    const neuestes=gaben.find(e=>(+e.menge||0)>0 && tageHer(e)<=3) || null;
+    return {verdient, verbraucht, geschenkt, neuestes, rest:Math.max(0, START+verdient+geschenkt-verbraucht)};
   }
   // Aufgaben, die noch nicht dreimal hintereinander richtig waren (rows: neueste zuerst)
   function offeneFehler(rows){
@@ -103,6 +108,8 @@ window.Tank=(function(){
     .tkAng .a2{flex:1;min-width:0;font-size:13.5px;line-height:1.4;color:#cbd5e1}
     .tkAng .a2 b{display:block;font-size:15px;color:#fff}
     .tkAng .a3{flex:none;background:#22c55e;color:#04220f;font-weight:800;font-size:15px;border-radius:999px;padding:5px 11px;white-space:nowrap}
+    .tkGabe{margin-top:9px;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:10px;padding:7px 11px;font-size:13.5px}
+    .tkGabe b{color:#fbbf24}
     .tkKlein{font-size:12.5px;color:#94a3b8;margin-top:4px;line-height:1.45}`;
     document.head.appendChild(s);
   }
@@ -117,6 +124,7 @@ window.Tank=(function(){
     return `<div class="tkBox${leer?" leer":""}" id="tkBox">
       <div class="tkKopf"><span class="tkIc">${o.ic}</span><span>${kopf}</span></div>
       <div class="tkBalken"><i style="width:${Math.min(100, mal/(40/kosten)*100)}%"></i></div>
+      ${s.neuestes?`<div class="tkGabe">🎁 <b>+${Math.floor(s.neuestes.menge/kosten)} ${o.ic}</b> von deiner Lehrkraft${s.neuestes.grund?` – ${esc(s.neuestes.grund)}`:""}</div>`:""}
       ${ang.length?`<div class="tkTitel">Hier kannst du tanken</div>`+ang.map(a=>
         `<a class="tkAng" href="${a.datei}#name=${encodeURIComponent(name)}"><span class="a1">${a.ic}</span>
           <span class="a2"><b>${esc(a.titel)}</b>${esc(a.text)}</span><span class="a3">+${Math.floor(a.plus/kosten)} ${o.ic}</span></a>`).join("")

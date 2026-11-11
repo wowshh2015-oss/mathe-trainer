@@ -212,6 +212,17 @@
     <div id="rallye"></div>
   </div>
 
+  <div class="card noprint" id="tankCard">
+    <h2>⛽ Tank auffüllen <small>Sprit für Rallye und Marathon verschenken – z. B. für gute Arbeit im Heft</small></h2>
+    <div class="row" style="margin-bottom:12px">
+      <label style="color:var(--muted);font-size:14px">Wofür? (sieht das Kind)</label>
+      <input type="text" id="gGrund" placeholder="z. B. 5 Aufgaben im Heft ohne Fehler" autocomplete="off" style="flex:1;min-width:220px" maxlength="60">
+    </div>
+    <div class="scroll"><div id="tankListe"></div></div>
+    <div class="status">1 Punkt = 1 Rallye-Runde · 2 Punkte = 1 Marathon-Etage. Wer viel Tank hat, muss nicht tanken – so lassen sich starke Kinder ganz freistellen.</div>
+    <div id="gabenListe" style="margin-top:14px"></div>
+  </div>
+
   <div class="card noprint">
     <h2>🐾 Geheimtiere <small>damit meldet sich jedes Kind an · vergessen? → zurücksetzen, dann wählt das Kind beim nächsten Mal neu</small></h2>
     <div id="tiere"></div>
@@ -253,6 +264,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="tank.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -274,6 +286,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
 
 let db=null, ALLE=[], pin=null, tage=0, entsperrt=false;
+let GESCHENKE=[];      // Tank-Geschenke der Lehrkraft – liegen in derselben Sammlung, sind aber keine Durchgänge
 
 //// ===== Bezeichnungen je Programm =====
 function uebungLabel(e){
@@ -366,6 +379,7 @@ function render(){
   renderLernstand();
   renderSchwer(rows);
   renderTiere();
+  renderTank();
   renderHochhaus();
   renderRallye();
   renderWege();
@@ -518,6 +532,48 @@ function zeigeBlatt(name){
   $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
 }
 
+//// ===== Tank auffüllen =====
+function renderTank(){
+  const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
+  if(!namen.length){ $("tankListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
+  $("tankListe").innerHTML=`<table><thead><tr><th>Kind</th><th>im Tank</th><th>verdient</th><th>geschenkt</th><th>verfahren</th><th>auffüllen</th></tr></thead><tbody>`+
+    namen.map(n=>{
+      const s=Tank.stand(ALLE.filter(e=>e.name===n).concat(GESCHENKE.filter(e=>e.name===n)));
+      return `<tr><td class="nm">${esc(n)}</td><td class="${s.rest<1?"no":s.rest<=5?"mid":"ok"}"><b>${s.rest}</b></td>
+        <td>${s.verdient}</td><td>${s.geschenkt||"–"}</td><td>${s.verbraucht}</td>
+        <td>${[20,50,100,200].map(m=>`<button class="ghost" style="padding:5px 10px;font-size:13px" data-gabe="${m}" data-kind="${esc(n)}">+${m}</button>`).join(" ")}
+            <button class="ghost" style="padding:5px 10px;font-size:13px" data-gabe="?" data-kind="${esc(n)}">andere …</button></td></tr>`;
+    }).join("")+"</tbody></table>";
+  $("tankListe").querySelectorAll("button[data-gabe]").forEach(b=>b.addEventListener("click",()=>{
+    let m=b.dataset.gabe;
+    if(m==="?"){
+      const t=prompt(`Wie viele Punkte für ${b.dataset.kind}?\n\n(Mit Minus davor wird etwas abgezogen, z. B. -20)`, "30");
+      if(t===null) return;
+      m=parseInt(t,10);
+      if(!m || Math.abs(m)>5000){ alert("Bitte eine Zahl zwischen -5000 und 5000 eingeben."); return; }
+    }
+    schenke(b.dataset.kind, +m);
+  }));
+  const letzte=GESCHENKE.slice().sort((a,b)=>ts(b).localeCompare(ts(a))).slice(0,8);
+  $("gabenListe").innerHTML = letzte.length
+    ? `<div style="color:var(--muted);font-size:13px;margin-bottom:6px">Zuletzt verschenkt:</div><div class="chips">`+
+      letzte.map(e=>`<span class="chip">${esc(e.name)} <b>${e.menge>0?"+":""}${e.menge}</b>${e.grund?` · ${esc(e.grund)}`:""} · ${e.datum}
+        <a data-weg="${esc(e._id)}" title="rückgängig machen" style="cursor:pointer;color:#fca5a5;margin-left:6px">✕</a></span>`).join("")+`</div>`
+    : "";
+  $("gabenListe").querySelectorAll("a[data-weg]").forEach(a=>a.addEventListener("click", async ()=>{
+    if(!confirm("Dieses Geschenk rückgängig machen?")) return;
+    try{ await db.collection("ergebnisse").doc(a.dataset.weg).delete(); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  }));
+}
+async function schenke(name, menge){
+  const n=new Date(), p=x=>String(x).padStart(2,"0");
+  const e={ key:KEY, app:"tankgeschenk", modus:"Geschenk", name:name, menge:menge, grund:$("gGrund").value.trim().slice(0,60),
+            datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}` };
+  const id=`tankgeschenk_${e.datum}_${e.zeit}_${name}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  try{ await db.collection("ergebnisse").doc(id).set(e); }
+  catch(err){ alert("⚠️ Nicht gespeichert: "+(err.code||err)); }
+}
+
 //// ===== Geheimtiere =====
 const TIERBILD={hund:"🐶",katze:"🐱",hase:"🐰",fuchs:"🦊",baer:"🐻",panda:"🐼",loewe:"🦁",frosch:"🐸",affe:"🐵",pinguin:"🐧",einhorn:"🦄",schildkroete:"🐢"};
 let KONTEN=[];
@@ -541,7 +597,7 @@ function renderTiere(){
 $("sicherBtn").addEventListener("click", ()=>{
   if(!ALLE.length){ alert("Keine Daten zum Sichern."); return; }
   const d=new Date(), p=x=>String(x).padStart(2,"0");
-  const daten={ art:"mathe-trainer-sicherung", erstellt:d.toISOString(), anzahl:ALLE.length, ergebnisse:ALLE };
+  const daten={ art:"mathe-trainer-sicherung", erstellt:d.toISOString(), anzahl:ALLE.length, ergebnisse:ALLE.concat(GESCHENKE) };
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([JSON.stringify(daten)],{type:"application/json"}));
   a.download=`mathe-trainer-sicherung-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.json`; a.click();
@@ -562,7 +618,7 @@ $("ladeDatei").addEventListener("change", async ev=>{
   try{
     const daten=JSON.parse(await datei.text());
     if(daten.art!=="mathe-trainer-sicherung" || !Array.isArray(daten.ergebnisse)) throw "Das ist keine Sicherungsdatei des Mathe-Trainers.";
-    const da=new Set(ALLE.map(e=>e._id));
+    const da=new Set(ALLE.concat(GESCHENKE).map(e=>e._id));
     const fehlt=daten.ergebnisse.filter(e=>e && e._id && !da.has(e._id));
     if(!fehlt.length){ alert("In der Datenbank fehlt nichts – alle Durchgänge aus der Sicherung sind noch vorhanden."); return; }
     if(!confirm(`${fehlt.length} Durchgänge aus der Sicherung fehlen in der Datenbank.\n\nSollen sie wiederhergestellt werden? Vorhandene Daten werden dabei nicht verändert.`)) return;
@@ -710,7 +766,7 @@ async function umbenennen(von, nach){
   von=String(von||"").trim(); nach=capName(nach);
   if(!von || !nach){ alert("Bitte beide Namen auswählen."); return; }
   if(von===nach){ alert("Die Namen sind identisch."); return; }
-  const treffer=ALLE.filter(e=>e.name===von && e._id);
+  const treffer=ALLE.concat(GESCHENKE).filter(e=>e.name===von && e._id);
   if(!treffer.length){ alert(`Für „${von}" wurden keine Durchgänge gefunden.`); return; }
   if(!confirm(`${treffer.length} Durchgänge von „${von}" zu „${nach}" übernehmen?\n\nDanach erscheint alles unter „${nach}".`)) return;
   $("mStatus").textContent="Wird geändert …";
@@ -799,8 +855,8 @@ async function entsperren(){
       if(entsperrt) renderTiere();
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
-      ALLE=[];
-      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; ALLE.push(x); });
+      ALLE=[]; GESCHENKE=[];
+      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; (x.app==="tankgeschenk"?GESCHENKE:ALLE).push(x); });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
       if(entsperrt) render();
