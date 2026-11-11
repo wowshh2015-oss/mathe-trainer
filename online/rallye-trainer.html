@@ -258,6 +258,7 @@
       <div class="rundenzaehler"><b id="gesamtRunden">0</b><span class="sub" style="margin:0">Runden insgesamt gefahren</span></div>
       <div id="titelZeile"></div>
       <div id="profiZeile"></div>
+      <div id="tankZeile"></div>
 
       <h3>Womit möchtest du fahren?</h3>
       <div class="welten" id="welten"></div>
@@ -349,6 +350,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="tank.js"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -363,6 +365,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
 
 let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false, marathonEtage=0;
+let ANDERE=[], tankBereit=false;      // Durchgänge aus den anderen Programmen – daraus wird der Tank berechnet
 let welt="auto", fahrzeugId="a1", farbe="#e23b3b", strecke=1;
 let aufgaben=[], idx=0, richtig=0, herzen=HERZEN, falsch=[], gestellt=[], fehlerListe=[];
 let rundeNr=1, sauberSerie=0, rundeOhneFehler=true, rundeStart=0, sitzungRunden=0;
@@ -942,7 +945,9 @@ function zeigeStart(){
   zeichneBahn($("vorschau"));
   const h=$("vorschau").querySelector(".hind");
   if(h){ h.classList.remove("hide"); h.innerHTML="7 + 8"; }
-  $("startBtn").textContent=`${st(strecke).ic} ${st(strecke).name} – losfahren ▶`;
+  zeigeTank();
+  $("startBtn").textContent = tankRest()<1 ? `${(TANKWORT[welt]||TANKWORT.auto)[0]} Erst tanken – dann geht es weiter`
+                                           : `${st(strecke).ic} ${st(strecke).name} – losfahren ▶`;
   $("startBox").classList.remove("hide");
 }
 // Was kommt als Nächstes in die Garage – und wie viele (Profi-)Runden fehlen noch?
@@ -971,6 +976,29 @@ function zeigeTitelUndProfi(){
     : `<br>⚠️ Auf ${st(strecke).ic} ${st(strecke).name} zählen <b>keine</b> Profi-Runden. Dafür auf ⛰️ Bergpass, 🏁 Rennstrecke oder 🏆 Formel 1 fahren.`;
   $("profiZeile").innerHTML=`<div class="profiinfo">⭐ <b>Profi-Runden: ${p}</b> · ${naechst}${warnung}</div>`;
 }
+// ===== Tank: eine Runde kostet 1, aufgefüllt wird auf dem Lernweg (tank.js) =====
+const TANKWORT={ auto:["⛽","Der Tank"], pferd:["🥕","Der Futtersack"], rakete:["🔋","Der Akku"] };
+function tankRows(){ return ANDERE.concat(MEINE); }
+// Ohne Verbindung wird niemand ausgebremst
+function tankRest(){ return (db && cloudOk && tankBereit) ? Tank.stand(tankRows()).rest : Infinity; }
+function zeigeTank(){
+  if(tankRest()===Infinity){ $("tankZeile").innerHTML=""; return; }
+  const w=TANKWORT[welt]||TANKWORT.auto;
+  $("tankZeile").innerHTML=Tank.boxHTML(tankRows(), playerName, {ic:w[0], wort:w[1], einheit:["Runde","Runden"], kosten:1});
+}
+function ladeAndere(){
+  if(!db || !playerName) return;
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+    ANDERE=[]; let m=0;
+    s.forEach(d=>{ const x=d.data(); if(x.app===APP) return; ANDERE.push(x);
+      if(x.app==="marathon" && x.bestanden==="Ja") m=Math.max(m,+x.etage||0); });
+    marathonEtage=m; tankBereit=true;
+    if(!$("start").classList.contains("hide")) zeigeStart();
+  }).catch(()=>{});
+}
+// Kommt das Kind vom Tanken zurück, den Stand neu holen
+addEventListener("pageshow", e=>{ if(e.persisted) ladeAndere(); });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && $("spiel").classList.contains("hide")) ladeAndere(); });
 function merken(){
   try{
     localStorage.setItem("rallye_welt",welt);
@@ -1036,12 +1064,18 @@ $("garageZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
 
 //// ===== Runde starten =====
 function starteRunde(){
+  if(tankRest()<1){          // Tank leer: zurück zum Start, dort stehen die Tank-Angebote
+    zeige("start"); zeigeStart();
+    const b=$("tkBox"); if(b) b.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
   aufgaben=baueAufgaben(strecke); idx=0; richtig=0; herzen=HERZEN;
   falsch=[]; gestellt=[]; fehlerListe=[]; rundeOhneFehler=true; inBox=false;
   ersterFehler=true; boxenRunde=0;
   rundeStart=Date.now();
   rundeNr=rundenAuf(strecke)+1;
-  $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}</small>`;
+  const tr=tankRest();
+  $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}${tr===Infinity?"":` · ${(TANKWORT[welt]||TANKWORT.auto)[0]} ${tr}`}</small>`;
   zeichneBahn($("bahn"));
   zeige("spiel");
   zeichneHerzen(); zeichneFortschritt();
@@ -1329,13 +1363,8 @@ function verbindeKind(){
     zeigeStart(); return;
   }
   if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
-  // Marathon-Stand (für die Freigabe der Formel 1)
-  db.collection("ergebnisse").where("key","==",KEY).where("app","==","marathon").where("name","==",playerName)
-    .get().then(s=>{
-      let m=0; s.forEach(d=>{ const x=d.data(); if(x.bestanden==="Ja") m=Math.max(m,+x.etage||0); });
-      marathonEtage=m;
-      if(!$("start").classList.contains("hide")) zeigeStart();
-    }).catch(()=>{});
+  // Alle anderen Durchgänge des Kindes: Marathon-Stand (Formel 1) und Tank
+  ladeAndere();
   unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName)
     .onSnapshot(snap=>{
       const lokal=MEINE.filter(e=>!e._id);
@@ -1367,10 +1396,6 @@ function verbindeKind(){
     db.collection("einstellungen").doc("pin").get().then(d=>{
       const p=d.exists?String((d.data()||{}).pin||""):"";
       lehrerPin=/^\d{4}$/.test(p)?p:"";
-    }).catch(()=>{});
-    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
-      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
-      chipsZeigen(namen);
     }).catch(()=>{});
   }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
   const m=location.hash.match(/name=([^&]+)/);

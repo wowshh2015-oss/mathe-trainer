@@ -138,6 +138,7 @@
         <div style="text-align:right"><div class="stufe" id="naechsteSafe"></div></div>
       </div>
       <div class="turm" id="turm"></div>
+      <div id="tankZeile" style="margin-top:14px"></div>
       <button class="full" id="startBtn" style="margin-top:16px">Etage starten ▶</button>
       <div class="info" style="margin-top:14px">❤️❤️❤️ Pro Etage hast du <b>3 Herzen</b>. Jede falsche Antwort kostet ein Herz.
         Sind alle Herzen weg, probierst du dieselbe Etage noch einmal – <b>geschaffte Etagen verlierst du nie</b>.<br>
@@ -177,6 +178,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="tank.js"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -188,6 +190,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
 
 let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false;
+let ANDERE=[], tankBereit=false;      // Durchgänge aus den anderen Programmen – daraus wird die Kraft berechnet
 let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], startZeit=0;
 
 //// ===== Etagen-Plan =====
@@ -401,6 +404,24 @@ function figurNach(box, etageNr){
 function hoechsteGeschafft(){
   return MEINE.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m, +e.etage||0), 0);
 }
+// ===== Kraft: eine Etage kostet 2, aufgefüllt wird auf dem Lernweg (tank.js) =====
+function tankRows(){ return ANDERE.concat(MEINE); }
+function tankRest(){ return (db && cloudOk && tankBereit) ? Tank.stand(tankRows()).rest : Infinity; }   // ohne Verbindung wird niemand ausgebremst
+function tankLeer(){ return tankRest()<Tank.KOSTEN_ETAGE; }
+function zeigeTank(){
+  $("tankZeile").innerHTML = tankRest()===Infinity ? ""
+    : Tank.boxHTML(tankRows(), playerName, {ic:"⚡", wort:"Deine Kraft", einheit:["Etage","Etagen"], kosten:Tank.KOSTEN_ETAGE});
+}
+function ladeAndere(){
+  if(!db || !playerName) return;
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+    ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); });
+    tankBereit=true;
+    if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart();
+  }).catch(()=>{});
+}
+addEventListener("pageshow", e=>{ if(e.persisted) ladeAndere(); });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && $("spiel").classList.contains("hide")) ladeAndere(); });
 function zeigeStart(){
   const hoch=hoechsteGeschafft();
   etage=hoch+1;
@@ -409,7 +430,8 @@ function zeigeStart(){
   $("naechsteSafe").innerHTML = istPruefung(etage)
     ? `🏅 Jetzt: Prüfungsetage!${m?` · schon ${m}× 🏅`:""}`
     : `🏅 Nächste Prüfung: Etage ${naechstePruefung(etage)}${m?` · schon ${m}× 🏅`:""}`;
-  $("startBtn").textContent=`Etage ${etage} starten ▶`;
+  zeigeTank();
+  $("startBtn").textContent = tankLeer() ? "⚡ Erst Kraft tanken – dann geht es weiter" : `Etage ${etage} starten ▶`;
   zeichneTurm($("turm"), etage, hoch);
   $("turmBox").classList.remove("hide");
 }
@@ -417,6 +439,11 @@ function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggl
 
 //// ===== Spiel =====
 $("startBtn").addEventListener("click", ()=>{
+  if(tankLeer()){            // keine Kraft mehr: zurück zum Start, dort stehen die Tank-Angebote
+    zeige("start"); zeigeStart();
+    const b=$("tkBox"); if(b) b.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
   aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN;
   fehlerListe=[]; gestellt=[]; falsch=[]; startZeit=Date.now();
   $("spielEtage").textContent=`Etage ${etage} · ${stufenText(etage)}`;
@@ -532,6 +559,7 @@ function chipsZeigen(namen){
 function verbindeKind(){
   if(!db || !playerName){ return; }
   if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+  ladeAndere();
   unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName)
     .onSnapshot(snap=>{
       MEINE=[]; snap.forEach(d=>MEINE.push(d.data()));
@@ -546,10 +574,6 @@ function verbindeKind(){
     firebase.initializeApp(CONF);
     db=firebase.firestore();
     // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
-    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
-      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
-      chipsZeigen(namen);
-    }).catch(()=>{});
   }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
   const m=location.hash.match(/name=([^&]+)/);
   let n = m ? decodeURIComponent(m[1]) : "";
