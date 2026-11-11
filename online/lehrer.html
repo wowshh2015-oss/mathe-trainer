@@ -103,6 +103,40 @@
   .pinerr{color:#fca5a5;font-size:14px;font-weight:700;min-height:20px;margin:10px 0}
   .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
   .credit a{color:var(--muted)}
+  /* Lernstand der Klasse */
+  .ls td,.ls th{text-align:center;padding:7px 8px}
+  .ls td.nm,.ls th:first-child{text-align:left}
+  .ls td.nm a{color:var(--text);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+  .zelle{display:block;border-radius:8px;padding:5px 6px;font-size:12.5px;font-weight:700;line-height:1.25;min-width:74px}
+  .zelle small{display:block;font-weight:600;font-size:11px;opacity:.85}
+  .zelle.gruen{background:rgba(34,197,94,.2);color:#86efac}
+  .zelle.gelb{background:rgba(234,179,8,.18);color:#fde047}
+  .zelle.grau{background:rgba(148,163,184,.08);color:#64748b}
+  .zelle.jetzt{box-shadow:0 0 0 2px var(--accent)}
+  .warn{color:#fcd34d;font-weight:700}
+  .legende{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.6}
+  .schwer{display:flex;flex-wrap:wrap;gap:8px}
+  .schwer span{background:#0b1220;border:1px solid var(--card2);border-radius:10px;padding:8px 12px;font-size:14px}
+  .schwer b{font-size:16px}
+  .schwer small{color:var(--muted);display:block;font-size:12px}
+  /* Elternblatt */
+  #blatt{position:fixed;inset:0;z-index:90;background:rgba(2,6,23,.9);overflow-y:auto;padding:20px}
+  #blatt .seite{background:#fff;color:#111;max-width:760px;margin:0 auto;border-radius:10px;padding:34px 38px;font-size:14.5px;line-height:1.5}
+  #blatt h3{font-size:24px;margin:0 0 2px;color:#111}
+  #blatt h4{font-size:15px;margin:22px 0 8px;color:#111;border-bottom:2px solid #ddd;padding-bottom:4px}
+  #blatt .klein{color:#555;font-size:13px}
+  #blatt table{font-size:14px} #blatt th,#blatt td{border-bottom:1px solid #ddd;white-space:normal;color:#111;vertical-align:top}
+  #blatt th{color:#555}
+  #blatt .st{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+  #blatt .st.gruen{background:#dcfce7;color:#166534} #blatt .st.gelb{background:#fef9c3;color:#854d0e} #blatt .st.grau{background:#f1f5f9;color:#64748b}
+  #blatt .tipp{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-top:8px}
+  #blatt .knoepfe{max-width:760px;margin:0 auto 12px;display:flex;gap:8px;justify-content:flex-end}
+  @media print{
+    body.blattOffen .app{display:none!important}
+    body.blattOffen #blatt{position:static;background:#fff;padding:0;overflow:visible}
+    body.blattOffen #blatt .seite{border-radius:0;padding:0;max-width:none}
+    #blatt .st{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
   @media print{ body{background:#fff;color:#000;padding:0} .noprint{display:none!important}
     .card{background:#fff;box-shadow:none;border:1px solid #ccc} th,td{border-color:#ccc} h1,h2{color:#000} }
 </style>
@@ -123,6 +157,9 @@
       <span style="flex:1"></span>
       <button class="ghost" id="druckBtn">🖨️ Drucken</button>
       <button class="ghost" id="csvBtn">CSV</button>
+      <button class="ghost" id="sicherBtn" title="Alle Daten als Datei auf diesem Gerät speichern">💾 Sicherung</button>
+      <button class="ghost" id="ladeBtn" title="Fehlende Durchgänge aus einer Sicherungsdatei zurückholen">↩️ Wiederherstellen</button>
+      <input type="file" id="ladeDatei" accept=".json,application/json" class="hide">
     </div>
     <div class="status" id="status">Verbinde …</div>
   </div>
@@ -130,6 +167,21 @@
   <div class="card">
     <h2>📊 Überblick <small id="zeitLabel"></small></h2>
     <div class="tiles" id="tiles"></div>
+  </div>
+
+  <div class="card" id="lernstandCard">
+    <h2>🧭 Lernstand der Klasse <small>wer steht wo auf dem Lernweg? · Name anklicken = Elternblatt</small></h2>
+    <div class="scroll"><div id="lernstand"></div></div>
+    <div class="legende noprint">
+      <b style="color:#86efac">grün</b> = Test bestanden (ab 90 %) · <b style="color:#fde047">gelb</b> = geübt, noch nicht gefestigt · <b style="color:#64748b">grau</b> = noch nicht begonnen ·
+      blauer Rahmen = hier steht das Kind gerade · 🔁 = Aufgaben, die noch nicht dreimal hintereinander richtig waren ·
+      <span class="warn">⚠️</span> = seit 14 Tagen nicht geübt oder an einer Stufe festgefahren
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧨 Schwierige Aufgaben der Klasse <small id="schwerLabel"></small></h2>
+    <div id="schwer"></div>
   </div>
 
   <div class="card">
@@ -191,6 +243,7 @@
   <footer class="credit noprint">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="index.html">← zum Mathe-Trainer</a></footer>
 </div>
 
+<div id="blatt" class="hide"></div>
 <div id="pinOverlay" class="overlay"><div class="modal" id="pinModal"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -305,6 +358,8 @@ function render(){
         : '<div class="empty ok">🎉 Alle bekannten Kinder haben in diesem Zeitraum geübt.</div>')
     : '<div class="empty">Noch keine Daten.</div>';
 
+  renderLernstand();
+  renderSchwer(rows);
   renderHochhaus();
   renderRallye();
   renderWege();
@@ -332,6 +387,169 @@ function render(){
         }).join("") + "</tbody></table>"
     : '<div class="empty">Keine Durchgänge im gewählten Zeitraum.</div>';
 }
+
+//// ===== Lernstand der Klasse =====
+const STATIONEN=[["zerlegen","🧩","Zerlegen"],["halbschriftlich","🪜","Rechenwege"],["plus","➕","Plus"],
+                 ["minus","➖","Minus"],["einmaleins","✖️","Einmaleins"],["einsdurcheins","➗","Einsdurcheins"]];
+function tageSeit(datum){ const p=String(datum||"").split("."); return Math.round((heute()-new Date(+p[2],(+p[1])-1,+p[0]))/86400000); }
+// rows: neueste zuerst. Aufgaben, die noch nicht dreimal hintereinander richtig waren.
+function offeneFehler(rows){
+  const facts=new Set(); rows.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  const offen=[];
+  facts.forEach(f=>{
+    let s=0;
+    for(const e of rows){
+      if(!(e.gestellt||[]).includes(f)) continue;
+      if((e.fehler||[]).includes(f)) break;
+      s++; if(s>=3) break;
+    }
+    if(s<3) offen.push(f);
+  });
+  return offen;
+}
+function kindStand(name){
+  const r=ALLE.filter(e=>e.name===name).sort((a,b)=>ts(b).localeCompare(ts(a)));
+  const st=STATIONEN.map(([app,ic,label])=>{
+    const x=r.filter(e=>e.app===app), tests=x.filter(e=>e.modus==="Test");
+    const best=tests.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+    const besterTest=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+    const mitP=x.filter(e=>typeof e.prozent==="number");
+    return {app,ic,label,n:x.length,tests:tests.length,best,besterTest,offen:offeneFehler(x),
+            schnitt:mitP.length?Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length):null,
+            zuletzt:x[0]?x[0].datum:"", farbe:!x.length?"grau":best?"gruen":"gelb"};
+  });
+  const jetzt=st.findIndex(s=>s.farbe!=="gruen");
+  const cur=jetzt>=0?st[jetzt]:null;
+  const fest = !!cur && ((cur.tests>=3 && !cur.best) || (cur.n>=8 && !cur.tests));
+  const her = r.length ? tageSeit(r[0].datum) : null;
+  const tage=new Set(r.map(e=>e.datum)).size;
+  const tage14=new Set(r.filter(e=>tageSeit(e.datum)<14).map(e=>e.datum)).size;
+  const etage=r.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const runden=r.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
+  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye").length, lern=r.length-spiel;
+  return {name, r, st, jetzt, cur, fest, her, tage, tage14, etage, runden, spiel, lern};
+}
+function renderLernstand(){
+  const namen=[...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
+  if(!namen.length){ $("lernstand").innerHTML='<div class="empty">Noch keine Daten.</div>'; return; }
+  let h=`<table class="ls"><thead><tr><th>Kind</th>${STATIONEN.map(s=>`<th>${s[1]}<br>${s[2]}</th>`).join("")}
+    <th>🏢<br>Etage</th><th>🏎️<br>Runden</th><th>Tage aktiv<br><small>14 Tage / gesamt</small></th><th>zuletzt</th></tr></thead><tbody>`;
+  namen.forEach(n=>{
+    const k=kindStand(n);
+    const zellen=k.st.map((s,i)=>{
+      const haupt = s.farbe==="gruen" ? `✓ ${s.best} %` : s.farbe==="grau" ? "–" : (s.tests?`Test ${s.besterTest} %`:`${s.n}× geübt`);
+      const neben = s.farbe==="grau" ? "" : `<small>${s.farbe==="gruen"?s.n+"× geübt":(s.tests?s.n+"× geübt":"kein Test")}${s.offen.length?` · 🔁 ${s.offen.length}`:""}</small>`;
+      return `<td><span class="zelle ${s.farbe}${i===k.jetzt?" jetzt":""}">${haupt}${neben}</span></td>`;
+    }).join("");
+    const lange=k.her!==null && k.her>=14;
+    const zuletzt=k.her===null?"–":k.her===0?"heute":k.her===1?"gestern":`vor ${k.her} Tagen`;
+    const hinweis=[]; if(lange) hinweis.push("seit "+k.her+" Tagen nicht geübt"); if(k.fest) hinweis.push("hängt bei "+k.cur.label);
+    if(k.spiel>=10 && k.spiel>k.lern*2) hinweis.push("fast nur Spiele");
+    h+=`<tr><td class="nm"><a data-kind="${esc(n)}">${esc(n)}</a>${hinweis.length?` <span class="warn" title="${esc(hinweis.join(" · "))}">⚠️</span>`:""}</td>${zellen}
+      <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
+  });
+  $("lernstand").innerHTML=h+"</tbody></table>";
+  $("lernstand").querySelectorAll("a[data-kind]").forEach(a=>a.addEventListener("click",()=>zeigeBlatt(a.dataset.kind)));
+}
+// Aufgaben, bei denen im gewählten Zeitraum die meisten Kinder einen Fehler hatten
+function renderSchwer(rows){
+  $("schwerLabel").textContent="· "+zeitLabel()+" · bei wie vielen Kindern ging die Aufgabe schief?";
+  const m={};
+  rows.forEach(e=>(e.fehler||[]).forEach(f=>{
+    const k=(e.app==="marathon"||e.app==="rallye"?"":e.app+"|")+f;
+    if(!m[k]) m[k]={f, app:e.app, kinder:new Set(), n:0};
+    m[k].kinder.add(e.name); m[k].n++;
+  }));
+  const top=Object.values(m).filter(x=>x.kinder.size>=2).sort((a,b)=>b.kinder.size-a.kinder.size || b.n-a.n).slice(0,12);
+  $("schwer").innerHTML = top.length
+    ? `<div class="schwer">${top.map(x=>`<span title="${esc([...x.kinder].sort().join(", "))}"><b>${esc(x.f)}</b>
+        <small>${APPS[x.app]?APPS[x.app].ic:""} ${x.kinder.size} Kinder · ${x.n}× falsch</small></span>`).join("")}</div>
+       <div class="status">Mit der Maus über eine Aufgabe fahren, um die Namen zu sehen.</div>`
+    : '<div class="empty">In diesem Zeitraum gibt es keine Aufgabe, bei der mehrere Kinder Fehler hatten.</div>';
+}
+
+//// ===== Elternblatt: eine Seite pro Kind =====
+function zeigeBlatt(name){
+  const k=kindStand(name), d=new Date();
+  const datum=`${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
+  const stWort={gruen:"gefestigt",gelb:"in Arbeit",grau:"noch nicht begonnen"};
+  const zeilen=k.st.map((s,i)=>{
+    let det;
+    if(s.farbe==="grau") det="Hier hat Ihr Kind noch nicht geübt.";
+    else{
+      const t=[`${s.n}× geübt`]; if(s.schnitt!==null) t.push(`im Schnitt ${s.schnitt} % richtig`);
+      t.push(s.best?`Test bestanden mit ${s.best} %`:s.tests?`Test noch nicht bestanden (bester Versuch: ${s.besterTest} %)`:"noch kein Test gemacht");
+      det=t.join(" · ");
+      const lesbar=["plus","minus","einmaleins","einsdurcheins"].includes(s.app);   // Zerlegen/Rechenwege speichern Kürzel, die Eltern nicht lesen können
+      if(s.offen.length) det+=`<br><span class="klein">Noch unsicher: ${s.offen.length} ${s.offen.length===1?"Aufgabe":"Aufgaben"}${lesbar?" – "+s.offen.slice(0,10).map(esc).join(" · ")+(s.offen.length>10?" …":""):""}</span>`;
+    }
+    return `<tr><td style="white-space:nowrap"><b>${i+1}. ${s.ic} ${s.label}</b></td><td><span class="st ${s.farbe}">${stWort[s.farbe]}</span></td><td>${det}</td></tr>`;
+  }).join("");
+  let tipp;
+  if(!k.cur) tipp=`${esc(name)} hat alle sechs Stufen gefestigt – herzlichen Glückwunsch! Zum Wachhalten eignen sich jetzt „Meine Aufgaben“ und die beiden Spiele.`;
+  else if(k.cur.farbe==="grau") tipp=`Als Nächstes ist <b>${k.cur.label}</b> an der Reihe: zuerst im Trainingsraum ohne Zeitdruck üben, danach den Test probieren.`;
+  else if(!k.cur.tests) tipp=`Bei <b>${k.cur.label}</b> wurde schon geübt. Der nächste Schritt ist der Test – ab 90 % richtigen Antworten gilt die Stufe als gefestigt.`;
+  else tipp=`Bei <b>${k.cur.label}</b> fehlt noch der bestandene Test (bisher bester Versuch: ${k.cur.besterTest} %). Am meisten hilft jetzt der Bereich „Meine Aufgaben“: Dort kommen genau die Aufgaben wieder, die noch unsicher sind.`;
+  if(k.spiel>=10 && k.spiel>k.lern*2 && k.cur) tipp+=` Die Spiele machen ${esc(name)} sichtlich Spaß – am wirksamsten sind sie, wenn vorher kurz auf dem Lernweg geübt wird.`;
+  const zuletzt=k.her===null?"–":k.her===0?"heute":k.her===1?"gestern":`vor ${k.her} Tagen (${k.r[0].datum})`;
+  $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>
+   <div class="seite">
+    <h3>Mathe-Trainer · Lernstand von ${esc(name)}</h3>
+    <div class="klein">Stand: ${datum} · Schule Hohe Landwehr</div>
+    <h4>Überblick</h4>
+    <div>Geübt an <b>${k.tage}</b> ${k.tage===1?"Tag":"Tagen"} (davon ${k.tage14} in den letzten 14 Tagen) · insgesamt <b>${k.r.length}</b> ${k.r.length===1?"Durchgang":"Durchgänge"} · zuletzt ${zuletzt}</div>
+    <h4>Der Lernweg – vom Leichten zum Schweren</h4>
+    <table><thead><tr><th>Stufe</th><th>Stand</th><th>Einzelheiten</th></tr></thead><tbody>${zeilen}</tbody></table>
+    <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden.</div>
+    <h4>Spiele zum Wiederholen</h4>
+    <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
+    <h4>Was jetzt am meisten hilft</h4>
+    <div class="tipp">${tipp}</div>
+    <div class="klein" style="margin-top:8px">Empfehlung: lieber regelmäßig 10 Minuten als selten eine lange Einheit.</div>
+   </div>`;
+  $("blatt").classList.remove("hide"); document.body.classList.add("blattOffen"); $("blatt").scrollTop=0;
+  $("blattDruck").addEventListener("click",()=>window.print());
+  $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
+}
+
+//// ===== Sicherung =====
+$("sicherBtn").addEventListener("click", ()=>{
+  if(!ALLE.length){ alert("Keine Daten zum Sichern."); return; }
+  const d=new Date(), p=x=>String(x).padStart(2,"0");
+  const daten={ art:"mathe-trainer-sicherung", erstellt:d.toISOString(), anzahl:ALLE.length, ergebnisse:ALLE };
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(daten)],{type:"application/json"}));
+  a.download=`mathe-trainer-sicherung-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  try{ localStorage.setItem("lehrer_sicherung", d.toISOString()); }catch(e){}
+  sicherHinweis();
+});
+function sicherHinweis(){
+  let t=""; try{ t=localStorage.getItem("lehrer_sicherung")||""; }catch(e){}
+  const tageHer = t ? Math.floor((Date.now()-new Date(t))/86400000) : null;
+  $("sicherBtn").textContent = tageHer===null ? "💾 Sicherung (noch nie)" : tageHer>=14 ? `💾 Sicherung (vor ${tageHer} Tagen)` : "💾 Sicherung";
+  $("sicherBtn").style.borderColor = (tageHer===null || tageHer>=14) ? "var(--warn)" : "";
+}
+$("ladeBtn").addEventListener("click", ()=>$("ladeDatei").click());
+$("ladeDatei").addEventListener("change", async ev=>{
+  const datei=ev.target.files[0]; ev.target.value="";
+  if(!datei) return;
+  try{
+    const daten=JSON.parse(await datei.text());
+    if(daten.art!=="mathe-trainer-sicherung" || !Array.isArray(daten.ergebnisse)) throw "Das ist keine Sicherungsdatei des Mathe-Trainers.";
+    const da=new Set(ALLE.map(e=>e._id));
+    const fehlt=daten.ergebnisse.filter(e=>e && e._id && !da.has(e._id));
+    if(!fehlt.length){ alert("In der Datenbank fehlt nichts – alle Durchgänge aus der Sicherung sind noch vorhanden."); return; }
+    if(!confirm(`${fehlt.length} Durchgänge aus der Sicherung fehlen in der Datenbank.\n\nSollen sie wiederhergestellt werden? Vorhandene Daten werden dabei nicht verändert.`)) return;
+    for(let i=0;i<fehlt.length;i+=400){
+      const b=db.batch();
+      fehlt.slice(i,i+400).forEach(e=>{ const x=Object.assign({},e,{key:KEY}); delete x._id; b.set(db.collection("ergebnisse").doc(e._id), x); });
+      await b.commit();
+    }
+    alert(`✅ ${fehlt.length} Durchgänge wiederhergestellt.`);
+  }catch(err){ alert("⚠️ Wiederherstellen nicht möglich: "+(err.code||err.message||err)); }
+});
+sicherHinweis();
 
 //// ===== Rechenwege: an welchem Schritt scheitert welches Kind? =====
 function renderWege(){
