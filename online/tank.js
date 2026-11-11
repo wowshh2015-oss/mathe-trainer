@@ -72,14 +72,14 @@ window.Tank=(function(){
   function angebote(rows){
     const z=STATIONEN.map(s=>{
       const r=rows.filter(e=>e.app===s.app).sort((a,b)=>ts(b).localeCompare(ts(a)));
-      return Object.assign({}, s, {n:r.length, offen:offeneFehler(r),
+      return Object.assign({}, s, {n:r.length, offen:offeneFehler(r)+(window.Wdh?Wdh.zaehle(r).faellig:0),
         bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja")});
     });
     const out=[], drin=new Set();
     const nimm=(s,plus,titel,text)=>{ if(!s || drin.has(s.app) || out.length>=3) return; drin.add(s.app); out.push({app:s.app, ic:s.ic, datei:s.datei, plus, titel, text}); };
     const fehler=z.filter(s=>s.offen>0).sort((a,b)=>b.offen-a.offen)[0];
     if(fehler) nimm(fehler, W.fehler, `Meine Aufgaben bei ${fehler.name}`,
-      fehler.offen===1 ? "Dort wartet 1 Aufgabe, die noch nicht sicher sitzt." : `Dort warten ${fehler.offen} Aufgaben, die noch nicht sicher sitzen.`);
+      fehler.offen===1 ? "Dort wartet 1 Aufgabe zum Üben oder Wiederholen." : `Dort warten ${fehler.offen} Aufgaben zum Üben oder Wiederholen.`);
     const neu=z.find(s=>!s.n);
     if(neu) nimm(neu, W.neu, `Neu für dich: ${neu.name}`, "Dort warst du noch nie. Mach eine Runde im Trainingsraum!");
     const dran=z.find(s=>!s.bestanden && s.n);

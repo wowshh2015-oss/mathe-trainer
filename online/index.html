@@ -157,6 +157,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="anmeldung.js"></script>
+<script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -355,13 +356,13 @@ function zeigeHallo(rows, name){
   // 1) offene Fehleraufgaben
   const mitFehlern=Object.entries(proApp)
     .filter(([a])=>SEITEN[a] && a!=="marathon" && a!=="rallye")
-    .map(([a,r])=>[a, offeneFehler(r)])
+    .map(([a,r])=>[a, offeneFehler(r)+Wdh.zaehle(r).faellig, Wdh.zaehle(r).faellig])
     .filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
   if(mitFehlern.length){
-    const [app,anz]=mitFehlern[0], s=SEITEN[app];
+    const [app,anz,wdh]=mitFehlern[0], s=SEITEN[app];
     tipps.push(tippHTML(s.ic, `🧠 Meine Aufgaben bei ${s.name}`,
-      anz===1 ? `Dort wartet <b>eine Aufgabe</b>, mit der du zuletzt Mühe hattest.`
-              : `Dort warten <b>${anz} Aufgaben</b>, mit denen du zuletzt Mühe hattest.`, s.datei, name));
+      (anz===1 ? `Dort wartet <b>eine Aufgabe</b> auf dich.` : `Dort warten <b>${anz} Aufgaben</b> auf dich.`)+
+      (wdh ? ` 🔁 ${wdh===1?"Eine davon ist":wdh+" davon sind"} heute zum Wiederholen dran – damit sie für immer sitzen.` : ` Mit ihnen hattest du zuletzt Mühe.`), s.datei, name));
   }
   // 2) lange nicht geübt
   const lange=Object.entries(proApp)

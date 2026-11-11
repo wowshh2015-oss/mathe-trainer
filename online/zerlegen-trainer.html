@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zerlegen-Trainer</title>
 <script src="anmeldung.js"></script>
+<script src="wiederholung.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -659,6 +660,10 @@ function buildMine(){
   A.facts.filter(f=>masteredStreak(nameKey,f.k)<3)
     .sort((x,y)=>rank[grade(x).cls]-rank[grade(y).cls] || y.wrong-x.wrong || y.quote-x.quote)
     .forEach(f=>{ if(chosen.length<N) add(taskFromKey(f.k)); });
+  // 1b) Wiederholen mit Abstand: gelernte Aufgaben kommen nach 2, 7 und 21 Tagen noch einmal (wiederholung.js)
+  const meineRows=LOG.filter(e=>e.name.trim().toLowerCase()===nameKey);
+  A.facts.filter(f=>Wdh.status(meineRows,f.k).faellig)
+    .forEach(f=>{ if(chosen.length<N) add(taskFromKey(f.k)); });
   if(!chosen.length) return "clean";
   // 2) Nachbaraufgaben aus den schwächsten Bereichen
   A.bereiche.forEach(b=>{ let g=0; while(chosen.length<N && g++<60) add(mkTask(b.zr,b.ueb)); });
@@ -669,7 +674,7 @@ function buildMine(){
 }
 function beginQuiz(){
   idx=0; score=0; correct=0; wrong=0; mistakes=[];
-  askedFacts=[]; wrongFacts=[];
+  askedFacts=[]; wrongFacts=[]; window.falschGegeben=[];
   $("timerbar").classList.toggle("hide", mode!=="test");
   $("livescore").classList.toggle("hide", mode!=="test");
   show("quiz");
@@ -716,7 +721,7 @@ function submit(timeout){
     if(R){ R.textContent = right; R.classList.add("voll"); }
   }
   askedFacts.push(key);
-  if(!isCorrect) wrongFacts.push(key);
+  if(!isCorrect){ wrongFacts.push(key); (window.falschGegeben=window.falschGegeben||[]).push(key+"|"+right+"|"+(timeout?"zeit":(isNaN(given)?"leer":given))); }
   const fb=$("feedback");
   if(isCorrect){
     correct++;
@@ -909,7 +914,7 @@ function saveEntry(extra){
     datum:`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()}`,
     zeit:`${pad(now.getHours())}:${pad(now.getMinutes())}`,
     name:playerName, richtig:correct, falsch:wrong,
-    gestellt:askedFacts.slice(), fehler:wrongFacts.slice()
+    gestellt:askedFacts.slice(), fehler:wrongFacts.slice(), antworten:(window.falschGegeben||[]).slice()
   }, extra));
   cloudPush(LOG[0]);
   persist();
