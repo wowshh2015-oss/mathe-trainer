@@ -55,7 +55,9 @@ window.Wdh=(function(){
     uhr_halb:      "🕒 „halb“ falsch verstanden (halb 4 = 3:30)",
     uhr_stunde:    "🕒 Stunde um eins daneben",
     uhr_ziffer:    "🕒 Zahl am großen Zeiger als Minuten gelesen",
-    uhr_minute:    "🕒 Minuten falsch abgelesen"
+    uhr_minute:    "🕒 Minuten falsch abgelesen",
+    uhr_tageszeit: "🕒 Vormittag und Nachmittag verwechselt",
+    uhr_plus12:    "🕒 Nachmittag: nicht 12 dazugezählt"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"

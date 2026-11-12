@@ -61,12 +61,28 @@
       .replace(/×/g," mal ").replace(/÷/g," geteilt durch ").replace(/−/g," minus ").replace(/\+/g," plus ").replace(/=/g," gleich ")
       .replace(/%/g," Prozent").replace(/·/g,". ").replace(/›/g," ").replace(/\s+/g," ").trim().slice(0,700);
   }
+  // Die beste deutsche Stimme, die das Gerät hat. Neuere („natürliche", „erweiterte") Stimmen klingen deutlich weniger nach Roboter.
+  let stimmen=[];
+  function ladeStimmen(){ try{ stimmen=speechSynthesis.getVoices().filter(v=>/^de/i.test(v.lang)); }catch(e){} }
+  if(kannReden){ ladeStimmen(); try{ speechSynthesis.addEventListener("voiceschanged", ladeStimmen); }catch(e){} }
+  function stimme(){
+    if(!stimmen.length) ladeStimmen();
+    const punkte=v=>{ const n=(v.name||"")+" "+(v.voiceURI||""); let p=0;
+      if(/natural|neural|premium|enhanced|erweitert|siri/i.test(n)) p+=50;
+      if(/online/i.test(n)) p+=20;
+      if(/google/i.test(n)) p+=30;
+      if(/anna|petra|katja|helena|vicki|marlene|seraphina|amala/i.test(n)) p+=10;
+      if(/compact|eloquence|espeak/i.test(n)) p-=40;
+      if(/de[-_]DE/i.test(v.lang)) p+=5;
+      return p; };
+    return stimmen.slice().sort((a,b)=>punkte(b)-punkte(a))[0] || null;
+  }
   function vorlesen(knopf){
     if(!kannReden) return;
     if(speechSynthesis.speaking){ speechSynthesis.cancel(); knopf.classList.remove("an"); return; }
     const t=vorleseText(); if(!t) return;
     const u=new SpeechSynthesisUtterance(t); u.lang="de-DE"; u.rate=0.92;
-    const st=speechSynthesis.getVoices().find(v=>/^de/i.test(v.lang)); if(st) u.voice=st;
+    const st=stimme(); if(st) u.voice=st;
     u.onend=u.onerror=()=>knopf.classList.remove("an");
     knopf.classList.add("an"); speechSynthesis.speak(u);
   }
@@ -173,5 +189,5 @@
     baueLeiste(); horche();
     if(TOUCH){ pflegePad(); setInterval(pflegePad, 350); }
   });
-  window.Komfort={ klang };
+  window.Komfort={ klang, stimme };
 })();

@@ -69,7 +69,7 @@
   .legende i{display:inline-block;width:22px;height:6px;border-radius:3px;vertical-align:middle;margin-right:5px}
 
   /* ===== Aufgabe ===== */
-  .kopf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .kopf{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap;padding-right:120px}   /* rechts bleibt Platz für die Bedienleiste */
   .pille{display:inline-block;background:rgba(167,139,250,.16);color:#ddd6fe;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
   .frage{text-align:center;font-size:21px;font-weight:800;margin:6px 0 12px;line-height:1.35}
   .frage .ziel{color:var(--gold)}
@@ -139,10 +139,13 @@
       <button class="ghost klein" id="entLaut">🔈 Vorsprechen</button>
       <button class="ghost klein" id="entPlus">+ 1 Stunde</button>
     </div>
+    <div class="reihe"><button class="ghost klein" id="entHaelfte">🌇 Nachmittag und Abend zeigen (12–24 Uhr)</button></div>
     <div class="reihe"><button class="ghost klein" id="entRinge">Hilfe-Ringe ausblenden</button></div>
     <div class="info" style="margin-top:14px">💡 Wenn der lange Zeiger <b>eine ganze Runde</b> dreht, ist <b>eine Stunde</b> vorbei –
       und der kurze Zeiger ist genau <b>eine Zahl weiter</b> gewandert. Steht der lange Zeiger unten auf der 6, ist die Stunde <b>halb</b> vorbei:
-      Der kurze steht dann genau <b>zwischen zwei Zahlen</b>.</div>
+      Der kurze steht dann genau <b>zwischen zwei Zahlen</b>.<br>
+      🌇 Der Tag hat <b>24 Stunden</b>, die Uhr aber nur 12 Zahlen. Darum dreht der kurze Zeiger <b>zweimal am Tag</b> seine Runde:
+      Nach 12 Uhr mittags zählt man weiter – 13, 14, 15 … Die <b style="color:#86efac">grünen Zahlen</b> zeigen diese zweite Runde.</div>
   </div>
 
   <!-- ===== AUFGABE ===== -->
@@ -193,8 +196,18 @@ const STUFEN=[
   {id:2, name:"Volle und halbe Stunden",      kurz:"3 Uhr · halb 4",                             min:[0,30],       art:"wort", snap:30, typen:["lesen","stellen","wahl"]},
   {id:3, name:"Viertel nach und Viertel vor", kurz:"Viertel nach 3 · Viertel vor 4",             min:[15,45,15,45,0,30], art:"wort", snap:15, typen:["lesen","stellen","wahl"]},
   {id:4, name:"In Fünf-Minuten-Schritten",    kurz:"3:20 Uhr · 3:55 Uhr",                        min:[5,10,20,25,35,40,50,55,15,45], art:"digital", snap:5, typen:["lesen","stellen","wahl"]},
-  {id:5, name:"Auf die Minute genau",         kurz:"3:47 Uhr",                                   min:null,         art:"digital", snap:1, typen:["lesen","stellen","lesen","wahl"]}
+  {id:5, name:"Auf die Minute genau",         kurz:"3:47 Uhr",                                   min:null,         art:"digital", snap:1, typen:["lesen","stellen","lesen","wahl"]},
+  // Der Tag hat 24 Stunden: Die Zeiger stehen zweimal am Tag gleich – 8 Uhr morgens und 20 Uhr abends
+  {id:6, name:"Vormittag und Nachmittag",     kurz:"8 Uhr morgens · 20 Uhr abends · 15:15 Uhr",  min:[0,30,15,45,0,30,10,20,40,50], art:"24", snap:5, typen:["lesen24","partner","wahl24","stellen24"]}
 ];
+// Tageszeit zu einer Stunde von 0 bis 23
+function tageszeit(H){
+  return H<5 ? ["nachts","🌙"] : H<10 ? ["morgens","🌅"] : H<12 ? ["vormittags","☀️"] : H<14 ? ["mittags","☀️"] : H<18 ? ["nachmittags","🌤️"] : H<22 ? ["abends","🌇"] : ["nachts","🌙"];
+}
+const name24=(H,m)=>`${H}:${zz(m)} Uhr`;
+const h12=H=>H%12||12;
+// Name einer Uhrzeit in der Schreibweise der Stufe (x hat h, m und in Stufe 6 auch H)
+function benenne(st,x){ return st.art==="24" ? name24(x.H,x.m) : wort(st,x.h,x.m); }
 const stufe=id=>STUFEN.find(s=>s.id===id);
 const nach=h=>h%12+1;                                   // die nächste Stunde auf dem Zifferblatt
 
@@ -210,14 +223,16 @@ function alltag(h,m){
   return {0:`${h} Uhr`,5:`fünf nach ${h}`,10:`zehn nach ${h}`,15:`Viertel nach ${h}`,20:`zwanzig nach ${h}`,25:`fünf vor halb ${n}`,30:`halb ${n}`,
           35:`fünf nach halb ${n}`,40:`zwanzig vor ${n}`,45:`Viertel vor ${n}`,50:`zehn vor ${n}`,55:`fünf vor ${n}`}[m] || "";
 }
-function sprechtext(st,h,m){
+function sprechtext(st,h,m,H){
+  if(st.art==="24") return m===0 ? `Es ist ${H} Uhr.` : `Es ist ${H} Uhr ${m}.`;
   if(st.art==="digital") return m===0 ? `Es ist ${h} Uhr.` : `Es ist ${h} Uhr ${m}.`;
   return `Es ist ${wort(st,h,m)}.`;
 }
 function sprich(text){
   if(!("speechSynthesis" in window)) return;
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; u.rate=0.88;
-       const v=speechSynthesis.getVoices().find(x=>/^de/i.test(x.lang)); if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
+       const v=(window.Komfort && Komfort.stimme) ? Komfort.stimme() : speechSynthesis.getVoices().find(x=>/^de/i.test(x.lang));
+       if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
 }
 function tonAn(){ try{ return localStorage.getItem("mathe_ton")==="an"; }catch(e){ return false; } }
 
@@ -235,6 +250,10 @@ function uhrSVG(h,m,o){
     s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${f?"#334155":"#94a3b8"}" stroke-width="${f?3:1.2}" stroke-linecap="round"/>`; }
   for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,71);
     s+=`<text x="${x}" y="${(+y+7).toFixed(1)}" text-anchor="middle" font-size="20" font-weight="800" fill="${o.ringe?"#1d4ed8":"#0f172a"}">${i}</text>`; }
+  if(o.ring24){
+    s+=`<circle cx="${C}" cy="${C}" r="46" fill="none" stroke="rgba(34,197,94,.22)" stroke-width="20"/>`;
+    for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,46); s+=`<text x="${x}" y="${(+y+4.5).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#15803d">${i+12}</text>`; }
+  }
   const [hx,hy]=pol((h%12+m/60)*30,50), [mx,my]=pol(m*6,82);
   s+=`<line x1="${C}" y1="${C}" x2="${hx}" y2="${hy}" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>`;
   if(!o.nurStunde) s+=`<line x1="${C}" y1="${C}" x2="${mx}" y2="${my}" stroke="#dc2626" stroke-width="5.5" stroke-linecap="round"/>`;
@@ -264,8 +283,9 @@ function stellUhr(box, T, snap, opts, beiAenderung){
 
 //// ===== Aufgaben bauen =====
 function zeitFuer(st){
-  const h=rnd(1,12), m = st.min ? st.min[rnd(0,st.min.length-1)] : rnd(1,59);
-  return [h,m];
+  const m = st.min ? st.min[rnd(0,st.min.length-1)] : rnd(1,59);
+  if(st.art==="24"){ const H=rnd(0,23); return [h12(H), m, H]; }
+  return [rnd(1,12), m];
 }
 const schluessel=(st,h,m)=>`${st.id}|${h}:${zz(m)}`;
 // Falsche Antworten, die zu typischen Denkfehlern gehören. Aus der gewählten Antwort liest das Programm den Fehler ab.
@@ -288,11 +308,12 @@ function baueAufgaben(st, zeiten){
   const liste=[], gesehen=new Set();
   let schutz=0;
   while(liste.length<PRO_RUNDE && schutz++<400){
-    let h,m;
-    if(zeiten && zeiten.length){ [h,m]=zeiten.shift(); } else [h,m]=zeitFuer(st);
-    const k=h+":"+m; if(gesehen.has(k)) continue; gesehen.add(k);
+    let h,m,H;
+    if(zeiten && zeiten.length){ [h,m,H]=zeiten.shift(); } else [h,m,H]=zeitFuer(st);
+    const k=(H===undefined?h:"H"+H)+":"+m; if(gesehen.has(k)) continue; gesehen.add(k);
     let typ=typen[liste.length%typen.length];
-    liste.push({st, h, m, typ, key:schluessel(st,h,m)});
+    if(typ==="partner" && (H%12===0)) typ="lesen24";            // 0 und 12 Uhr eignen sich nicht für die Partner-Aufgabe
+    liste.push({st, h, m, H, typ, key: st.art==="24" ? `${st.id}|${H}:${zz(m)}` : schluessel(st,h,m)});
   }
   return mische(liste);
 }
@@ -324,8 +345,9 @@ function naechste(){
   $("rueck").textContent=""; $("erkl").innerHTML="";
   zeichneFortschritt();
   runde.gestellt.push(a.key);
-  const ziel=wort(st,a.h,a.m), laut=`<button class="lautKn" id="lautBtn" title="Vorsprechen" aria-label="Vorsprechen">🔈</button>`;
-  if(a.typ==="lesen"){
+  const ziel=benenne(st,a), laut=`<button class="lautKn" id="lautBtn" title="Vorsprechen" aria-label="Vorsprechen">🔈</button>`;
+  if(st.art==="24") aufgabe24(a, o, ziel, laut);
+  else if(a.typ==="lesen"){
     $("frage").innerHTML = st.nurStunde ? "Wie spät ist es ungefähr?" : "Wie spät ist es?";
     const opt=mische([{h:a.h,m:a.m,art:"ok"}].concat(ablenker(st,a.h,a.m)));
     $("buehne").innerHTML=`<div class="uhrGross">${uhrSVG(a.h,a.m,o)}</div>
@@ -346,10 +368,12 @@ function naechste(){
     let T0; do{ T0=(rnd(1,12)%12)*60 + (st.min?st.min[rnd(0,st.min.length-1)]:rnd(0,11)*5); }while(T0===(a.h%12)*60+a.m);
     $("buehne").innerHTML=`<div class="uhrGross zieh" id="stellBox"></div>
       <div class="reihe"><button class="ghost klein" id="stMinus">− 1 Stunde</button><button id="stFertig">Fertig ✓</button><button class="ghost klein" id="stPlus">+ 1 Stunde</button></div>
+      ${st.snap===1?`<div class="reihe"><button class="ghost klein" id="stMinM">− 1 Minute</button><button class="ghost klein" id="stPlusM">+ 1 Minute</button></div>`:""}
       <div class="legende"><span>Dreh den <b style="color:#fca5a5">langen roten Zeiger</b> mit dem Finger.</span></div>`;
     aktUhr=stellUhr($("stellBox"), T0, st.snap, o);
     $("stMinus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(-60); });
     $("stPlus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(60); });
+    if(st.snap===1){ $("stMinM").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(-1); }); $("stPlusM").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(1); }); }
     $("stFertig").addEventListener("click",()=>{
       const T=aktUhr.T, h=Math.floor(T/60)||12, m=T%60, ok = T===(a.h%12)*60+a.m;
       let art="minute";
@@ -357,11 +381,83 @@ function naechste(){
       pruefe(ok, {h,m,art:ok?"ok":art}, null, null);
     });
   }
-  const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(sprechtext(st,a.h,a.m)));
+  const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(sprechtext(st,a.h,a.m,a.H)));
   starteZeit();
+}
+//// ===== Stufe 6: 24 Stunden =====
+// Falsche Stunden zu einer Stunde H (0–23), jeweils mit dem Denkfehler dahinter
+function stunden24(H, mitHaelfte){
+  const liste=[], drin=new Set([H]);
+  const nimm=(x,art)=>{ x=((x%24)+24)%24; if(drin.has(x)) return; drin.add(x); liste.push({H:x, art}); };
+  if(mitHaelfte) nimm(H+12, "tageszeit");                 // dieselbe Zeigerstellung, falsche Tageshälfte
+  if(H>=13) nimm(H-2, "plus12");                          // 10 statt 12 dazugezählt (3 → 13 statt 15)
+  if(H>=13) nimm(H+2, "plus12");
+  nimm(H+1, "stunde"); nimm(H-1, "stunde"); nimm(H+3, "stunde");
+  return liste.slice(0,3);
+}
+function aufgabe24(a, o, ziel, laut){
+  const st=a.st, [tz,bild]=tageszeit(a.H), nm=a.H>=13;
+  const uhrOpt={ringe:o.ringe, ring24:o.ringe && nm};
+  if(a.typ==="lesen24"){
+    $("frage").innerHTML=`Es ist <span class="ziel">${tz}</span> ${bild}. Wie spät ist es?`;
+    const opt=mische([{H:a.H,m:a.m,art:"ok"}].concat(stunden24(a.H,true).map(x=>({H:x.H,m:a.m,art:x.art}))));
+    $("buehne").innerHTML=`<div class="uhrGross">${uhrSVG(a.h,a.m,uhrOpt)}</div>
+      <div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${name24(x.H,x.m)}</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{ const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt); }));
+  }else if(a.typ==="partner"){
+    // Die Zeiger stehen zweimal am Tag gleich
+    const frueh=a.H%12, spaet=frueh+12, vonFrueh=a.H<12, gesucht=vonFrueh?spaet:frueh, [tzF]=tageszeit(frueh), [tzS,bildS]=tageszeit(spaet);
+    $("frage").innerHTML = vonFrueh
+      ? `Jetzt ist es <b>${name24(frueh,a.m)}</b> (${tzF}).<br>Die Zeiger stehen <span class="ziel">${tzS}</span> ${bildS} noch einmal genau so. Wie spät ist es dann?`
+      : `Jetzt ist es <b>${name24(spaet,a.m)}</b> (${tzS}).<br>Die Zeiger standen <span class="ziel">${tzF}</span> schon einmal genau so. Wie spät war es da?`;
+    a.gesucht=gesucht;
+    const falsch = vonFrueh ? [{H:frueh+10,art:"plus12"},{H:frueh+2,art:"plus12"},{H:spaet+1,art:"stunde"}]
+                            : [{H:(frueh+2)%12,art:"plus12"},{H:(frueh+11)%12,art:"stunde"},{H:(frueh+1)%12,art:"stunde"}];
+    const drin=new Set([gesucht]), opt=mische([{H:gesucht,m:a.m,art:"ok"}].concat(falsch.filter(x=>!drin.has(x.H) && drin.add(x.H)).map(x=>({H:x.H,m:a.m,art:x.art}))));
+    $("buehne").innerHTML=`<div class="uhrGross">${uhrSVG(a.h,a.m,{ringe:o.ringe, ring24:o.ringe})}</div>
+      <div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${name24(x.H,x.m)}</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{ const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt); }));
+  }else if(a.typ==="wahl24"){
+    $("frage").innerHTML=`Welche Uhr zeigt <span class="ziel">${ziel}</span>?${"speechSynthesis" in window?laut:""}`;
+    // falsche Uhren: zweite Ziffer als Stunde gelesen (15 Uhr → 5), eine Stunde daneben, Zeiger vertauscht
+    const drin=new Set([a.h+":"+a.m]), falsch=[];
+    const nimm=(h,m,art)=>{ h=((h-1)%12+12)%12+1; const k=h+":"+m; if(drin.has(k)) return; drin.add(k); falsch.push({h,m,H:a.H,art}); };
+    if(a.H>=13 && a.H-10>=1 && a.H-10<=12) nimm(a.H-10, a.m, "plus12");
+    if(a.m%5===0) nimm((a.m/5)||12, (a.h%12)*5, "vertauscht");
+    nimm(a.h+1,a.m,"stunde"); nimm(a.h-1,a.m,"stunde"); nimm(a.h+2,a.m,"stunde"); nimm(a.h+6,a.m,"stunde");
+    const opt=mische([{h:a.h,m:a.m,H:a.H,art:"ok"}].concat(falsch.slice(0,3)));
+    $("buehne").innerHTML=`<div class="wahl uhren">${opt.map((x,i)=>`<button data-i="${i}">${uhrSVG(x.h,x.m,{})}</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{ const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt); }));
+    if(tonAn()) sprich(sprechtext(st,a.h,a.m,a.H));
+  }else{   // stellen24
+    $("frage").innerHTML=`Stelle die Uhr auf <span class="ziel">${ziel}</span>.${"speechSynthesis" in window?laut:""}`;
+    let T0; do{ T0=rnd(0,11)*60 + st.min[rnd(0,st.min.length-1)]; }while(T0===(a.h%12)*60+a.m);
+    $("buehne").innerHTML=`<div class="uhrGross zieh" id="stellBox"></div>
+      <div class="reihe"><button class="ghost klein" id="stMinus">− 1 Stunde</button><button id="stFertig">Fertig ✓</button><button class="ghost klein" id="stPlus">+ 1 Stunde</button></div>
+      <div class="legende"><span>${nm?`${a.H} Uhr ist am Nachmittag oder Abend – auf der Uhr steht dann eine <b>kleinere</b> Zahl.`:"Dreh den langen roten Zeiger mit dem Finger."}</span></div>`;
+    aktUhr=stellUhr($("stellBox"), T0, st.snap, uhrOpt);
+    $("stMinus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(-60); });
+    $("stPlus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(60); });
+    $("stFertig").addEventListener("click",()=>{
+      const T=aktUhr.T, h=Math.floor(T/60)||12, m=T%60, ok = T===(a.h%12)*60+a.m;
+      let art="minute";
+      if(!ok){ if(m===a.m) art = (a.H>=13 && h===a.H-10) ? "plus12" : "stunde";
+               else if(m%5===0 && ((m/5)||12)===a.h && (h%12)*5===a.m) art="vertauscht"; }
+      pruefe(ok, {h, m, H:(a.H>=12 ? (h%12)+12 : h%12), art:ok?"ok":art}, null, null);
+    });
+  }
 }
 // Erklärung passend zum Denkfehler
 function erklaerung(a, gewaehlt){
+  if(a.st.art==="24"){
+    const frueh=a.H%12, spaet=frueh+12, ziel = a.typ==="partner" ? a.gesucht : a.H, richtig24=`Richtig ist <b>${name24(ziel,a.m)}</b>.`;
+    const zweimal=`Die Zeiger stehen <b>zweimal am Tag</b> so: um <b>${name24(frueh,a.m)}</b> und um <b>${name24(spaet,a.m)}</b>.`;
+    if(gewaehlt.art==="tageszeit") return `${zweimal} Es ist ${tageszeit(a.H)[0]} – also die ${a.H>=12?"zweite":"erste"} Tageshälfte. ${richtig24}`;
+    if(gewaehlt.art==="plus12")    return `Nach 12 Uhr mittags zählt man einfach weiter: 13, 14, 15 … Am Nachmittag und Abend ist die Stunde immer <b>12 mehr</b> als die Zahl auf der Uhr: ${frueh||12} + 12 = <b>${spaet===12?24:spaet}</b>. ${richtig24}`;
+    if(gewaehlt.art==="vertauscht") return `Du hast die Zeiger vertauscht. Der <b style="color:#93c5fd">kurze blaue</b> Zeiger zeigt die Stunde, der <b style="color:#fca5a5">lange rote</b> die Minuten. ${richtig24}`;
+    if(gewaehlt.art==="stunde")     return `Schau auf den <b style="color:#93c5fd">kurzen blauen</b> Zeiger: Er ${a.m===0?"steht genau auf der":"ist an der"} <b>${a.h}</b>${a.m===0?"":" schon vorbei, aber noch nicht bei der nächsten Zahl"}. ${zweimal} ${richtig24}`;
+    return `${zweimal} ${richtig24}`;
+  }
   const st=a.st, h=a.h, m=a.m, n=nach(h), zahl=(m/5)||12;
   const richtig=`Richtig ist <b>${wort(st,h,m)}</b>${st.art==="wort" && !st.nurStunde ? ` – das ist ${h}:${zz(m)} Uhr`:""}.`;
   if(gewaehlt.art==="vertauscht") return `Du hast die Zeiger vertauscht. Der <b style="color:#93c5fd">kurze blaue</b> Zeiger zeigt die <b>Stunde</b>, der <b style="color:#fca5a5">lange rote</b> die <b>Minuten</b>. ${richtig}`;
@@ -391,17 +487,19 @@ function pruefe(ok, gewaehlt, knopf, opt){
   }
   runde.fehler.push(a.key);
   // Format wie in den anderen Trainern (Aufgabe|richtig|gegeben) plus die erkannte Fehlerart – für die Klassenübersicht
-  runde.antworten.push(`Uhr ${a.h}:${zz(a.m)}|${wort(st,a.h,a.m)}|${gewaehlt.zeit?"zeit":wort(st,gewaehlt.h,gewaehlt.m)}|${gewaehlt.art}`);
-  runde.fehlerTexte.push(wort(st,a.h,a.m));
+  const soll = (st.art==="24" && a.typ==="partner") ? name24(a.gesucht,a.m) : benenne(st,a);
+  runde.antworten.push(`Uhr ${st.art==="24"?a.H:a.h}:${zz(a.m)}|${soll}|${gewaehlt.zeit?"zeit":a.typ==="wahl24"?`Uhr mit ${gewaehlt.h}:${zz(gewaehlt.m)}`:benenne(st,gewaehlt)}|${gewaehlt.art}`);
+  runde.fehlerTexte.push(soll);
   r.style.color="var(--bad)"; r.textContent = gewaehlt.zeit ? "Die Zeit ist um." : "Das stimmt noch nicht.";
   zeichneFortschritt(); runde.i++;
   if(runde.modus==="Test"){ spaeter(1500); return; }
   // Im Trainingsraum: zeigen, wie man es sieht – das Kind tippt selbst auf „Weiter"
-  const paar = (a.typ==="stellen" && !gewaehlt.zeit)
-    ? `<div class="paar"><div>Deine Uhr${uhrSVG(gewaehlt.h,gewaehlt.m,{ringe:true,nurStunde:st.nurStunde})}</div><div>So ist es richtig${uhrSVG(a.h,a.m,{ringe:true,nurStunde:st.nurStunde})}</div></div>`
-    : `<div class="paar"><div>${uhrSVG(a.h,a.m,{ringe:true,nurStunde:st.nurStunde})}</div></div>`;
+  const r24 = st.art==="24";
+  const paar = ((a.typ==="stellen" || a.typ==="stellen24") && !gewaehlt.zeit)
+    ? `<div class="paar"><div>Deine Uhr${uhrSVG(gewaehlt.h,gewaehlt.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div><div>So ist es richtig${uhrSVG(a.h,a.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div></div>`
+    : `<div class="paar"><div>${uhrSVG(a.h,a.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div></div>`;
   $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So kannst du es sehen</div>${paar}
-    <p>${gewaehlt.zeit ? `Richtig ist <b>${wort(st,a.h,a.m)}</b>.` : erklaerung(a, gewaehlt)}</p>
+    <p>${gewaehlt.zeit ? `Richtig ist <b>${soll}</b>.` : erklaerung(a, gewaehlt)}</p>
     <div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
   $("weiterBtn").addEventListener("click", naechste);
   setTimeout(()=>{ try{ $("weiterBtn").focus({preventScroll:true}); $("erkl").scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} }, 300);
@@ -424,7 +522,7 @@ $("ringeBtn").addEventListener("click", ()=>{
   if(!runde || wartet) return;
   const a=runde.aufgaben[runde.i], g=$("buehne").querySelector(".uhrGross");
   if(aktUhr && $("stellBox")){ aktUhr.opts.ringe=ringe; aktUhr.zeichne(); }
-  else if(g && a) g.innerHTML=uhrSVG(a.h,a.m,{ringe:ringe,nurStunde:a.st.nurStunde});
+  else if(g && a) g.innerHTML=uhrSVG(a.h,a.m,{ringe:ringe,ring24:ringe && a.st.art==="24" && (a.typ==="partner" || a.H>=13),nurStunde:a.st.nurStunde});
 });
 $("abbruchBtn").addEventListener("click", ()=>{ lauf++; runde=null; zeige("start"); zeigeMenue(); });
 
@@ -505,25 +603,31 @@ $("meineBtn").addEventListener("click", ()=>{
   // die Aufgaben der schwächsten Stufe zuerst; aufgefüllt wird mit weiteren Zeiten derselben Stufe
   const proStufe={}; keys.forEach(k=>{ const id=+k.split("|")[0]; (proStufe[id]=proStufe[id]||[]).push(k); });
   const id=+Object.keys(proStufe).sort((a,b)=>proStufe[b].length-proStufe[a].length)[0], st=stufe(id)||STUFEN[1];
-  const zeiten=proStufe[id].map(k=>{ const t=k.split("|")[1].split(":"); return [+t[0],+t[1]]; });
+  const zeiten=proStufe[id].map(k=>{ const t=k.split("|")[1].split(":"); return st.art==="24" ? [h12(+t[0]),+t[1],+t[0]] : [+t[0],+t[1]]; });
   starte(st, "mine", zeiten);
 });
 
 //// ===== Die Uhr entdecken =====
-let entUhr=null, entRinge=true;
+let entUhr=null, entRinge=true, entSpaet=false;     // entSpaet: zweite Tageshälfte (12–24 Uhr)
+function entStunde(T){ const h=Math.floor(T/60); return entSpaet ? h+12 : h; }      // 0–23
 function zeigeEntdecken(){
   zeige("entdecken");
-  entUhr=stellUhr($("entUhr"), 180, 5, {ringe:entRinge}, T=>{
-    const h=Math.floor(T/60)||12, m=T%60;
-    $("entZeit").textContent=`${h}:${zz(m)}`;
-    $("entSatz").textContent = alltag(h,m) ? `So sagt man: ${alltag(h,m)}` : "";
+  entUhr=stellUhr($("entUhr"), 180, 5, {ringe:entRinge, ring24:entRinge && entSpaet}, T=>{
+    const h=Math.floor(T/60)||12, m=T%60, H=entStunde(T), [tz,bild]=tageszeit(H);
+    $("entZeit").textContent=`${entSpaet ? H : h}:${zz(m)}`;
+    $("entSatz").textContent = `${bild} ${tz}`+(alltag(h,m) ? ` · So sagt man${entSpaet?" auch":""}: ${alltag(h,m)}` : "");
   });
 }
+$("entHaelfte").addEventListener("click", ()=>{
+  entSpaet=!entSpaet; entUhr.opts.ring24=entRinge && entSpaet; entUhr.zeichne();
+  $("entHaelfte").textContent = entSpaet ? "🌅 Vormittag zeigen (0–12 Uhr)" : "🌇 Nachmittag und Abend zeigen (12–24 Uhr)";
+});
 $("entdeckenBtn").addEventListener("click", zeigeEntdecken);
 $("entMinus").addEventListener("click", ()=>entUhr.plus(-60));
 $("entPlus").addEventListener("click", ()=>entUhr.plus(60));
-$("entLaut").addEventListener("click", ()=>{ const T=entUhr.T, h=Math.floor(T/60)||12, m=T%60; sprich(alltag(h,m) ? `Es ist ${alltag(h,m)}.` : `Es ist ${h} Uhr ${m}.`); });
-$("entRinge").addEventListener("click", ()=>{ entRinge=!entRinge; entUhr.opts.ringe=entRinge; entUhr.zeichne(); $("entRinge").textContent=entRinge?"Hilfe-Ringe ausblenden":"Hilfe-Ringe einblenden"; });
+$("entLaut").addEventListener("click", ()=>{ const T=entUhr.T, h=Math.floor(T/60)||12, m=T%60, H=entStunde(T);
+  sprich(entSpaet ? (m===0?`Es ist ${H} Uhr.`:`Es ist ${H} Uhr ${m}.`) : alltag(h,m) ? `Es ist ${alltag(h,m)}.` : `Es ist ${h} Uhr ${m}.`); });
+$("entRinge").addEventListener("click", ()=>{ entRinge=!entRinge; entUhr.opts.ringe=entRinge; entUhr.opts.ring24=entRinge && entSpaet; entUhr.zeichne(); $("entRinge").textContent=entRinge?"Hilfe-Ringe ausblenden":"Hilfe-Ringe einblenden"; });
 document.querySelectorAll("[data-zurueck]").forEach(b=>b.addEventListener("click",()=>{ zeige("start"); zeigeMenue(); }));
 if(!("speechSynthesis" in window)) $("entLaut").classList.add("hide");
 
