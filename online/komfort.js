@@ -111,7 +111,13 @@
     pad.innerHTML=["1","2","3","4","5","6","7","8","9","weg","0","ok"].map(t=>
       `<button type="button" data-t="${t}" class="${t==="ok"?"ok":t==="weg"?"weg":""}">${t==="ok"?"OK":t==="weg"?"⌫":t}</button>`).join("");
     pad.addEventListener("pointerdown", e=>{ const b=e.target.closest("button"); if(!b) return; e.preventDefault(); tippe(b.dataset.t); });
-    document.body.appendChild(pad);
+  }
+  // Die Tasten stehen direkt unter der Zeile mit dem Eingabefeld – nicht am Bildschirmrand kleben.
+  // (Am unteren Rand verschwanden sie auf Handys hinter der Leiste des Browsers.)
+  function setzePad(feld){
+    let el=feld;
+    while(el.parentElement && el.parentElement!==document.body && !el.parentElement.classList.contains("card")) el=el.parentElement;
+    if(pad.previousElementSibling!==el) el.insertAdjacentElement("afterend", pad);
   }
   function pflegePad(){
     const felder=zahlenfelder();
@@ -120,11 +126,14 @@
     }else{
       document.querySelectorAll("input[data-zahl]").forEach(i=>{ i.setAttribute("inputmode","numeric"); i.removeAttribute("data-zahl"); });
     }
-    const zeigen = padAn && felder.some(i=>sichtbar(i)) && !document.querySelector(".anmOv,.stOv");
+    const feld = padAn ? (ziel() || felder.find(i=>sichtbar(i))) : null;
+    const zeigen = !!feld && sichtbar(feld);
     if(zeigen && !pad) bauePad();
+    if(zeigen) setzePad(feld);
+    const warAn = pad && pad.classList.contains("an");
     if(pad) pad.classList.toggle("an", zeigen);
-    document.body.classList.toggle("padAn", !!zeigen);
-    document.documentElement.classList.toggle("padAn", !!zeigen);
+    // Beim Erscheinen so weit blättern, dass auch die unterste Reihe (0 und OK) zu sehen ist
+    if(zeigen && !warAn) setTimeout(()=>{ try{ pad.scrollIntoView({block:"nearest", behavior:"smooth"}); }catch(e){} }, 120);
   }
   document.addEventListener("focusin", e=>{ if(e.target && e.target.matches && e.target.matches("input[data-zahl]")) aktiv=e.target; });
 
@@ -141,17 +150,14 @@
     .kfLeiste button small{font-size:11px;font-weight:800}
     .kfTipp{position:fixed;top:60px;right:8px;z-index:2400;background:#0b1220;border:1px solid #334155;color:#f1f5f9;border-radius:12px;padding:8px 13px;font-size:14px;font-weight:700;
       font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none}
-    .kfPad{position:fixed;left:0;right:0;bottom:0;z-index:1300;display:none;grid-template-columns:repeat(3,1fr);gap:7px;padding:9px max(10px,calc(50% - 250px)) calc(9px + env(safe-area-inset-bottom));
-      background:rgba(11,18,32,.97);border-top:1px solid #334155}
+    .kfPad{display:none;grid-template-columns:repeat(3,1fr);gap:7px;max-width:400px;margin:14px auto 6px;padding:0}
     .kfPad.an{display:grid}
-    .kfPad button{font-family:inherit;font-size:26px;font-weight:800;height:54px;border-radius:13px;border:1px solid #475569;background:#1e293b;color:#f1f5f9;cursor:pointer;
+    .kfPad button{font-family:inherit;font-size:26px;font-weight:800;height:52px;padding:0;border-radius:13px;border:1px solid #475569;background:#1e293b;color:#f1f5f9;cursor:pointer;
       touch-action:manipulation;-webkit-user-select:none;user-select:none}
     .kfPad button:active{background:#38bdf8;color:#042433}
     .kfPad button.ok{background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433;border:none}
     .kfPad button.weg{background:#0b1220;color:#fca5a5}
-    body.padAn{padding-bottom:270px!important}
-    html.padAn{scroll-padding-bottom:285px}
-    body.padAn .stToast{bottom:270px}
+    .card{max-width:100%;overflow-x:auto}                 /* breite Tabellen blättern in ihrer Karte, statt die ganze Seite breiter als den Bildschirm zu machen */
     @media print{ .kfLeiste,.kfPad,.kfTipp{display:none!important} }`;
     document.head.appendChild(s);
   }

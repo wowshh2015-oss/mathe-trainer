@@ -57,7 +57,8 @@ window.Wdh=(function(){
     uhr_ziffer:    "🕒 Zahl am großen Zeiger als Minuten gelesen",
     uhr_minute:    "🕒 Minuten falsch abgelesen",
     uhr_tageszeit: "🕒 Vormittag und Nachmittag verwechselt",
-    uhr_plus12:    "🕒 Nachmittag: nicht 12 dazugezählt"
+    uhr_plus12:    "🕒 Nachmittag: nicht 12 dazugezählt",
+    uhr_vornach:   "🕒 „vor“ und „nach“ verwechselt"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"

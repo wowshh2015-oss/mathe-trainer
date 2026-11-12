@@ -198,6 +198,8 @@ const STUFEN=[
   {id:4, name:"In Fünf-Minuten-Schritten",    kurz:"3:20 Uhr · 3:55 Uhr",                        min:[5,10,20,25,35,40,50,55,15,45], art:"digital", snap:5, typen:["lesen","stellen","wahl"]},
   {id:5, name:"Auf die Minute genau",         kurz:"3:47 Uhr",                                   min:null,         art:"digital", snap:1, typen:["lesen","stellen","lesen","wahl"]},
   // Der Tag hat 24 Stunden: Die Zeiger stehen zweimal am Tag gleich – 8 Uhr morgens und 20 Uhr abends
+  // So spricht man im Alltag: fünf vor halb 4 (3:25), fünf nach halb 4 (3:35), zwanzig nach 3, zehn vor 4 …
+  {id:7, name:"Fünf vor halb, zehn nach …",   kurz:"für Profis: fünf vor halb 4 · zwanzig nach 3 · zehn vor 4", min:[25,35,25,35,5,10,20,40,50,55], art:"alltag", snap:5, typen:["lesen","digital7","stellen","wahl"]},
   {id:6, name:"Vormittag und Nachmittag",     kurz:"8 Uhr morgens · 20 Uhr abends · 15:15 Uhr",  min:[0,30,15,45,0,30,10,20,40,50], art:"24", snap:5, typen:["lesen24","partner","wahl24","stellen24"]}
 ];
 // Tageszeit zu einer Stunde von 0 bis 23
@@ -215,6 +217,7 @@ const nach=h=>h%12+1;                                   // die nächste Stunde a
 function wort(st,h,m){
   if(st.nurStunde) return m===0 ? `genau ${h} Uhr` : m===10 ? `kurz nach ${h} Uhr` : m===30 ? `halb ${nach(h)}` : `kurz vor ${nach(h)} Uhr`;
   if(st.art==="digital") return `${h}:${zz(m)} Uhr`;
+  if(st.art==="alltag") return alltag(h,m) || `${h}:${zz(m)} Uhr`;
   return m===0 ? `${h} Uhr` : m===15 ? `Viertel nach ${h}` : m===30 ? `halb ${nach(h)}` : m===45 ? `Viertel vor ${nach(h)}` : `${h}:${zz(m)} Uhr`;
 }
 // wie man im Alltag spricht (für „Die Uhr entdecken" und zum Vorsprechen)
@@ -225,6 +228,7 @@ function alltag(h,m){
 }
 function sprechtext(st,h,m,H){
   if(st.art==="24") return m===0 ? `Es ist ${H} Uhr.` : `Es ist ${H} Uhr ${m}.`;
+  if(st.art==="alltag") return `Es ist ${wort(st,h,m)}.`;
   if(st.art==="digital") return m===0 ? `Es ist ${h} Uhr.` : `Es ist ${h} Uhr ${m}.`;
   return `Es ist ${wort(st,h,m)}.`;
 }
@@ -295,6 +299,10 @@ function ablenker(st,h,m){
     if(erlaubt && !erlaubt.has(mm)) return; const k=hh+":"+mm; if(drin.has(k)) return; drin.add(k); liste.push({h:hh,m:mm,art}); };
   if(!st.nurStunde && m%5===0) nimm((m/5)||12, (h%12)*5, "vertauscht");               // Zeiger verwechselt
   if(st.art==="wort" && m===30) nimm(h-1, 30, "halb");                                 // „halb 3" statt „halb 4"
+  if(st.art==="alltag"){
+    nimm(h, 60-m, "vornach");                                                          // „vor" und „nach" verwechselt
+    if(m>=25) nimm(h-1, m, "halb");                                                    // auf die falsche Stunde bezogen: „fünf vor halb 3" statt „… halb 4"
+  }
   nimm(h+1, m, "stunde"); nimm(h-1, m, "stunde");                                      // Stunde um eins daneben
   if(st.art==="digital" && m%5===0 && m>=5) nimm(h, m/5, "ziffer");                    // die Zahl am großen Zeiger als Minuten gelesen
   const andere = st.min ? mische([...new Set(st.min)]) : [m+5,m-5,m+10,m+30,m-15];
@@ -363,6 +371,12 @@ function naechste(){
       const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt);
     }));
     if(tonAn()) sprich(sprechtext(st,a.h,a.m));
+  }else if(a.typ==="digital7"){
+    // Sprechweise → Uhrzeit in Ziffern
+    $("frage").innerHTML=`Wie schreibt man <span class="ziel">${ziel}</span> als Uhrzeit?${"speechSynthesis" in window?laut:""}`;
+    const opt=mische([{h:a.h,m:a.m,art:"ok"}].concat(ablenker(st,a.h,a.m)));
+    $("buehne").innerHTML=`<div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${x.h}:${zz(x.m)} Uhr</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{ const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt); }));
   }else{   // stellen
     $("frage").innerHTML=`Stelle die Uhr auf <span class="ziel">${ziel}</span>.${"speechSynthesis" in window?laut:""}`;
     let T0; do{ T0=(rnd(1,12)%12)*60 + (st.min?st.min[rnd(0,st.min.length-1)]:rnd(0,11)*5); }while(T0===(a.h%12)*60+a.m);
@@ -459,6 +473,18 @@ function erklaerung(a, gewaehlt){
     return `${zweimal} ${richtig24}`;
   }
   const st=a.st, h=a.h, m=a.m, n=nach(h), zahl=(m/5)||12;
+  if(st.art==="alltag"){
+    // Schritt für Schritt herleiten, wie die Sprechweise entsteht
+    const weg = m===25 ? `<b>halb ${n}</b> ist ${h}:30 Uhr. <b>Fünf Minuten davor</b> ist es ${h}:25 Uhr.`
+              : m===35 ? `<b>halb ${n}</b> ist ${h}:30 Uhr. <b>Fünf Minuten danach</b> ist es ${h}:35 Uhr.`
+              : m<30   ? `Seit ${h} Uhr sind <b>${m} Minuten</b> vergangen – also ${m} Minuten <b>nach</b> ${h}.`
+                       : `Bis ${n} Uhr <b>fehlen noch ${60-m} Minuten</b> – also ${60-m} Minuten <b>vor</b> ${n}.`;
+    const ende=`Richtig ist <b>${alltag(h,m)}</b> – das ist ${h}:${zz(m)} Uhr.`;
+    if(gewaehlt.art==="vertauscht") return `Du hast die Zeiger vertauscht. Der <b style="color:#93c5fd">kurze blaue</b> Zeiger zeigt die Stunde, der <b style="color:#fca5a5">lange rote</b> die Minuten. ${ende}`;
+    if(gewaehlt.art==="vornach")    return `„<b>nach</b>“ heißt: so viele Minuten sind schon vorbei. „<b>vor</b>“ heißt: so viele Minuten fehlen noch. ${weg} ${ende}`;
+    if(gewaehlt.art==="halb")       return `Achte auf die Stunde: Der kurze Zeiger steht zwischen ${h} und ${n}. ${weg} ${ende}`;
+    return `${weg} ${ende}`;
+  }
   const richtig=`Richtig ist <b>${wort(st,h,m)}</b>${st.art==="wort" && !st.nurStunde ? ` – das ist ${h}:${zz(m)} Uhr`:""}.`;
   if(gewaehlt.art==="vertauscht") return `Du hast die Zeiger vertauscht. Der <b style="color:#93c5fd">kurze blaue</b> Zeiger zeigt die <b>Stunde</b>, der <b style="color:#fca5a5">lange rote</b> die <b>Minuten</b>. ${richtig}`;
   if(gewaehlt.art==="halb")       return `„halb ${n}“ heißt: Die Stunde bis ${n} ist erst <b>halb</b> vorbei. Der kurze Zeiger steht deshalb <b>zwischen ${h} und ${n}</b>. ${richtig}`;
@@ -580,8 +606,8 @@ function meineZeiten(){
   return {offen, faellig};
 }
 function zeigeMenue(){
-  const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
-  $("stufen").innerHTML=STUFEN.map(s=>{
+  const dran=STUFEN.slice().sort((a,b)=>a.id-b.id).find(s=>!stufenStand(s.id).bestanden);
+  $("stufen").innerHTML=STUFEN.slice().sort((a,b)=>a.id-b.id).map(s=>{
     const z=stufenStand(s.id);
     const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
     return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}">
