@@ -7,6 +7,7 @@
 <script src="anmeldung.js"></script>
 <script src="wiederholung.js"></script>
 <script src="sterne.js"></script>
+<script src="hilfe.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -713,6 +714,8 @@ function submit(timeout){
   }
   if(mode==="test") $("livescore").textContent=`Punkte: ${score}`;
   idx++;
+  // Im Trainingsraum nach einem Fehler: anschauliche Hilfe zeigen und auf „Weiter“ warten (hilfe.js)
+  if(!isCorrect && mode!=="test" && window.Hilfe && Hilfe.zeige("mal", a, b, nextQuestion)) return;
   setTimeout(nextQuestion, mode==="test" ? 1100 : 900);
 }
 
