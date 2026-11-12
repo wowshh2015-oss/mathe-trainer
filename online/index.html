@@ -149,6 +149,7 @@
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t6 wide" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Marathon</div><div class="d">Klettere Etage für Etage – 10 Aufgaben pro Stockwerk</div></a>
     <a class="tile t8 wide" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechenwege</div><div class="d">Halbschriftlich plus und minus · schrittweise &amp; stellenweise</div></a>
+    <a class="tile t2 wide" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer</div><div class="d">Die Uhr mit Zeigern lesen und stellen · halb · Viertel · Minuten</div></a>
     <a class="tile t5 wide" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">Zahlen zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
@@ -227,7 +228,8 @@ const SEITEN={
   zerlegen:       {datei:"zerlegen-trainer.html",        ic:"🧩", name:"Zerlegen"},
   halbschriftlich:{datei:"halbschriftlich-trainer.html", ic:"🪜", name:"Rechenwege"},
   marathon:       {datei:"marathon-trainer.html",        ic:"🏢", name:"Rechen-Marathon"},
-  rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"}
+  rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"},
+  uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"}
 };
 let hdb=null, halloTimer=null, halloFuer="";
 function hTs(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }

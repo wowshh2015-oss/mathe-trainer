@@ -296,7 +296,8 @@ const APPS={
   einsdurcheins:{label:"Einsdurcheins", ic:"➗"},
   plus:         {label:"Plus",          ic:"➕"},
   minus:        {label:"Minus",         ic:"➖"},
-  zerlegen:     {label:"Zerlegen",      ic:"🧩"}
+  zerlegen:     {label:"Zerlegen",      ic:"🧩"},
+  uhr:          {label:"Uhr",           ic:"🕒"}
 };
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -317,6 +318,7 @@ function uebungLabel(e){
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
+  if(e.app==="uhr") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";

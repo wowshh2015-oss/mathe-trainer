@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Uhr-Trainer">
+<title>Uhr-Trainer</title>
+<script src="anmeldung.js"></script>
+<script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
+<script src="sterne.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#a78bfa; --accent2:#7c3aed; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24;
+    --stunde:#3b82f6; --minute:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1f55 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}   /* oben Platz für die Bedienleiste */
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    padding:13px 18px;color:#1a103d;background:linear-gradient(180deg,#c4b5fd,var(--accent));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:14.5px;padding:9px 13px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .backbtn:hover{color:var(--text)}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14.5px;color:var(--muted);line-height:1.5}
+  .info b{color:var(--text)}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+  h3{font-size:16px;margin:18px 0 8px}
+
+  /* ===== Menü ===== */
+  .entdecken{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(167,139,250,.06));
+    border:2px solid rgba(167,139,250,.55);color:var(--text);padding:14px 16px;border-radius:16px;font-weight:600}
+  .entdecken .ic{font-size:38px;line-height:1}
+  .entdecken b{display:block;font-size:18px}
+  .entdecken span{font-size:13.5px;color:#ddd6fe}
+  .stufe{display:flex;align-items:center;gap:12px;background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .stufe.fertig{border-color:rgba(34,197,94,.55)}
+  .stufe.dran{border-color:var(--accent);box-shadow:0 0 0 2px rgba(167,139,250,.25)}
+  .stufe .nr{flex:none;width:34px;height:34px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .stufe.fertig .nr{background:var(--good);color:#04220f}
+  .stufe .tx{flex:1;min-width:0}
+  .stufe .tx b{display:block;font-size:15.5px}
+  .stufe .tx span{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .stufe .kn{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+  /* ===== Uhr ===== */
+  .uhr{display:block;width:100%;height:auto;touch-action:none;-webkit-user-select:none;user-select:none}
+  .uhrGross{max-width:320px;margin:0 auto}
+  .uhrGross.zieh .uhr{cursor:grab}
+  .zeitGross{text-align:center;font-size:44px;font-weight:800;line-height:1.1;margin-top:8px;font-variant-numeric:tabular-nums}
+  .zeitSatz{text-align:center;font-size:19px;color:#ddd6fe;font-weight:700;margin-top:2px;min-height:26px}
+  .reihe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  .legende{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:10px}
+  .legende i{display:inline-block;width:22px;height:6px;border-radius:3px;vertical-align:middle;margin-right:5px}
+
+  /* ===== Aufgabe ===== */
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .pille{display:inline-block;background:rgba(167,139,250,.16);color:#ddd6fe;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .frage{text-align:center;font-size:21px;font-weight:800;margin:6px 0 12px;line-height:1.35}
+  .frage .ziel{color:var(--gold)}
+  .lautKn{font-size:20px;padding:6px 11px;margin-left:6px;vertical-align:middle;background:#0b1220;color:var(--text);border:2px solid var(--card2)}
+  .wahl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .wahl button{background:#0b1220;color:var(--text);border:2px solid var(--card2);font-size:19px;padding:15px 8px}
+  .wahl button:hover{border-color:var(--accent)}
+  .wahl button.richtig{border-color:var(--good);background:rgba(34,197,94,.16)}
+  .wahl button.falsch{border-color:var(--bad);background:rgba(239,68,68,.14)}
+  .wahl.uhren button{padding:8px}
+  .rueck{min-height:26px;text-align:center;font-size:17px;font-weight:700;margin-top:12px;line-height:1.4}
+  .erkl{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;margin-top:12px;text-align:center}
+  .erkl .t{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .erkl .paar{display:flex;gap:14px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+  .erkl .paar > div{width:170px;font-size:13px;color:var(--muted);font-weight:700}
+  .erkl p{font-size:16px;line-height:1.5;margin:10px 0 0;color:#e2e8f0}
+  .erkl p b{color:#fff}
+  .zeitbalken{height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);overflow:hidden;margin-bottom:10px}
+  .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+  .fortschritt{display:flex;gap:4px;margin-bottom:12px}
+  .fortschritt i{flex:1;height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .fortschritt i.nein{background:var(--bad);border-color:var(--bad)}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .prozent{font-size:54px;font-weight:800;text-align:center;line-height:1}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  @media (max-width:430px){ body{padding:60px 14px 14px} .wahl button{font-size:16.5px} .zeitGross{font-size:36px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🕒 Uhr-Trainer</h1>
+  <p class="sub">Die Uhr mit Zeigern verstehen – Schritt für Schritt.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div id="menue" class="hide" style="margin-top:18px">
+      <button class="entdecken" id="entdeckenBtn"><span class="ic">🔍</span><span><b>Die Uhr entdecken</b>
+        <span>Dreh am großen Zeiger und schau, was der kleine macht.</span></span></button>
+      <h3>Lernen und üben</h3>
+      <div id="stufen"></div>
+      <div class="stufe" id="meineZeile">
+        <span class="nr">🧠</span>
+        <span class="tx"><b>Meine Aufgaben</b><span id="meineText">Uhrzeiten, die noch nicht sicher sitzen</span></span>
+        <span class="kn"><button class="klein" id="meineBtn">Üben</button></span>
+      </div>
+      <div class="info" style="margin-top:12px">
+        <b style="color:#93c5fd">Der kurze blaue Zeiger</b> zeigt die <b>Stunde</b>.
+        <b style="color:#fca5a5">Der lange rote Zeiger</b> zeigt die <b>Minuten</b> – bei ihm zählt jede Zahl 5 Minuten.</div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <!-- ===== ENTDECKEN ===== -->
+  <div id="entdecken" class="card hide">
+    <button class="backbtn" data-zurueck="1">← Zurück</button>
+    <div class="frage" style="font-size:18px">Zieh den <span style="color:#fca5a5">langen roten Zeiger</span> im Kreis.<br>Was macht der <span style="color:#93c5fd">kurze blaue</span>?</div>
+    <div class="uhrGross zieh" id="entUhr"></div>
+    <div class="zeitGross" id="entZeit">3:00</div>
+    <div class="zeitSatz" id="entSatz"></div>
+    <div class="reihe">
+      <button class="ghost klein" id="entMinus">− 1 Stunde</button>
+      <button class="ghost klein" id="entLaut">🔈 Vorsprechen</button>
+      <button class="ghost klein" id="entPlus">+ 1 Stunde</button>
+    </div>
+    <div class="reihe"><button class="ghost klein" id="entRinge">Hilfe-Ringe ausblenden</button></div>
+    <div class="info" style="margin-top:14px">💡 Wenn der lange Zeiger <b>eine ganze Runde</b> dreht, ist <b>eine Stunde</b> vorbei –
+      und der kurze Zeiger ist genau <b>eine Zahl weiter</b> gewandert. Steht der lange Zeiger unten auf der 6, ist die Stunde <b>halb</b> vorbei:
+      Der kurze steht dann genau <b>zwischen zwei Zahlen</b>.</div>
+  </div>
+
+  <!-- ===== AUFGABE ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf"><span class="pille" id="spielTitel"></span>
+      <span><button class="ghost klein" id="ringeBtn">Hilfe-Ringe</button> <button class="ghost klein" id="abbruchBtn">✕ Aufhören</button></span></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
+    <div class="frage" id="frage"></div>
+    <div id="buehne"></div>
+    <div class="rueck" id="rueck"></div>
+    <div id="erkl"></div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div class="prozent" id="ergProzent"></div>
+    <div class="info" id="ergText" style="margin-top:14px"></div>
+    <div class="btnrow"><button id="nochmalBtn">Noch einmal ▶</button><button class="ghost" id="zumMenue">Zur Übersicht</button></div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+//// ===== Verbindung =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="uhr", PRO_RUNDE=10, BESTANDEN=90, TEST_SEK=20;
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const zz=m=>String(m).padStart(2,"0");
+
+let db=null, playerName="", MEINE=[];
+
+//// ===== Die Stufen =====
+// art: "wort"  = Antwort in Worten („halb 4"), "digital" = Antwort als 3:30 Uhr
+// snap: so fein lässt sich der große Zeiger beim Stellen drehen
+const STUFEN=[
+  {id:1, name:"Nur der kleine Zeiger",        kurz:"Was verrät der Stundenzeiger ganz allein?", min:[0,10,30,50], art:"wort", nurStunde:true, snap:10, typen:["lesen","lesen","wahl"]},
+  {id:2, name:"Volle und halbe Stunden",      kurz:"3 Uhr · halb 4",                             min:[0,30],       art:"wort", snap:30, typen:["lesen","stellen","wahl"]},
+  {id:3, name:"Viertel nach und Viertel vor", kurz:"Viertel nach 3 · Viertel vor 4",             min:[15,45,15,45,0,30], art:"wort", snap:15, typen:["lesen","stellen","wahl"]},
+  {id:4, name:"In Fünf-Minuten-Schritten",    kurz:"3:20 Uhr · 3:55 Uhr",                        min:[5,10,20,25,35,40,50,55,15,45], art:"digital", snap:5, typen:["lesen","stellen","wahl"]},
+  {id:5, name:"Auf die Minute genau",         kurz:"3:47 Uhr",                                   min:null,         art:"digital", snap:1, typen:["lesen","stellen","lesen","wahl"]}
+];
+const stufe=id=>STUFEN.find(s=>s.id===id);
+const nach=h=>h%12+1;                                   // die nächste Stunde auf dem Zifferblatt
+
+//// ===== So sagt man die Uhrzeit =====
+function wort(st,h,m){
+  if(st.nurStunde) return m===0 ? `genau ${h} Uhr` : m===10 ? `kurz nach ${h} Uhr` : m===30 ? `halb ${nach(h)}` : `kurz vor ${nach(h)} Uhr`;
+  if(st.art==="digital") return `${h}:${zz(m)} Uhr`;
+  return m===0 ? `${h} Uhr` : m===15 ? `Viertel nach ${h}` : m===30 ? `halb ${nach(h)}` : m===45 ? `Viertel vor ${nach(h)}` : `${h}:${zz(m)} Uhr`;
+}
+// wie man im Alltag spricht (für „Die Uhr entdecken" und zum Vorsprechen)
+function alltag(h,m){
+  const n=nach(h);
+  return {0:`${h} Uhr`,5:`fünf nach ${h}`,10:`zehn nach ${h}`,15:`Viertel nach ${h}`,20:`zwanzig nach ${h}`,25:`fünf vor halb ${n}`,30:`halb ${n}`,
+          35:`fünf nach halb ${n}`,40:`zwanzig vor ${n}`,45:`Viertel vor ${n}`,50:`zehn vor ${n}`,55:`fünf vor ${n}`}[m] || "";
+}
+function sprechtext(st,h,m){
+  if(st.art==="digital") return m===0 ? `Es ist ${h} Uhr.` : `Es ist ${h} Uhr ${m}.`;
+  return `Es ist ${wort(st,h,m)}.`;
+}
+function sprich(text){
+  if(!("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; u.rate=0.88;
+       const v=speechSynthesis.getVoices().find(x=>/^de/i.test(x.lang)); if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
+}
+function tonAn(){ try{ return localStorage.getItem("mathe_ton")==="an"; }catch(e){ return false; } }
+
+//// ===== Die Uhr zeichnen =====
+// o: {ringe, nurStunde}
+function uhrSVG(h,m,o){
+  o=o||{};
+  const C=130, pol=(grad,r)=>{ const a=(grad-90)*Math.PI/180; return [(C+r*Math.cos(a)).toFixed(1),(C+r*Math.sin(a)).toFixed(1)]; };
+  let s=`<circle cx="${C}" cy="${C}" r="98" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/>`;
+  if(o.ringe && !o.nurStunde){
+    s+=`<circle cx="${C}" cy="${C}" r="114" fill="none" stroke="rgba(239,68,68,.28)" stroke-width="22"/>`;
+    for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,114); s+=`<text x="${x}" y="${(+y+4.5).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fecaca">${i*5}</text>`; }
+  }
+  for(let i=0;i<60;i++){ const f=i%5===0, [x1,y1]=pol(i*6,f?86:91), [x2,y2]=pol(i*6,96);
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${f?"#334155":"#94a3b8"}" stroke-width="${f?3:1.2}" stroke-linecap="round"/>`; }
+  for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,71);
+    s+=`<text x="${x}" y="${(+y+7).toFixed(1)}" text-anchor="middle" font-size="20" font-weight="800" fill="${o.ringe?"#1d4ed8":"#0f172a"}">${i}</text>`; }
+  const [hx,hy]=pol((h%12+m/60)*30,50), [mx,my]=pol(m*6,82);
+  s+=`<line x1="${C}" y1="${C}" x2="${hx}" y2="${hy}" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>`;
+  if(!o.nurStunde) s+=`<line x1="${C}" y1="${C}" x2="${mx}" y2="${my}" stroke="#dc2626" stroke-width="5.5" stroke-linecap="round"/>`;
+  s+=`<circle cx="${C}" cy="${C}" r="7" fill="#0f172a"/>`;
+  return `<svg class="uhr" viewBox="0 0 260 260" role="img" aria-label="Uhr">${s}</svg>`;
+}
+// Uhr, an der man den großen Zeiger drehen kann. T = Minuten seit 12:00 (0 … 719)
+function stellUhr(box, T, snap, opts, beiAenderung){
+  const zustand={T, opts:Object.assign({},opts)};
+  const zeichne=()=>{ const h=Math.floor(zustand.T/60)||12, m=zustand.T%60; box.innerHTML=uhrSVG(h,m,zustand.opts); if(beiAenderung) beiAenderung(zustand.T); };
+  const setze=ev=>{
+    const r=box.getBoundingClientRect(), x=ev.clientX-(r.left+r.width/2), y=ev.clientY-(r.top+r.height/2);
+    let grad=Math.atan2(x,-y)*180/Math.PI; if(grad<0) grad+=360;
+    const mNeu=(Math.round(grad/6/snap)*snap)%60;
+    let d=mNeu-(zustand.T%60); if(d>30) d-=60; if(d<=-30) d+=60;      // immer den kürzeren Weg; über die 12 hinweg läuft die Stunde mit
+    if(d){ zustand.T=((zustand.T+d)%720+720)%720; zeichne(); }
+  };
+  let zieht=false;
+  box.onpointerdown=ev=>{ zieht=true; try{ box.setPointerCapture(ev.pointerId); }catch(e){} setze(ev); ev.preventDefault(); };
+  box.onpointermove=ev=>{ if(zieht) setze(ev); };
+  box.onpointerup=box.onpointercancel=()=>{ zieht=false; };
+  zustand.plus=min=>{ zustand.T=((zustand.T+min)%720+720)%720; zeichne(); };
+  zustand.zeichne=zeichne;
+  zeichne();
+  return zustand;
+}
+
+//// ===== Aufgaben bauen =====
+function zeitFuer(st){
+  const h=rnd(1,12), m = st.min ? st.min[rnd(0,st.min.length-1)] : rnd(1,59);
+  return [h,m];
+}
+const schluessel=(st,h,m)=>`${st.id}|${h}:${zz(m)}`;
+// Falsche Antworten, die zu typischen Denkfehlern gehören. Aus der gewählten Antwort liest das Programm den Fehler ab.
+function ablenker(st,h,m){
+  const erlaubt = st.min ? new Set(st.min) : null, liste=[], drin=new Set([h+":"+m]);
+  const nimm=(hh,mm,art)=>{ hh=((hh-1)%12+12)%12+1; mm=((mm%60)+60)%60;
+    if(erlaubt && !erlaubt.has(mm)) return; const k=hh+":"+mm; if(drin.has(k)) return; drin.add(k); liste.push({h:hh,m:mm,art}); };
+  if(!st.nurStunde && m%5===0) nimm((m/5)||12, (h%12)*5, "vertauscht");               // Zeiger verwechselt
+  if(st.art==="wort" && m===30) nimm(h-1, 30, "halb");                                 // „halb 3" statt „halb 4"
+  nimm(h+1, m, "stunde"); nimm(h-1, m, "stunde");                                      // Stunde um eins daneben
+  if(st.art==="digital" && m%5===0 && m>=5) nimm(h, m/5, "ziffer");                    // die Zahl am großen Zeiger als Minuten gelesen
+  const andere = st.min ? mische([...new Set(st.min)]) : [m+5,m-5,m+10,m+30,m-15];
+  andere.forEach(mm=>nimm(h, mm, "minute"));
+  nimm(h+2, m, "stunde"); nimm(h+6, m, "stunde");
+  const vorn=liste.filter(x=>x.art!=="minute" && x.art!=="stunde"), rest=mische(liste.filter(x=>x.art==="minute" || x.art==="stunde"));
+  return vorn.concat(rest).slice(0,3);
+}
+function baueAufgaben(st, zeiten){
+  const typen = st.typen;
+  const liste=[], gesehen=new Set();
+  let schutz=0;
+  while(liste.length<PRO_RUNDE && schutz++<400){
+    let h,m;
+    if(zeiten && zeiten.length){ [h,m]=zeiten.shift(); } else [h,m]=zeitFuer(st);
+    const k=h+":"+m; if(gesehen.has(k)) continue; gesehen.add(k);
+    let typ=typen[liste.length%typen.length];
+    liste.push({st, h, m, typ, key:schluessel(st,h,m)});
+  }
+  return mische(liste);
+}
+
+//// ===== Zustand einer Runde =====
+let runde=null;      // {st, modus:"Training"|"Test"|"mine", aufgaben, i, richtig, gestellt, fehler, antworten, verlauf, start}
+let ringe=true, timer=null, zeitRest=0, wartet=false, aktUhr=null;
+let lauf=0;         // zählt die Runden: ein verspäteter Zeitgeber aus einer alten Runde darf die neue nicht stören
+function spaeter(ms){ const meiner=lauf; setTimeout(()=>{ if(meiner===lauf && runde) naechste(); }, ms); }
+try{ ringe = localStorage.getItem("uhr_ringe")!=="aus"; }catch(e){}
+
+function zeige(id){ ["start","entdecken","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
+function mitRingen(){ return runde && runde.modus!=="Test" && ringe; }
+function zeichneFortschritt(){
+  $("fortschritt").innerHTML=runde.aufgaben.map((a,i)=>`<i class="${runde.verlauf[i]===true?"ok":runde.verlauf[i]===false?"nein":""}"></i>`).join("");
+}
+function starte(st, modus, zeiten){
+  lauf++;
+  runde={st, modus, aufgaben:baueAufgaben(st, zeiten), i:0, richtig:0, gestellt:[], fehler:[], antworten:[], verlauf:[], start:Date.now(), fehlerTexte:[]};
+  $("spielTitel").textContent = (modus==="Test"?"Test":modus==="mine"?"Meine Aufgaben":"Üben")+" · "+st.name;
+  $("ringeBtn").classList.toggle("hide", modus==="Test" || !!st.nurStunde);
+  zeige("spiel"); naechste();
+}
+function naechste(){
+  if(runde.i>=runde.aufgaben.length){ fertig(); return; }
+  wartet=false;
+  const a=runde.aufgaben[runde.i], st=a.st, o={ringe:mitRingen(), nurStunde:st.nurStunde};
+  $("ringeBtn").textContent = ringe ? "Hilfe-Ringe aus" : "Hilfe-Ringe an";
+  $("rueck").textContent=""; $("erkl").innerHTML="";
+  zeichneFortschritt();
+  runde.gestellt.push(a.key);
+  const ziel=wort(st,a.h,a.m), laut=`<button class="lautKn" id="lautBtn" title="Vorsprechen" aria-label="Vorsprechen">🔈</button>`;
+  if(a.typ==="lesen"){
+    $("frage").innerHTML = st.nurStunde ? "Wie spät ist es ungefähr?" : "Wie spät ist es?";
+    const opt=mische([{h:a.h,m:a.m,art:"ok"}].concat(ablenker(st,a.h,a.m)));
+    $("buehne").innerHTML=`<div class="uhrGross">${uhrSVG(a.h,a.m,o)}</div>
+      <div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${wort(st,x.h,x.m)}</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+      const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt);
+    }));
+  }else if(a.typ==="wahl"){
+    $("frage").innerHTML=`Welche Uhr zeigt <span class="ziel">${ziel}</span>?${"speechSynthesis" in window?laut:""}`;
+    const opt=mische([{h:a.h,m:a.m,art:"ok"}].concat(ablenker(st,a.h,a.m)));
+    $("buehne").innerHTML=`<div class="wahl uhren">${opt.map((x,i)=>`<button data-i="${i}">${uhrSVG(x.h,x.m,{nurStunde:st.nurStunde})}</button>`).join("")}</div>`;
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+      const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt);
+    }));
+    if(tonAn()) sprich(sprechtext(st,a.h,a.m));
+  }else{   // stellen
+    $("frage").innerHTML=`Stelle die Uhr auf <span class="ziel">${ziel}</span>.${"speechSynthesis" in window?laut:""}`;
+    let T0; do{ T0=(rnd(1,12)%12)*60 + (st.min?st.min[rnd(0,st.min.length-1)]:rnd(0,11)*5); }while(T0===(a.h%12)*60+a.m);
+    $("buehne").innerHTML=`<div class="uhrGross zieh" id="stellBox"></div>
+      <div class="reihe"><button class="ghost klein" id="stMinus">− 1 Stunde</button><button id="stFertig">Fertig ✓</button><button class="ghost klein" id="stPlus">+ 1 Stunde</button></div>
+      <div class="legende"><span>Dreh den <b style="color:#fca5a5">langen roten Zeiger</b> mit dem Finger.</span></div>`;
+    aktUhr=stellUhr($("stellBox"), T0, st.snap, o);
+    $("stMinus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(-60); });
+    $("stPlus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(60); });
+    $("stFertig").addEventListener("click",()=>{
+      const T=aktUhr.T, h=Math.floor(T/60)||12, m=T%60, ok = T===(a.h%12)*60+a.m;
+      let art="minute";
+      if(!ok){ if(m%5===0 && ((m/5)||12)===a.h && (h%12)*5===a.m) art="vertauscht"; else if(m===a.m) art=(st.art==="wort"&&m===30&&h===nach(a.h))?"halb":"stunde"; }
+      pruefe(ok, {h,m,art:ok?"ok":art}, null, null);
+    });
+  }
+  const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(sprechtext(st,a.h,a.m)));
+  starteZeit();
+}
+// Erklärung passend zum Denkfehler
+function erklaerung(a, gewaehlt){
+  const st=a.st, h=a.h, m=a.m, n=nach(h), zahl=(m/5)||12;
+  const richtig=`Richtig ist <b>${wort(st,h,m)}</b>${st.art==="wort" && !st.nurStunde ? ` – das ist ${h}:${zz(m)} Uhr`:""}.`;
+  if(gewaehlt.art==="vertauscht") return `Du hast die Zeiger vertauscht. Der <b style="color:#93c5fd">kurze blaue</b> Zeiger zeigt die <b>Stunde</b>, der <b style="color:#fca5a5">lange rote</b> die <b>Minuten</b>. ${richtig}`;
+  if(gewaehlt.art==="halb")       return `„halb ${n}“ heißt: Die Stunde bis ${n} ist erst <b>halb</b> vorbei. Der kurze Zeiger steht deshalb <b>zwischen ${h} und ${n}</b>. ${richtig}`;
+  if(gewaehlt.art==="ziffer")     return `Beim langen Zeiger zählt jede Zahl <b>5 Minuten</b>. Er zeigt auf die ${zahl} – das sind ${zahl} × 5 = <b>${m} Minuten</b>. ${richtig}`;
+  if(gewaehlt.art==="stunde"){
+    if(st.nurStunde) return `Schau, wo der kurze Zeiger steht: ${m===0?`genau auf der ${h}`:m===30?`genau in der Mitte zwischen ${h} und ${n}`:m===10?`ein kleines Stück hinter der ${h}`:`kurz vor der ${n}`}. ${richtig}`;
+    return m===0 ? `Der kurze Zeiger steht genau auf der <b>${h}</b>. ${richtig}`
+                 : `Der kurze Zeiger ist an der <b>${h}</b> schon vorbei, aber noch nicht bei der ${n} angekommen – es ist also noch die Stunde <b>${h}</b>. ${richtig}`;
+  }
+  if(st.nurStunde) return `Schau genau, wie weit der kurze Zeiger schon gewandert ist. ${richtig}`;
+  return `Schau auf den <b style="color:#fca5a5">langen roten</b> Zeiger: Er zeigt auf die ${m%5===0?zahl:"Stelle für "+m+" Minuten"}${m%5===0?` – das sind <b>${m===0?"0":m} Minuten</b>`:""}. ${richtig}`;
+}
+function pruefe(ok, gewaehlt, knopf, opt){
+  if(wartet) return; wartet=true; stoppZeit();
+  const a=runde.aufgaben[runde.i], st=a.st;
+  runde.verlauf[runde.i]=ok;
+  $("buehne").querySelectorAll(".wahl button").forEach((b,i)=>{ b.disabled=true; if(opt && opt[i].art==="ok") b.classList.add("richtig"); });
+  if(knopf && !ok) knopf.classList.add("falsch");
+  const r=$("rueck");
+  if(ok){
+    runde.richtig++;
+    r.style.color="var(--good)"; r.textContent="Richtig! 👍";
+    zeichneFortschritt(); runde.i++;
+    spaeter(950);
+    return;
+  }
+  runde.fehler.push(a.key);
+  // Format wie in den anderen Trainern (Aufgabe|richtig|gegeben) plus die erkannte Fehlerart – für die Klassenübersicht
+  runde.antworten.push(`Uhr ${a.h}:${zz(a.m)}|${wort(st,a.h,a.m)}|${gewaehlt.zeit?"zeit":wort(st,gewaehlt.h,gewaehlt.m)}|${gewaehlt.art}`);
+  runde.fehlerTexte.push(wort(st,a.h,a.m));
+  r.style.color="var(--bad)"; r.textContent = gewaehlt.zeit ? "Die Zeit ist um." : "Das stimmt noch nicht.";
+  zeichneFortschritt(); runde.i++;
+  if(runde.modus==="Test"){ spaeter(1500); return; }
+  // Im Trainingsraum: zeigen, wie man es sieht – das Kind tippt selbst auf „Weiter"
+  const paar = (a.typ==="stellen" && !gewaehlt.zeit)
+    ? `<div class="paar"><div>Deine Uhr${uhrSVG(gewaehlt.h,gewaehlt.m,{ringe:true,nurStunde:st.nurStunde})}</div><div>So ist es richtig${uhrSVG(a.h,a.m,{ringe:true,nurStunde:st.nurStunde})}</div></div>`
+    : `<div class="paar"><div>${uhrSVG(a.h,a.m,{ringe:true,nurStunde:st.nurStunde})}</div></div>`;
+  $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So kannst du es sehen</div>${paar}
+    <p>${gewaehlt.zeit ? `Richtig ist <b>${wort(st,a.h,a.m)}</b>.` : erklaerung(a, gewaehlt)}</p>
+    <div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+  $("weiterBtn").addEventListener("click", naechste);
+  setTimeout(()=>{ try{ $("weiterBtn").focus({preventScroll:true}); $("erkl").scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} }, 300);
+}
+function starteZeit(){
+  stoppZeit();
+  const test = runde && runde.modus==="Test";
+  $("zeitbalken").classList.toggle("hide", !test);
+  if(!test) return;
+  zeitRest=TEST_SEK; $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{
+    zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/TEST_SEK*100)+"%";
+    if(zeitRest<=0){ stoppZeit(); pruefe(false, {zeit:true, art:"zeit"}, null, null); }
+  },250);
+}
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+$("ringeBtn").addEventListener("click", ()=>{
+  ringe=!ringe; try{ localStorage.setItem("uhr_ringe", ringe?"an":"aus"); }catch(e){}
+  $("ringeBtn").textContent = ringe ? "Hilfe-Ringe aus" : "Hilfe-Ringe an";
+  if(!runde || wartet) return;
+  const a=runde.aufgaben[runde.i], g=$("buehne").querySelector(".uhrGross");
+  if(aktUhr && $("stellBox")){ aktUhr.opts.ringe=ringe; aktUhr.zeichne(); }
+  else if(g && a) g.innerHTML=uhrSVG(a.h,a.m,{ringe:ringe,nurStunde:a.st.nurStunde});
+});
+$("abbruchBtn").addEventListener("click", ()=>{ lauf++; runde=null; zeige("start"); zeigeMenue(); });
+
+//// ===== Runde fertig =====
+function fertig(){
+  stoppZeit();
+  const n=runde.aufgaben.length, proz=Math.round(runde.richtig/n*100), test=runde.modus==="Test", bestanden=test && proz>=BESTANDEN;
+  zeige("ergebnis");
+  $("ergProzent").textContent=proz+" %";
+  $("ergTitel").textContent = test ? (bestanden?"✅ Test bestanden!":"💪 Noch nicht ganz") : proz===100?"🌟 Perfekt!":proz>=90?"🎉 Super!":proz>=70?"👍 Gut gemacht!":"💪 Weiter üben";
+  const fehler=[...new Set(runde.fehlerTexte)];
+  $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> richtig – ${esc(runde.st.name)}.`+
+    (test ? `<br>${bestanden?"Diese Stufe sitzt. Probier die nächste!":`Bestanden ist der Test ab ${BESTANDEN} %. Üb die Stufe noch einmal in Ruhe.`}` : "")+
+    (fehler.length?`<br><br><b>Das üben wir noch:</b> ${fehler.map(esc).join(" · ")}`:"");
+  $("nochmalBtn").onclick=()=>{ const r=letzte; starte(r.st, r.modus==="mine"?"Training":r.modus); };
+  speichere(proz, bestanden);
+  if(bestanden || (!test && proz>=90)) konfetti();
+}
+let letzte=null;
+function speichere(proz, bestanden){
+  letzte=runde;
+  const d=new Date(), p=x=>String(x).padStart(2,"0"), r=runde, mine=r.modus==="mine";
+  const eintrag={ key:KEY, app:APP, name:playerName,
+    datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`,
+    modus: r.modus==="Test" ? "Test" : "Training", reihe: mine ? "mine" : "s"+r.st.id, zr:r.st.id,
+    stufe: r.modus==="Test" ? "Mittel" : (mine ? "eigene Fehler" : r.st.name), stufeName: mine ? "Meine Aufgaben" : r.st.name,
+    richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz,
+    bestanden: r.modus==="Test" ? (bestanden?"Ja":"Nein") : "–", dauer:Math.round((Date.now()-r.start)/1000),
+    gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
+  // Sterne sofort zeigen (sterne.js) und den Durchgang in die eigene Liste aufnehmen
+  try{
+    const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
+    const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nachher=Sterne.stand(MEINE);
+    if(emp && nachher.silber>vor.silber) Sterne.empfehlungErledigt();
+    Sterne.zeigeUnterschied(vor, nachher, playerName, false, true, emp && nachher.silber>vor.silber);
+  }catch(e){ if(MEINE[0]!==eintrag) MEINE.unshift(eintrag); }
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+$("zumMenue").addEventListener("click", ()=>{ zeige("start"); zeigeMenue(); });
+
+//// ===== Menü =====
+function stufenStand(id){
+  const r=MEINE.filter(e=>+e.zr===id && e.reihe!=="mine");
+  return { geuebt:r.filter(e=>e.modus==="Training").length, tests:r.filter(e=>e.modus==="Test").length,
+           bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja"),
+           besterTest:r.filter(e=>e.modus==="Test").reduce((m,e)=>Math.max(m,+e.prozent||0),0) };
+}
+// Uhrzeiten, die noch nicht sicher sitzen oder zur Wiederholung dran sind (wiederholung.js)
+function meineZeiten(){
+  const facts=new Set(); MEINE.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  const offen=[], faellig=[];
+  facts.forEach(k=>{ const s=Wdh.status(MEINE,k); if(s.offen) offen.push(k); else if(s.faellig) faellig.push(k); });
+  return {offen, faellig};
+}
+function zeigeMenue(){
+  const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
+  $("stufen").innerHTML=STUFEN.map(s=>{
+    const z=stufenStand(s.id);
+    const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
+    return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}">
+      <span class="nr">${z.bestanden?"✓":s.id}</span>
+      <span class="tx"><b>${s.name}</b><span>${info}</span></span>
+      <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}">Test</button></span></div>`;
+  }).join("");
+  $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
+  $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
+  const z=meineZeiten(), n=z.offen.length+z.faellig.length;
+  $("meineText").textContent = n ? `${z.offen.length ? z.offen.length+(z.offen.length===1?" Uhrzeit sitzt":" Uhrzeiten sitzen")+" noch nicht" : ""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`
+                                 : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";
+  $("meineBtn").disabled=!n;
+  $("menue").classList.remove("hide");
+}
+$("meineBtn").addEventListener("click", ()=>{
+  const z=meineZeiten(), keys=mische(z.offen).concat(mische(z.faellig)).slice(0,PRO_RUNDE);
+  if(!keys.length) return;
+  // die Aufgaben der schwächsten Stufe zuerst; aufgefüllt wird mit weiteren Zeiten derselben Stufe
+  const proStufe={}; keys.forEach(k=>{ const id=+k.split("|")[0]; (proStufe[id]=proStufe[id]||[]).push(k); });
+  const id=+Object.keys(proStufe).sort((a,b)=>proStufe[b].length-proStufe[a].length)[0], st=stufe(id)||STUFEN[1];
+  const zeiten=proStufe[id].map(k=>{ const t=k.split("|")[1].split(":"); return [+t[0],+t[1]]; });
+  starte(st, "mine", zeiten);
+});
+
+//// ===== Die Uhr entdecken =====
+let entUhr=null, entRinge=true;
+function zeigeEntdecken(){
+  zeige("entdecken");
+  entUhr=stellUhr($("entUhr"), 180, 5, {ringe:entRinge}, T=>{
+    const h=Math.floor(T/60)||12, m=T%60;
+    $("entZeit").textContent=`${h}:${zz(m)}`;
+    $("entSatz").textContent = alltag(h,m) ? `So sagt man: ${alltag(h,m)}` : "";
+  });
+}
+$("entdeckenBtn").addEventListener("click", zeigeEntdecken);
+$("entMinus").addEventListener("click", ()=>entUhr.plus(-60));
+$("entPlus").addEventListener("click", ()=>entUhr.plus(60));
+$("entLaut").addEventListener("click", ()=>{ const T=entUhr.T, h=Math.floor(T/60)||12, m=T%60; sprich(alltag(h,m) ? `Es ist ${alltag(h,m)}.` : `Es ist ${h} Uhr ${m}.`); });
+$("entRinge").addEventListener("click", ()=>{ entRinge=!entRinge; entUhr.opts.ringe=entRinge; entUhr.zeichne(); $("entRinge").textContent=entRinge?"Hilfe-Ringe ausblenden":"Hilfe-Ringe einblenden"; });
+document.querySelectorAll("[data-zurueck]").forEach(b=>b.addEventListener("click",()=>{ zeige("start"); zeigeMenue(); }));
+if(!("speechSynthesis" in window)) $("entLaut").classList.add("hide");
+
+//// ===== Laden =====
+function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
+function ladeMeine(){
+  if(!db || !playerName){ zeigeMenue(); return; }
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+    .then(s=>{
+      const lokal=MEINE.filter(e=>e._neu);
+      MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
+      MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
+      if(!$("start").classList.contains("hide")) zeigeMenue();
+    }).catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
+}
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
+})();
+addEventListener("pagehide", ()=>{ stoppZeit(); try{ speechSynthesis.cancel(); }catch(e){} });
+
+//// ===== Konfetti =====
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const col=["#a78bfa","#22c55e","#fbbf24","#ef4444","#38bdf8","#ec4899"], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const ende=Date.now()+2800;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.rot); x.fillStyle=p.c; x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); x.restore(); });
+    if(Date.now()<ende) requestAnimationFrame(f); else c.remove();
+  })();
+}
+</script>
+</body>
+</html>

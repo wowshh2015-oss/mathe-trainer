@@ -49,13 +49,20 @@ window.Wdh=(function(){
     zeichen: "Rechenzeichen verwechselt",
     nachbar: "Nachbaraufgabe (eine Reihe verrutscht)",
     dreher:  "Zahlendreher",
-    sonst:   "anderer Fehler"
+    sonst:   "anderer Fehler",
+    // Uhr-Trainer: die Fehlerart steht dort schon im Eintrag
+    uhr_vertauscht:"🕒 Zeiger vertauscht",
+    uhr_halb:      "🕒 „halb“ falsch verstanden (halb 4 = 3:30)",
+    uhr_stunde:    "🕒 Stunde um eins daneben",
+    uhr_ziffer:    "🕒 Zahl am großen Zeiger als Minuten gelesen",
+    uhr_minute:    "🕒 Minuten falsch abgelesen"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"
   function fehlerart(eintrag){
     const t=String(eintrag).split("|"), k=t[0], r=+t[1], g=t[2];
     if(g==="zeit") return "zeit";
+    if(t[3]) return ART["uhr_"+t[3]] ? "uhr_"+t[3] : "sonst";
     if(g==="leer" || g==="" || g===undefined) return "leer";
     const v=+g, m=k.match(/^(\d+)\s*([+\-−x×:÷])\s*(\d+)$/);
     let a=0,b=0,op="";
