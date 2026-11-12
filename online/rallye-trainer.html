@@ -9,6 +9,7 @@
 <title>Rechen-Rallye</title>
 <script src="anmeldung.js"></script>
 <script src="sterne.js"></script>
+<script src="hilfe.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -1180,13 +1181,17 @@ function boxenstopp(){
     <div class="t2">Merke: ${a?a.text+" = "+a.antwort:""}</div>
     <div class="t3">Weiter in <b id="boxSek">${BOX_SEK}</b> s – dann kommt genau diese Aufgabe noch einmal.</div>`;
   b.appendChild(ov);
-  let s=BOX_SEK;
+  // anschauliche Hilfe unter der Bahn (hilfe.js) – dann bleibt die Box etwas länger offen
+  let hilfe=null;
+  try{ const k=a ? Hilfe.kasten(a.key) : ""; if(k){ $("fortschritt").insertAdjacentHTML("afterend", k); hilfe=$("fortschritt").nextElementSibling; } }catch(e){}
+  let s = hilfe ? BOX_SEK+6 : BOX_SEK;
+  $("boxSek").textContent=s;
   const iv=setInterval(()=>{
     s--;
     const el=$("boxSek"); if(el) el.textContent=s;
     if(s<=0){
       clearInterval(iv);
-      ov.remove();
+      ov.remove(); if(hilfe) hilfe.remove();
       herzen=HERZEN; inBox=false;
       zeichneHerzen();
       naechstesHindernis(false);   // dasselbe Hindernis – jetzt kennt das Kind die Lösung

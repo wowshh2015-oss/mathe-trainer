@@ -12,7 +12,7 @@ window.Sterne=(function(){
   // Marathon je geschaffter Etage: bis 50 → 1, bis 150 → 2, darüber 3; Prüfungsetagen (jede 5.) +2
   function etagenSterne(et){ return (et<=50?1:et<=150?2:3) + (et%5===0?2:0); }
   const GOLD_STUFE={Leicht:1, Mittel:2, Schwer:3};
-  const BONUS_EMPFOHLEN=1.5;
+  const BONUS_EMPFOHLEN=1.5, GOLD_RUNDEN=50, GOLD_ETAGE=25;
   // Empfehlung merken: Wer auf der Startseite (oder an der Tankstelle) auf einen Vorschlag des Programms tippt,
   // bekommt für die nächste gültige Runde in diesem Bereich 50 % mehr Sterne. Der Durchgang trägt dann „empfohlen".
   function empfohlen(app){ try{ return sessionStorage.getItem("mathe_emp")===app; }catch(e){ return false; } }
@@ -74,6 +74,14 @@ window.Sterne=(function(){
     silber+=Math.floor(runden/W.proRunden);
     rows.filter(e=>e.app==="marathon" && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL)
         .forEach(e=>S(etagenSterne(+e.etage||1), tag(e)));
+    // Gold in den Spielen – auch dort wird viel gerechnet:
+    //   Rallye: je 50 Runden auf Bergpass, Rennstrecke oder Formel 1 ein goldener Stern
+    //   Marathon: jede 25. Etage (25, 50, 75 …) ein goldener Stern, je Etage nur einmal
+    const profi=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG_SPIEL && (+e.strecke||0)>=3).reduce((s,e)=>s+(+e.runden||0),0);
+    gold+=Math.floor(profi/GOLD_RUNDEN);
+    const goldEtagen=new Set();
+    rows.filter(e=>e.app==="marathon" && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL && (+e.etage||0)%GOLD_ETAGE===0)
+        .forEach(e=>{ if(!goldEtagen.has(+e.etage)){ goldEtagen.add(+e.etage); G(1, tag(e)); } });
     // Aufgaben, die alle Wiederholungen (2, 7, 21 Tage) geschafft haben
     let sicher=0;
     if(window.Wdh) LERN.forEach(a=>{ const r=rows.filter(e=>e.app===a); if(r.length) sicher+=Wdh.zaehle(r).sicher; });
@@ -181,7 +189,7 @@ window.Sterne=(function(){
         <div class="stGitter${glitzer?" stGlitzer":""}">${al.s.map((x,i)=>
             `<div class="stSt ${i<offen?"da":"zu"}${i<offen && i>=altOffen?" neu":""}"><span>${x}</span></div>`).join("")}</div>
         <p class="unter" style="margin:12px 0 0">${glitzer
-            ? "Goldene Sterne bekommst du für bestandene Tests und für Aufgaben, die nach allen Wiederholungen sicher sitzen."
+            ? "Goldene Sterne bekommst du für bestandene Tests, für Aufgaben, die nach allen Wiederholungen sicher sitzen, für je 50 Runden auf den schweren Rallye-Strecken und für jede 25. Etage im Marathon."
             : "Silberne Sterne bekommst du für jede Übungsrunde – und zwei extra für die erste Runde am Tag."}</p>
         <button class="stZu">Schließen</button></div>`;
       ov.querySelectorAll(".stTab").forEach(b=>b.addEventListener("click",()=>{ aktiv=+b.dataset.tab; try{ localStorage.setItem("sterne_album",String(aktiv)); }catch(e){} zeichne(); }));

@@ -151,5 +151,14 @@ window.Hilfe=(function(){
     setTimeout(()=>{ try{ knopf.focus({preventScroll:true}); }catch(e){} box.scrollIntoView({block:"nearest", behavior:"smooth"}); }, 350);   // Enter = Weiter
     return true;
   }
-  return {zeige, baue};
+  // Für die Spiele: Hilfe direkt aus dem Aufgaben-Schlüssel ("8+5", "13−5", "7×8", "56÷7", "17=9") als fertiger Kasten
+  function kasten(schluessel){
+    const m=String(schluessel).match(/^(\d+)\s*([+\-−×x÷:=])\s*(\d+)$/); if(!m) return "";
+    const art = m[2]==="+"?"plus": /[\-−]/.test(m[2])?"minus": /[×x]/.test(m[2])?"mal": /[÷:]/.test(m[2])?"geteilt":"zerlegen";
+    let h=null; try{ h=baue(art, +m[1], +m[3]); }catch(e){}
+    if(!h) return "";
+    stil();
+    return `<div class="hfBox"><div class="hfT">💡 So kannst du es sehen</div>${h.bild}<div class="hfTx">${h.text}</div></div>`;
+  }
+  return {zeige, baue, kasten};
 })();
