@@ -445,36 +445,57 @@ function zeigeHallo(rows, name){
   $("lwOeffnen").addEventListener("click", zeigeLernweg);
   Sterne.verbinde(box);
   lernwegVorbereiten(rows, name);
-  zeigeNeues(name);
+  zeigeNeues(name, rows);
 }
-//// ===== „Das ist neu": einmal je Kind und Gerät =====
-const NEU_STAND="2026-11";
-function zeigeNeues(name){
-  const k1="mathe_neu_"+name.toLowerCase(), k2="mathe_neu_uhr_"+name.toLowerCase();
-  let s1="", s2=""; try{ s1=localStorage.getItem(k1)||""; s2=localStorage.getItem(k2)||""; }catch(e){}
-  let html="";
-  if(s1!==NEU_STAND){
-    try{ localStorage.setItem(k1, NEU_STAND); if(UHR_OFFEN) localStorage.setItem(k2,"1"); }catch(e){}
-    const P=(ic,t,x)=>`<div class="neuP"><span class="ic">${ic}</span><span class="tx"><b>${t}</b>${x}</span></div>`;
-    html=`<h3>🎉 Das ist neu im Mathe-Trainer</h3><p class="unter">Hallo ${esc(name)}! In letzter Zeit ist viel dazugekommen:</p>`+
-      P("🐾","Dein Geheimtier","Dein Name ist jetzt geschützt. Beim Anmelden tippst du einfach auf dein Tier.")+
-      P("⭐","Sterne und Sticker-Album","Für jede Übungsrunde gibt es Sterne. Alle 10 Sterne öffnet sich ein neuer Sticker.")+
-      P("⛽","Der Tank","Rallye und Marathon brauchen jetzt Sprit. Den bekommst du fürs Lernen.")+
-      P("💡","Hilfe-Bilder","Nach einem Fehler zeigt dir das Programm, wie man die Aufgabe sehen kann.")+
-      P("🔁","Wiederholen","Was du gelernt hast, kommt nach ein paar Tagen noch einmal – dann bleibt es im Kopf.")+
-      P("🔊","Leiste oben rechts","Vorlesen, Ton, größere Schrift und eigene Zahlentasten.")+
-      (UHR_OFFEN
-        ? `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Ganz neu: der Uhr-Trainer!</b>Lerne die Uhr mit Zeigern – mit einer Uhr zum Drehen.</span></div>`
-        : `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Bald: der Uhr-Trainer!</b>In ein paar Tagen öffnet sich eine neue Kachel. Dort lernst du die Uhr mit Zeigern – mit einer Uhr zum Drehen. Sei gespannt! 🚧</span></div>`);
-  }else if(UHR_OFFEN && s2!=="1"){
-    try{ localStorage.setItem(k2,"1"); }catch(e){}
-    html=`<h3>🕒 Der Uhr-Trainer ist da!</h3><p class="unter">Hallo ${esc(name)}! Das Warten hat ein Ende.</p>
-      <div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Lerne die Uhr mit Zeigern</b>Dreh selbst an der Uhr, lies die Zeit ab und stell die Zeiger. Dafür gibt es Sterne und neue Sticker.</span></div>`;
+//// ===== „Das ist neu": jedes Kind sieht, was seit SEINEM letzten Besuch dazugekommen ist =====
+// Wer jeden Tag kommt, sieht nur einzelne Neuigkeiten. Wer eine Woche fehlte, sieht alles auf einmal – das macht Lust, öfter vorbeizuschauen.
+// Neue Einträge einfach unten anhängen (d = Tag der Veröffentlichung, JJJJ-MM-TT).
+const NEUES=[
+  {d:"2026-11-09", ic:"🏆", t:"Pokale und Profi-Garage in der Rallye", x:"Nach 180 Runden öffnet die Profi-Garage mit neuen Fahrzeugen. Für viele Runden gibt es Pokale."},
+  {d:"2026-11-11", ic:"🐾", t:"Dein Geheimtier",              x:"Dein Name ist jetzt geschützt. Beim Anmelden tippst du einfach auf dein Tier."},
+  {d:"2026-11-12", ic:"⭐", t:"Sterne und Sticker-Album",      x:"Für jede Übungsrunde gibt es Sterne. Alle 10 Sterne öffnet sich ein neuer Sticker."},
+  {d:"2026-11-12", ic:"⛽", t:"Der Tank",                      x:"Rallye und Marathon brauchen jetzt Sprit. Den bekommst du fürs Lernen."},
+  {d:"2026-11-12", ic:"💡", t:"Hilfe-Bilder",                  x:"Nach einem Fehler zeigt dir das Programm, wie man die Aufgabe sehen kann."},
+  {d:"2026-11-12", ic:"🔁", t:"Wiederholen",                   x:"Was du gelernt hast, kommt nach ein paar Tagen noch einmal – dann bleibt es im Kopf."},
+  {d:"2026-11-13", ic:"🔊", t:"Leiste oben rechts",            x:"Vorlesen, Ton, größere Schrift und eigene Zahlentasten."}
+];
+const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
+function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function isoVon(datum){ const [t,m,j]=String(datum||"").split("."); return j&&m&&t ? `${j}-${m}-${t}` : ""; }
+function zeigeNeues(name, rows){
+  const n=name.toLowerCase(), kBis="mathe_neu_bis_"+n, kAlt="mathe_neu_"+n, kUhr="mathe_neu_uhr_"+n, kBald="mathe_neu_bald_"+n, heute=isoHeute();
+  let bis="", alt="", uhrGesehen=false, baldGesehen=false;
+  try{ bis=localStorage.getItem(kBis)||""; alt=localStorage.getItem(kAlt)||""; uhrGesehen=localStorage.getItem(kUhr)==="1"; baldGesehen=localStorage.getItem(kBald)==="1"; }catch(e){}
+  // letzter Besuch vor heute (aus den gespeicherten Durchgängen – stimmt auf jedem Gerät)
+  const tage=[...new Set((rows||[]).map(e=>isoVon(e.datum)).filter(x=>x && x<heute))].sort();
+  const letzter=tage.length ? tage[tage.length-1] : "";
+  if(!bis){
+    if(alt==="2026-11"){ bis=NEU_FENSTER_SEIT; baldGesehen=true; }        // hat das erste Fenster schon gesehen
+    else if(!letzter) bis="0000-00-00";                                  // noch nie da gewesen: alles ist neu
+    else if(letzter>=NEU_FENSTER_SEIT) bis=letzter;                      // war schon da, seit es das Fenster gibt (z. B. an einem anderen Gerät)
+    else bis = letzter<"2026-11-10" ? letzter : "2026-11-10";            // die erste große Runde an Neuigkeiten hat noch niemand im Fenster gesehen
   }
-  if(!html) return;
+  const neue=NEUES.filter(x=>x.d>bis);
+  const uhrDa = UHR_OFFEN && !uhrGesehen, uhrBald = !UHR_OFFEN && !baldGesehen;
+  try{ localStorage.setItem(kBis, heute); if(UHR_OFFEN) localStorage.setItem(kUhr,"1"); else localStorage.setItem(kBald,"1"); }catch(e){}
+  if(!neue.length && !uhrDa && !uhrBald) return;
+  const her = letzter ? Math.round((new Date(heute)-new Date(letzter))/86400000) : null;
+  const P=x=>`<div class="neuP"><span class="ic">${x.ic}</span><span class="tx"><b>${x.t}</b>${x.x}</span></div>`;
+  let kopf, unter;
+  if(!neue.length && uhrDa){ kopf="🕒 Der Uhr-Trainer ist da!"; unter=`Hallo ${esc(name)}! Das Warten hat ein Ende.`; }
+  else if(!neue.length){ kopf="🕒 Bald gibt es etwas Neues!"; unter=`Hallo ${esc(name)}!`; }
+  else{
+    kopf = neue.length===1 ? "🎉 Es gibt etwas Neues!" : `🎉 ${neue.length} Neuigkeiten für dich!`;
+    unter = her===null ? `Hallo ${esc(name)}! Das ist alles neu im Mathe-Trainer:`
+          : her>=2    ? `Hallo ${esc(name)}! Du warst <b style="color:#fde68a">${her} Tage</b> nicht hier – seitdem ist ${neue.length===1?"das":"das alles"} dazugekommen:`
+                      : `Hallo ${esc(name)}! Seit deinem letzten Besuch ist ${neue.length===1?"das":"das alles"} dazugekommen:`;
+  }
+  const uhr = uhrDa ? `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>${neue.length?"Ganz neu: der Uhr-Trainer!":"Lerne die Uhr mit Zeigern"}</b>Dreh selbst an der Uhr, lies die Zeit ab und stell die Zeiger. Dafür gibt es Sterne und neue Sticker.</span></div>`
+            : uhrBald ? `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Bald: der Uhr-Trainer!</b>In ein paar Tagen öffnet sich eine neue Kachel. Dort lernst du die Uhr mit Zeigern – mit einer Uhr zum Drehen. Sei gespannt! 🚧</span></div>` : "";
+  const schluss = (neue.length>=3 && her!==null && her>=5) ? `<p class="unter" style="margin:12px 0 0">💡 Schau öfter vorbei – hier kommt immer wieder etwas Neues dazu!</p>` : "";
   document.querySelectorAll(".neuOv").forEach(o=>o.remove());
   const ov=document.createElement("div"); ov.className="neuOv";
-  ov.innerHTML=`<div class="neuBox">${html}<button id="neuZu">Alles klar! ▶</button></div>`;
+  ov.innerHTML=`<div class="neuBox"><h3>${kopf}</h3><p class="unter">${unter}</p>${neue.map(P).join("")}${uhr}${schluss}<button id="neuZu">Alles klar! ▶</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector("#neuZu").addEventListener("click", ()=>ov.remove());
 }
