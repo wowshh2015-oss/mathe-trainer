@@ -71,7 +71,8 @@ window.Tank=(function(){
   }
   // Wo lohnt sich das Tanken für dieses Kind am meisten?
   function angebote(rows){
-    const z=STATIONEN.map(s=>{
+    let uhrOffen=false; try{ uhrOffen = localStorage.getItem("mathe_uhr_offen")==="1" || localStorage.getItem("uhr_test_frei")==="1"; }catch(e){}
+    const z=STATIONEN.filter(s=>s.app!=="uhr" || uhrOffen).map(s=>{
       const r=rows.filter(e=>e.app===s.app).sort((a,b)=>ts(b).localeCompare(ts(a)));
       return Object.assign({}, s, {n:r.length, offen:offeneFehler(r)+(window.Wdh?Wdh.zaehle(r).faellig:0),
         bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja")});

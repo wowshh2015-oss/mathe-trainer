@@ -29,7 +29,21 @@
   .tile.wide{grid-column:1 / -1}
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
-  .tile.gesperrt{opacity:.6;border-style:dashed}
+  .tile.gesperrt{opacity:.75;border-style:dashed}
+  .baldTag{display:inline-block;background:rgba(251,191,36,.2);color:#fde68a;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:800;vertical-align:3px;margin-left:6px}
+  /* ===== „Das ist neu" ===== */
+  .neuOv{position:fixed;inset:0;z-index:950;background:rgba(5,10,22,.93);display:flex;align-items:flex-start;justify-content:center;padding:18px;overflow-y:auto}
+  .neuBox{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:24px 22px;max-width:520px;width:100%;margin:auto;text-align:left;box-shadow:var(--shadow)}
+  .neuBox h3{margin:0 0 4px;font-size:24px;text-align:center}
+  .neuBox .unter{color:var(--muted);font-size:14px;text-align:center;margin:0 0 14px}
+  .neuP{display:flex;gap:12px;align-items:flex-start;background:#0b1220;border:1px solid var(--card2);border-radius:14px;padding:11px 13px;margin-bottom:8px}
+  .neuP .ic{font-size:28px;line-height:1;flex:none;width:34px;text-align:center}
+  .neuP .tx{font-size:14.5px;line-height:1.45;color:#cbd5e1}
+  .neuP .tx b{display:block;color:#fff;font-size:16px}
+  .neuP.bald{background:linear-gradient(135deg,rgba(167,139,250,.24),rgba(251,191,36,.12));border:2px solid rgba(251,191,36,.6)}
+  .neuP.bald .ic{font-size:40px;width:48px;animation:pokalWipp 2.4s ease-in-out infinite}
+  .neuP.bald .tx b{font-size:18px;color:#fde68a}
+  .neuBox button{width:100%;margin-top:10px;font-family:inherit;font-size:18px;font-weight:700;border:none;border-radius:12px;padding:14px;cursor:pointer;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433}
   .tile .ic{font-size:48px;line-height:1}
   .tile .t{font-size:22px;font-weight:800;margin-top:10px}
   .tile .d{color:var(--muted);font-size:13px;margin-top:4px}
@@ -149,7 +163,7 @@
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t6 wide" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Marathon</div><div class="d">Klettere Etage für Etage – 10 Aufgaben pro Stockwerk</div></a>
     <a class="tile t8 wide" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechenwege</div><div class="d">Halbschriftlich plus und minus · schrittweise &amp; stellenweise</div></a>
-    <a class="tile t2 wide" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer</div><div class="d">Die Uhr mit Zeigern lesen und stellen · halb · Viertel · Minuten</div></a>
+    <a class="tile t2 wide gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
     <a class="tile t5 wide" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">Zahlen zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
@@ -185,8 +199,18 @@ $("name").addEventListener("change",()=>{ $("name").value=capName($("name").valu
 $("name").addEventListener("keydown",e=>{ if(e.key==="Enter") $("name").blur(); });
 $("losBtn").addEventListener("click",()=>{ $("name").value=capName($("name").value); update(); anmelden(); });
 // Die Trainer öffnen sich erst, wenn das Kind sein Geheimtier getippt hat (anmeldung.js)
+// Der Uhr-Trainer ist gesperrt, bis die Lehrkraft ihn in der Klassenübersicht freigibt
+let UHR_OFFEN=false;
+try{ UHR_OFFEN = localStorage.getItem("mathe_uhr_offen")==="1" || localStorage.getItem("uhr_test_frei")==="1"; }catch(e){}
+function zeigeUhrKachel(){
+  const k=$("uhrKachel"); if(!k) return;
+  k.classList.toggle("gesperrt", !UHR_OFFEN);
+  $("uhrBald").classList.toggle("hide", UHR_OFFEN);
+  $("uhrText").textContent = UHR_OFFEN ? "Die Uhr mit Zeigern lesen und stellen · halb · Viertel · Minuten" : "Bald lernst du hier die Uhr mit Zeigern – sei gespannt!";
+}
 function update(){
   const n=capName($("name").value), frei=Anmeldung.ok(n);
+  zeigeUhrKachel();
   $("grid").classList.toggle("dis",!frei);
   $("losBtn").style.display = (n && !frei) ? "" : "none";
   $("hint").textContent = frei ? `Hallo ${n}! Wähle dein Training.`
@@ -384,7 +408,7 @@ function zeigeHallo(rows, name){
       `Hier warst du seit <b>${tg} Tagen</b> nicht mehr. Schaffst du heute eine Runde?`, s.datei, name));
   }
   // 3) noch nie ausprobiert
-  const neu=Object.keys(SEITEN).filter(a=>!proApp[a]);
+  const neu=Object.keys(SEITEN).filter(a=>!proApp[a] && (a!=="uhr" || UHR_OFFEN));
   if(neu.length && tipps.length<3){
     const s=SEITEN[neu[0]];
     tipps.push(tippHTML(s.ic, `Neu für dich: ${s.name}`, `Das hast du noch nie probiert – schau doch mal rein!`, s.datei, name));
@@ -421,6 +445,38 @@ function zeigeHallo(rows, name){
   $("lwOeffnen").addEventListener("click", zeigeLernweg);
   Sterne.verbinde(box);
   lernwegVorbereiten(rows, name);
+  zeigeNeues(name);
+}
+//// ===== „Das ist neu": einmal je Kind und Gerät =====
+const NEU_STAND="2026-11";
+function zeigeNeues(name){
+  const k1="mathe_neu_"+name.toLowerCase(), k2="mathe_neu_uhr_"+name.toLowerCase();
+  let s1="", s2=""; try{ s1=localStorage.getItem(k1)||""; s2=localStorage.getItem(k2)||""; }catch(e){}
+  let html="";
+  if(s1!==NEU_STAND){
+    try{ localStorage.setItem(k1, NEU_STAND); if(UHR_OFFEN) localStorage.setItem(k2,"1"); }catch(e){}
+    const P=(ic,t,x)=>`<div class="neuP"><span class="ic">${ic}</span><span class="tx"><b>${t}</b>${x}</span></div>`;
+    html=`<h3>🎉 Das ist neu im Mathe-Trainer</h3><p class="unter">Hallo ${esc(name)}! In letzter Zeit ist viel dazugekommen:</p>`+
+      P("🐾","Dein Geheimtier","Dein Name ist jetzt geschützt. Beim Anmelden tippst du einfach auf dein Tier.")+
+      P("⭐","Sterne und Sticker-Album","Für jede Übungsrunde gibt es Sterne. Alle 10 Sterne öffnet sich ein neuer Sticker.")+
+      P("⛽","Der Tank","Rallye und Marathon brauchen jetzt Sprit. Den bekommst du fürs Lernen.")+
+      P("💡","Hilfe-Bilder","Nach einem Fehler zeigt dir das Programm, wie man die Aufgabe sehen kann.")+
+      P("🔁","Wiederholen","Was du gelernt hast, kommt nach ein paar Tagen noch einmal – dann bleibt es im Kopf.")+
+      P("🔊","Leiste oben rechts","Vorlesen, Ton, größere Schrift und eigene Zahlentasten.")+
+      (UHR_OFFEN
+        ? `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Ganz neu: der Uhr-Trainer!</b>Lerne die Uhr mit Zeigern – mit einer Uhr zum Drehen.</span></div>`
+        : `<div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Bald: der Uhr-Trainer!</b>In ein paar Tagen öffnet sich eine neue Kachel. Dort lernst du die Uhr mit Zeigern – mit einer Uhr zum Drehen. Sei gespannt! 🚧</span></div>`);
+  }else if(UHR_OFFEN && s2!=="1"){
+    try{ localStorage.setItem(k2,"1"); }catch(e){}
+    html=`<h3>🕒 Der Uhr-Trainer ist da!</h3><p class="unter">Hallo ${esc(name)}! Das Warten hat ein Ende.</p>
+      <div class="neuP bald"><span class="ic">🕒</span><span class="tx"><b>Lerne die Uhr mit Zeigern</b>Dreh selbst an der Uhr, lies die Zeit ab und stell die Zeiger. Dafür gibt es Sterne und neue Sticker.</span></div>`;
+  }
+  if(!html) return;
+  document.querySelectorAll(".neuOv").forEach(o=>o.remove());
+  const ov=document.createElement("div"); ov.className="neuOv";
+  ov.innerHTML=`<div class="neuBox">${html}<button id="neuZu">Alles klar! ▶</button></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector("#neuZu").addEventListener("click", ()=>ov.remove());
 }
 //// ===== Lernweg: feste Reihenfolge vom Leichten zum Schweren, Spiele zum Schluss =====
 const STATIONEN=[
@@ -544,7 +600,7 @@ function zeigeLernweg(){
 }
 // Beim Verlassen der Seite schließen – sonst holt der Browser sie mit „Zurück" samt offenem Fenster aus dem Cache
 addEventListener("pagehide", ()=>{ $("lwOverlay").classList.add("hide"); document.body.classList.remove("lwOffen");
-  document.querySelectorAll(".stOv").forEach(o=>o.remove()); });
+  document.querySelectorAll(".stOv,.neuOv").forEach(o=>o.remove()); });
 function lernwegVorbereiten(rows, name){
   LW_ROWS=rows; LW_NAME=name;
   let schonGezeigt=false;
@@ -577,6 +633,20 @@ function starteHallo(){
   window.update=function(){ alt(); clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,500); };
   $("name").addEventListener("change", ()=>{ clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,150); });
   setTimeout(starteHallo, 700);
+  // Ist der Uhr-Trainer schon freigegeben?
+  if(hdb) hdb.collection("einstellungen").doc("freigabe").get().then(d=>{
+    const offen = d.exists && (d.data()||{}).uhr===true;
+    try{ localStorage.setItem("mathe_uhr_offen", offen?"1":"0"); }catch(e){}
+    let test=false; try{ test=localStorage.getItem("uhr_test_frei")==="1"; }catch(e){}
+    UHR_OFFEN = offen || test; zeigeUhrKachel();
+  }).catch(()=>{});
+  // gesperrte Kachel: nicht öffnen, sondern Vorfreude wecken
+  $("uhrKachel").addEventListener("click", e=>{
+    if(UHR_OFFEN) return;
+    e.preventDefault();
+    $("hint").textContent="🚧 Der Uhr-Trainer öffnet bald – deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht. Sei gespannt!";
+    $("hint").scrollIntoView({block:"nearest", behavior:"smooth"});
+  });
   // Name vom letzten Besuch: gleich nach dem Geheimtier fragen
   if(capName($("name").value) && !Anmeldung.ok($("name").value)) setTimeout(anmelden, 300);
 })();

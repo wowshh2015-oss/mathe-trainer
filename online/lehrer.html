@@ -217,6 +217,13 @@
     <div id="rallye"></div>
   </div>
 
+  <div class="card noprint" id="freigabeCard">
+    <h2>🚧 Uhr-Trainer <small>für die Kinder gesperrt, bis du ihn freigibst</small></h2>
+    <div class="row"><span id="uhrStand" style="font-weight:700"></span><span style="flex:1"></span><button id="uhrSchalter"></button></div>
+    <div class="status">Solange er gesperrt ist, sehen die Kinder auf der Startseite die Kachel „öffnet bald“ und die Ankündigung. Nach der Freigabe erscheint bei jedem Kind einmal „Der Uhr-Trainer ist da!“.
+      Zum Ansehen vor der Freigabe: den <a href="uhr-trainer.html" style="color:#7dd3fc">Uhr-Trainer öffnen</a> und dort unten die PIN eingeben – das schaltet nur dieses Gerät frei.</div>
+  </div>
+
   <div class="card noprint" id="sterneCard">
     <h2>⭐ Sterne der Klasse <small>nur hier sichtbar – die Kinder sehen keine Rangliste · ⭐ Fleiß · 🌟 Können</small></h2>
     <div class="row" style="margin-bottom:12px">
@@ -572,6 +579,21 @@ function renderArten(rows){
       „Nachbaraufgabe“ heißt: die richtige Reihe, aber eine Aufgabe daneben · „⏱ zu langsam“ kommt nur im Test vor.</div>`;
   $("arten").innerHTML=h;
 }
+
+//// ===== Freigabe des Uhr-Trainers =====
+let UHR_FREI=false;
+function zeigeFreigabe(){
+  $("uhrStand").innerHTML = UHR_FREI ? '<span class="ok">✅ Freigegeben – die Kinder können den Uhr-Trainer benutzen.</span>' : '<span class="mid">🚧 Gesperrt – die Kinder sehen „öffnet bald“.</span>';
+  $("uhrSchalter").textContent = UHR_FREI ? "Wieder sperren" : "🕒 Jetzt für die Kinder freigeben";
+  $("uhrSchalter").className = UHR_FREI ? "ghost" : "";
+}
+zeigeFreigabe();
+$("uhrSchalter").addEventListener("click", async ()=>{
+  const neu=!UHR_FREI;
+  if(!confirm(neu ? "Den Uhr-Trainer jetzt für alle Kinder freigeben?" : "Den Uhr-Trainer wieder für die Kinder sperren?")) return;
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, uhr:neu}); }
+  catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+});
 
 //// ===== Sterne der Klasse (nur für die Lehrkraft) =====
 function renderSterne(){
@@ -934,7 +956,8 @@ async function entsperren(){
       if(!entsperrt && !$("pinModal").innerHTML) entsperren();
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
-      KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); } });
+      KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; zeigeFreigabe(); } });
       if(entsperrt) renderTiere();
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{

@@ -105,8 +105,22 @@
   <h1>🕒 Uhr-Trainer</h1>
   <p class="sub">Die Uhr mit Zeigern verstehen – Schritt für Schritt.</p>
 
+  <!-- ===== BAUSTELLE: der Uhr-Trainer öffnet erst, wenn die Lehrkraft ihn in der Klassenübersicht freigibt ===== -->
+  <div id="baustelle" class="card hide" style="text-align:center">
+    <div style="font-size:64px;line-height:1">🚧🕒</div>
+    <div class="gross" style="margin-top:10px">Der Uhr-Trainer öffnet bald!</div>
+    <div class="info" style="text-align:left">Hier lernst du bald, die <b>Uhr mit Zeigern</b> zu lesen und zu stellen – mit einer Uhr zum Drehen,
+      mit Sternen und neuen Stickern. <b>Sei gespannt!</b> Deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht.</div>
+    <div class="btnrow"><a href="index.html" id="bauZurueck" style="flex:1;text-decoration:none"><button style="width:100%">← Zurück zu den Trainern</button></a></div>
+    <div style="margin-top:22px;font-size:13px;color:var(--muted)">Für die Lehrkraft:
+      <input type="password" id="bauPin" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off"
+        style="width:90px;font-size:16px;padding:7px 10px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text);text-align:center">
+      <button class="ghost klein" id="bauOk">ansehen</button>
+      <div id="bauMeld" style="color:#fca5a5;min-height:18px;margin-top:6px"></div></div>
+  </div>
+
   <!-- ===== START ===== -->
-  <div id="start" class="card">
+  <div id="start" class="card hide">
     <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
     <label for="name">Name des Kindes</label>
     <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
@@ -333,7 +347,7 @@ let lauf=0;         // zählt die Runden: ein verspäteter Zeitgeber aus einer a
 function spaeter(ms){ const meiner=lauf; setTimeout(()=>{ if(meiner===lauf && runde) naechste(); }, ms); }
 try{ ringe = localStorage.getItem("uhr_ringe")!=="aus"; }catch(e){}
 
-function zeige(id){ ["start","entdecken","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
+function zeige(id){ ["baustelle","start","entdecken","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
 function mitRingen(){ return runde && runde.modus!=="Test" && ringe; }
 function zeichneFortschritt(){
   $("fortschritt").innerHTML=runde.aufgaben.map((a,i)=>`<i class="${runde.verlauf[i]===true?"ok":runde.verlauf[i]===false?"nein":""}"></i>`).join("");
@@ -670,13 +684,39 @@ function ladeMeine(){
       if(!$("start").classList.contains("hide")) zeigeMenue();
     }).catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
 }
+//// ===== Freigabe =====
+// Offen ist der Uhr-Trainer, wenn die Lehrkraft ihn freigegeben hat (einstellungen/freigabe) – oder auf einem Gerät,
+// auf dem sich die Lehrkraft mit ihrer PIN zum Ansehen freigeschaltet hat.
+const SUPER_PIN="4785"; let lehrerPin="";
+function testFrei(){ try{ return localStorage.getItem("uhr_test_frei")==="1"; }catch(e){ return false; } }
+function oeffne(){ zeige("start"); zeigeMenue(); if(playerName) setTimeout(ladeMeine, 100); }
+function pruefeFreigabe(){
+  if(testFrei()){ oeffne(); return; }
+  if(!db){ zeige("baustelle"); return; }
+  db.collection("einstellungen").doc("pin").get().then(d=>{ const p=d.exists?String((d.data()||{}).pin||""):""; lehrerPin=/^\d{4}$/.test(p)?p:""; }).catch(()=>{});
+  const zeit=setTimeout(()=>{ if($("start").classList.contains("hide") && $("baustelle").classList.contains("hide")) zeige("baustelle"); }, 6000);
+  db.collection("einstellungen").doc("freigabe").get().then(d=>{
+    clearTimeout(zeit);
+    const offen = d.exists && (d.data()||{}).uhr===true;
+    try{ localStorage.setItem("mathe_uhr_offen", offen?"1":"0"); }catch(e){}
+    if(offen) oeffne(); else zeige("baustelle");
+  }).catch(()=>{ clearTimeout(zeit); zeige("baustelle"); });
+}
+$("bauOk").addEventListener("click", ()=>{
+  const v=$("bauPin").value.trim();
+  if(v && (v===lehrerPin || v===SUPER_PIN)){ try{ localStorage.setItem("uhr_test_frei","1"); }catch(e){} oeffne(); }
+  else{ $("bauMeld").textContent="Falsche PIN."; $("bauPin").value=""; }
+});
+$("bauPin").addEventListener("keydown", e=>{ if(e.key==="Enter") $("bauOk").click(); });
 (function init(){
   try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
   // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
   const m=location.hash.match(/name=([^&]+)/);
   let n = m ? decodeURIComponent(m[1]) : "";
   if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
-  if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
+  if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName);
+    $("bauZurueck").href="index.html#name="+encodeURIComponent(playerName); }
+  pruefeFreigabe();
 })();
 addEventListener("pagehide", ()=>{ stoppZeit(); try{ speechSynthesis.cancel(); }catch(e){} });
 
