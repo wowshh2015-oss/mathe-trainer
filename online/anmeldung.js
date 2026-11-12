@@ -87,8 +87,14 @@
     const ref=db.collection("einstellungen").doc(docId(name));
     let konto=null, bekannt=false;
     try{
-      const d=await mitZeit(ref.get(), 7000);
-      konto=d.exists?d.data():null;
+      // Als Abfrage lesen, nicht als einzelnes Dokument: Die Datenbank verweigert das Lesen eines Dokuments,
+      // das es noch nicht gibt (Kind ohne Geheimtier) – das darf nicht wie „keine Verbindung" behandelt werden.
+      try{
+        const q=await mitZeit(db.collection("einstellungen").where("key","==",KEY).where("name","==",name).get(), 7000);
+        q.forEach(d=>{ if(d.id===docId(name)) konto=d.data(); });
+      }catch(e){
+        if(!(e && e.code==="permission-denied")) throw e;   // verweigert = es gibt noch kein Konto
+      }
       if(!(konto && konto.tier)){
         const s=await mitZeit(db.collection("ergebnisse").where("key","==",KEY).where("name","==",name).limit(1).get(), 7000);
         bekannt=!s.empty;
