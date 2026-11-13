@@ -139,6 +139,7 @@
   #blatt th{color:#555}
   #blatt .st{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
   #blatt .st.gruen{background:#dcfce7;color:#166534} #blatt .st.gelb{background:#fef9c3;color:#854d0e} #blatt .st.grau{background:#f1f5f9;color:#64748b}
+  #blatt ul{font-size:14px;line-height:1.55} #blatt li{margin-bottom:2px}
   #blatt .tipp{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-top:8px}
   #blatt .knoepfe{max-width:760px;margin:0 auto 12px;display:flex;gap:8px;justify-content:flex-end}
   @media print{
@@ -165,6 +166,7 @@
       <button class="ghost" data-tage="30">Letzte 30 Tage</button>
       <button class="ghost" data-tage="-1">Alles</button>
       <span style="flex:1"></span>
+      <button class="ghost" id="wocheBtn" title="Die letzten 7 Tage auf einer Seite zum Ausdrucken">🗓️ Wochenblatt</button>
       <button class="ghost" id="druckBtn">🖨️ Drucken</button>
       <button class="ghost" id="csvBtn">CSV</button>
       <button class="ghost" id="sicherBtn" title="Alle Daten als Datei auf diesem Gerät speichern">💾 Sicherung</button>
@@ -231,6 +233,7 @@
     <h2>📌 Hausaufgabe <small>erscheint bei den Kindern ganz oben auf der Startseite · erledigt wird automatisch erkannt</small></h2>
     <div class="row" style="align-items:flex-end;gap:10px">
       <div><label class="kl">Bereich</label><select id="haApp"></select></div>
+      <div><label class="kl">Welche Übung?</label><select id="haTeil"></select></div>
       <div><label class="kl">Was?</label><select id="haArt">
         <option value="ueben">Runden üben</option><option value="mine">„Meine Aufgaben“</option><option value="test">einen Test bestehen</option></select></div>
       <div><label class="kl">Wie oft?</label><select id="haAnzahl"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div>
@@ -244,6 +247,16 @@
     </div>
     <div class="chips hide" id="haKinder" style="margin-top:10px"></div>
     <div id="haListe" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card noprint" id="meldCard">
+    <h2>📣 Nachricht an die Klasse <small>steht bei jedem Kind ganz oben auf der Startseite</small></h2>
+    <div class="row" style="align-items:flex-end;gap:10px">
+      <div style="flex:1;min-width:240px"><label class="kl">Text</label><input type="text" id="meldText" placeholder="z. B. Am Freitag schreiben wir den Einmaleins-Test – übt die 7er-Reihe!" autocomplete="off" style="width:100%" maxlength="160"></div>
+      <div><label class="kl">sichtbar bis</label><input type="date" id="meldBis" style="font-family:inherit;font-size:15px;padding:8px 10px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text)"></div>
+      <button id="meldSenden">📣 Zeigen</button><button class="ghost" id="meldWeg">Entfernen</button>
+    </div>
+    <div class="status" id="meldStand"></div>
   </div>
 
   <div class="card noprint" id="freigabeCard">
@@ -619,10 +632,94 @@ function renderArten(rows){
   $("arten").innerHTML=h;
 }
 
+//// ===== Nachricht an die Klasse =====
+let MELD=null;
+$("meldBis").value=HA.plusTage(HA.heute(), 7);
+function zeigeMeld(){
+  const an = MELD && MELD.text && MELD.bis && HA.heute()<=MELD.bis;
+  $("meldStand").innerHTML = an ? `Zurzeit sichtbar bis ${HA.schoen(MELD.bis)}: <b style="color:var(--text)">„${esc(MELD.text)}“</b>`
+    : (MELD && MELD.text ? `Abgelaufen (${HA.schoen(MELD.bis)}): „${esc(MELD.text)}“` : "Zurzeit ist keine Nachricht gesetzt.");
+}
+zeigeMeld();
+async function setzeMeld(m){
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, meldung:m}, {merge:true}); }
+  catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+}
+$("meldSenden").addEventListener("click", ()=>{
+  const t=$("meldText").value.trim(), bis=$("meldBis").value;
+  if(!t){ alert("Bitte einen Text eingeben."); return; }
+  if(!bis){ alert("Bitte ein Datum wählen."); return; }
+  setzeMeld({text:t.slice(0,160), bis:bis, von:HA.heute()}); $("meldText").value="";
+});
+$("meldWeg").addEventListener("click", ()=>{ if(confirm("Die Nachricht entfernen?")) setzeMeld(null); });
+
+//// ===== Wochenblatt: die letzten 7 Tage auf einer Seite =====
+function zeigeWoche(){
+  const h=heute(), ab=new Date(h); ab.setDate(ab.getDate()-6);
+  const p=x=>String(x).padStart(2,"0"), kurz=d=>`${p(d.getDate())}.${p(d.getMonth()+1)}.`;
+  const woche=ALLE.filter(e=>{ const d=tagVon(e); return d>=ab && d<=h; });
+  const alleNamen=[...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
+  const pro={};
+  woche.forEach(e=>{ const k=pro[e.name]=pro[e.name]||{n:0,tage:new Set(),sum:0,mitP:0,tests:[]}; k.n++; k.tage.add(e.datum);
+    if(typeof e.prozent==="number" && e.app!=="rallye"){ k.sum+=e.prozent; k.mitP++; }
+    if(e.modus==="Test" && e.bestanden==="Ja") k.tests.push(`${APPS[e.app]?APPS[e.app].label:e.app}${e.stufeName?" – "+e.stufeName:e.verfahrenName?" – "+e.verfahrenName:e.zr?" bis "+e.zr:""}${e.stufe&&e.app!=="uhr"?" ("+e.stufe+")":""}`); });
+  const aktiv=Object.keys(pro).sort((a,b)=>pro[b].tage.size-pro[a].tage.size || pro[b].n-pro[a].n);
+  const fehlen=alleNamen.filter(n=>!pro[n]);
+  const aufgaben=woche.reduce((s,e)=>s+(+e.richtig||0)+(+e.falsch||0),0);
+  const mitP=woche.filter(e=>typeof e.prozent==="number" && e.app!=="rallye");
+  const schnitt=mitP.length?Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length):0;
+  const bestanden=aktiv.filter(n=>pro[n].tests.length).map(n=>`<b>${esc(n)}</b>: ${pro[n].tests.map(esc).join(", ")}`);
+  const schwach=aktiv.filter(n=>pro[n].mitP>=2 && pro[n].sum/pro[n].mitP<65).map(n=>`${esc(n)} (${Math.round(pro[n].sum/pro[n].mitP)} %)`);
+  // schwierige Aufgaben und Fehlerarten der Woche
+  const m={}; woche.forEach(e=>(e.fehler||[]).forEach(f=>{ const k=(e.app==="marathon"||e.app==="rallye"?"":e.app+"|")+f; (m[k]=m[k]||{f,app:e.app,kinder:new Set(),n:0}).kinder.add(e.name); m[k].n++; }));
+  const schwer=Object.values(m).filter(x=>x.kinder.size>=2).sort((a,b)=>b.kinder.size-a.kinder.size||b.n-a.n).slice(0,8);
+  const arten=Wdh.fehlerarten(woche).filter(x=>x.art!=="sonst"&&x.art!=="zeit"&&x.art!=="leer").slice(0,4);
+  const sf={}; woche.filter(e=>e.app==="halbschriftlich").forEach(e=>Object.entries(e.schrittfehler||{}).forEach(([s,c])=>{ sf[s]=(sf[s]||0)+(+c||0); }));
+  const schritt=Object.entries(sf).sort((a,b)=>b[1]-a[1])[0];
+  const serien=alleNamen.map(n=>[n,Sterne.serie(ALLE.filter(e=>e.name===n)).tage]).filter(x=>x[1]>=3).sort((a,b)=>b[1]-a[1]);
+  const has=AUFGABEN.filter(HA.aktuell).map(a=>{ const kinder=(a.fuer&&a.fuer.length?a.fuer:alleNamen); const f=kinder.filter(n=>HA.stand(a,ALLE.filter(e=>e.name===n)).fertig).length;
+    const offen=kinder.filter(n=>!HA.stand(a,ALLE.filter(e=>e.name===n)).fertig);
+    return `<b>${esc(HA.titel(a))}</b> (bis ${HA.schoen(a.bis)}): ${f} von ${kinder.length} erledigt${offen.length&&offen.length<=12?` · noch offen: ${offen.map(esc).join(", ")}`:""}`; });
+  const liste=(arr,leer)=>arr.length?`<ul style="margin:4px 0 0;padding-left:20px">${arr.map(x=>`<li>${x}</li>`).join("")}</ul>`:`<div class="klein">${leer}</div>`;
+  $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>
+   <div class="seite">
+    <h3>Mathe-Trainer · Wochenblatt</h3>
+    <div class="klein">${kurz(ab)} bis ${kurz(h)}${h.getFullYear()} · Schule Hohe Landwehr</div>
+    <h4>Die Woche in Zahlen</h4>
+    <div><b>${aktiv.length}</b> von ${alleNamen.length} Kindern haben geübt · <b>${woche.length}</b> Durchgänge · <b>${aufgaben}</b> gerechnete Aufgaben · im Schnitt <b>${schnitt} %</b> richtig</div>
+    <h4>Besonders fleißig</h4>
+    ${liste(aktiv.slice(0,6).map(n=>`<b>${esc(n)}</b> – an ${pro[n].tage.size} ${pro[n].tage.size===1?"Tag":"Tagen"}, ${pro[n].n} Durchgänge`),"Niemand hat diese Woche geübt.")}
+    ${serien.length?`<div class="klein" style="margin-top:6px">🔥 Serien: ${serien.map(x=>`${esc(x[0])} ${x[1]} Tage`).join(" · ")}</div>`:""}
+    <h4>Bestandene Tests</h4>
+    ${liste(bestanden,"Diese Woche wurde kein Test bestanden.")}
+    <h4>Nicht geübt (${fehlen.length})</h4>
+    <div>${fehlen.length?fehlen.map(esc).join(" · "):"Alle Kinder haben mindestens einmal geübt 🎉"}</div>
+    <h4>Brauchen Unterstützung</h4>
+    <div>${schwach.length?schwach.join(" · ")+`<div class="klein">Schnitt unter 65 % bei mindestens zwei Durchgängen</div>`:`<span class="klein">Kein Kind liegt deutlich unter 65 %.</span>`}</div>
+    <h4>Themen für den Unterricht</h4>
+    ${liste([
+      schwer.length?`Schwierige Aufgaben: ${schwer.map(x=>`<b>${esc(x.f)}</b> (${x.kinder.size} Kinder)`).join(" · ")}`:"",
+      arten.length?`Häufige Fehlerarten: ${arten.map(x=>`${x.text} ${x.n}×`).join(" · ")}`:"",
+      schritt?`Rechenwege: am häufigsten scheitert der Schritt <b>${esc(schritt[0])}</b> (${schritt[1]}×)`:""
+    ].filter(x=>x),"Noch zu wenig Daten für Empfehlungen.")}
+    ${has.length?`<h4>Hausaufgaben</h4>${liste(has,"")}`:""}
+   </div>`;
+  $("blatt").classList.remove("hide"); document.body.classList.add("blattOffen"); $("blatt").scrollTop=0;
+  $("blattDruck").addEventListener("click",()=>window.print());
+  $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
+}
+$("wocheBtn").addEventListener("click", zeigeWoche);
+
 //// ===== Hausaufgaben =====
 let AUFGABEN=[], haGewaehlt=new Set();
 $("haApp").innerHTML=HA.BEREICHE.map(b=>`<option value="${b.app}">${b.ic} ${b.name}</option>`).join("");
 $("haBis").value=HA.plusTage(HA.heute(), 3);
+function fuelleHaTeil(){
+  const t=HA.TEILE[$("haApp").value];
+  $("haTeil").innerHTML='<option value="">egal – der ganze Bereich</option>'+(t?t.liste.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join(""):"");
+  $("haTeil").disabled=!t;
+}
+$("haApp").addEventListener("change", fuelleHaTeil); fuelleHaTeil();
 $("haArt").addEventListener("change", ()=>{ $("haAnzahl").disabled = $("haArt").value==="test"; });
 $("haFuer").addEventListener("change", ()=>{ $("haKinder").classList.toggle("hide", $("haFuer").value!=="wahl"); renderHA(); });
 function kinderNamen(){ return [...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de")); }
@@ -635,7 +732,7 @@ $("haGeben").addEventListener("click", ()=>{
   if(!bis){ alert("Bitte ein Datum wählen."); return; }
   const fuer = $("haFuer").value==="wahl" ? [...haGewaehlt] : [];
   if($("haFuer").value==="wahl" && !fuer.length){ alert("Bitte mindestens ein Kind anklicken."); return; }
-  const a={ id:Date.now().toString(36), app:$("haApp").value, art:$("haArt").value, anzahl:+$("haAnzahl").value, von:HA.heute(), bis:bis, fuer:fuer, text:$("haText").value.trim().slice(0,60) };
+  const a={ id:Date.now().toString(36), app:$("haApp").value, art:$("haArt").value, anzahl:+$("haAnzahl").value, teil:$("haTeil").value, von:HA.heute(), bis:bis, fuer:fuer, text:$("haText").value.trim().slice(0,60) };
   // abgelaufene Aufgaben (älter als 3 Tage nach Abgabe) fallen dabei aus der Liste
   speichereHA(AUFGABEN.filter(HA.aktuell).concat([a]));
   $("haText").value=""; haGewaehlt.clear();
@@ -1041,7 +1138,8 @@ async function entsperren(){
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
                                     if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; zeigeFreigabe();
-                                      AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA(); } });
+                                      AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
+                                      MELD=(d.data()||{}).meldung||null; zeigeMeld(); } });
       if(entsperrt) renderTiere();
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{

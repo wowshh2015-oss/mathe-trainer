@@ -12,6 +12,17 @@ window.HA=(function(){
     {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins", datei:"einsdurcheins-trainer.html"},
     {app:"uhr",             ic:"🕒", name:"Uhr",           datei:"uhr-trainer.html"}
   ];
+  // Genauer: eine bestimmte Übung innerhalb eines Bereichs. feld = Feld im gespeicherten Durchgang, an dem man sie erkennt.
+  const TEILE={
+    halbschriftlich:{feld:"verfahren", liste:[["schrittAdd20","Plus über den Zehner bis 20"],["schrittSub20","Minus über den Zehner bis 20"],["schrittAdd","Schrittweise plus"],
+                     ["stellenAdd","Stellenweise plus"],["schrittSub","Schrittweise minus"],["malZehner","Mal mit Zehnerzahlen (6 × 20)"],["malZerlegen","Mal mit Zerlegen (6 × 15)"]]},
+    plus:    {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
+    minus:   {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
+    zerlegen:{feld:"zr", liste:[["10","bis 10"],["20","bis 20"],["100","bis 100"]]},
+    uhr:     {feld:"zr", liste:[["1","Nur der kleine Zeiger"],["2","Volle und halbe Stunden"],["3","Viertel nach und Viertel vor"],["4","Fünf-Minuten-Schritte"],["5","Auf die Minute genau"],
+                     ["6","Vormittag und Nachmittag"],["8","Die Zeit vergeht"],["7","Fünf vor halb, zehn nach …"]]}
+  };
+  function teilName(a){ const t=TEILE[a.app]; if(!t || !a.teil) return ""; const x=t.liste.find(y=>y[0]===String(a.teil)); return x ? x[1] : ""; }
   const bereich=app=>BEREICHE.find(b=>b.app===app) || {app, ic:"📌", name:app, datei:"index.html"};
   const iso=datum=>{ const [t,m,j]=String(datum||"").split("."); return j&&m&&t ? `${j}-${m}-${t}` : ""; };
   function heute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
@@ -24,14 +35,16 @@ window.HA=(function(){
   // Was genau zu tun ist, als kurzer Satz
   function titel(a){
     const b=bereich(a.app), n=a.art==="test" ? 1 : Math.max(1,+a.anzahl||1);
-    if(a.art==="test") return `Einen Test bei ${b.name} bestehen`;
+    const tn=teilName(a), wo = tn ? `${b.name}: ${tn}` : b.name;
+    if(a.art==="test") return `Einen Test bestehen – ${wo}`;
     if(a.art==="mine") return `${n} ${n===1?"Runde":"Runden"} „Meine Aufgaben“ bei ${b.name}`;
-    return `${n} ${n===1?"Runde":"Runden"} ${b.name} üben`;
+    return `${n} ${n===1?"Runde":"Runden"} üben – ${wo}`;
   }
   // rows: alle Durchgänge des Kindes
   function stand(a, rows){
     const noetig = a.art==="test" ? 1 : Math.max(1,+a.anzahl||1);
-    const pass=(rows||[]).filter(e=>e.app===a.app && iso(e.datum)>=a.von && zaehlt(e));
+    const t=TEILE[a.app], genau = t && a.teil && a.art!=="mine";           // „Meine Aufgaben" mischen die Übungen
+    const pass=(rows||[]).filter(e=>e.app===a.app && iso(e.datum)>=a.von && zaehlt(e) && (!genau || String(e[t.feld])===String(a.teil)));
     const gemacht = a.art==="test" ? pass.filter(e=>e.modus==="Test" && e.bestanden==="Ja").length
                   : a.art==="mine" ? pass.filter(e=>String(e.reihe)==="mine").length : pass.length;
     return {gemacht:Math.min(gemacht,noetig), noetig, fertig:gemacht>=noetig, ueberfaellig: heute()>a.bis};
@@ -68,5 +81,5 @@ window.HA=(function(){
           <span class="h2"><b>${esc(titel(a))}</b>${s.fertig?"Geschafft – super!":s.ueberfaellig?`war bis ${schoen(a.bis)} auf – hol es noch nach!`:`bis ${schoen(a.bis)}`}${a.text?` · ${esc(a.text)}`:""}</span>
           <span class="h3">${pille}</span></a>`; }).join("")+`</div>`;
   }
-  return {BEREICHE, bereich, titel, stand, gilt, aktuell, fuerKind, kastenHTML, heute, plusTage, schoen};
+  return {BEREICHE, TEILE, teilName, bereich, titel, stand, gilt, aktuell, fuerKind, kastenHTML, heute, plusTage, schoen};
 })();
