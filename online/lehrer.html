@@ -114,6 +114,16 @@
   .zelle.grau{background:rgba(148,163,184,.08);color:#64748b}
   .zelle.jetzt{box-shadow:0 0 0 2px var(--accent)}
   .warn{color:#fcd34d;font-weight:700}
+  label.kl{display:block;color:var(--muted);font-size:12.5px;margin-bottom:4px}
+  .haEin{background:#0b1220;border:1px solid var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+  .haEin .kopf{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .haEin .kopf b{font-size:16px}
+  .haEin .kinder{display:flex;flex-wrap:wrap;gap:6px}
+  .haEin .kd{border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700;border:1px solid var(--card2)}
+  .haEin .kd.ja{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5);color:#86efac}
+  .haEin .kd.teil{background:rgba(234,179,8,.16);border-color:rgba(234,179,8,.5);color:#fde047}
+  .haEin .kd.nein{color:#94a3b8}
+  .chip.wahl{cursor:pointer} .chip.wahl.an{border-color:var(--accent);background:rgba(56,189,248,.16);color:#7dd3fc}
   .legende{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.6}
   .schwer{display:flex;flex-wrap:wrap;gap:8px}
   .schwer span{background:#0b1220;border:1px solid var(--card2);border-radius:10px;padding:8px 12px;font-size:14px}
@@ -217,6 +227,25 @@
     <div id="rallye"></div>
   </div>
 
+  <div class="card noprint" id="haCard">
+    <h2>📌 Hausaufgabe <small>erscheint bei den Kindern ganz oben auf der Startseite · erledigt wird automatisch erkannt</small></h2>
+    <div class="row" style="align-items:flex-end;gap:10px">
+      <div><label class="kl">Bereich</label><select id="haApp"></select></div>
+      <div><label class="kl">Was?</label><select id="haArt">
+        <option value="ueben">Runden üben</option><option value="mine">„Meine Aufgaben“</option><option value="test">einen Test bestehen</option></select></div>
+      <div><label class="kl">Wie oft?</label><select id="haAnzahl"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div>
+      <div><label class="kl">bis</label><input type="date" id="haBis" style="font-family:inherit;font-size:15px;padding:8px 10px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text)"></div>
+      <div style="flex:1;min-width:180px"><label class="kl">Hinweis (sieht das Kind)</label><input type="text" id="haText" placeholder="z. B. bitte in Ruhe zu Hause" autocomplete="off" style="width:100%" maxlength="60"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="kl" style="margin:0">Für:</label>
+      <select id="haFuer"><option value="alle">die ganze Klasse</option><option value="wahl">einzelne Kinder …</option></select>
+      <span style="flex:1"></span><button id="haGeben">📌 Aufgeben</button>
+    </div>
+    <div class="chips hide" id="haKinder" style="margin-top:10px"></div>
+    <div id="haListe" style="margin-top:16px"></div>
+  </div>
+
   <div class="card noprint" id="freigabeCard">
     <h2>🚧 Uhr-Trainer <small>für die Kinder gesperrt, bis du ihn freigibst</small></h2>
     <div class="row"><span id="uhrStand" style="font-weight:700"></span><span style="flex:1"></span><button id="uhrSchalter"></button></div>
@@ -289,6 +318,7 @@
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
+<script src="hausaufgabe.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -407,6 +437,7 @@ function render(){
   renderTiere();
   renderTank();
   renderSterne();
+  renderHA();
   renderArten(rows);
   renderHochhaus();
   renderRallye();
@@ -588,6 +619,50 @@ function renderArten(rows){
   $("arten").innerHTML=h;
 }
 
+//// ===== Hausaufgaben =====
+let AUFGABEN=[], haGewaehlt=new Set();
+$("haApp").innerHTML=HA.BEREICHE.map(b=>`<option value="${b.app}">${b.ic} ${b.name}</option>`).join("");
+$("haBis").value=HA.plusTage(HA.heute(), 3);
+$("haArt").addEventListener("change", ()=>{ $("haAnzahl").disabled = $("haArt").value==="test"; });
+$("haFuer").addEventListener("change", ()=>{ $("haKinder").classList.toggle("hide", $("haFuer").value!=="wahl"); renderHA(); });
+function kinderNamen(){ return [...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de")); }
+async function speichereHA(liste){
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, aufgaben:liste}, {merge:true}); }
+  catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+}
+$("haGeben").addEventListener("click", ()=>{
+  const bis=$("haBis").value;
+  if(!bis){ alert("Bitte ein Datum wählen."); return; }
+  const fuer = $("haFuer").value==="wahl" ? [...haGewaehlt] : [];
+  if($("haFuer").value==="wahl" && !fuer.length){ alert("Bitte mindestens ein Kind anklicken."); return; }
+  const a={ id:Date.now().toString(36), app:$("haApp").value, art:$("haArt").value, anzahl:+$("haAnzahl").value, von:HA.heute(), bis:bis, fuer:fuer, text:$("haText").value.trim().slice(0,60) };
+  // abgelaufene Aufgaben (älter als 3 Tage nach Abgabe) fallen dabei aus der Liste
+  speichereHA(AUFGABEN.filter(HA.aktuell).concat([a]));
+  $("haText").value=""; haGewaehlt.clear();
+});
+function renderHA(){
+  const namen=kinderNamen();
+  $("haKinder").innerHTML=namen.map(n=>`<span class="chip wahl${haGewaehlt.has(n)?" an":""}" data-n="${esc(n)}">${esc(n)}</span>`).join("");
+  $("haKinder").querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ const n=c.dataset.n; haGewaehlt.has(n)?haGewaehlt.delete(n):haGewaehlt.add(n); c.classList.toggle("an"); }));
+  const akt=AUFGABEN.filter(HA.aktuell).sort((a,b)=>a.bis.localeCompare(b.bis));
+  if(!akt.length){ $("haListe").innerHTML='<div class="empty">Zurzeit ist keine Hausaufgabe aufgegeben.</div>'; return; }
+  $("haListe").innerHTML=akt.map(a=>{
+    const b=HA.bereich(a.app), kinder=(a.fuer&&a.fuer.length?a.fuer.slice().sort((x,y)=>x.localeCompare(y,"de")):namen);
+    let fertig=0;
+    const chips=kinder.map(n=>{ const s=HA.stand(a, ALLE.filter(e=>e.name===n)); if(s.fertig) fertig++;
+      return `<span class="kd ${s.fertig?"ja":s.gemacht?"teil":"nein"}">${s.fertig?"✓ ":""}${esc(n)}${!s.fertig&&s.gemacht?` ${s.gemacht}/${s.noetig}`:""}</span>`; }).join("");
+    const vorbei=HA.heute()>a.bis;
+    return `<div class="haEin"><div class="kopf"><span style="font-size:22px">${b.ic}</span><b>${esc(HA.titel(a))}</b>
+        <span class="${vorbei?"mid":""}" style="font-size:13.5px;color:${vorbei?"":"var(--muted)"}">${vorbei?"war bis":"bis"} ${HA.schoen(a.bis)}${a.text?` · „${esc(a.text)}“`:""}</span>
+        <span style="flex:1"></span><span class="pill ${fertig===kinder.length?"ok":""}" style="background:#1e293b">${fertig} von ${kinder.length} erledigt</span>
+        <button class="ghost" style="padding:5px 10px;font-size:13px" data-weg="${a.id}">Löschen</button></div>
+      <div class="kinder">${chips}</div></div>`;
+  }).join("")+`<div class="status">Grün = erledigt · gelb = angefangen · grau = noch nichts. Gezählt wird ab dem Tag, an dem die Aufgabe aufgegeben wurde; eine Runde zählt ab 8 richtigen Aufgaben.</div>`;
+  $("haListe").querySelectorAll("button[data-weg]").forEach(x=>x.addEventListener("click",()=>{
+    if(confirm("Diese Hausaufgabe löschen?")) speichereHA(AUFGABEN.filter(a=>a.id!==x.dataset.weg));
+  }));
+}
+
 //// ===== Freigabe des Uhr-Trainers =====
 let UHR_FREI=false;
 function zeigeFreigabe(){
@@ -599,7 +674,7 @@ zeigeFreigabe();
 $("uhrSchalter").addEventListener("click", async ()=>{
   const neu=!UHR_FREI;
   if(!confirm(neu ? "Den Uhr-Trainer jetzt für alle Kinder freigeben?" : "Den Uhr-Trainer wieder für die Kinder sperren?")) return;
-  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, uhr:neu}); }
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, uhr:neu}, {merge:true}); }
   catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
 });
 
@@ -965,7 +1040,8 @@ async function entsperren(){
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
-                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; zeigeFreigabe(); } });
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; zeigeFreigabe();
+                                      AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA(); } });
       if(entsperrt) renderTiere();
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{

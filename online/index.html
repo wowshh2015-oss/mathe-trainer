@@ -177,6 +177,7 @@
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
+<script src="hausaufgabe.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
@@ -344,7 +345,8 @@ function zeigeHallo(rows, name){
   box.classList.remove("hide");
   if(!rows.length){
     POKAL_HTML="";
-    box.innerHTML=STERN_HTML+`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
+    HA_HTML=HA.kastenHTML(HAUSAUFGABEN, name, mitGeschenken);
+    box.innerHTML=HA_HTML+STERN_HTML+`<div class="gruss">👋 Hallo ${esc(name)}! Schön, dass du da bist.</div>
       <div class="seit">Das ist dein erstes Mal hier. Ich zeige dir, womit du am besten anfängst.</div>
       <span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
     $("lwOeffnen").addEventListener("click", zeigeLernweg);
@@ -437,7 +439,8 @@ function zeigeHallo(rows, name){
   }
 
   POKAL_HTML=pokalHTML(rows, name);
-  box.innerHTML = POKAL_HTML + STERN_HTML +
+  HA_HTML=HA.kastenHTML(HAUSAUFGABEN, name, mitGeschenken);        // Hausaufgaben der Lehrkraft stehen ganz oben
+  box.innerHTML = HA_HTML + POKAL_HTML + STERN_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
     (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
     (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"")+
@@ -514,7 +517,9 @@ const STATIONEN=[
   {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins",
    warum:"Das Teilen, die Umkehrung vom Malnehmen – mit Test."}
 ];
-let LW_ROWS=[], LW_NAME="", POKAL_HTML="", STERN_HTML="";
+let LW_ROWS=[], LW_NAME="", POKAL_HTML="", STERN_HTML="", HA_HTML="";
+// Freigaben und Hausaufgaben der Lehrkraft (einstellungen/freigabe) – wird beim Start einmal gelesen
+let FREIGABE=Promise.resolve(null), HAUSAUFGABEN=[];
 function nAufgaben(n){ return n===1 ? "1 Aufgabe" : `${n} Aufgaben`; }
 // Alles, was ein Kind und seine Eltern über eine Stufe wissen müssen
 function stationInfo(app){
@@ -603,7 +608,7 @@ function zeigeLernweg(){
     knopf=`<a data-emp="${z.app}" href="${seite.datei}#name=${encodeURIComponent(name)}">${z.ic} Jetzt: ${z.name} üben ›</a>`;
   }
 
-  box.innerHTML= POKAL_HTML + STERN_HTML +
+  box.innerHTML= HA_HTML + POKAL_HTML + STERN_HTML +
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>
      <div class="lwAbschnitt">🧭 Dein Lernweg <small>– Stufe für Stufe</small></div>
      ${stufen}
@@ -641,7 +646,10 @@ function starteHallo(){
   box.classList.remove("hide");
   box.innerHTML=`<div class="laden">☁️ Einen Moment, ich schaue nach, was du schon geschafft hast …</div>`;
   hdb.collection("ergebnisse").where("key","==",KEY).where("name","==",name).get()
-    .then(s=>{ const rows=[]; s.forEach(d=>rows.push(d.data())); if(capName($("name").value)===name) zeigeHallo(rows,name); })
+    .then(s=>{ const rows=[]; s.forEach(d=>rows.push(d.data()));
+      // kurz auf die Hausaufgaben warten (höchstens 4 Sekunden), dann begrüßen
+      const warte=new Promise(r=>setTimeout(r,4000));
+      return Promise.race([FREIGABE, warte]).then(()=>{ if(capName($("name").value)===name) zeigeHallo(rows,name); }); })
     .catch(()=>{ box.classList.add("hide"); });
 }
 (function halloInit(){
@@ -655,8 +663,9 @@ function starteHallo(){
   $("name").addEventListener("change", ()=>{ clearTimeout(halloTimer); halloTimer=setTimeout(starteHallo,150); });
   setTimeout(starteHallo, 700);
   // Ist der Uhr-Trainer schon freigegeben?
-  if(hdb) hdb.collection("einstellungen").doc("freigabe").get().then(d=>{
+  if(hdb) FREIGABE=hdb.collection("einstellungen").doc("freigabe").get().then(d=>{
     const offen = d.exists && (d.data()||{}).uhr===true;
+    HAUSAUFGABEN = (d.exists && Array.isArray((d.data()||{}).aufgaben)) ? d.data().aufgaben : [];
     try{ localStorage.setItem("mathe_uhr_offen", offen?"1":"0"); }catch(e){}
     let test=false; try{ test=localStorage.getItem("uhr_test_frei")==="1"; }catch(e){}
     UHR_OFFEN = offen || test; zeigeUhrKachel();
