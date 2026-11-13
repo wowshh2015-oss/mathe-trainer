@@ -190,6 +190,11 @@
       <button data-ueb="mit">mit Übergang<small>72 − 25</small></button>
       <button data-ueb="mix">gemischt<small>alles</small></button>
     </div>
+    <h3>✖️ Malnehmen <small>große Aufgaben in kleine zerlegen</small></h3>
+    <div class="reihen" style="grid-template-columns:1fr 1fr">
+      <button data-v20="malZehner">✖️ Mal mit Zehnerzahlen<small>6 × 20</small></button>
+      <button data-v20="malZerlegen">✖️ Mal mit Zerlegen<small>6 × 15</small></button>
+    </div>
     <h3>🧠 Meine Aufgaben <small>genau das, womit du zuletzt Mühe hattest</small></h3>
     <div class="reihen" style="grid-template-columns:1fr">
       <button id="meineBtn">🧠 Meine Aufgaben<small id="meineInfo">wird geladen …</small></button>
@@ -208,6 +213,8 @@
       <button data-v="schrittAdd">➕ Schrittweise</button>
       <button data-v="stellenAdd">➕ Stellenweise</button>
       <button data-v="schrittSub">➖ Schrittweise</button>
+      <button data-v="malZehner">✖️ Mal mit Zehnerzahlen<small>6 × 20</small></button>
+      <button data-v="malZerlegen">✖️ Mal mit Zerlegen<small>6 × 15</small></button>
     </div>
     <h3>Welche Stufe?</h3>
     <div class="stufen" id="testStufen">
@@ -277,7 +284,9 @@ const VERFAHREN={
   schrittSub20:{name:"Über den Zehner −", lang:"Minus über den Zehner bis 20", zeichen:"−"},
   schrittAdd:{name:"Schrittweise +", lang:"Schrittweise addieren", zeichen:"+"},
   stellenAdd:{name:"Stellenweise +", lang:"Stellenweise addieren", zeichen:"+"},
-  schrittSub:{name:"Schrittweise −", lang:"Schrittweise subtrahieren", zeichen:"−"}
+  schrittSub:{name:"Schrittweise −", lang:"Schrittweise subtrahieren", zeichen:"−"},
+  malZehner:{name:"Mal mit Zehnerzahlen", lang:"Malnehmen mit Zehnerzahlen", zeichen:"×"},
+  malZerlegen:{name:"Mal mit Zerlegen", lang:"Malnehmen mit Zerlegen", zeichen:"×"}
 };
 const UEB={ohne:"ohne Übergang", mit:"mit Übergang", mix:"gemischt"};
 const SCHRITTNAMEN={
@@ -298,7 +307,9 @@ const HINWEISE={
   schrittSub20:"Geh erst zurück bis zur 10. Dafür zerlegst du die zweite Zahl – den Rest nimmst du danach weg.",
   schrittAdd:"Zerlege die zweite Zahl in Zehner und Einer. Erst die Zehner dazu, dann die Einer.",
   schrittSub:"Zerlege die zweite Zahl in Zehner und Einer. Erst die Zehner weg, dann die Einer.",
-  stellenAdd:"Zerlege beide Zahlen in Zehner und Einer. Zehner plus Zehner, Einer plus Einer – dann beides zusammen."
+  stellenAdd:"Zerlege beide Zahlen in Zehner und Einer. Zehner plus Zehner, Einer plus Einer – dann beides zusammen.",
+  malZehner:"Rechne erst die kleine Aufgabe ohne die Null. Das Ergebnis sind Zehner – darum kommt die Null am Ende wieder dran.",
+  malZerlegen:"Zerlege die zweite Zahl in Zehner und Einer. Rechne beide Teile einzeln mal – und zähle die Ergebnisse zusammen."
 };
 function neueAufgabe(verf,a,b,ueb,op,zeilen,felder,extra){
   return Object.assign({verf:verf, a:a, b:b, ueb:ueb, fact:`${a}${op}${b}`, kopf:`${a} ${op} ${b}`,
@@ -347,7 +358,33 @@ function bauSchrittSub20(a,b){
     [ {soll:bis10,name:"Zurück zur 10"}, {soll:rest,name:"Zerlegen"}, {soll:a-b,name:"Rest weg"} ],
     {baum:{links:0, rechts:1}});
 }
+// 6 × 20  ->  6 × 2 = 12 ·  6 × 20 = 120
+function bauMalZehner(a,b){
+  const k=b/10;
+  return neueAufgabe("malZehner",a,b,"mit","×",
+    [ {name:"Kleine Aufgabe (ohne die Null)", teile:[a,"×",k,"=",{f:0}]},
+      {name:"Jetzt mit der Null",             teile:[a,"×",b,"=",{f:1}]} ],
+    [ {soll:a*k,name:"Kleine Aufgabe"}, {soll:a*b,name:"Null anhängen"} ]);
+}
+// 6 × 15  ->  15 = 10 + 5 ·  6 × 10 = 60 ·  6 × 5 = 30 ·  60 + 30 = 90
+function bauMalZerlegen(a,b){
+  const z=Math.floor(b/10)*10, e=b%10;
+  return neueAufgabe("malZerlegen",a,b,"mit","×",
+    [ {name:"Zerlegen",      teile:[b,"=",{f:0},"+",{f:1}]},
+      {name:"Mal die Zehner", teile:[a,"×",{w:0},"=",{f:2}]},
+      {name:"Mal die Einer",  teile:[a,"×",{w:1},"=",{f:3}]},
+      {name:"Zusammenzählen", teile:[{w:2},"+",{w:3},"=",{f:4}]} ],
+    [ {soll:z,name:"Zerlegen"}, {soll:e,name:"Zerlegen"}, {soll:a*z,name:"Mal die Zehner"}, {soll:a*e,name:"Mal die Einer"}, {soll:a*b,name:"Zusammenzählen"} ]);
+}
+function mkMalZehner(){ return bauMalZehner(rnd(2,9), rnd(2,9)*10); }
+function mkMalZerlegen(){
+  // meistens 11 bis 19, manchmal bis 39 – die Einer nie 0
+  const a=rnd(2,9), z = Math.random()<0.65 ? 10 : rnd(2,3)*10, b=z+rnd(1,9);
+  return bauMalZerlegen(a,b);
+}
 function bauNach(verf,a,b){
+  if(verf==="malZehner")   return bauMalZehner(a,b);
+  if(verf==="malZerlegen") return bauMalZerlegen(a,b);
   if(verf==="schrittAdd20") return bauSchrittAdd20(a,b);
   if(verf==="schrittSub20") return bauSchrittSub20(a,b);
   if(verf==="stellenAdd")   return bauStellenAdd(a,b);
@@ -410,6 +447,8 @@ function mkSchrittSub20(){
   return bauSchrittSub20(13,5);
 }
 function mkAufgabe(verf, ueb){
+  if(verf==="malZehner")   return mkMalZehner();
+  if(verf==="malZerlegen") return mkMalZerlegen();
   if(verf==="schrittAdd20") return mkSchrittAdd20();
   if(verf==="schrittSub20") return mkSchrittSub20();
   const art = ueb==="mix" ? (Math.random()<0.5?"ohne":"mit") : ueb;
@@ -485,9 +524,10 @@ function verfahrenZuSchritt(n){
   return null;                                 // Zehner-/Einerschritt gibt es in + und −
 }
 function factZuAufgabe(fact, verf){
-  const m=String(fact).match(/^(\d+)([+−])(\d+)$/);
+  const m=String(fact).match(/^(\d+)([+−×])(\d+)$/);
   if(!m) return null;
   const a=+m[1], b=+m[3];
+  if(m[2]==="×") return b%10===0 ? bauMalZehner(a,b) : bauMalZerlegen(a,b);
   const minus = m[2]==="−";
   if(VERFAHREN[verf] && ((minus && verf.indexOf("Sub")>0) || (!minus && verf.indexOf("Add")>0)))
     return bauNach(verf, a, b);
@@ -577,6 +617,7 @@ function starte(){
   $("spielTitel").textContent = modus==="Test"
     ? `${VERFAHREN[verfahren].name} · ${STUFENNAMEN[stufe]}`
     : (uebArt==="mine" ? "🧠 Meine Aufgaben"
+       : /^mal/.test(verfahren) ? VERFAHREN[verfahren].name
        : /20$/.test(verfahren) ? `${VERFAHREN[verfahren].name} · bis 20`
        : `${VERFAHREN[verfahren].name} · ${UEB[uebArt]}`);
   zeige("spiel");
@@ -712,6 +753,16 @@ function tippText(sf){
     return "💡 Der <b>Einerschritt</b> macht noch Mühe. Hier passiert der Zehnerübergang: 67 + 5 – erst auf den runden Zehner (67 + 3 = 70), dann der Rest (70 + 2 = 72).";
   if(name==="Teilsummen")
     return "💡 Das <b>Zusammenzählen am Ende</b> macht noch Mühe. Zehner und Einer sind richtig – jetzt beide Teilergebnisse addieren: 60 + 12 = 72.";
+  if(name==="Kleine Aufgabe")
+    return "💡 Die <b>kleine Aufgabe</b> macht noch Mühe. Das ist reines Einmaleins: Bei 6 × 20 rechnest du zuerst 6 × 2 = 12. Üb die Reihen im Einmaleins-Trainer!";
+  if(name==="Null anhängen")
+    return "💡 Das <b>Anhängen der Null</b> macht noch Mühe. 6 × 2 = 12 – bei 6 × 20 sind es 12 <b>Zehner</b>, also 120. Die Null kommt immer wieder dran.";
+  if(name==="Mal die Zehner")
+    return "💡 <b>Mal die Zehner</b> macht noch Mühe. 6 × 10 heißt: 6 Zehner – das sind 60. Bei 6 × 20 sind es doppelt so viele: 120.";
+  if(name==="Mal die Einer")
+    return "💡 <b>Mal die Einer</b> macht noch Mühe. Das ist reines Einmaleins – üb die Reihen im Einmaleins-Trainer!";
+  if(name==="Zusammenzählen")
+    return "💡 Das <b>Zusammenzählen am Ende</b> macht noch Mühe. Beide Teilergebnisse stimmen – jetzt nur noch addieren: 60 + 30 = 90.";
   if(name==="Zerlegen")
     return "💡 Das <b>Zerlegen</b> macht noch Mühe. Frage dich: <b>Wie viel brauche ich jetzt – und was bleibt übrig?</b> Bei 9 + 9 brauchst du 1 bis zur 10, dann bleiben von der 9 noch 8.";
   if(name==="Bis zur 10" || name==="Schritt zur 10")
@@ -737,7 +788,7 @@ function speichere(prozent, bestanden, dauer){
     modus:modus, verfahren:verfahren,
     verfahrenName: (modus==="Training" && uebArt==="mine") ? "Meine Aufgaben" : VERFAHREN[verfahren].name,
     reihe: (modus==="Training" && uebArt==="mine") ? "mine" : `${verfahren}-${modus==="Test"?"mix":uebArt}`, zr:100,
-    stufe: modus==="Test" ? STUFENNAMEN[stufe] : (uebArt==="mine" ? "eigene Fehler" : UEB[uebArt]),
+    stufe: modus==="Test" ? STUFENNAMEN[stufe] : (uebArt==="mine" ? "eigene Fehler" : /^mal/.test(verfahren) ? "halbschriftlich" : UEB[uebArt]),
     richtig:richtig, falsch:(modus==="Test"?PRO_TEST:PRO_TRAINING)-richtig,
     prozent:prozent, bestanden: modus==="Test" ? (bestanden?"Ja":"Nein") : "–",
     dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(), antworten:antwortListe.slice(),

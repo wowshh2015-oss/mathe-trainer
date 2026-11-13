@@ -96,6 +96,25 @@ window.Hilfe=(function(){
       return { bild:strich(a,sp), text:kette(a,sp) };
     }
     if(art==="mal"){
+      if(a>10 && b<=10){ const t=a; a=b; b=t; }          // 13 × 7 wie 7 × 13 zeigen
+      // 6 × 20: sechs Reihen mit je zwei Zehnern
+      if(a>=1 && a<=10 && b>=20 && b<=90 && b%10===0){
+        const k=b/10, w=Math.min(34, Math.floor(280/k)), hh=22, x0=(320-k*w)/2;
+        let s="";
+        for(let i=0;i<a;i++) for(let j=0;j<k;j++)
+          s+=`<rect x="${(x0+j*w+2).toFixed(1)}" y="${4+i*hh}" width="${w-4}" height="${hh-4}" rx="5" fill="${A}"/><text x="${(x0+j*w+w/2).toFixed(1)}" y="${4+i*hh+13}" text-anchor="middle" font-size="11" font-weight="800" fill="#042433">10</text>`;
+        return { bild:`<svg viewBox="0 0 320 ${a*hh+8}" role="img">${s}</svg>`,
+          text:`${a} × ${b} sind ${a} × ${k} <b>Zehner</b>. ${a} × ${k} = ${a*k} – also <b>${a*k} Zehner = ${a*b}</b>.` };
+      }
+      // 6 × 15: an der 10 zerlegt – 6 × 10 und 6 × 5
+      if(a>=1 && a<=10 && b>10 && b<40){
+        const z=Math.floor(b/10)*10, e=b%10, d=Math.min(20, Math.floor(290/b)), r=d*0.38, x0=(320-b*d)/2+d/2;
+        let s="";
+        for(let i=0;i<a;i++) for(let j=0;j<b;j++)
+          s+=`<circle cx="${(x0+j*d).toFixed(1)}" cy="${(5+d/2+i*d).toFixed(1)}" r="${r.toFixed(1)}" fill="${j<z?A:B}"/>`;
+        return { bild:`<svg viewBox="0 0 320 ${a*d+10}" role="img">${s}</svg>`,
+          text:`${a} × ${b} = <b style="color:${A}">${a} × ${z}</b> + <b style="color:${B}">${a} × ${e}</b> = ${a*z} + ${a*e} = <b>${a*b}</b>` };
+      }
       if(a>10 || b>10 || a<1 || b<1) return null;
       // die größere Zahl nach oben–unten, damit das Feld nicht zu breit wird; ab 6 Reihen an der 5 teilen
       const reihen=a, spalten=b, teile = reihen>5 ? 5 : 0;
