@@ -533,7 +533,7 @@ function renderLernstand(){
   const namen=[...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
   if(!namen.length){ $("lernstand").innerHTML='<div class="empty">Noch keine Daten.</div>'; return; }
   let h=`<table class="ls"><thead><tr><th>Kind</th>${STATIONEN.map(s=>`<th>${s[1]}<br>${s[2]}</th>`).join("")}
-    <th>🕒<br>Uhr<br><small>Stufen</small></th><th>🏢<br>Etage</th><th>🏎️<br>Runden</th><th>🔥<br>Serie</th><th>Tage aktiv<br><small>14 Tage / gesamt</small></th><th>zuletzt</th></tr></thead><tbody>`;
+    <th>🕒<br>Uhr<br><small>Stufen</small></th><th>🏢<br>Etage</th><th>🏎️<br>Runden</th><th>🔥<br>Flammen</th><th>Tage aktiv<br><small>14 Tage / gesamt</small></th><th>zuletzt</th></tr></thead><tbody>`;
   namen.forEach(n=>{
     const k=kindStand(n);
     const zellen=k.st.map((s,i)=>{
@@ -547,7 +547,7 @@ function renderLernstand(){
     if(k.spiel>=10 && k.spiel>(k.lern-k.uhr.n)*2 && k.spiel>k.lern*2) hinweis.push("fast nur Spiele");
     h+=`<tr><td class="nm"><a data-kind="${esc(n)}">${esc(n)}</a>${hinweis.length?` <span class="warn" title="${esc(hinweis.join(" · "))}">⚠️</span>`:""}</td>${zellen}
       <td><span class="zelle ${k.uhr.farbe}">${k.uhr.n ? `${k.uhr.bestanden} / 8${k.uhr.bestanden?" ✓":""}` : "–"}${k.uhr.n?`<small>${k.uhr.n}× geübt</small>`:""}</span></td>
-      <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td title="${k.serie.tage} Tage in Folge">${k.serie.tage ? Sterne.serieBild(k.serie)+" "+k.serie.tage : "–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
+      <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td title="${k.serie.tage} Lernflammen · ${k.serie.lerntage} Übungstage insgesamt">${k.serie.tage ? Sterne.serieBild(k.serie)+" "+k.serie.tage : "–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
   });
   $("lernstand").innerHTML=h+"</tbody></table>";
   $("lernstand").querySelectorAll("a[data-kind]").forEach(a=>a.addEventListener("click",()=>zeigeBlatt(a.dataset.kind)));
@@ -605,7 +605,7 @@ function zeigeBlatt(name){
     <h4>Spiele zum Wiederholen</h4>
     <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
     ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 8 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
-    ${k.serie.tage>=2?`<div class="klein" style="margin-top:8px">🔥 ${esc(name)} übt gerade <b>${k.serie.tage} Tage in Folge</b> (Wochenenden zählen nicht als Unterbrechung).</div>`:""}
+    ${k.serie.tage>=2?`<div class="klein" style="margin-top:8px">🔥 ${esc(name)} hat <b>${k.serie.tage} Lernflammen</b>: Jeder Übungstag bringt eine dazu, ein verpasster Schultag nimmt eine weg.</div>`:""}
     <h4>Was jetzt am meisten hilft</h4>
     <div class="tipp">${tipp}</div>
     <div class="klein" style="margin-top:8px">Empfehlung: lieber regelmäßig 10 Minuten als selten eine lange Einheit.</div>
@@ -692,7 +692,7 @@ function zeigeWoche(){
     <div><b>${aktiv.length}</b> von ${alleNamen.length} Kindern haben geübt · <b>${woche.length}</b> Durchgänge · <b>${aufgaben}</b> gerechnete Aufgaben · im Schnitt <b>${schnitt} %</b> richtig</div>
     <h4>Besonders fleißig</h4>
     ${liste(aktiv.slice(0,6).map(n=>`<b>${esc(n)}</b> – an ${pro[n].tage.size} ${pro[n].tage.size===1?"Tag":"Tagen"}, ${pro[n].n} Durchgänge`),"Niemand hat diese Woche geübt.")}
-    ${serien.length?`<div class="klein" style="margin-top:6px">🔥 Serien: ${serien.map(x=>`${esc(x[0])} ${x[1]} Tage`).join(" · ")}</div>`:""}
+    ${serien.length?`<div class="klein" style="margin-top:6px">🔥 Lernflammen: ${serien.map(x=>`${esc(x[0])} ${x[1]}`).join(" · ")}</div>`:""}
     <h4>Bestandene Tests</h4>
     ${liste(bestanden,"Diese Woche wurde kein Test bestanden.")}
     <h4>Nicht geübt (${fehlen.length})</h4>

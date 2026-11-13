@@ -98,21 +98,34 @@ window.Sterne=(function(){
   // Jeder Tag mit mindestens einem Durchgang zählt. Samstag und Sonntag sind frei: Sie unterbrechen die Serie nicht,
   // zählen aber mit, wenn das Kind trotzdem übt. Der heutige Tag unterbricht erst, wenn er vorbei ist.
   function serie(rows){
+    // Lernflammen: Jeder Tag mit mindestens einem Durchgang bringt eine Flamme dazu. Ein Schultag (Mo–Fr) ohne Üben
+    // nimmt eine Flamme weg – aber eben nur eine. Wer einen Monat geübt hat und eine Woche krank ist, behält den Großteil.
+    // Samstag und Sonntag sind frei: sie kosten nichts, bringen aber eine Flamme, wenn das Kind trotzdem übt.
     const tage=new Set(rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk").map(tag).filter(x=>x.length===8));
     const iso=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
-    const d=new Date(); d.setHours(12,0,0,0);
-    const heuteDa=tage.has(iso(d));
-    let n=heuteDa?1:0;
-    for(let i=0;i<500;i++){
-      d.setDate(d.getDate()-1);
-      if(tage.has(iso(d))){ n++; continue; }
-      const wt=d.getDay(); if(wt===0 || wt===6) continue;       // freies Wochenende
-      break;
+    const heute=new Date(); heute.setHours(12,0,0,0);
+    const heuteIso=iso(heute), heuteDa=tage.has(heuteIso);
+    let n=0;
+    if(tage.size){
+      const erster=[...tage].sort()[0];
+      const d=new Date(+erster.slice(0,4), +erster.slice(4,6)-1, +erster.slice(6,8), 12);
+      for(let i=0;i<1500 && iso(d)<=heuteIso;i++){
+        const t=iso(d), wt=d.getDay();
+        if(tage.has(t)) n++;
+        else if(t!==heuteIso && wt!==0 && wt!==6) n=Math.max(0,n-1);      // der heutige Tag kostet erst morgen
+        d.setDate(d.getDate()+1);
+      }
     }
-    return {tage:n, heuteDa, kronen:Math.floor(n/10), feuer:n%10};
+    const schultag=heute.getDay()!==0 && heute.getDay()!==6;
+    return {tage:n, heuteDa, lerntage:tage.size, verlustMorgen: !heuteDa && schultag && n>0};
   }
-  // 12 Tage → 👑🔥🔥
-  function serieBild(s){ return "👑".repeat(Math.min(s.kronen,10))+"🔥".repeat(s.feuer); }
+  // 1 Flamme = 🔥 · 10 = 🏅 · 20 = 😀 · 30 = 🚀 · 40 = 💎 · 50 = 👑 (darüber: Krone und wieder von vorn)
+  const ZEHNER=["","🏅","😀","🚀","💎"];
+  function serieBild(s){
+    const n=s.tage||0, kronen=Math.floor(n/50), rest=n%50;
+    return "👑".repeat(Math.min(kronen,6))+ZEHNER[Math.floor(rest/10)]+"🔥".repeat(rest%10);
+  }
+  function naechstesZeichen(n){ const z=n+1; return z%50===0 ? "👑" : z%10===0 ? ZEHNER[Math.floor((z%50)/10)] : ""; }
   // Die Sticker verteilen sich reihum auf die fünf Alben: Nr. 1 Tiere, Nr. 2 Dinos, Nr. 3 Weltraum …
   function offenIm(albumIdx, sticker){ return Math.max(0, Math.min(ALBEN[albumIdx].s.length, Math.ceil((sticker-albumIdx)/ALBEN.length))); }
   function albumVoll(){ return ALBEN.reduce((s,a)=>s+a.s.length,0); }
@@ -133,6 +146,7 @@ window.Sterne=(function(){
     .stNeu{background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
     .stSerie{width:100%;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.4);color:#fed7aa;border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.5}
     .stSerie b{color:#fff}
+    .stSerieHilfe{display:block;font-size:11.5px;color:#fdba74;opacity:.85;margin-top:3px}
     .stSerieBild{font-size:20px;vertical-align:-2px;filter:grayscale(1);opacity:.5}
     .stSerieBild.an{filter:none;opacity:1;letter-spacing:1px}
     .stGabe{width:100%;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:10px;padding:7px 11px;font-size:13.5px}
@@ -181,10 +195,12 @@ window.Sterne=(function(){
     const text = (plus>0 ? `<b>+${plus} ⭐ seit deinem letzten Besuch!</b> ` : s.heute>0 ? `Heute schon <b>+${s.heute} ⭐</b>. ` : "")+
       (voll ? "Dein Album ist voll – stark!" : `Noch <b>${s.bisNaechster} ⭐</b> bis zum nächsten Sticker.`);
     const se=serie(rows);
-    const serieText = se.tage===0 ? `<span class="stSerieBild">🔥</span> Übe heute eine Runde – dann beginnt deine <b>Serie</b>!`
-      : `<span class="stSerieBild an">${serieBild(se)}</span> <b>${se.tage} ${se.tage===1?"Tag":"Tage"} in Folge</b>`+
-        (se.heuteDa ? ` – heute schon geschafft ✅${se.feuer===9?" Morgen gibt es eine Krone 👑!":""}`
-                    : ` – <b style="color:#fca5a5">übe heute, damit deine Serie nicht abreißt!</b>`);
+    const kommt=naechstesZeichen(se.tage);
+    const serieText = se.tage===0 ? `<span class="stSerieBild">🔥</span> Übe heute eine Runde – dann brennt deine erste <b>Lernflamme</b>!`
+      : `<span class="stSerieBild an">${serieBild(se)}</span> <b>${se.tage} ${se.tage===1?"Lernflamme":"Lernflammen"}</b>`+
+        (se.heuteDa ? ` – heute ist eine dazugekommen ✅${kommt?` Beim nächsten Mal gibt es ${kommt}!`:""}`
+                    : se.verlustMorgen ? ` – <b style="color:#fca5a5">übe heute, sonst erlischt morgen eine Flamme!</b>` : ` – übe heute und es kommt eine dazu.`)+
+        `<span class="stSerieHilfe">Jeder Übungstag bringt eine Flamme, ein verpasster Schultag nimmt eine weg. 10 = 🏅 · 20 = 😀 · 30 = 🚀 · 40 = 💎 · 50 = 👑</span>`;
     const gabe = s.neuestes ? `<div class="stGabe">🎁 <b>${(+s.neuestes.silber||0)>0?"+"+s.neuestes.silber+" ⭐ ":""}${(+s.neuestes.gold||0)>0?"+"+s.neuestes.gold+" 🌟 ":""}</b>von deiner Lehrkraft${s.neuestes.grund?` – ${esc(s.neuestes.grund)}`:""}</div>` : "";
     return `<div class="stBand">
       <span class="stZahl"><span class="ic">⭐</span>${s.silber}<small>Sterne</small></span>
