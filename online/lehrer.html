@@ -475,13 +475,18 @@ function kindStand(name){
   const etage=r.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
   const runden=r.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye").length, lern=r.length-spiel;
-  return {name, r, st, jetzt, cur, fest, her, tage, tage14, etage, runden, spiel, lern};
+  // Uhr-Trainer: wie viele der 7 Stufen sind mit Test bestanden?
+  const ur=r.filter(e=>e.app==="uhr");
+  const ub=new Set(ur.filter(e=>e.modus==="Test" && e.bestanden==="Ja").map(e=>+e.zr)).size;
+  const uhr={n:ur.length, bestanden:ub, farbe:!ur.length?"grau":ub>=7?"gruen":"gelb"};
+  const serie=Sterne.serie(r);
+  return {name, r, st, jetzt, cur, fest, her, tage, tage14, etage, runden, spiel, lern, uhr, serie};
 }
 function renderLernstand(){
   const namen=[...new Set(ALLE.map(e=>e.name))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
   if(!namen.length){ $("lernstand").innerHTML='<div class="empty">Noch keine Daten.</div>'; return; }
   let h=`<table class="ls"><thead><tr><th>Kind</th>${STATIONEN.map(s=>`<th>${s[1]}<br>${s[2]}</th>`).join("")}
-    <th>🏢<br>Etage</th><th>🏎️<br>Runden</th><th>Tage aktiv<br><small>14 Tage / gesamt</small></th><th>zuletzt</th></tr></thead><tbody>`;
+    <th>🕒<br>Uhr<br><small>Stufen</small></th><th>🏢<br>Etage</th><th>🏎️<br>Runden</th><th>🔥<br>Serie</th><th>Tage aktiv<br><small>14 Tage / gesamt</small></th><th>zuletzt</th></tr></thead><tbody>`;
   namen.forEach(n=>{
     const k=kindStand(n);
     const zellen=k.st.map((s,i)=>{
@@ -492,9 +497,10 @@ function renderLernstand(){
     const lange=k.her!==null && k.her>=14;
     const zuletzt=k.her===null?"–":k.her===0?"heute":k.her===1?"gestern":`vor ${k.her} Tagen`;
     const hinweis=[]; if(lange) hinweis.push("seit "+k.her+" Tagen nicht geübt"); if(k.fest) hinweis.push("hängt bei "+k.cur.label);
-    if(k.spiel>=10 && k.spiel>k.lern*2) hinweis.push("fast nur Spiele");
+    if(k.spiel>=10 && k.spiel>(k.lern-k.uhr.n)*2 && k.spiel>k.lern*2) hinweis.push("fast nur Spiele");
     h+=`<tr><td class="nm"><a data-kind="${esc(n)}">${esc(n)}</a>${hinweis.length?` <span class="warn" title="${esc(hinweis.join(" · "))}">⚠️</span>`:""}</td>${zellen}
-      <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
+      <td><span class="zelle ${k.uhr.farbe}">${k.uhr.n ? `${k.uhr.bestanden} / 7${k.uhr.bestanden?" ✓":""}` : "–"}${k.uhr.n?`<small>${k.uhr.n}× geübt</small>`:""}</span></td>
+      <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td title="${k.serie.tage} Tage in Folge">${k.serie.tage ? Sterne.serieBild(k.serie)+" "+k.serie.tage : "–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
   });
   $("lernstand").innerHTML=h+"</tbody></table>";
   $("lernstand").querySelectorAll("a[data-kind]").forEach(a=>a.addEventListener("click",()=>zeigeBlatt(a.dataset.kind)));
@@ -551,6 +557,8 @@ function zeigeBlatt(name){
     <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden.</div>
     <h4>Spiele zum Wiederholen</h4>
     <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
+    ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 7 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
+    ${k.serie.tage>=2?`<div class="klein" style="margin-top:8px">🔥 ${esc(name)} übt gerade <b>${k.serie.tage} Tage in Folge</b> (Wochenenden zählen nicht als Unterbrechung).</div>`:""}
     <h4>Was jetzt am meisten hilft</h4>
     <div class="tipp">${tipp}</div>
     <div class="klein" style="margin-top:8px">Empfehlung: lieber regelmäßig 10 Minuten als selten eine lange Einheit.</div>

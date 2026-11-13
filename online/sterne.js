@@ -94,6 +94,25 @@ window.Sterne=(function(){
     return { silber, gold, heute:Math.max(0,heute), goldHeute:Math.max(0,goldHeute), tage:Object.keys(tagDa).length, lernHeute:!!tagDa[H], sicher, neuestes,
              sticker:Math.floor(silber/PRO_STICKER), bisNaechster:PRO_STICKER-(silber%PRO_STICKER) };
   }
+  // ===== Serie: Tage in Folge =====
+  // Jeder Tag mit mindestens einem Durchgang zählt. Samstag und Sonntag sind frei: Sie unterbrechen die Serie nicht,
+  // zählen aber mit, wenn das Kind trotzdem übt. Der heutige Tag unterbricht erst, wenn er vorbei ist.
+  function serie(rows){
+    const tage=new Set(rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk").map(tag).filter(x=>x.length===8));
+    const iso=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+    const d=new Date(); d.setHours(12,0,0,0);
+    const heuteDa=tage.has(iso(d));
+    let n=heuteDa?1:0;
+    for(let i=0;i<500;i++){
+      d.setDate(d.getDate()-1);
+      if(tage.has(iso(d))){ n++; continue; }
+      const wt=d.getDay(); if(wt===0 || wt===6) continue;       // freies Wochenende
+      break;
+    }
+    return {tage:n, heuteDa, kronen:Math.floor(n/10), feuer:n%10};
+  }
+  // 12 Tage → 👑🔥🔥
+  function serieBild(s){ return "👑".repeat(Math.min(s.kronen,10))+"🔥".repeat(s.feuer); }
   // Die Sticker verteilen sich reihum auf die fünf Alben: Nr. 1 Tiere, Nr. 2 Dinos, Nr. 3 Weltraum …
   function offenIm(albumIdx, sticker){ return Math.max(0, Math.min(ALBEN[albumIdx].s.length, Math.ceil((sticker-albumIdx)/ALBEN.length))); }
   function albumVoll(){ return ALBEN.reduce((s,a)=>s+a.s.length,0); }
@@ -112,6 +131,10 @@ window.Sterne=(function(){
     .stKnopf{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;
       background:linear-gradient(180deg,#fbbf24,#d97706);color:#3b2300;white-space:nowrap}
     .stNeu{background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+    .stSerie{width:100%;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.4);color:#fed7aa;border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.5}
+    .stSerie b{color:#fff}
+    .stSerieBild{font-size:20px;vertical-align:-2px;filter:grayscale(1);opacity:.5}
+    .stSerieBild.an{filter:none;opacity:1;letter-spacing:1px}
     .stGabe{width:100%;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:10px;padding:7px 11px;font-size:13.5px}
     .stOv{position:fixed;inset:0;z-index:1500;background:rgba(5,10,22,.93);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
     .stBox{background:#1e293b;color:#f1f5f9;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px 18px;max-width:560px;width:100%;margin:auto;
@@ -157,12 +180,18 @@ window.Sterne=(function(){
     const voll = s.sticker>=albumVoll();
     const text = (plus>0 ? `<b>+${plus} ⭐ seit deinem letzten Besuch!</b> ` : s.heute>0 ? `Heute schon <b>+${s.heute} ⭐</b>. ` : "")+
       (voll ? "Dein Album ist voll – stark!" : `Noch <b>${s.bisNaechster} ⭐</b> bis zum nächsten Sticker.`);
+    const se=serie(rows);
+    const serieText = se.tage===0 ? `<span class="stSerieBild">🔥</span> Übe heute eine Runde – dann beginnt deine <b>Serie</b>!`
+      : `<span class="stSerieBild an">${serieBild(se)}</span> <b>${se.tage} ${se.tage===1?"Tag":"Tage"} in Folge</b>`+
+        (se.heuteDa ? ` – heute schon geschafft ✅${se.feuer===9?" Morgen gibt es eine Krone 👑!":""}`
+                    : ` – <b style="color:#fca5a5">übe heute, damit deine Serie nicht abreißt!</b>`);
     const gabe = s.neuestes ? `<div class="stGabe">🎁 <b>${(+s.neuestes.silber||0)>0?"+"+s.neuestes.silber+" ⭐ ":""}${(+s.neuestes.gold||0)>0?"+"+s.neuestes.gold+" 🌟 ":""}</b>von deiner Lehrkraft${s.neuestes.grund?` – ${esc(s.neuestes.grund)}`:""}</div>` : "";
     return `<div class="stBand">
       <span class="stZahl"><span class="ic">⭐</span>${s.silber}<small>Sterne</small></span>
       <span class="stZahl"><span class="ic">🌟</span>${s.gold}<small>Gold</small></span>
       <span class="stText">${text}</span>
       <button class="stKnopf" data-album="1">📒 Mein Album${neuSt>0?`<span class="stNeu">${neuSt} NEU</span>`:""}</button>
+      <div class="stSerie">${serieText}</div>
       ${gabe}</div>`;
   }
   // Nach dem Einsetzen des Bandes aufrufen
@@ -252,5 +281,5 @@ window.Sterne=(function(){
       return r;
     };
   });
-  return {stand, bandHTML, verbinde, oeffneAlbum, offenIm, zeigeUnterschied, empfohlen, empfehlungErledigt, ALBEN, GLITZER, PRO_STICKER};
+  return {stand, serie, serieBild, bandHTML, verbinde, oeffneAlbum, offenIm, zeigeUnterschied, empfohlen, empfehlungErledigt, ALBEN, GLITZER, PRO_STICKER};
 })();
