@@ -98,7 +98,7 @@
     return zahlenfelder().find(i=>!i.disabled && sichtbar(i)) || null;
   }
   function tippe(t){
-    if(t==="ok"){ const w=document.querySelector(".hfBox button"); if(w){ w.click(); return; } }   // Hilfe offen: OK = Weiter
+    if(t==="ok"){ const w=document.querySelector(".hfBox button, #hilfeWeiter"); if(w){ w.click(); return; } }   // Hilfe offen: OK = Weiter
     const i=ziel(); if(!i) return;
     aktiv=i;
     if(t==="ok"){ i.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true})); return; }

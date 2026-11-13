@@ -10,6 +10,8 @@
 <script src="anmeldung.js"></script>
 <script src="komfort.js"></script>
 <script src="sterne.js"></script>
+<script src="wiederholung.js"></script>
+<script src="hilfe.js"></script>
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#334155;
@@ -439,8 +441,9 @@ function ladeMeine(){
     .then(s=>{
       MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
       MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      cloudOk=true; $("status").textContent="☁️ Verbunden – die Ergebnisse landen in der Klassenübersicht.";
       zeigeMeineInfo();
-    }).catch(()=>{});
+    }).catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); });
 }
 // wie in den anderen Trainern: 3× hintereinander richtig = gelernt
 function serie(fact){
@@ -465,6 +468,12 @@ function offeneFehler(){
     .filter(([f])=>serie(f)<3)
     .sort((a,b)=>b[1].anzahl-a[1].anzahl);
 }
+// Wiederholen mit Abstand (wiederholung.js): gelernte Aufgaben kommen nach 2, 7 und 21 Tagen noch je einmal wieder
+function faelligeFakten(){
+  const map=new Map();
+  MEINE.forEach(e=>(e.fehler||[]).forEach(f=>{ if(!map.has(f)) map.set(f,{verf:e.verfahren||"schrittAdd", anzahl:0}); }));
+  return [...map.entries()].filter(([f])=>{ try{ return Wdh.status(MEINE,f).faellig; }catch(e){ return false; } });
+}
 function schwaechsterSchritt(){
   const sum={};
   MEINE.forEach(e=>Object.entries(e.schrittfehler||{}).forEach(([n,c])=>{ sum[n]=(sum[n]||0)+(+c||0); }));
@@ -486,7 +495,7 @@ function factZuAufgabe(fact, verf){
 }
 function baueMeine(anzahl){
   const offen=offeneFehler(), liste=[], gesehen=new Set();
-  offen.forEach(([fact,info])=>{
+  offen.concat(faelligeFakten()).forEach(([fact,info])=>{      // erst die offenen, dann die fälligen Wiederholungen
     if(liste.length>=anzahl) return;
     const a=factZuAufgabe(fact, info.verf);
     if(a && !gesehen.has(a.fact)){ gesehen.add(a.fact); liste.push(a); }
@@ -506,15 +515,17 @@ function zeigeMeineInfo(){
   const offen=offeneFehler(), btn=$("meineBtn"), info=$("meineInfo");
   if(!MEINE.length){ info.textContent="noch nichts geübt – fang oben an"; btn.disabled=true; return; }
   btn.disabled=false;
-  if(!offen.length){ info.textContent="alles gelernt ⭐ – hier kommt gemischtes Üben"; return; }
+  const wdh=faelligeFakten().length;
+  if(!offen.length && !wdh){ info.textContent="alles gelernt ⭐ – hier kommt gemischtes Üben"; return; }
   const s=schwaechsterSchritt();
-  info.textContent = `${offen.length} offene Aufgabe${offen.length===1?"":"n"}` + (s?` · schwächster Schritt: ${s}`:"");
+  info.textContent = [offen.length?`${offen.length} offene Aufgabe${offen.length===1?"":"n"}`:"", wdh?`🔁 ${wdh} Wiederholung${wdh===1?" ist":"en sind"} heute dran`:""].filter(x=>x).join(" · ")
+    + (s && offen.length?` · schwächster Schritt: ${s}`:"");
 }
 
 //// ===== Anzeige =====
 function zeige(id){ ["start","training","testwahl","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); }
 
-let erledigt=[];
+let erledigt=[], antwortListe=[];      // antwortListe: "Aufgabe|richtig|eingegeben" für falsche Endergebnisse
 function zeichneFortschritt(){
   const gesamt = modus==="Test" ? PRO_TEST : PRO_TRAINING;
   let h="";
@@ -556,11 +567,12 @@ function zeichneWeg(){
 
 //// ===== Ablauf =====
 function starte(){
+  lauf++; { const h=$("hilfeBox"); if(h) h.remove(); }
   const anzahl = modus==="Test" ? PRO_TEST : PRO_TRAINING;
   aufgaben = (modus==="Training" && uebArt==="mine")
     ? baueMeine(anzahl)
     : baueSatz(verfahren, modus==="Test" ? "mix" : uebArt, anzahl);
-  nr=0; richtig=0; falschListe=[]; gestellt=[]; fehler=[]; schrittFehler={}; erledigt=[];
+  nr=0; richtig=0; falschListe=[]; gestellt=[]; fehler=[]; schrittFehler={}; erledigt=[]; antwortListe=[];
   startZeit=Date.now();
   $("spielTitel").textContent = modus==="Test"
     ? `${VERFAHREN[verfahren].name} · ${STUFENNAMEN[stufe]}`
@@ -603,6 +615,7 @@ function zeitAbgelaufen(){
   // alle noch offenen Felder als Fehler werten und die Lösung zeigen
   for(let i=aktFeld;i<felder.length;i++){ felder[i]={fertig:true, ok:false, wert:""}; merkeSchrittFehler(i); }
   aktFeld=felder.length; aufgabeOk=false;
+  antwortListe.push(`${aktiv.fact}|${aktiv.ergebnis}|zeit`);
   zeichneWeg();
   $("rueck").style.color="var(--bad)";
   $("rueck").textContent=`⏱ Zeit vorbei! ${aktiv.kopf} = ${aktiv.ergebnis}`;
@@ -615,7 +628,8 @@ function pruefeSchritt(){
   if(roh==="") return;
   const ok = parseInt(roh,10)===aktiv.felder[aktFeld].soll;
   felder[aktFeld]={fertig:true, ok:ok, wert:roh};
-  if(!ok){ merkeSchrittFehler(aktFeld); aufgabeOk=false; }
+  if(!ok){ merkeSchrittFehler(aktFeld); aufgabeOk=false;
+    if(aktFeld===felder.length-1) antwortListe.push(`${aktiv.fact}|${aktiv.ergebnis}|${parseInt(roh,10)}`); }
   aktFeld++;
   zeichneWeg();
   if(aktFeld<felder.length) return;
@@ -631,12 +645,26 @@ function pruefeSchritt(){
 }
 function abschliessen(wartezeit){
   stoppZeit();
+  const warFalsch=!aufgabeOk, a=aktiv;
   if(aufgabeOk) richtig++;
   else { falschListe.push(aktiv); fehler.push(aktiv.fact); }
   erledigt[nr]=aufgabeOk;
   zeichneFortschritt();
   nr++;
-  setTimeout(naechsteAufgabe, wartezeit);
+  // Im Trainingsraum nach einem Fehler nicht weiterrennen: Das Kind sieht den verbesserten Rechenweg
+  // (und, wo es passt, ein Bild) und tippt selbst auf „Weiter".
+  if(warFalsch && modus!=="Test"){ zeigeHilfe(a); return; }
+  const meinLauf=lauf; setTimeout(()=>{ if(meinLauf===lauf) naechsteAufgabe(); }, wartezeit);
+}
+let lauf=0;          // ein verspäteter Zeitgeber aus einer abgebrochenen Runde darf die nächste nicht stören
+function zeigeHilfe(a){
+  let bild=""; try{ if(a.verf!=="stellenAdd") bild=Hilfe.kasten(a.fact); }catch(e){}     // beim stellenweisen Rechnen passt der Rechenstrich nicht
+  const alt=$("hilfeBox"); if(alt) alt.remove();
+  const box=document.createElement("div"); box.id="hilfeBox";
+  box.innerHTML=bild+`<div style="text-align:center;margin-top:12px"><button id="hilfeWeiter">Weiter ▶</button></div>`;
+  $("rueck").insertAdjacentElement("afterend", box);
+  $("hilfeWeiter").addEventListener("click", ()=>{ box.remove(); naechsteAufgabe(); });
+  setTimeout(()=>{ try{ $("hilfeWeiter").focus({preventScroll:true}); box.scrollIntoView({block:"nearest", behavior:"smooth"}); }catch(e){} }, 300);
 }
 
 //// ===== Ergebnis =====
@@ -712,7 +740,7 @@ function speichere(prozent, bestanden, dauer){
     stufe: modus==="Test" ? STUFENNAMEN[stufe] : (uebArt==="mine" ? "eigene Fehler" : UEB[uebArt]),
     richtig:richtig, falsch:(modus==="Test"?PRO_TEST:PRO_TRAINING)-richtig,
     prozent:prozent, bestanden: modus==="Test" ? (bestanden?"Ja":"Nein") : "–",
-    dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(),
+    dauer:dauer, gestellt:gestellt.slice(), fehler:fehler.slice(), antworten:antwortListe.slice(),
     schrittfehler:schrittFehler
   };
   // Sterne sofort zeigen (sterne.js) und den neuen Durchgang gleich in die eigene Liste aufnehmen
@@ -736,7 +764,7 @@ $("zumTest").addEventListener("click", ()=>{ stufe=null; verfahren="schrittAdd";
   zeige("testwahl"); });
 $("trainingZu").addEventListener("click", ()=>zeige("start"));
 $("testwahlZu").addEventListener("click", ()=>zeige("start"));
-$("abbrechen").addEventListener("click", ()=>{ stoppZeit(); zeige("start"); });
+$("abbrechen").addEventListener("click", ()=>{ lauf++; stoppZeit(); const h=$("hilfeBox"); if(h) h.remove(); zeige("start"); });
 $("zumMenue").addEventListener("click", ()=>zeige("start"));
 $("nochmal").addEventListener("click", ()=>starte());
 
@@ -750,7 +778,7 @@ document.querySelectorAll("#training button[data-v20]").forEach(b=>b.addEventLis
   modus="Training"; verfahren=b.dataset.v20; uebArt="mit"; starte();
 }));
 $("meineBtn").addEventListener("click", ()=>{
-  const offen=offeneFehler();
+  const offen=offeneFehler().concat(faelligeFakten());
   modus="Training"; uebArt="mine";
   verfahren = offen.length ? (offen[0][1].verf||"schrittAdd") : (verfahrenZuSchritt(schwaechsterSchritt())||"schrittAdd");
   starte();
@@ -790,12 +818,7 @@ function chipsZeigen(namen){
     firebase.initializeApp(CONF);
     db=firebase.firestore();
     // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
-    db.collection("ergebnisse").where("key","==",KEY).limit(400).get().then(s=>{
-      const namen=[...new Set(s.docs.map(d=>capName(d.data().name)))].sort((a,b)=>a.localeCompare(b,"de"));
-      chipsZeigen(namen);
-      cloudOk=true;
-      $("status").textContent="☁️ Verbunden – die Ergebnisse landen in der Klassenübersicht.";
-    }).catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); });
+    // Die Namen der Klasse werden hier nicht mehr geladen – angemeldet wird nur auf der Startseite.
   }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
   const m=location.hash.match(/name=([^&]+)/);
   let n = m ? decodeURIComponent(m[1]) : "";
