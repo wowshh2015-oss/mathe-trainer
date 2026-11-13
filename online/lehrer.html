@@ -348,7 +348,9 @@ const APPS={
   minus:        {label:"Minus",         ic:"➖"},
   zerlegen:     {label:"Zerlegen",      ic:"🧩"},
   uhr:          {label:"Uhr",           ic:"🕒"},
-  sach:         {label:"Sachaufgaben",  ic:"📖"}
+  sach:         {label:"Sachaufgaben",  ic:"📖"},
+  geld:         {label:"Geld",          ic:"💶"},
+  laengen:      {label:"Längen",        ic:"📏"}
 };
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -369,7 +371,7 @@ function uebungLabel(e){
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
-  if(e.app==="uhr" || e.app==="sach") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
+  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -765,7 +767,7 @@ function renderHA(){
 // Uhr: offen nur, wenn freigabe.uhr === true (so war es von Anfang an). Alle anderen: gesperrt, wenn freigabe.zu[app] === true.
 let UHR_FREI=false, ZU={};
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"]];
+                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){
   $("sperrListe").innerHTML=`<table><tbody>`+PROGRAMME.map(([app,name])=>{ const zu=istGesperrt(app);

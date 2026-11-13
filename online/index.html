@@ -24,7 +24,8 @@
   .chips .lbl{color:var(--muted);font-size:12px;width:100%;margin-bottom:-2px}
   .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;transition:.15s}
   .chip:hover{border-color:#38bdf8;background:rgba(56,189,248,.12)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;transition:.2s}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;transition:.2s}
+  a.tile{min-width:0;overflow-wrap:break-word}
   .grid.dis{opacity:.4;pointer-events:none}
   .tile.wide{grid-column:1 / -1}
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
@@ -138,7 +139,10 @@
   .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
   .credit{margin-top:18px;color:var(--muted);font-size:13px}
   .credit strong{color:#38bdf8}
-  @media (max-width:480px){.grid{grid-template-columns:1fr}h1{font-size:26px}}
+  /* auch auf dem Handy zwei Kacheln nebeneinander – so sieht man alle Programme auf einen Blick */
+  @media (max-width:480px){ h1{font-size:26px} body{padding:16px 12px} .grid{gap:10px}
+    a.tile{padding:16px 8px;border-radius:16px} .tile .ic{font-size:36px} .tile .t{font-size:15px;margin-top:6px} .tile .d{font-size:11.5px;line-height:1.35}
+    .baldTag{display:block;margin:4px auto 0;width:max-content;max-width:100%;font-size:11px} }
 </style>
 </head>
 <body>
@@ -160,16 +164,19 @@
   <div class="lwOverlay hide" id="lwOverlay"><div class="lwBox" id="lwBox"></div></div>
 
   <div class="grid dis" id="grid">
-    <a class="tile t7 wide" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde – Auto, Pferd oder Rakete · 5 Strecken</div></a>
-    <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Einmaleins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
-    <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Einsdurcheins</div><div class="d">Teilen bis 100</div></a>
+    <!-- immer zwei Kacheln nebeneinander, paarweise nach Thema -->
+    <a class="tile t5" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
+    <a class="tile t8" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechen&shy;wege</div><div class="d">Schritt für Schritt · plus · minus · mal</div></a>
     <a class="tile t3" data-page="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
-    <a class="tile t6 wide" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Marathon</div><div class="d">Klettere Etage für Etage – 10 Aufgaben pro Stockwerk</div></a>
-    <a class="tile t8 wide" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechenwege</div><div class="d">Halbschriftlich plus und minus · schrittweise &amp; stellenweise</div></a>
-    <a class="tile t3 wide" data-page="sach-trainer.html"><div class="ic">📖</div><div class="t">Sachaufgaben</div><div class="d">Geschichten lesen · die Rechenart finden · rechnen</div></a>
-    <a class="tile t2 wide gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
-    <a class="tile t5 wide" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">Zahlen zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
+    <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Ein&shy;mal&shy;eins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
+    <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Eins&shy;durch&shy;eins</div><div class="d">Teilen bis 100</div></a>
+    <a class="tile t7" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde · 5 Strecken</div></a>
+    <a class="tile t6" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Mara&shy;thon</div><div class="d">Etage für Etage nach oben</div></a>
+    <a class="tile t2 gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
+    <a class="tile t3" data-page="sach-trainer.html"><div class="ic">📖</div><div class="t">Sach&shy;auf&shy;gaben</div><div class="d">Geschichten lesen · Rechenart finden</div></a>
+    <a class="tile t6" data-page="geld-trainer.html"><div class="ic">💶</div><div class="t">Geld</div><div class="d">Euro und Cent · bezahlen · Rückgeld</div></a>
+    <a class="tile t1" data-page="laengen-trainer.html"><div class="ic">📏</div><div class="t">Längen</div><div class="d">messen · mm · cm · m</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a></p>
@@ -274,6 +281,8 @@ const SEITEN={
   marathon:       {datei:"marathon-trainer.html",        ic:"🏢", name:"Rechen-Marathon"},
   rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"},
   uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"},
+  geld:           {datei:"geld-trainer.html",            ic:"💶", name:"Geld"},
+  laengen:        {datei:"laengen-trainer.html",         ic:"📏", name:"Längen"},
   sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"}
 };
 let hdb=null, halloTimer=null, halloFuer="";
@@ -484,7 +493,9 @@ const NEUES=[
   {d:"2026-11-13", ic:"🔊", t:"Leiste oben rechts",            x:"Vorlesen, Ton, größere Schrift und eigene Zahlentasten."},
   {d:"2026-11-14", ic:"🔥", t:"Deine Serie",                   x:"Für jeden Tag in Folge gibt es ein Feuer – nach 10 Tagen eine Krone."},
   {d:"2026-11-14", ic:"✖️", t:"Malnehmen bei den Rechenwegen", x:"Neu: 6 × 20 und 6 × 15 – Schritt für Schritt."},
-  {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen.", app:"sach"}
+  {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen.", app:"sach"},
+  {d:"2026-11-15", ic:"💶", t:"Geld",                          x:"Eine neue Kachel: Münzen zählen, passend bezahlen und Rückgeld ausrechnen.", app:"geld"},
+  {d:"2026-11-15", ic:"📏", t:"Längen",                        x:"Eine neue Kachel: mit dem Lineal messen und Längen umwandeln.", app:"laengen"}
 ];
 const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
 function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
@@ -713,7 +724,7 @@ function starteHallo(){
   $("grid").addEventListener("click", e=>{
     const t=e.target.closest(".tile.gesperrt"); if(!t || t.id==="uhrKachel") return;
     e.preventDefault();
-    $("hint").textContent=`🚧 „${t.querySelector(".t").firstChild.textContent.trim()}“ öffnet bald – deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht. Sei gespannt!`;
+    $("hint").textContent=`🚧 „${t.querySelector(".t").firstChild.textContent.replace(/­/g,"").trim()}“ öffnet bald – deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht. Sei gespannt!`;
     $("hint").scrollIntoView({block:"nearest", behavior:"smooth"});
   }, true);
   // gesperrte Kachel: nicht öffnen, sondern Vorfreude wecken

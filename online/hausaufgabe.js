@@ -11,7 +11,9 @@ window.HA=(function(){
     {app:"einmaleins",      ic:"✖️", name:"Einmaleins",    datei:"einmaleins-trainer.html"},
     {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins", datei:"einsdurcheins-trainer.html"},
     {app:"uhr",             ic:"🕒", name:"Uhr",           datei:"uhr-trainer.html"},
-    {app:"sach",            ic:"📖", name:"Sachaufgaben",  datei:"sach-trainer.html"}
+    {app:"sach",            ic:"📖", name:"Sachaufgaben",  datei:"sach-trainer.html"},
+    {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
+    {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"}
   ];
   // Genauer: eine bestimmte Übung innerhalb eines Bereichs. feld = Feld im gespeicherten Durchgang, an dem man sie erkennt.
   const TEILE={
@@ -20,6 +22,8 @@ window.HA=(function(){
     plus:    {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
     minus:   {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
     zerlegen:{feld:"zr", liste:[["10","bis 10"],["20","bis 20"],["100","bis 100"]]},
+    geld:    {feld:"zr", liste:[["1","Münzen zählen"],["2","Euro und Cent zählen"],["3","Umwandeln und Komma"],["4","Passend bezahlen"],["5","Einkaufen und Rückgeld"]]},
+    laengen: {feld:"zr", liste:[["1","Mit dem Lineal messen"],["2","Zentimeter und Millimeter"],["3","Meter und Zentimeter"],["4","Welche Einheit passt?"],["5","Mit Längen rechnen"]]},
     sach:    {feld:"zr", liste:[["1","Plus und Minus bis 20"],["2","Plus und Minus bis 100"],["3","Mal und Geteilt"],["4","Alle vier Rechenarten"],["5","Mit unnötigen Angaben"]]},
     uhr:     {feld:"zr", liste:[["1","Nur der kleine Zeiger"],["2","Volle und halbe Stunden"],["3","Viertel nach und Viertel vor"],["4","Fünf-Minuten-Schritte"],["5","Auf die Minute genau"],
                      ["6","Vormittag und Nachmittag"],["8","Die Zeit vergeht"],["7","Fünf vor halb, zehn nach …"]]}

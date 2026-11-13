@@ -64,7 +64,17 @@ window.Wdh=(function(){
     // Sachaufgaben
     sach_rechenart:"📖 Sachaufgabe: falsche Rechenart gewählt",
     sach_angabe:   "📖 Sachaufgabe: unnötige Zahl verwendet",
-    sach_rechnen:  "📖 Sachaufgabe: richtig gewählt, falsch gerechnet"
+    sach_rechnen:  "📖 Sachaufgabe: richtig gewählt, falsch gerechnet",
+    // Geld und Längen
+    groesse_faktor:   "📏 Umrechnungszahl verwechselt (10 statt 100 oder umgekehrt)",
+    groesse_umrechnen:"📏 Einheiten falsch umgewandelt",
+    groesse_komma:    "📏 Kommaschreibweise (3 € 5 ct = 3,05 €)",
+    groesse_ablesen:  "📏 Lineal: am Ende abgelesen, nicht bei 0 begonnen",
+    groesse_messen:   "📏 Lineal falsch abgelesen",
+    groesse_einheit:  "📏 Einheit falsch eingeschätzt",
+    groesse_zaehlen:  "💶 Geld falsch gezählt",
+    groesse_legen:    "💶 Betrag falsch gelegt",
+    groesse_rechnen:  "📏 Mit Größen falsch gerechnet"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"
