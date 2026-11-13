@@ -87,6 +87,9 @@
   .erkl .paar > div{width:170px;font-size:13px;color:var(--muted);font-weight:700}
   .erkl p{font-size:16px;line-height:1.5;margin:10px 0 0;color:#e2e8f0}
   .erkl p b{color:#fff}
+  .paarUhr{display:flex;align-items:center;justify-content:center;gap:8px}
+  .paarUhr > div{flex:1;max-width:230px;text-align:center;font-size:14px;font-weight:700;color:var(--muted)}
+  .paarUhr .pfeil{flex:none;font-size:30px;color:var(--gold)}
   .zeitbalken{height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);overflow:hidden;margin-bottom:10px}
   .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
   .fortschritt{display:flex;gap:4px;margin-bottom:12px}
@@ -212,8 +215,10 @@ const STUFEN=[
   {id:4, name:"In Fünf-Minuten-Schritten",    kurz:"3:20 Uhr · 3:55 Uhr",                        min:[5,10,20,25,35,40,50,55,15,45], art:"digital", snap:5, typen:["lesen","stellen","wahl"]},
   {id:5, name:"Auf die Minute genau",         kurz:"3:47 Uhr",                                   min:null,         art:"digital", snap:1, typen:["lesen","stellen","lesen","wahl"]},
   // Der Tag hat 24 Stunden: Die Zeiger stehen zweimal am Tag gleich – 8 Uhr morgens und 20 Uhr abends
+  // Zeitspannen: Wie spät ist es in einer halben Stunde? Wie lange dauert es von 8:15 bis 9:00?
+  {id:8, pos:7, name:"Die Zeit vergeht",       kurz:"in einer halben Stunde · wie lange dauert es?", min:[0,15,30,45,0,15,30,45,10,20,40,50], art:"spanne", snap:5, typen:["spaeter","dauer","stellSpaeter","spaeter","dauer"]},
   // So spricht man im Alltag: fünf vor halb 4 (3:25), fünf nach halb 4 (3:35), zwanzig nach 3, zehn vor 4 …
-  {id:7, name:"Fünf vor halb, zehn nach …",   kurz:"für Profis: fünf vor halb 4 · zwanzig nach 3 · zehn vor 4", min:[25,35,25,35,5,10,20,40,50,55], art:"alltag", snap:5, typen:["lesen","digital7","stellen","wahl"]},
+  {id:7, pos:9, name:"Fünf vor halb, zehn nach …",   kurz:"für Profis: fünf vor halb 4 · zwanzig nach 3 · zehn vor 4", min:[25,35,25,35,5,10,20,40,50,55], art:"alltag", snap:5, typen:["lesen","digital7","stellen","wahl"]},
   {id:6, name:"Vormittag und Nachmittag",     kurz:"8 Uhr morgens · 20 Uhr abends · 15:15 Uhr",  min:[0,30,15,45,0,30,10,20,40,50], art:"24", snap:5, typen:["lesen24","partner","wahl24","stellen24"]}
 ];
 // Tageszeit zu einer Stunde von 0 bis 23
@@ -330,10 +335,19 @@ function baueAufgaben(st, zeiten){
   const liste=[], gesehen=new Set();
   let schutz=0;
   while(liste.length<PRO_RUNDE && schutz++<400){
-    let h,m,H;
-    if(zeiten && zeiten.length){ [h,m,H]=zeiten.shift(); } else [h,m,H]=zeitFuer(st);
-    const k=(H===undefined?h:"H"+H)+":"+m; if(gesehen.has(k)) continue; gesehen.add(k);
+    let h,m,H,d;
+    if(zeiten && zeiten.length){ [h,m,H,d]=zeiten.shift(); } else [h,m,H]=zeitFuer(st);
     let typ=typen[liste.length%typen.length];
+    if(st.art==="spanne"){
+      if(d===undefined){
+        d = typ==="dauer" ? [15,30,45,20,40,60,25,35,50,75,90][rnd(0,10)] : [15,30,45,60,15,30,20,10,90,120,-15,-30][rnd(0,11)];
+        if(typ==="dauer" && d<0) d=-d;
+      }else if(typ==="dauer" && d<0) typ="spaeter";
+      const ks=h+":"+m+"/"+d; if(gesehen.has(ks)) continue; gesehen.add(ks);
+      liste.push({st, h, m, d, typ, key:`${st.id}|${h}:${zz(m)}${d<0?"":"+"}${d}`});
+      continue;
+    }
+    const k=(H===undefined?h:"H"+H)+":"+m; if(gesehen.has(k)) continue; gesehen.add(k);
     if(typ==="partner" && (H%12===0)) typ="lesen24";            // 0 und 12 Uhr eignen sich nicht für die Partner-Aufgabe
     liste.push({st, h, m, H, typ, key: st.art==="24" ? `${st.id}|${H}:${zz(m)}` : schluessel(st,h,m)});
   }
@@ -367,8 +381,9 @@ function naechste(){
   $("rueck").textContent=""; $("erkl").innerHTML="";
   zeichneFortschritt();
   runde.gestellt.push(a.key);
-  const ziel=benenne(st,a), laut=`<button class="lautKn" id="lautBtn" title="Vorsprechen" aria-label="Vorsprechen">🔈</button>`;
-  if(st.art==="24") aufgabe24(a, o, ziel, laut);
+  const ziel= st.art==="spanne" ? "" : benenne(st,a), laut=`<button class="lautKn" id="lautBtn" title="Vorsprechen" aria-label="Vorsprechen">🔈</button>`;
+  if(st.art==="spanne") aufgabeSpanne(a, o);
+  else if(st.art==="24") aufgabe24(a, o, ziel, laut);
   else if(a.typ==="lesen"){
     $("frage").innerHTML = st.nurStunde ? "Wie spät ist es ungefähr?" : "Wie spät ist es?";
     const opt=mische([{h:a.h,m:a.m,art:"ok"}].concat(ablenker(st,a.h,a.m)));
@@ -412,6 +427,95 @@ function naechste(){
   const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(sprechtext(st,a.h,a.m,a.H)));
   starteZeit();
 }
+//// ===== Stufe „Die Zeit vergeht": Zeitspannen =====
+const uhrzeit=(h,m)=>`${h}:${zz(m)} Uhr`;
+// T = Minuten auf dem Zifferblatt (0 … 719) → [Stunde 1–12, Minute]
+function ausT(T){ T=((T%720)+720)%720; return [Math.floor(T/60)||12, T%60]; }
+function dauerText(d){ d=Math.abs(d); const s=Math.floor(d/60), m=d%60; return (s?`${s} ${s===1?"Stunde":"Stunden"}`:"")+(s&&m?" ":"")+(m?`${m} Minuten`:""); }
+function spanneWort(d){ d=Math.abs(d); return {15:"einer Viertelstunde",30:"einer halben Stunde",45:"einer Dreiviertelstunde",60:"einer Stunde",90:"anderthalb Stunden",120:"2 Stunden"}[d] || `${d} Minuten`; }
+// Schritt für Schritt über die volle Stunde – so, wie man es im Kopf rechnet
+function spanneWeg(a){
+  const T0=(a.h%12)*60+a.m, [h2,m2]=ausT(T0+a.d), ad=Math.abs(a.d), vor=a.d>0;
+  const ganze=Math.floor(ad/60), rest=ad%60;
+  let teile=[], T=T0;
+  if(ganze){ T+= (vor?1:-1)*ganze*60; const [hx,mx]=ausT(T); teile.push(`${ganze} ${ganze===1?"Stunde":"Stunden"} ${vor?"später":"früher"} ist es <b>${uhrzeit(hx,mx)}</b>.`); }
+  if(rest){
+    const [hx,mx]=ausT(T);
+    if(vor){
+      const bis=60-mx;
+      if(mx && rest>bis){ const [hv]=ausT(T+bis); teile.push(`Von ${uhrzeit(hx,mx)} bis <b>${hv}:00 Uhr</b> sind es ${bis} Minuten. Dann bleiben noch ${rest-bis} Minuten.`); }
+      else if(mx && rest===bis) teile.push(`Von ${uhrzeit(hx,mx)} fehlen genau ${bis} Minuten bis zur vollen Stunde.`);
+      else teile.push(mx ? `${mx} + ${rest} = ${mx+rest} Minuten – die Stunde bleibt gleich.` : `Der lange Zeiger wandert ${rest} Minuten weiter – die Stunde bleibt gleich.`);
+    }else{
+      if(rest>mx){ teile.push(`Von ${uhrzeit(hx,mx)} zurück bis <b>${hx}:00 Uhr</b> sind es ${mx} Minuten. Dann geht es noch ${rest-mx} Minuten weiter zurück.`); }
+      else teile.push(`${mx} − ${rest} = ${mx-rest} Minuten – die Stunde bleibt gleich.`);
+    }
+  }
+  return {text:teile.join(" "), h2, m2};
+}
+function aufgabeSpanne(a, o){
+  const st=a.st, T0=(a.h%12)*60+a.m, [h2,m2]=ausT(T0+a.d), vor=a.d>0, wechsel = vor ? (a.m+(a.d%60)>=60 && a.d%60!==0) : (a.m<(Math.abs(a.d)%60));
+  a.h2=h2; a.m2=m2;
+  const wahl=(opt, text)=>{
+    $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{ const x=opt[+b.dataset.i]; pruefe(x.art==="ok", x, b, opt); }));
+  };
+  if(a.typ==="spaeter"){
+    a.sollText=uhrzeit(h2,m2);
+    $("frage").innerHTML = vor ? `Jetzt ist es <b>${uhrzeit(a.h,a.m)}</b>.<br>Wie spät ist es in <span class="ziel">${spanneWort(a.d)}</span>?`
+                               : `Jetzt ist es <b>${uhrzeit(a.h,a.m)}</b>.<br>Wie spät war es vor <span class="ziel">${spanneWort(a.d)}</span>?`;
+    const drin=new Set([h2+":"+m2]), falsch=[];
+    const nimm=(T,art)=>{ const [h,m]=ausT(T), k=h+":"+m; if(drin.has(k)) return; drin.add(k); falsch.push({h,m,art,text:uhrzeit(h,m)}); };
+    if(wechsel) nimm((a.h%12)*60+(((a.m+a.d)%60)+60)%60, "uebergang");      // Minuten gerechnet, Stunde nicht weitergestellt
+    nimm(T0-a.d, "richtung");                                               // in die falsche Richtung gerechnet
+    nimm(T0+a.d+60, "stunde"); nimm(T0+a.d-60, "stunde");
+    nimm(T0+a.d+15, "minute"); nimm(T0+a.d-15, "minute"); nimm(T0+a.d+30, "minute");
+    const opt=mische([{h:h2,m:m2,art:"ok",text:a.sollText}].concat(falsch.slice(0,3)));
+    $("buehne").innerHTML=`<div class="uhrGross">${uhrSVG(a.h,a.m,{ringe:o.ringe})}</div>
+      <div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${x.text}</button>`).join("")}</div>`;
+    wahl(opt);
+  }else if(a.typ==="dauer"){
+    a.sollText=dauerText(a.d);
+    $("frage").innerHTML=`Wie lange dauert es von <b>${uhrzeit(a.h,a.m)}</b> bis <b>${uhrzeit(h2,m2)}</b>?`;
+    const drin=new Set([a.d]), falsch=[];
+    const nimm=(d,art)=>{ if(d<=0 || d>240 || drin.has(d)) return; drin.add(d); falsch.push({d,art,text:dauerText(d)}); };
+    if(wechsel) nimm(Math.abs(m2-a.m), "uebergang");                         // nur die Minutenzahlen voneinander abgezogen
+    if(wechsel) nimm(60-(a.d%60||60)+Math.floor(a.d/60)*60, "uebergang");
+    nimm(a.d+60, "stunde"); nimm(a.d-60, "stunde");
+    nimm(a.d+15, "minute"); nimm(a.d-15, "minute"); nimm(a.d+10, "minute"); nimm(a.d+30, "minute");
+    const opt=mische([{d:a.d,art:"ok",text:a.sollText}].concat(falsch.slice(0,3)));
+    $("buehne").innerHTML=`<div class="paarUhr"><div>Anfang${uhrSVG(a.h,a.m,{ringe:o.ringe})}</div><div class="pfeil">➜</div><div>Ende${uhrSVG(h2,m2,{ringe:o.ringe})}</div></div>
+      <div class="wahl">${opt.map((x,i)=>`<button data-i="${i}">${x.text}</button>`).join("")}</div>`;
+    wahl(opt);
+  }else{   // stellSpaeter: die Uhr selbst weiterdrehen
+    a.sollText=uhrzeit(h2,m2);
+    $("frage").innerHTML = vor ? `Jetzt ist es <b>${uhrzeit(a.h,a.m)}</b>.<br>Dreh die Uhr weiter: Wie spät ist es in <span class="ziel">${spanneWort(a.d)}</span>?`
+                               : `Jetzt ist es <b>${uhrzeit(a.h,a.m)}</b>.<br>Dreh die Uhr zurück: Wie spät war es vor <span class="ziel">${spanneWort(a.d)}</span>?`;
+    $("buehne").innerHTML=`<div class="uhrGross zieh" id="stellBox"></div>
+      <div class="reihe"><button class="ghost klein" id="stMinus">− 1 Stunde</button><button id="stFertig">Fertig ✓</button><button class="ghost klein" id="stPlus">+ 1 Stunde</button></div>
+      <div class="legende"><span>Die Uhr zeigt die Zeit von jetzt. Dreh den <b style="color:#fca5a5">langen roten Zeiger</b> ${vor?"weiter":"zurück"}.</span></div>`;
+    aktUhr=stellUhr($("stellBox"), T0, st.snap, {ringe:o.ringe});
+    $("stMinus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(-60); });
+    $("stPlus").addEventListener("click",()=>{ if(!wartet) aktUhr.plus(60); });
+    $("stFertig").addEventListener("click",()=>{
+      const T=aktUhr.T, [h,m]=ausT(T), zielT=((T0+a.d)%720+720)%720, ok = T===zielT;
+      let art="minute";
+      if(!ok){ if(T===((T0-a.d)%720+720)%720) art="richtung"; else if(m===m2) art = wechsel ? "uebergang" : "stunde"; }
+      pruefe(ok, {h, m, art:ok?"ok":art, text:uhrzeit(h,m)}, null, null);
+    });
+  }
+}
+function erklaerungSpanne(a, gewaehlt){
+  const w=spanneWeg(a), richtig=`Richtig ist <b>${a.sollText}</b>.`;
+  const vorne = gewaehlt.art==="uebergang" ? `Achtung, hier geht es <b>über die volle Stunde</b>. ` : gewaehlt.art==="richtung" ? `„<b>in</b> …“ heißt: die Uhr läuft <b>weiter</b>. „<b>vor</b> …“ heißt: du gehst <b>zurück</b>. ` : "";
+  if(a.typ==="dauer"){
+    const bis=60-a.m, ueber = a.m && a.d>bis;
+    const weg = ueber ? `Von ${uhrzeit(a.h,a.m)} bis <b>${ausT((a.h%12)*60+60)[0]}:00 Uhr</b> sind es ${bis} Minuten, von dort bis ${uhrzeit(a.h2,a.m2)} noch ${dauerText(a.d-bis)}. Zusammen: <b>${a.sollText}</b>.`
+                      : `Von ${uhrzeit(a.h,a.m)} bis ${uhrzeit(a.h2,a.m2)}: Der lange Zeiger läuft <b>${a.sollText}</b> weiter.`;
+    return vorne+weg;
+  }
+  return vorne+w.text+" "+richtig;
+}
+
 //// ===== Stufe 6: 24 Stunden =====
 // Falsche Stunden zu einer Stunde H (0–23), jeweils mit dem Denkfehler dahinter
 function stunden24(H, mitHaelfte){
@@ -477,6 +581,7 @@ function aufgabe24(a, o, ziel, laut){
 }
 // Erklärung passend zum Denkfehler
 function erklaerung(a, gewaehlt){
+  if(a.st.art==="spanne") return erklaerungSpanne(a, gewaehlt);
   if(a.st.art==="24"){
     const frueh=a.H%12, spaet=frueh+12, ziel = a.typ==="partner" ? a.gesucht : a.H, richtig24=`Richtig ist <b>${name24(ziel,a.m)}</b>.`;
     const zweimal=`Die Zeiger stehen <b>zweimal am Tag</b> so: um <b>${name24(frueh,a.m)}</b> und um <b>${name24(spaet,a.m)}</b>.`;
@@ -527,15 +632,17 @@ function pruefe(ok, gewaehlt, knopf, opt){
   }
   runde.fehler.push(a.key);
   // Format wie in den anderen Trainern (Aufgabe|richtig|gegeben) plus die erkannte Fehlerart – für die Klassenübersicht
-  const soll = (st.art==="24" && a.typ==="partner") ? name24(a.gesucht,a.m) : benenne(st,a);
-  runde.antworten.push(`Uhr ${st.art==="24"?a.H:a.h}:${zz(a.m)}|${soll}|${gewaehlt.zeit?"zeit":a.typ==="wahl24"?`Uhr mit ${gewaehlt.h}:${zz(gewaehlt.m)}`:benenne(st,gewaehlt)}|${gewaehlt.art}`);
+  const soll = st.art==="spanne" ? a.sollText : (st.art==="24" && a.typ==="partner") ? name24(a.gesucht,a.m) : benenne(st,a);
+  runde.antworten.push(`Uhr ${st.art==="24"?a.H:a.h}:${zz(a.m)}${st.art==="spanne"?(a.d<0?" ":" +")+a.d+" min":""}|${soll}|${gewaehlt.zeit?"zeit":gewaehlt.text?gewaehlt.text:a.typ==="wahl24"?`Uhr mit ${gewaehlt.h}:${zz(gewaehlt.m)}`:benenne(st,gewaehlt)}|${gewaehlt.art}`);
   runde.fehlerTexte.push(soll);
   r.style.color="var(--bad)"; r.textContent = gewaehlt.zeit ? "Die Zeit ist um." : "Das stimmt noch nicht.";
   zeichneFortschritt(); runde.i++;
   if(runde.modus==="Test"){ spaeter(1500); return; }
   // Im Trainingsraum: zeigen, wie man es sieht – das Kind tippt selbst auf „Weiter"
   const r24 = st.art==="24";
-  const paar = ((a.typ==="stellen" || a.typ==="stellen24") && !gewaehlt.zeit)
+  const paar = st.art==="spanne"
+    ? `<div class="paar"><div>${a.typ==="dauer"?"Anfang":"Jetzt"}${uhrSVG(a.h,a.m,{ringe:true})}</div><div>${a.typ==="dauer"?"Ende":(a.d>0?"Später":"Vorher")}${uhrSVG(a.h2,a.m2,{ringe:true})}</div></div>`
+    : ((a.typ==="stellen" || a.typ==="stellen24") && !gewaehlt.zeit)
     ? `<div class="paar"><div>Deine Uhr${uhrSVG(gewaehlt.h,gewaehlt.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div><div>So ist es richtig${uhrSVG(a.h,a.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div></div>`
     : `<div class="paar"><div>${uhrSVG(a.h,a.m,{ringe:true,ring24:r24,nurStunde:st.nurStunde})}</div></div>`;
   $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So kannst du es sehen</div>${paar}
@@ -560,7 +667,7 @@ $("ringeBtn").addEventListener("click", ()=>{
   ringe=!ringe; try{ localStorage.setItem("uhr_ringe", ringe?"an":"aus"); }catch(e){}
   $("ringeBtn").textContent = ringe ? "Hilfe-Ringe aus" : "Hilfe-Ringe an";
   if(!runde || wartet) return;
-  const a=runde.aufgaben[runde.i], g=$("buehne").querySelector(".uhrGross");
+  const a=runde.aufgaben[runde.i], g = (a && a.typ==="dauer") ? null : $("buehne").querySelector(".uhrGross");
   if(aktUhr && $("stellBox")){ aktUhr.opts.ringe=ringe; aktUhr.zeichne(); }
   else if(g && a) g.innerHTML=uhrSVG(a.h,a.m,{ringe:ringe,ring24:ringe && a.st.art==="24" && (a.typ==="partner" || a.H>=13),nurStunde:a.st.nurStunde});
 });
@@ -620,12 +727,12 @@ function meineZeiten(){
   return {offen, faellig};
 }
 function zeigeMenue(){
-  const dran=STUFEN.slice().sort((a,b)=>a.id-b.id).find(s=>!stufenStand(s.id).bestanden);
-  $("stufen").innerHTML=STUFEN.slice().sort((a,b)=>a.id-b.id).map(s=>{
+  const dran=STUFEN.slice().sort((a,b)=>(a.pos||a.id)-(b.pos||b.id)).find(s=>!stufenStand(s.id).bestanden);
+  $("stufen").innerHTML=STUFEN.slice().sort((a,b)=>(a.pos||a.id)-(b.pos||b.id)).map(s=>{
     const z=stufenStand(s.id);
     const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
     return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}">
-      <span class="nr">${z.bestanden?"✓":s.id}</span>
+      <span class="nr">${z.bestanden?"✓":(STUFEN.slice().sort((a,b)=>(a.pos||a.id)-(b.pos||b.id)).indexOf(s)+1)}</span>
       <span class="tx"><b>${s.name}</b><span>${info}</span></span>
       <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}">Test</button></span></div>`;
   }).join("");
@@ -643,7 +750,8 @@ $("meineBtn").addEventListener("click", ()=>{
   // die Aufgaben der schwächsten Stufe zuerst; aufgefüllt wird mit weiteren Zeiten derselben Stufe
   const proStufe={}; keys.forEach(k=>{ const id=+k.split("|")[0]; (proStufe[id]=proStufe[id]||[]).push(k); });
   const id=+Object.keys(proStufe).sort((a,b)=>proStufe[b].length-proStufe[a].length)[0], st=stufe(id)||STUFEN[1];
-  const zeiten=proStufe[id].map(k=>{ const t=k.split("|")[1].split(":"); return st.art==="24" ? [h12(+t[0]),+t[1],+t[0]] : [+t[0],+t[1]]; });
+  const zeiten=proStufe[id].map(k=>{ const sp=k.split("|")[1].match(/^(\d+):(\d+)([+-]\d+)$/); if(sp) return [+sp[1],+sp[2],undefined,+sp[3]];
+    const t=k.split("|")[1].split(":"); return st.art==="24" ? [h12(+t[0]),+t[1],+t[0]] : [+t[0],+t[1]]; });
   starte(st, "mine", zeiten);
 });
 

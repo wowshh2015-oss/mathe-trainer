@@ -478,7 +478,7 @@ function kindStand(name){
   // Uhr-Trainer: wie viele der 7 Stufen sind mit Test bestanden?
   const ur=r.filter(e=>e.app==="uhr");
   const ub=new Set(ur.filter(e=>e.modus==="Test" && e.bestanden==="Ja").map(e=>+e.zr)).size;
-  const uhr={n:ur.length, bestanden:ub, farbe:!ur.length?"grau":ub>=7?"gruen":"gelb"};
+  const uhr={n:ur.length, bestanden:ub, farbe:!ur.length?"grau":ub>=8?"gruen":"gelb"};
   const serie=Sterne.serie(r);
   return {name, r, st, jetzt, cur, fest, her, tage, tage14, etage, runden, spiel, lern, uhr, serie};
 }
@@ -499,7 +499,7 @@ function renderLernstand(){
     const hinweis=[]; if(lange) hinweis.push("seit "+k.her+" Tagen nicht geübt"); if(k.fest) hinweis.push("hängt bei "+k.cur.label);
     if(k.spiel>=10 && k.spiel>(k.lern-k.uhr.n)*2 && k.spiel>k.lern*2) hinweis.push("fast nur Spiele");
     h+=`<tr><td class="nm"><a data-kind="${esc(n)}">${esc(n)}</a>${hinweis.length?` <span class="warn" title="${esc(hinweis.join(" · "))}">⚠️</span>`:""}</td>${zellen}
-      <td><span class="zelle ${k.uhr.farbe}">${k.uhr.n ? `${k.uhr.bestanden} / 7${k.uhr.bestanden?" ✓":""}` : "–"}${k.uhr.n?`<small>${k.uhr.n}× geübt</small>`:""}</span></td>
+      <td><span class="zelle ${k.uhr.farbe}">${k.uhr.n ? `${k.uhr.bestanden} / 8${k.uhr.bestanden?" ✓":""}` : "–"}${k.uhr.n?`<small>${k.uhr.n}× geübt</small>`:""}</span></td>
       <td>${k.etage||"–"}</td><td>${k.runden||"–"}</td><td title="${k.serie.tage} Tage in Folge">${k.serie.tage ? Sterne.serieBild(k.serie)+" "+k.serie.tage : "–"}</td><td>${k.tage14} / ${k.tage}</td><td class="${lange?"no":""}">${zuletzt}</td></tr>`;
   });
   $("lernstand").innerHTML=h+"</tbody></table>";
@@ -557,7 +557,7 @@ function zeigeBlatt(name){
     <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden.</div>
     <h4>Spiele zum Wiederholen</h4>
     <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
-    ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 7 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
+    ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 8 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
     ${k.serie.tage>=2?`<div class="klein" style="margin-top:8px">🔥 ${esc(name)} übt gerade <b>${k.serie.tage} Tage in Folge</b> (Wochenenden zählen nicht als Unterbrechung).</div>`:""}
     <h4>Was jetzt am meisten hilft</h4>
     <div class="tipp">${tipp}</div>

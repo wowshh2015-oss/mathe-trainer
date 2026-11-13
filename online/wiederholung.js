@@ -58,7 +58,9 @@ window.Wdh=(function(){
     uhr_minute:    "🕒 Minuten falsch abgelesen",
     uhr_tageszeit: "🕒 Vormittag und Nachmittag verwechselt",
     uhr_plus12:    "🕒 Nachmittag: nicht 12 dazugezählt",
-    uhr_vornach:   "🕒 „vor“ und „nach“ verwechselt"
+    uhr_vornach:   "🕒 „vor“ und „nach“ verwechselt",
+    uhr_uebergang: "🕒 Zeitspanne: volle Stunde übersehen",
+    uhr_richtung:  "🕒 Zeitspanne: vor und zurück verwechselt"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"
