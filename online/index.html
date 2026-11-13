@@ -214,9 +214,23 @@ function zeigeUhrKachel(){
   $("uhrBald").classList.toggle("hide", UHR_OFFEN);
   $("uhrText").textContent = UHR_OFFEN ? "Die Uhr mit Zeigern lesen und stellen · halb · Viertel · Minuten" : "Bald lernst du hier die Uhr mit Zeigern – sei gespannt!";
 }
+// Alle anderen Programme kann die Lehrkraft genauso sperren (Klassenübersicht → „Programme öffnen und sperren")
+let GESPERRT=new Set();
+try{ JSON.parse(localStorage.getItem("mathe_zu")||"[]").forEach(a=>GESPERRT.add(a)); }catch(e){}
+function lehrerGeraet(){ try{ return localStorage.getItem("uhr_test_frei")==="1"; }catch(e){ return false; } }
+function istZu(app){ return app==="uhr" ? !UHR_OFFEN : (GESPERRT.has(app) && !lehrerGeraet()); }
+function zeigeSperren(){
+  document.querySelectorAll(".tile[data-page]").forEach(t=>{
+    const app=t.dataset.page.replace("-trainer.html",""); if(app==="uhr") return;
+    const zu=istZu(app); t.classList.toggle("gesperrt", zu);
+    let schild=t.querySelector(".baldTag");
+    if(zu && !schild){ schild=document.createElement("span"); schild.className="baldTag"; schild.textContent="🚧 öffnet bald"; t.querySelector(".t").appendChild(schild); }
+    if(!zu && schild) schild.remove();
+  });
+}
 function update(){
   const n=capName($("name").value), frei=Anmeldung.ok(n);
-  zeigeUhrKachel();
+  zeigeUhrKachel(); zeigeSperren();
   $("grid").classList.toggle("dis",!frei);
   $("losBtn").style.display = (n && !frei) ? "" : "none";
   $("hint").textContent = frei ? `Hallo ${n}! Wähle dein Training.`
@@ -381,6 +395,7 @@ function zeigeHallo(rows, name){
   }
   const proApp={};
   rows.forEach(e=>{ if(!proApp[e.app]) proApp[e.app]=[]; proApp[e.app].push(e); });
+  Object.keys(proApp).forEach(a=>{ if(istZu(a)) delete proApp[a]; });      // Gesperrtes nicht empfehlen
   const beste=Object.entries(proApp)
     .map(([a,r])=>{ const p=r.filter(x=>typeof x.prozent==="number"); return [a, p.length?Math.round(p.reduce((s,x)=>s+x.prozent,0)/p.length):0, r.length]; })
     .filter(x=>x[2]>=2 && SEITEN[x[0]]).sort((a,b)=>b[1]-a[1])[0];
@@ -416,7 +431,7 @@ function zeigeHallo(rows, name){
       `Hier warst du seit <b>${tg} Tagen</b> nicht mehr. Schaffst du heute eine Runde?`, s.datei, name));
   }
   // 3) noch nie ausprobiert
-  const neu=Object.keys(SEITEN).filter(a=>!proApp[a] && (a!=="uhr" || UHR_OFFEN));
+  const neu=Object.keys(SEITEN).filter(a=>!proApp[a] && !istZu(a));
   if(neu.length && tipps.length<3){
     const s=SEITEN[neu[0]];
     tipps.push(tippHTML(s.ic, `Neu für dich: ${s.name}`, `Das hast du noch nie probiert – schau doch mal rein!`, s.datei, name));
@@ -469,7 +484,7 @@ const NEUES=[
   {d:"2026-11-13", ic:"🔊", t:"Leiste oben rechts",            x:"Vorlesen, Ton, größere Schrift und eigene Zahlentasten."},
   {d:"2026-11-14", ic:"🔥", t:"Deine Serie",                   x:"Für jeden Tag in Folge gibt es ein Feuer – nach 10 Tagen eine Krone."},
   {d:"2026-11-14", ic:"✖️", t:"Malnehmen bei den Rechenwegen", x:"Neu: 6 × 20 und 6 × 15 – Schritt für Schritt."},
-  {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen."}
+  {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen.", app:"sach"}
 ];
 const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
 function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
@@ -487,7 +502,13 @@ function zeigeNeues(name, rows){
     else if(letzter>=NEU_FENSTER_SEIT) bis=letzter;                      // war schon da, seit es das Fenster gibt (z. B. an einem anderen Gerät)
     else bis = letzter<"2026-11-10" ? letzter : "2026-11-10";            // die erste große Runde an Neuigkeiten hat noch niemand im Fenster gesehen
   }
-  const neue=NEUES.filter(x=>x.d>bis);
+  const neue=NEUES.filter(x=>x.d>bis && !(x.app && istZu(x.app)));
+  // Programme, die dieses Kind als „öffnet bald" gesehen hat und die jetzt offen sind
+  const kZu="mathe_zu_sah_"+n; let sahZu=[]; try{ sahZu=JSON.parse(localStorage.getItem(kZu)||"[]"); }catch(e){}
+  const jetztZu=Object.keys(SEITEN).filter(a=>a!=="uhr" && istZu(a));
+  const geoeffnet=sahZu.filter(a=>SEITEN[a] && !istZu(a));
+  try{ localStorage.setItem(kZu, JSON.stringify(jetztZu)); }catch(e){}
+  geoeffnet.forEach(a=>{ if(!neue.some(x=>x.app===a)) neue.push({ic:SEITEN[a].ic, t:`Jetzt offen: ${SEITEN[a].name}!`, x:"Das Warten hat ein Ende – probier es gleich aus."}); });
   const uhrDa = UHR_OFFEN && !uhrGesehen, uhrBald = !UHR_OFFEN && !baldGesehen;
   try{ localStorage.setItem(kBis, heute); if(UHR_OFFEN) localStorage.setItem(kUhr,"1"); else localStorage.setItem(kBald,"1"); }catch(e){}
   if(!neue.length && !uhrDa && !uhrBald) return;
@@ -681,10 +702,20 @@ function starteHallo(){
     const offen = d.exists && (d.data()||{}).uhr===true;
     HAUSAUFGABEN = (d.exists && Array.isArray((d.data()||{}).aufgaben)) ? d.data().aufgaben : [];
     MELDUNG = d.exists ? ((d.data()||{}).meldung||null) : null;
+    const zu=(d.exists && (d.data()||{}).zu) || {};
+    GESPERRT=new Set(Object.keys(zu).filter(k=>zu[k]===true));
+    try{ localStorage.setItem("mathe_zu", JSON.stringify([...GESPERRT])); }catch(e){}
+    zeigeSperren();
     try{ localStorage.setItem("mathe_uhr_offen", offen?"1":"0"); }catch(e){}
     let test=false; try{ test=localStorage.getItem("uhr_test_frei")==="1"; }catch(e){}
     UHR_OFFEN = offen || test; zeigeUhrKachel();
   }).catch(()=>{});
+  $("grid").addEventListener("click", e=>{
+    const t=e.target.closest(".tile.gesperrt"); if(!t || t.id==="uhrKachel") return;
+    e.preventDefault();
+    $("hint").textContent=`🚧 „${t.querySelector(".t").firstChild.textContent.trim()}“ öffnet bald – deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht. Sei gespannt!`;
+    $("hint").scrollIntoView({block:"nearest", behavior:"smooth"});
+  }, true);
   // gesperrte Kachel: nicht öffnen, sondern Vorfreude wecken
   $("uhrKachel").addEventListener("click", e=>{
     if(UHR_OFFEN) return;

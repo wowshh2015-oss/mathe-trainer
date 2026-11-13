@@ -260,10 +260,10 @@
   </div>
 
   <div class="card noprint" id="freigabeCard">
-    <h2>🚧 Uhr-Trainer <small>für die Kinder gesperrt, bis du ihn freigibst</small></h2>
-    <div class="row"><span id="uhrStand" style="font-weight:700"></span><span style="flex:1"></span><button id="uhrSchalter"></button></div>
-    <div class="status">Solange er gesperrt ist, sehen die Kinder auf der Startseite die Kachel „öffnet bald“ und die Ankündigung. Nach der Freigabe erscheint bei jedem Kind einmal „Der Uhr-Trainer ist da!“.
-      Zum Ansehen vor der Freigabe: den <a href="uhr-trainer.html" style="color:#7dd3fc">Uhr-Trainer öffnen</a> und dort unten die PIN eingeben – das schaltet nur dieses Gerät frei.</div>
+    <h2>🚧 Programme öffnen und sperren <small>gesperrt = die Kinder sehen die Kachel mit „öffnet bald“</small></h2>
+    <div id="sperrListe"></div>
+    <div class="status">So kannst du Neues erst im Unterricht erklären und dann freigeben. Nach dem Öffnen sehen die Kinder beim nächsten Anmelden einmal „Jetzt offen: …“.
+      Zum Zeigen am Beamer: das gesperrte Programm öffnen und unten deine PIN eingeben – das schaltet nur dieses Gerät frei, dann aber alle Programme.</div>
   </div>
 
   <div class="card noprint" id="sterneCard">
@@ -761,20 +761,25 @@ function renderHA(){
   }));
 }
 
-//// ===== Freigabe des Uhr-Trainers =====
-let UHR_FREI=false;
+//// ===== Programme öffnen und sperren =====
+// Uhr: offen nur, wenn freigabe.uhr === true (so war es von Anfang an). Alle anderen: gesperrt, wenn freigabe.zu[app] === true.
+let UHR_FREI=false, ZU={};
+const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
+                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"]];
+function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){
-  $("uhrStand").innerHTML = UHR_FREI ? '<span class="ok">✅ Freigegeben – die Kinder können den Uhr-Trainer benutzen.</span>' : '<span class="mid">🚧 Gesperrt – die Kinder sehen „öffnet bald“.</span>';
-  $("uhrSchalter").textContent = UHR_FREI ? "Wieder sperren" : "🕒 Jetzt für die Kinder freigeben";
-  $("uhrSchalter").className = UHR_FREI ? "ghost" : "";
+  $("sperrListe").innerHTML=`<table><tbody>`+PROGRAMME.map(([app,name])=>{ const zu=istGesperrt(app);
+    return `<tr><td class="nm">${name}</td><td class="${zu?"mid":"ok"}">${zu?"🚧 gesperrt – „öffnet bald“":"✅ offen"}</td>
+      <td style="text-align:right"><button class="${zu?"":"ghost"}" style="padding:6px 12px;font-size:13.5px" data-prog="${app}">${zu?"Für die Kinder öffnen":"Sperren"}</button></td></tr>`; }).join("")+`</tbody></table>`;
+  $("sperrListe").querySelectorAll("button[data-prog]").forEach(b=>b.addEventListener("click", async ()=>{
+    const app=b.dataset.prog, name=PROGRAMME.find(p=>p[0]===app)[1], zu=istGesperrt(app);
+    if(!confirm(zu ? `„${name}“ jetzt für alle Kinder öffnen?` : `„${name}“ für die Kinder sperren?\n\nSie sehen dann die Kachel mit „öffnet bald“.`)) return;
+    const neu = app==="uhr" ? {key:KEY, uhr:zu} : {key:KEY, zu:{[app]:!zu}};
+    try{ await db.collection("einstellungen").doc("freigabe").set(neu, {merge:true}); }
+    catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  }));
 }
 zeigeFreigabe();
-$("uhrSchalter").addEventListener("click", async ()=>{
-  const neu=!UHR_FREI;
-  if(!confirm(neu ? "Den Uhr-Trainer jetzt für alle Kinder freigeben?" : "Den Uhr-Trainer wieder für die Kinder sperren?")) return;
-  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, uhr:neu}, {merge:true}); }
-  catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
-});
 
 //// ===== Sterne der Klasse (nur für die Lehrkraft) =====
 function renderSterne(){
@@ -1138,7 +1143,7 @@ async function entsperren(){
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
-                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; zeigeFreigabe();
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; ZU=(d.data()||{}).zu||{}; zeigeFreigabe();
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld(); } });
       if(entsperrt) renderTiere();

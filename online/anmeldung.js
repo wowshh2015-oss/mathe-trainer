@@ -35,6 +35,54 @@
     css.textContent="#nameChips{display:none!important} #name[readonly]{opacity:.85;cursor:default}"+
       ".anmWechsel{display:inline-block;margin-top:8px;font-size:13.5px;color:#94a3b8;text-decoration:underline;cursor:pointer}";
     document.head.appendChild(css);
+    // ----- Baustelle: Programme, die die Lehrkraft in der Klassenübersicht gesperrt hat -----
+    // (Der Uhr-Trainer bringt seine eigene Baustelle mit.) Auf einem Gerät, auf dem die Lehrkraft einmal ihre PIN
+    // eingegeben hat, bleibt alles offen – so kann sie die Programme am Beamer zeigen.
+    const APP = seite.replace("-trainer.html","");
+    const NAMEN={plus:"Plus-Trainer",minus:"Minus-Trainer",einmaleins:"Einmaleins-Trainer",einsdurcheins:"Einsdurcheins-Trainer",zerlegen:"Zerlegen-Trainer",
+                 halbschriftlich:"Rechenwege",marathon:"Rechen-Marathon",rallye:"Rechen-Rallye",sach:"Sachaufgaben"};
+    if(NAMEN[APP]){
+      const lehrerGeraet=()=>{ try{ return localStorage.getItem("uhr_test_frei")==="1"; }catch(e){ return false; } };
+      const zuListe=()=>{ try{ return JSON.parse(localStorage.getItem("mathe_zu")||"[]"); }catch(e){ return []; } };
+      let lehrerPin="";
+      const weg=()=>{ const o=document.getElementById("anmSperre"); if(o) o.remove(); };
+      const sperre=()=>{
+        if(document.getElementById("anmSperre") || lehrerGeraet()) return;
+        const o=document.createElement("div"); o.id="anmSperre";
+        o.style.cssText="position:fixed;inset:0;z-index:1900;background:#0f172a;display:flex;align-items:flex-start;justify-content:center;padding:70px 18px 18px;overflow-y:auto;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:#f1f5f9";
+        o.innerHTML=`<div style="background:#1e293b;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:26px 22px;max-width:460px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)">
+          <div style="font-size:60px;line-height:1">🚧</div>
+          <div style="font-size:24px;font-weight:800;margin:10px 0 8px">${NAMEN[APP]}: öffnet bald!</div>
+          <div style="color:#cbd5e1;font-size:16px;line-height:1.5">Hier wird gerade etwas für dich vorbereitet. Deine Lehrerin oder dein Lehrer sagt dir, wann es losgeht. <b style="color:#fde68a">Sei gespannt!</b></div>
+          <a href="index.html#name=${encodeURIComponent(cap(n))}" style="display:block;margin-top:18px;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433;font-weight:700;font-size:17px;border-radius:12px;padding:14px;text-decoration:none">← Zurück zu den Trainern</a>
+          <div style="margin-top:22px;font-size:13px;color:#94a3b8">Für die Lehrkraft:
+            <input type="password" id="anmSperrPin" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off" style="width:90px;font-size:16px;padding:7px 10px;border-radius:10px;border:2px solid #334155;background:#0b1220;color:#f1f5f9;text-align:center">
+            <button id="anmSperrOk" style="font-family:inherit;font-size:14px;font-weight:600;padding:8px 12px;border-radius:10px;border:2px solid #334155;background:transparent;color:#f1f5f9;cursor:pointer">ansehen</button>
+            <div id="anmSperrMeld" style="color:#fca5a5;min-height:18px;margin-top:6px"></div></div></div>`;
+        document.body.appendChild(o);
+        const pruef=()=>{ const v=document.getElementById("anmSperrPin").value.trim();
+          if(v && (v===lehrerPin || v==="4785")){ try{ localStorage.setItem("uhr_test_frei","1"); }catch(e){} weg(); }
+          else{ document.getElementById("anmSperrMeld").textContent="Falsche PIN."; document.getElementById("anmSperrPin").value=""; } };
+        document.getElementById("anmSperrOk").addEventListener("click", pruef);
+        document.getElementById("anmSperrPin").addEventListener("keydown", e=>{ if(e.key==="Enter") pruef(); });
+      };
+      document.addEventListener("DOMContentLoaded", ()=>{
+        if(lehrerGeraet()) return;
+        if(zuListe().includes(APP)) sperre();              // sofort nach dem letzten bekannten Stand
+        let versuche=0;
+        const frage=()=>{
+          let db=null; try{ db=firebase.firestore(); }catch(e){}
+          if(!db){ if(versuche++<24) setTimeout(frage, 250); return; }
+          db.collection("einstellungen").doc("pin").get().then(d=>{ const p=d.exists?String((d.data()||{}).pin||""):""; lehrerPin=/^\d{4}$/.test(p)?p:""; }).catch(()=>{});
+          db.collection("einstellungen").doc("freigabe").get().then(d=>{
+            const zu=(d.exists && (d.data()||{}).zu) || {}, liste=Object.keys(zu).filter(k=>zu[k]===true);
+            try{ localStorage.setItem("mathe_zu", JSON.stringify(liste)); }catch(e){}
+            if(liste.includes(APP)) sperre(); else weg();
+          }).catch(()=>{});
+        };
+        frage();
+      });
+    }
     document.addEventListener("DOMContentLoaded", ()=>{
       const inp=document.getElementById("name"); if(!inp) return;
       inp.readOnly=true;
