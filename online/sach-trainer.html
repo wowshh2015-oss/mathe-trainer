@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sachaufgaben">
+<title>Sachaufgaben</title>
+<script src="anmeldung.js"></script>
+<script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
+<script src="sterne.js"></script>
+<script src="hilfe.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#34d399; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#134e4a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    padding:13px 18px;color:#04261c;background:linear-gradient(180deg,#6ee7b7,var(--accent));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:14.5px;padding:9px 13px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14.5px;color:var(--muted);line-height:1.5}
+  .info b{color:var(--text)}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+  h3{font-size:16px;margin:18px 0 8px}
+  .stufe{display:flex;align-items:center;gap:12px;background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .stufe.fertig{border-color:rgba(34,197,94,.55)}
+  .stufe.dran{border-color:var(--accent);box-shadow:0 0 0 2px rgba(52,211,153,.25)}
+  .stufe .nr{flex:none;width:34px;height:34px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .stufe.fertig .nr{background:var(--good);color:#04220f}
+  .stufe .tx{flex:1;min-width:0}
+  .stufe .tx b{display:block;font-size:15.5px}
+  .stufe .tx span{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .stufe .kn{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  /* Aufgabe */
+  .kopf{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;padding-right:120px}
+  .pille{display:inline-block;background:rgba(52,211,153,.16);color:#a7f3d0;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .fortschritt{display:flex;gap:4px;margin-bottom:12px}
+  .fortschritt i{flex:1;height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .fortschritt i.nein{background:var(--bad);border-color:var(--bad)}
+  .zeitbalken{height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);overflow:hidden;margin-bottom:10px}
+  .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+  .geschichte{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:16px 18px;font-size:20px;line-height:1.55}
+  .geschichte .frageSatz{display:block;margin-top:8px;font-weight:800;color:#fde68a}
+  .geschichte .zahl{font-weight:800;color:#7dd3fc}
+  .lautKn{font-size:18px;padding:6px 11px;background:#0b1220;color:var(--text);border:2px solid var(--card2);float:right;margin:0 0 6px 10px}
+  .schritte{display:flex;gap:6px;margin:14px 0 6px;font-size:12.5px;font-weight:800;color:var(--muted)}
+  .schritte span{flex:1;text-align:center;border-radius:999px;padding:5px 4px;background:#0b1220;border:1px solid var(--card2)}
+  .schritte span.an{border-color:var(--accent);color:#a7f3d0;background:rgba(52,211,153,.12)}
+  .schritte span.ok{border-color:rgba(34,197,94,.6);color:#86efac}
+  .schritte span.nein{border-color:rgba(239,68,68,.6);color:#fca5a5}
+  .auftrag{text-align:center;font-size:18px;font-weight:800;margin:12px 0 10px}
+  .wahl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .wahl button{background:#0b1220;color:var(--text);border:2px solid var(--card2);font-size:19px;padding:14px 8px}
+  .wahl button:hover{border-color:var(--accent)}
+  .wahl button small{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
+  .wahl button .zeichen{font-size:30px;display:block;line-height:1.1}
+  .wahl button.richtig{border-color:var(--good);background:rgba(34,197,94,.16)}
+  .wahl button.falsch{border-color:var(--bad);background:rgba(239,68,68,.14)}
+  .rechnung{display:flex;align-items:center;justify-content:center;gap:10px;font-size:30px;font-weight:800;flex-wrap:wrap}
+  .rechnung input{width:130px;font-size:30px;text-align:center;padding:10px;border-radius:12px;border:2px solid var(--accent);background:#0b1220;color:var(--text);outline:none;font-family:inherit;font-weight:800}
+  .rueck{min-height:26px;text-align:center;font-size:17px;font-weight:700;margin-top:12px;line-height:1.4}
+  .erkl{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;margin-top:12px;text-align:center;font-size:16px;line-height:1.5;color:#e2e8f0}
+  .erkl .t{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .erkl b{color:#fff}
+  .antwortsatz{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45);color:#bbf7d0;border-radius:14px;padding:12px 14px;font-size:18px;font-weight:700;text-align:center;margin-top:12px}
+  .reihe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .prozent{font-size:54px;font-weight:800;text-align:center;line-height:1}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  @media (max-width:430px){ body{padding:60px 14px 14px} .geschichte{font-size:18px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📖 Sachaufgaben</h1>
+  <p class="sub">Erst verstehen, dann rechnen.</p>
+
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div id="menue" class="hide" style="margin-top:18px">
+      <div class="info">📖 <b>So geht es:</b> Lies die Geschichte. Überlege zuerst, <b>welche Rechenart</b> passt – erst danach rechnest du.
+        Mit 🔈 liest dir das Programm die Geschichte vor.</div>
+      <h3>Lernen und üben</h3>
+      <div id="stufen"></div>
+      <div class="stufe">
+        <span class="nr">🧠</span>
+        <span class="tx"><b>Meine Aufgaben</b><span id="meineText">Geschichten, die noch nicht sicher sitzen</span></span>
+        <span class="kn"><button class="klein" id="meineBtn">Üben</button></span>
+      </div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <div id="spiel" class="card hide">
+    <div class="kopf"><span class="pille" id="spielTitel"></span><button class="ghost klein" id="abbruchBtn">✕ Aufhören</button></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
+    <div class="geschichte" id="geschichte"></div>
+    <div class="schritte" id="schritte"></div>
+    <div id="buehne"></div>
+    <div class="rueck" id="rueck"></div>
+    <div id="erkl"></div>
+  </div>
+
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div class="prozent" id="ergProzent"></div>
+    <div class="info" id="ergText" style="margin-top:14px"></div>
+    <div class="btnrow"><button id="nochmalBtn">Noch einmal ▶</button><button class="ghost" id="zumMenue">Zur Übersicht</button></div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="sach", PRO_RUNDE=10, BESTANDEN=90, TEST_SEK=75;
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function aus(l){ return l[rnd(0,l.length-1)]; }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let db=null, playerName="", MEINE=[];
+
+//// ===== Bausteine für die Geschichten =====
+const KINDER=[["Mia","sie","Sie"],["Ben","er","Er"],["Lena","sie","Sie"],["Tom","er","Er"],["Emma","sie","Sie"],["Paul","er","Er"],
+              ["Sara","sie","Sie"],["Nico","er","Er"],["Hanna","sie","Sie"],["Jonas","er","Er"]];
+const DINGE=["Murmeln","Sticker","Stifte","Bücher","Kekse","Bonbons","Karten","Bälle","Blumen","Äpfel"];
+const ZEICHEN={"+":"+","-":"−","*":"×","/":"÷"};
+const OPNAME={"+":["Plus","dazu · zusammen"],"-":["Minus","weg · Unterschied"],"*":["Mal","mehrmals gleich viele"],"/":["Geteilt","gerecht verteilen"]};
+// Jede Sorte Geschichte: Rechenart, Text, Frage, Antwortsatz und die Erklärung, warum diese Rechenart passt
+const SORTEN={
+  plus_dazu:{op:"+", warum:"Es kommt etwas <b>dazu</b> – dann wird es <b>mehr</b>. Das ist <b>Plus</b>.", bau:(a,b,k)=>aus([
+    {t:`${k.N} hat <z>${a}</z> ${k.D}. ${k.Er} bekommt noch <z>${b}</z> ${k.D} geschenkt.`, f:`Wie viele ${k.D} hat ${k.er} jetzt?`, a:r=>`${k.N} hat jetzt ${r} ${k.D}.`},
+    {t:`Im Schwimmbad sind <z>${a}</z> Kinder. Es kommen noch <z>${b}</z> Kinder dazu.`, f:`Wie viele Kinder sind jetzt im Schwimmbad?`, a:r=>`Jetzt sind ${r} Kinder im Schwimmbad.`}])},
+  plus_zusammen:{op:"+", warum:"„<b>Zusammen</b>“ und „<b>insgesamt</b>“ heißt: beide Mengen zusammenzählen. Das ist <b>Plus</b>.", bau:(a,b,k)=>aus([
+    {t:`${k.N} hat <z>${a}</z> ${k.D} gesammelt, ${k.N2} hat <z>${b}</z> ${k.D} gesammelt.`, f:`Wie viele ${k.D} haben beide zusammen?`, a:r=>`Zusammen haben sie ${r} ${k.D}.`},
+    {t:`Auf dem Tisch liegen <z>${a}</z> rote und <z>${b}</z> blaue ${k.D}.`, f:`Wie viele ${k.D} liegen dort insgesamt?`, a:r=>`Insgesamt liegen dort ${r} ${k.D}.`}])},
+  minus_weg:{op:"-", warum:"Es geht etwas <b>weg</b> – dann wird es <b>weniger</b>. Das ist <b>Minus</b>.", bau:(a,b,k)=>aus([
+    {t:`${k.N} hat <z>${a}</z> ${k.D}. ${k.Er} verschenkt <z>${b}</z> davon.`, f:`Wie viele ${k.D} hat ${k.er} noch?`, a:r=>`${k.N} hat noch ${r} ${k.D}.`},
+    {t:`Im Schwimmbad sind <z>${a}</z> Kinder. <z>${b}</z> Kinder gehen nach Hause.`, f:`Wie viele Kinder sind noch im Schwimmbad?`, a:r=>`Es sind noch ${r} Kinder im Schwimmbad.`}])},
+  minus_vergleich:{op:"-", warum:"„<b>Wie viele mehr?</b>“ fragt nach dem <b>Unterschied</b>. Den findest du mit <b>Minus</b>.", bau:(a,b,k)=>
+    ({t:`${k.N} hat <z>${a}</z> ${k.D}, ${k.N2} hat <z>${b}</z> ${k.D}.`, f:`Wie viele ${k.D} hat ${k.N} mehr als ${k.N2}?`, a:r=>`${k.N} hat ${r} ${k.D} mehr als ${k.N2}.`})},
+  minus_ergaenzen:{op:"-", warum:"„<b>Wie viele fehlen noch?</b>“ – vom Ziel das abziehen, was schon da ist. Das ist <b>Minus</b>.", bau:(a,b,k)=>
+    ({t:`${k.N} möchte <z>${a}</z> ${k.D} sammeln. <z>${b}</z> ${k.D} hat ${k.er} schon.`, f:`Wie viele ${k.D} fehlen noch?`, a:r=>`Es fehlen noch ${r} ${k.D}.`})},
+  mal_gruppen:{op:"*", warum:"<b>Immer gleich viele</b> in jeder Gruppe – mehrere gleiche Gruppen rechnet man mit <b>Mal</b>.", bau:(a,b,k)=>aus([
+    {t:`${k.N} hat <z>${a}</z> Tüten. In jeder Tüte sind <z>${b}</z> ${k.D}.`, f:`Wie viele ${k.D} hat ${k.er} insgesamt?`, a:r=>`${k.N} hat insgesamt ${r} ${k.D}.`},
+    {t:`Im Klassenraum stehen <z>${a}</z> Tische. An jedem Tisch sitzen <z>${b}</z> Kinder.`, f:`Wie viele Kinder sitzen im Klassenraum?`, a:r=>`Im Klassenraum sitzen ${r} Kinder.`}])},
+  mal_preis:{op:"*", warum:"<b>Jedes kostet gleich viel</b> – mehrmals derselbe Preis, das ist <b>Mal</b>.", bau:(a,b,k)=>
+    ({t:`${k.N} kauft <z>${a}</z> Hefte. Jedes Heft kostet <z>${b}</z> €.`, f:`Wie viel muss ${k.er} bezahlen?`, a:r=>`${k.N} muss ${r} € bezahlen.`})},
+  geteilt_verteilen:{op:"/", warum:"<b>Gerecht verteilen</b> heißt: jeder bekommt gleich viel. Das ist <b>Geteilt</b>.", bau:(a,b,k)=>
+    ({t:`${k.N} verteilt <z>${a}</z> ${k.D} gerecht an <z>${b}</z> Kinder.`, f:`Wie viele ${k.D} bekommt jedes Kind?`, a:r=>`Jedes Kind bekommt ${r} ${k.D}.`})},
+  geteilt_aufteilen:{op:"/", warum:"Immer <b>gleich viele in eine Tüte</b> – wie oft passt das hinein? Das ist <b>Geteilt</b>.", bau:(a,b,k)=>
+    ({t:`${k.N} hat <z>${a}</z> ${k.D}. ${k.Er} packt immer <z>${b}</z> ${k.D} in eine Tüte.`, f:`Wie viele Tüten kann ${k.er} füllen?`, a:r=>`${k.N} kann ${r} Tüten füllen.`})}
+};
+// Sätze mit einer Zahl, die man für die Rechnung NICHT braucht
+const NEBENBEI=[x=>`Heute ist der <z>${x}</z>. Mai.`, x=>`Es ist <z>${x}</z> Uhr.`, x=>`Der Weg zur Schule dauert <z>${x}</z> Minuten.`, x=>`In der Pause spielen <z>${x}</z> Kinder Fußball.`];
+
+//// ===== Die Stufen =====
+const STUFEN=[
+  {id:1, name:"Plus und Minus bis 20",       kurz:"dazu · weg · zusammen", sorten:["plus_dazu","plus_zusammen","minus_weg"], bis:20,  ops:["+","-"]},
+  {id:2, name:"Plus und Minus bis 100",      kurz:"auch: wie viele mehr? wie viele fehlen?", sorten:["plus_dazu","plus_zusammen","minus_weg","minus_vergleich","minus_ergaenzen","minus_vergleich","minus_ergaenzen"], bis:100, ops:["+","-"]},
+  {id:3, name:"Mal und Geteilt",             kurz:"gleiche Gruppen · gerecht verteilen", sorten:["mal_gruppen","mal_preis","geteilt_verteilen","geteilt_aufteilen"], ops:["*","/"]},
+  {id:4, name:"Alle vier Rechenarten",       kurz:"gemischt – genau lesen!", sorten:Object.keys(SORTEN), bis:100, ops:["+","-","*","/"]},
+  {id:5, name:"Mit unnötigen Angaben",       kurz:"eine Zahl brauchst du nicht", sorten:Object.keys(SORTEN), bis:100, ops:["+","-","*","/"], nebenbei:true}
+];
+const stufe=id=>STUFEN.find(s=>s.id===id);
+function rechne(op,a,b){ return op==="+"?a+b:op==="-"?a-b:op==="*"?a*b:a/b; }
+
+function baueAufgabe(st, sorte){
+  sorte = sorte || aus(st.sorten);
+  const S=SORTEN[sorte], op=S.op, bis=st.bis||100;
+  let a,b;
+  if(op==="+"){ if(bis<=20){ a=rnd(3,12); b=rnd(2,20-a); } else { a=rnd(12,60); b=rnd(8,Math.min(39,99-a)); } }
+  else if(op==="-"){ if(bis<=20){ a=rnd(8,20); b=rnd(2,a-2); } else { a=rnd(30,95); b=rnd(8,a-6); } }
+  else if(op==="*"){ a=rnd(2,9); b=rnd(2,sorte==="mal_preis"?6:9); }
+  else { b=rnd(2,9); a=b*rnd(2,9); }
+  const k1=aus(KINDER); let k2; do{ k2=aus(KINDER); }while(k2===k1);
+  const k={N:k1[0], er:k1[1], Er:k1[2], N2:k2[0], D:aus(DINGE)};
+  const g=S.bau(a,b,k), r=rechne(op,a,b);
+  let text=g.t, x=null;
+  if(st.nebenbei){
+    if(op==="/"){
+      // beim Teilen muss auch die falsche Rechnung aufgehen: ein anderer Teiler der ersten Zahl
+      const teiler=[]; for(let t=2;t<=12;t++) if(a%t===0 && t!==b && t!==r && t!==a) teiler.push(t);
+      if(!teiler.length) return baueAufgabe(st, sorte);
+      x=aus(teiler);
+    }else do{ x=rnd(2,12); }while(x===a || x===b || x===r);
+    const satz=aus(NEBENBEI)(x);
+    text = Math.random()<0.5 ? satz+" "+text : text+" "+satz;
+  }
+  return {st, sorte, op, a, b, r, x, text, frage:g.f, antwort:g.a(r), warum:S.warum, key:`${st.id}|${sorte}`, fact:`${a}${ZEICHEN[op]}${b}`};
+}
+function baueRunde(st, sorten){
+  const liste=[];
+  for(let i=0;i<PRO_RUNDE;i++){
+    // gleichmäßig durch die Sorten gehen, damit nicht dreimal dieselbe Geschichte kommt
+    const sorte = sorten && sorten.length ? sorten[i%sorten.length] : st.sorten[(i+rnd(0,99)*0) % st.sorten.length];
+    liste.push(baueAufgabe(st, sorte));
+  }
+  return mische(liste);
+}
+
+//// ===== Ablauf =====
+let runde=null, wartet=false, timer=null, zeitRest=0, lauf=0, schritt=0, aufgabeOk=true;
+function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
+function spaeter(ms, was){ const meiner=lauf; setTimeout(()=>{ if(meiner===lauf && runde) was(); }, ms); }
+function zeichneFortschritt(){ $("fortschritt").innerHTML=runde.aufgaben.map((a,i)=>`<i class="${runde.verlauf[i]===true?"ok":runde.verlauf[i]===false?"nein":""}"></i>`).join(""); }
+function starte(st, modus, sorten){
+  lauf++;
+  runde={st, modus, aufgaben:baueRunde(st, sorten), i:0, richtig:0, gestellt:[], fehler:[], antworten:[], verlauf:[], start:Date.now(), fehlerTexte:[]};
+  $("spielTitel").textContent=(modus==="Test"?"Test":modus==="mine"?"Meine Aufgaben":"Üben")+" · "+st.name;
+  zeige("spiel"); naechste();
+}
+const SCHRITTE=st=>st.nebenbei ? ["1 Rechenart","2 Zahlen","3 Rechnen","Antwort"] : ["1 Rechenart","2 Rechnen","Antwort"];
+function zeichneSchritte(a, stand){     // stand: Liste aus "ok" | "nein" je erledigtem Schritt
+  const namen=SCHRITTE(a.st);
+  $("schritte").innerHTML=namen.map((n,i)=>`<span class="${i<stand.length?stand[i]:(i===stand.length?"an":"")}">${n}</span>`).join("");
+}
+function sprich(text){
+  if(!("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; u.rate=0.86;
+       const v=(window.Komfort && Komfort.stimme) ? Komfort.stimme() : null; if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
+}
+function naechste(){
+  if(runde.i>=runde.aufgaben.length){ fertig(); return; }
+  wartet=false; aufgabeOk=true;
+  const a=runde.aufgaben[runde.i];
+  a.stand=[];
+  runde.gestellt.push(a.key);
+  $("rueck").textContent=""; $("erkl").innerHTML="";
+  const html=a.text.replace(/<z>/g,'<span class="zahl">').replace(/<\/z>/g,"</span>");
+  $("geschichte").innerHTML=("speechSynthesis" in window?`<button class="lautKn" id="lautBtn" title="Vorlesen" aria-label="Vorlesen">🔈</button>`:"")+html+`<span class="frageSatz">${a.frage}</span>`;
+  const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(a.text.replace(/<\/?z>/g,"")+" "+a.frage));
+  zeichneFortschritt();
+  schrittRechenart(a);
+  starteZeit();
+}
+// ---- Schritt 1: Welche Rechenart? ----
+function schrittRechenart(a){
+  zeichneSchritte(a, a.stand);
+  $("buehne").innerHTML=`<div class="auftrag">Welche Rechenart passt zu der Geschichte?</div>
+    <div class="wahl">${a.st.ops.map(o=>`<button data-o="${o}"><span class="zeichen">${ZEICHEN[o]}</span>${OPNAME[o][0]}${runde.modus==="Test"?"":`<small>${OPNAME[o][1]}</small>`}</button>`).join("")}</div>`;      // im Test ohne die Merkwörter
+  $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+    if(wartet) return;
+    const ok=b.dataset.o===a.op;
+    $("buehne").querySelectorAll(".wahl button").forEach(x=>{ x.disabled=true; if(x.dataset.o===a.op) x.classList.add("richtig"); });
+    if(ok){ a.stand.push("ok"); $("rueck").style.color="var(--good)"; $("rueck").textContent="Genau! 👍"; spaeter(700, ()=>weiterNachRechenart(a)); return; }
+    b.classList.add("falsch"); a.stand.push("nein"); aufgabeOk=false;
+    merkeFehler(a, `${OPNAME[a.op][0]}`, `${OPNAME[b.dataset.o][0]}`, "rechenart");
+    $("rueck").style.color="var(--bad)"; $("rueck").textContent="Das passt noch nicht.";
+    if(runde.modus==="Test"){ spaeter(1300, ()=>weiterNachRechenart(a)); return; }
+    wartet=true;
+    $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 Warum?</div>${a.warum}<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+    $("weiterBtn").addEventListener("click",()=>{ wartet=false; weiterNachRechenart(a); });
+    fokus();
+  }));
+}
+function weiterNachRechenart(a){ $("rueck").textContent=""; $("erkl").innerHTML=""; a.st.nebenbei ? schrittZahlen(a) : schrittRechnen(a); }
+// ---- Schritt 2 (nur Stufe 5): Welche Zahlen gehören in die Rechnung? ----
+function schrittZahlen(a){
+  zeichneSchritte(a, a.stand);
+  const z=ZEICHEN[a.op], kl=(p,q)=>a.op==="-"||a.op==="/" ? (p>=q && (a.op==="-" || p%q===0)) : true;
+  const falsch=[[a.a,a.x],[a.x,a.b],[a.b,a.x],[a.x,a.a]].filter(([p,q])=>kl(p,q) && !(p===a.a&&q===a.b));
+  const opt=mische([{p:a.a,q:a.b,ok:true}].concat(mische(falsch).slice(0,2).map(([p,q])=>({p,q,ok:false}))));
+  $("buehne").innerHTML=`<div class="auftrag">Eine Zahl brauchst du nicht. Welche Rechnung passt?</div>
+    <div class="wahl" style="grid-template-columns:repeat(${opt.length},1fr)">${opt.map((o,i)=>`<button data-i="${i}">${o.p} ${z} ${o.q}</button>`).join("")}</div>`;
+  $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+    if(wartet) return;
+    const o=opt[+b.dataset.i];
+    $("buehne").querySelectorAll(".wahl button").forEach((x,i)=>{ x.disabled=true; if(opt[i].ok) x.classList.add("richtig"); });
+    if(o.ok){ a.stand.push("ok"); $("rueck").style.color="var(--good)"; $("rueck").textContent="Richtig ausgewählt! 👍"; spaeter(700, ()=>{ $("rueck").textContent=""; schrittRechnen(a); }); return; }
+    b.classList.add("falsch"); a.stand.push("nein"); aufgabeOk=false;
+    merkeFehler(a, `${a.a} ${z} ${a.b}`, `${o.p} ${z} ${o.q}`, "angabe");
+    $("rueck").style.color="var(--bad)"; $("rueck").textContent="Diese Zahl gehört nicht dazu.";
+    if(runde.modus==="Test"){ spaeter(1300, ()=>{ $("rueck").textContent=""; schrittRechnen(a); }); return; }
+    wartet=true;
+    $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 Genau lesen</div>Die <b>${a.x}</b> steht zwar im Text, hat aber mit der Frage nichts zu tun. Gefragt ist: „${a.frage}“<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+    $("weiterBtn").addEventListener("click",()=>{ wartet=false; $("rueck").textContent=""; $("erkl").innerHTML=""; schrittRechnen(a); });
+    fokus();
+  }));
+}
+// ---- Rechnen ----
+function schrittRechnen(a){
+  zeichneSchritte(a, a.stand);
+  $("buehne").innerHTML=`<div class="auftrag">Jetzt rechne aus.</div>
+    <div class="rechnung"><span>${a.a} ${ZEICHEN[a.op]} ${a.b} =</span><input type="text" id="antwort" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="?"><button id="okBtn">OK</button></div>`;
+  const ein=$("antwort");
+  const pruefe=()=>{
+    if(wartet) return;
+    const roh=ein.value.trim(); if(roh==="") return;
+    const ok=parseInt(roh,10)===a.r;
+    ein.disabled=true; $("okBtn").disabled=true;
+    if(ok){ a.stand.push("ok"); $("rueck").style.color="var(--good)"; $("rueck").textContent="Richtig gerechnet! 👍"; }
+    else { a.stand.push("nein"); aufgabeOk=false; merkeFehler(a, String(a.r), roh, "rechnen");
+           $("rueck").style.color="var(--bad)"; $("rueck").textContent=`${a.a} ${ZEICHEN[a.op]} ${a.b} = ${a.r}`; }
+    zeigeAntwort(a, !ok);
+  };
+  $("okBtn").addEventListener("click", pruefe);
+  ein.addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
+  try{ ein.focus({preventScroll:true}); }catch(e){}
+}
+// ---- Antwortsatz ----
+function zeigeAntwort(a, rechenFehler){
+  stoppZeit();
+  a.stand.push("ok"); zeichneSchritte(a, a.stand);
+  runde.verlauf[runde.i]=aufgabeOk; if(aufgabeOk) runde.richtig++; else { runde.fehler.push(a.key); runde.fehlerTexte.push(`${OPNAME[a.op][0]}-Geschichte (${a.fact})`); }
+  zeichneFortschritt(); runde.i++;
+  let bild=""; try{ if(rechenFehler && runde.modus!=="Test") bild=Hilfe.kasten(a.fact); }catch(e){}
+  $("erkl").innerHTML=`<div class="antwortsatz">✍️ Antwort: ${esc(a.antwort)}</div>${bild}`+
+    ((!aufgabeOk && runde.modus!=="Test") ? `<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div>` : "");
+  if(!aufgabeOk && runde.modus!=="Test"){ wartet=true; $("weiterBtn").addEventListener("click",()=>{ wartet=false; naechste(); }); fokus(); }
+  else spaeter(aufgabeOk?1700:1900, naechste);
+}
+function fokus(){ setTimeout(()=>{ try{ $("weiterBtn").focus({preventScroll:true}); $("erkl").scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} }, 300); }
+function merkeFehler(a, soll, gegeben, art){
+  // nur der erste Fehler einer Aufgabe wird für die Auswertung gemerkt
+  if(a.gemerkt) return; a.gemerkt=true;
+  runde.antworten.push(`${a.sorte.replace("_"," ")} ${a.fact}|${soll}|${gegeben}|sach_${art}`);
+}
+function starteZeit(){
+  stoppZeit();
+  const test=runde && runde.modus==="Test";
+  $("zeitbalken").classList.toggle("hide", !test);
+  if(!test) return;
+  zeitRest=TEST_SEK; $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{
+    zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/TEST_SEK*100)+"%";
+    if(zeitRest<=0){ stoppZeit(); const a=runde.aufgaben[runde.i]; aufgabeOk=false; if(!a.gemerkt){ a.gemerkt=true; runde.antworten.push(`${a.sorte.replace("_"," ")} ${a.fact}|${a.r}|zeit|zeit`); }
+      $("rueck").style.color="var(--bad)"; $("rueck").textContent="Die Zeit ist um."; $("buehne").innerHTML=""; zeigeAntwort(a,false); }
+  },250);
+}
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+$("abbruchBtn").addEventListener("click", ()=>{ lauf++; runde=null; zeige("start"); zeigeMenue(); });
+
+//// ===== Runde fertig =====
+let letzte=null;
+function fertig(){
+  stoppZeit();
+  const n=runde.aufgaben.length, proz=Math.round(runde.richtig/n*100), test=runde.modus==="Test", bestanden=test && proz>=BESTANDEN;
+  zeige("ergebnis");
+  $("ergProzent").textContent=proz+" %";
+  $("ergTitel").textContent = test ? (bestanden?"✅ Test bestanden!":"💪 Noch nicht ganz") : proz===100?"🌟 Perfekt!":proz>=90?"🎉 Super!":proz>=70?"👍 Gut gemacht!":"💪 Weiter üben";
+  const arten={}; runde.antworten.forEach(x=>{ const t=x.split("|")[3]; arten[t]=(arten[t]||0)+1; });
+  const tipp = arten.sach_rechenart>=2 ? "💡 Lies die <b>Frage</b> ganz genau: Wird es mehr oder weniger? Sind es gleiche Gruppen? Wird verteilt?"
+             : arten.sach_angabe>=2 ? "💡 Frag dich bei jeder Zahl: <b>Brauche ich sie für die Frage?</b>"
+             : arten.sach_rechnen>=2 ? "💡 Die Rechenart hast du gefunden – beim <b>Ausrechnen</b> hilft dir der passende Trainer." : "";
+  $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> Geschichten ganz richtig – ${esc(runde.st.name)}.`+
+    (test ? `<br>${bestanden?"Diese Stufe sitzt. Probier die nächste!":`Bestanden ist der Test ab ${BESTANDEN} %.`}` : "")+(tipp?`<br><br>${tipp}`:"");
+  letzte=runde;
+  $("nochmalBtn").onclick=()=>starte(letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
+  speichere(proz, bestanden);
+  if(bestanden || (!test && proz>=90)) konfetti();
+}
+function speichere(proz, bestanden){
+  const d=new Date(), p=x=>String(x).padStart(2,"0"), r=runde, mine=r.modus==="mine";
+  const eintrag={ key:KEY, app:APP, name:playerName,
+    datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`,
+    modus: r.modus==="Test"?"Test":"Training", reihe: mine?"mine":"s"+r.st.id, zr:r.st.id,
+    stufe: r.modus==="Test"?"Mittel":(mine?"eigene Fehler":r.st.name), stufeName: mine?"Meine Aufgaben":r.st.name,
+    richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz, bestanden: r.modus==="Test"?(bestanden?"Ja":"Nein"):"–",
+    dauer:Math.round((Date.now()-r.start)/1000), gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
+  try{
+    const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
+    const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nachher=Sterne.stand(MEINE);
+    if(emp && nachher.silber>vor.silber) Sterne.empfehlungErledigt();
+    Sterne.zeigeUnterschied(vor, nachher, playerName, false, true, emp && nachher.silber>vor.silber);
+  }catch(e){ if(MEINE[0]!==eintrag) MEINE.unshift(eintrag); }
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+$("zumMenue").addEventListener("click", ()=>{ zeige("start"); zeigeMenue(); });
+
+//// ===== Menü =====
+function stufenStand(id){
+  const r=MEINE.filter(e=>+e.zr===id && e.reihe!=="mine");
+  return { geuebt:r.filter(e=>e.modus==="Training").length, tests:r.filter(e=>e.modus==="Test").length,
+           bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja"), besterTest:r.filter(e=>e.modus==="Test").reduce((m,e)=>Math.max(m,+e.prozent||0),0) };
+}
+// Sorten von Geschichten, die noch nicht sicher sitzen oder zur Wiederholung dran sind
+function meineSorten(){
+  const facts=new Set(); MEINE.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  const offen=[], faellig=[];
+  facts.forEach(k=>{ const s=Wdh.status(MEINE,k); if(s.offen) offen.push(k); else if(s.faellig) faellig.push(k); });
+  return {offen, faellig};
+}
+function zeigeMenue(){
+  const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
+  $("stufen").innerHTML=STUFEN.map(s=>{
+    const z=stufenStand(s.id);
+    const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
+    return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span>
+      <span class="tx"><b>${s.name}</b><span>${info}</span></span>
+      <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}">Test</button></span></div>`;
+  }).join("");
+  $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
+  $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
+  const z=meineSorten(), n=z.offen.length+z.faellig.length;
+  $("meineText").textContent = n ? `${z.offen.length?z.offen.length+(z.offen.length===1?" Sorte Geschichte sitzt":" Sorten Geschichten sitzen")+" noch nicht":""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`
+                                 : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";
+  $("meineBtn").disabled=!n;
+  $("menue").classList.remove("hide");
+}
+$("meineBtn").addEventListener("click", ()=>{
+  const z=meineSorten(), keys=z.offen.concat(z.faellig); if(!keys.length) return;
+  const proStufe={}; keys.forEach(k=>{ const [id,sorte]=k.split("|"); (proStufe[id]=proStufe[id]||[]).push(sorte); });
+  const id=Object.keys(proStufe).sort((a,b)=>proStufe[b].length-proStufe[a].length)[0];
+  starte(stufe(+id)||STUFEN[0], "mine", proStufe[id].filter(s=>SORTEN[s]));
+});
+
+//// ===== Laden =====
+function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
+function ladeMeine(){
+  if(!db || !playerName){ zeigeMenue(); return; }
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+    .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
+      if(!$("start").classList.contains("hide")) zeigeMenue(); })
+    .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
+}
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
+})();
+addEventListener("pagehide", ()=>{ stoppZeit(); try{ speechSynthesis.cancel(); }catch(e){} });
+
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const col=["#34d399","#22c55e","#fbbf24","#ef4444","#38bdf8","#ec4899"], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const ende=Date.now()+2800;
+  (function f(){ x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.rot); x.fillStyle=p.c; x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); x.restore(); });
+    if(Date.now()<ende) requestAnimationFrame(f); else c.remove(); })();
+}
+</script>
+</body>
+</html>

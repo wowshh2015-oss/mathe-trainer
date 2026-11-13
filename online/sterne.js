@@ -5,7 +5,7 @@
 // Eine Rangliste gibt es für Kinder bewusst nicht; die Übersicht steht nur in der Klassenübersicht der Lehrkraft.
 window.Sterne=(function(){
   const STICHTAG_SPIEL="20261112";     // Spiele zählen ab hier; die Lernarbeit davor zählt komplett mit
-  const LERN=["zerlegen","halbschriftlich","plus","minus","einmaleins","einsdurcheins","uhr"];
+  const LERN=["zerlegen","halbschriftlich","plus","minus","einmaleins","einsdurcheins","uhr","sach"];
   const W={runde:3, mine:5, neu:5, tag:2, proRunden:10, fest:2, proSicher:5}, PRO_TAG=3;
   // Spiele: je schwerer, desto mehr. Rallye je 10 Runden: Stadt/Landstraße 1, Bergpass/Rennstrecke 2, Formel 1 3 Sterne.
   const RALLYE_GEWICHT=[1,1,1,2,2,3];

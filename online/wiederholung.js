@@ -60,14 +60,18 @@ window.Wdh=(function(){
     uhr_plus12:    "🕒 Nachmittag: nicht 12 dazugezählt",
     uhr_vornach:   "🕒 „vor“ und „nach“ verwechselt",
     uhr_uebergang: "🕒 Zeitspanne: volle Stunde übersehen",
-    uhr_richtung:  "🕒 Zeitspanne: vor und zurück verwechselt"
+    uhr_richtung:  "🕒 Zeitspanne: vor und zurück verwechselt",
+    // Sachaufgaben
+    sach_rechenart:"📖 Sachaufgabe: falsche Rechenart gewählt",
+    sach_angabe:   "📖 Sachaufgabe: unnötige Zahl verwendet",
+    sach_rechnen:  "📖 Sachaufgabe: richtig gewählt, falsch gerechnet"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"
   function fehlerart(eintrag){
     const t=String(eintrag).split("|"), k=t[0], r=+t[1], g=t[2];
     if(g==="zeit") return "zeit";
-    if(t[3]) return ART["uhr_"+t[3]] ? "uhr_"+t[3] : "sonst";
+    if(t[3]) return ART[t[3]] ? t[3] : ART["uhr_"+t[3]] ? "uhr_"+t[3] : "sonst";
     if(g==="leer" || g==="" || g===undefined) return "leer";
     const v=+g, m=k.match(/^(\d+)\s*([+\-−x×:÷])\s*(\d+)$/);
     let a=0,b=0,op="";

@@ -167,6 +167,7 @@
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t6 wide" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Marathon</div><div class="d">Klettere Etage für Etage – 10 Aufgaben pro Stockwerk</div></a>
     <a class="tile t8 wide" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechenwege</div><div class="d">Halbschriftlich plus und minus · schrittweise &amp; stellenweise</div></a>
+    <a class="tile t3 wide" data-page="sach-trainer.html"><div class="ic">📖</div><div class="t">Sachaufgaben</div><div class="d">Geschichten lesen · die Rechenart finden · rechnen</div></a>
     <a class="tile t2 wide gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
     <a class="tile t5 wide" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">Zahlen zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
   </div>
@@ -258,7 +259,8 @@ const SEITEN={
   halbschriftlich:{datei:"halbschriftlich-trainer.html", ic:"🪜", name:"Rechenwege"},
   marathon:       {datei:"marathon-trainer.html",        ic:"🏢", name:"Rechen-Marathon"},
   rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"},
-  uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"}
+  uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"},
+  sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"}
 };
 let hdb=null, halloTimer=null, halloFuer="";
 function hTs(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
@@ -464,7 +466,10 @@ const NEUES=[
   {d:"2026-11-12", ic:"⛽", t:"Der Tank",                      x:"Rallye und Marathon brauchen jetzt Sprit. Den bekommst du fürs Lernen."},
   {d:"2026-11-12", ic:"💡", t:"Hilfe-Bilder",                  x:"Nach einem Fehler zeigt dir das Programm, wie man die Aufgabe sehen kann."},
   {d:"2026-11-12", ic:"🔁", t:"Wiederholen",                   x:"Was du gelernt hast, kommt nach ein paar Tagen noch einmal – dann bleibt es im Kopf."},
-  {d:"2026-11-13", ic:"🔊", t:"Leiste oben rechts",            x:"Vorlesen, Ton, größere Schrift und eigene Zahlentasten."}
+  {d:"2026-11-13", ic:"🔊", t:"Leiste oben rechts",            x:"Vorlesen, Ton, größere Schrift und eigene Zahlentasten."},
+  {d:"2026-11-14", ic:"🔥", t:"Deine Serie",                   x:"Für jeden Tag in Folge gibt es ein Feuer – nach 10 Tagen eine Krone."},
+  {d:"2026-11-14", ic:"✖️", t:"Malnehmen bei den Rechenwegen", x:"Neu: 6 × 20 und 6 × 15 – Schritt für Schritt."},
+  {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen."}
 ];
 const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
 function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
