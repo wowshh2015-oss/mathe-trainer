@@ -150,6 +150,11 @@
     border-radius:12px;padding:14px 16px;cursor:pointer;text-align:center;text-decoration:none;
     background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433}
   .lwBtns button.spaeter{background:transparent;color:var(--text);border:2px solid var(--card2);flex:0 0 auto;padding:12px 18px}
+  .wusst{margin-top:16px} .wusst:empty{display:none}
+  .wuKarte{display:flex;gap:12px;align-items:flex-start;background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.4);border-radius:14px;padding:12px 14px}
+  .wuIc{font-size:28px;line-height:1.1;flex:none} .wuTx{font-size:14.5px;line-height:1.5;color:#cbd5e1} .wuTx b{color:#fff}
+  .wuTx .wuT{display:block;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:#7dd3fc;margin-bottom:2px} .wuTx a{color:#7dd3fc;font-weight:700;white-space:nowrap}
+  .wuMehr{font-family:inherit;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;padding:6px 2px 0;display:block;margin-left:auto}
   .lwLink{display:inline-block;margin-top:14px;color:#7dd3fc;font-size:13.5px;font-weight:700;cursor:pointer;text-decoration:underline}
   .hint{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.6}
   .credit{margin-top:18px;color:var(--muted);font-size:13px}
@@ -534,11 +539,49 @@ function zeigeHallo(rows, name){
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>`+
     (erfolge.length?`<div class="erfolge">${erfolge.map(e=>`<span class="erfolg">${e}</span>`).join("")}</div>`:"")+
     (tipps.length?`<h4>Das lohnt sich heute</h4>${tipps.slice(0,3).join("")}`:"")+
-    `<span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
+    `<div class="wusst" id="wusst"></div><span class="lwLink" id="lwOeffnen">🧭 Mein Lernweg anzeigen</span>`;
+  zeigeWusstest(rows, name, false);
   $("lwOeffnen").addEventListener("click", zeigeLernweg);
   Sterne.verbinde(box);
   lernwegVorbereiten(rows, name);
   zeigeNeues(name, rows);
+}
+//// ===== „Wusstest du schon?": bei jedem Besuch ein kurzer Hinweis, was man im Programm noch machen kann =====
+// Kein Fenster, das man wegklicken muss – eine kleine Karte in der Begrüßung. Zuerst kommen Hinweise auf Dinge,
+// die dieses Kind noch nie benutzt hat (wenn: rows => true), danach die allgemeinen. Pro Tag einer, mit „Noch ein Tipp" der nächste.
+const WUSSTEST=[
+  {id:"meine",  ic:"🧠", wenn:r=>!r.some(e=>String(e.reihe)==="mine"), x:"In jedem Trainer gibt es <b>„Meine Aufgaben“</b>. Dort warten genau die Aufgaben, die dir noch schwerfallen – und du bekommst dafür <b>5 Sterne statt 3</b>."},
+  {id:"test",   ic:"🏅", wenn:r=>!r.some(e=>e.modus==="Test"), x:"Hast du schon einen <b>Test</b> probiert? Ab 90 % gibt es eine Urkunde und einen <b>Gold-Stern</b>. Trau dich!"},
+  {id:"wege",   ic:"🪜", wenn:r=>!istZu("halbschriftlich") && !r.some(e=>e.app==="halbschriftlich"), app:"halbschriftlich", x:"Warst du schon bei den <b>Rechenwegen</b>? Dort rechnest du Schritt für Schritt wie im Unterricht – auch Malaufgaben wie 6 × 15."},
+  {id:"tank",   ic:"⛽", wenn:r=>r.some(e=>e.app==="rallye"||e.app==="marathon"), x:"Tank leer? Ein <b>bestandener Test</b> bringt 30 Runden Sprit, ein <b>neues Thema</b> 20 und „Meine Aufgaben“ 15."},
+  {id:"emp",    ic:"⭐", x:"Wenn du das übst, was im Lernweg bei <b>„👉 jetzt dran“</b> steht, bekommst du die <b>Hälfte mehr Sterne</b>."},
+  {id:"flamme", ic:"🔥", x:"Eine kurze Runde am Tag genügt – und deine <b>Lernflammen</b> wachsen. Bei 10 Flammen leuchtet dein Name in <b>Bronze</b>, bei 20 in Silber, bei 30 in Gold."},
+  {id:"album",  ic:"📒", x:"Alle 10 Sterne öffnet sich ein <b>neuer Sticker</b>. Tippe oben auf <b>„Mein Album“</b> und schau, welche du schon hast."},
+  {id:"bild",   ic:"💡", x:"Nach einem Fehler zeigt dir das Programm ein <b>Bild</b>. Schau es dir in Ruhe an – es zeigt dir den Trick für die Aufgabe."},
+  {id:"wdh",    ic:"🔁", x:"Manche Aufgaben kommen nach ein paar Tagen <b>noch einmal</b>. Das ist Absicht: So bleiben sie für immer im Kopf."},
+  {id:"leiste", ic:"🔊", x:"Oben rechts ist eine kleine Leiste: <b>Vorlesen</b>, Ton, <b>größere Schrift</b> und eigene Zahlentasten."},
+  {id:"klasse", ic:"🎒", x:"Tippe über den Kacheln auf <b>deine Klasse</b>. Dann steht auf jeder Kachel, was für dich dabei ist."},
+  {id:"pokal",  ic:"🏆", wenn:r=>!istZu("rallye"), x:"In der <b>Rechen-Rallye</b> gibt es Pokale: nach 50, 100 und 180 Runden. Danach öffnet die Profi-Garage."},
+  {id:"hilfe",  ic:"❓", x:"Das <b>Fragezeichen</b> oben rechts erklärt alles im Mathe-Trainer. Zeig es auch deinen Eltern!"},
+  {id:"eltern", ic:"👨‍👩‍👧", wenn:r=>!istZu("eltern"), x:"Ganz unten auf dieser Seite steht <b>„Für Eltern“</b>. Dort sehen deine Eltern, was du schon alles kannst."},
+  {id:"tier",   ic:"🐾", x:"Dein <b>Geheimtier</b> ist dein Schlüssel. Verrate es niemandem – dann gehören deine Sterne nur dir."}
+];
+function zeigeWusstest(rows, name, weiter){
+  const box=$("wusst"); if(!box) return;
+  const passt=WUSSTEST.filter(t=>!t.wenn || t.wenn(rows));
+  // zuerst die Hinweise mit Bedingung (das Kind hat es noch nicht benutzt), dann die übrigen
+  const liste=passt.filter(t=>t.wenn).concat(passt.filter(t=>!t.wenn));
+  if(!liste.length){ box.innerHTML=""; return; }
+  const k="mathe_tipp_"+name.toLowerCase(); let st={i:-1, tag:""};
+  try{ st=JSON.parse(localStorage.getItem(k)||"null") || st; }catch(e){}
+  const heute=isoHeute();
+  if(st.tag==="") st.i=0; else if(weiter || st.tag!==heute) st.i=(+st.i||0)+1;      // pro Tag ein neuer Hinweis
+  st.tag=heute; try{ localStorage.setItem(k, JSON.stringify(st)); }catch(e){}
+  const t=liste[st.i % liste.length];
+  box.innerHTML=`<div class="wuKarte"><span class="wuIc">${t.ic}</span><span class="wuTx"><b class="wuT">Wusstest du schon?</b>${t.x}`+
+    (t.app && SEITEN[t.app] ? ` <a href="${SEITEN[t.app].datei}#name=${encodeURIComponent(name)}">Jetzt ausprobieren ›</a>` : "")+
+    `</span></div><button type="button" class="wuMehr" id="wuMehr">Noch ein Tipp ›</button>`;
+  $("wuMehr").addEventListener("click", ()=>zeigeWusstest(rows, name, true));
 }
 //// ===== „Das ist neu": jedes Kind sieht, was seit SEINEM letzten Besuch dazugekommen ist =====
 // Wer jeden Tag kommt, sieht nur einzelne Neuigkeiten. Wer eine Woche fehlte, sieht alles auf einmal – das macht Lust, öfter vorbeizuschauen.
@@ -562,6 +605,7 @@ const NEUES=[
   {d:"2026-11-15", ic:"🧪", t:"Einstufung",                    x:"Du kannst schon viel? Zeig es in der Einstufung (bei „Mein Lernweg“) – dann musst du es nicht von vorn üben.", app:"einstufung"},
   {d:"2026-11-15", ic:"👨‍👩‍👧", t:"Seite für deine Eltern",        x:"Ganz unten auf der Startseite: „Für Eltern“. Dort sehen sie, was du schon alles kannst.", app:"eltern"}
 ];
+const NEU_NOCHMAL="2026-11-15";         // wer diese Marke noch nicht hat, sieht alle Neuigkeiten noch einmal
 const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
 function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
 function isoVon(datum){ const [t,m,j]=String(datum||"").split("."); return j&&m&&t ? `${j}-${m}-${t}` : ""; }
@@ -578,6 +622,10 @@ function zeigeNeues(name, rows){
     else if(letzter>=NEU_FENSTER_SEIT) bis=letzter;                      // war schon da, seit es das Fenster gibt (z. B. an einem anderen Gerät)
     else bis = letzter<"2026-11-10" ? letzter : "2026-11-10";            // die erste große Runde an Neuigkeiten hat noch niemand im Fenster gesehen
   }
+  // Einmal für alle: Die Kinder haben die ersten Fenster kaum gelesen – deshalb zeigt es jedem noch einmal alles, was seit dem 9.11. dazugekommen ist.
+  const kNoch="mathe_neu_nochmal_"+n; let nochmal=false;
+  try{ nochmal = localStorage.getItem(kNoch)!==NEU_NOCHMAL; localStorage.setItem(kNoch, NEU_NOCHMAL); }catch(e){}
+  if(nochmal && bis>"2026-11-08") bis="2026-11-08";
   const neue=NEUES.filter(x=>x.d>bis && !(x.app && istZu(x.app)));
   // Programme, die dieses Kind als „öffnet bald" gesehen hat und die jetzt offen sind
   const kZu="mathe_zu_sah_"+n; let sahZu=[]; try{ sahZu=JSON.parse(localStorage.getItem(kZu)||"[]"); }catch(e){}
@@ -595,7 +643,8 @@ function zeigeNeues(name, rows){
   else if(!neue.length){ kopf="🕒 Bald gibt es etwas Neues!"; unter=`Hallo ${esc(name)}!`; }
   else{
     kopf = neue.length===1 ? "🎉 Es gibt etwas Neues!" : `🎉 ${neue.length} Neuigkeiten für dich!`;
-    unter = her===null ? `Hallo ${esc(name)}! Das ist alles neu im Mathe-Trainer:`
+    unter = nochmal && neue.length>3 ? `Hallo ${esc(name)}! Im Mathe-Trainer ist viel passiert. Das alles ist neu – lies es einmal in Ruhe:`
+          : her===null ? `Hallo ${esc(name)}! Das ist alles neu im Mathe-Trainer:`
           : her>=2    ? `Hallo ${esc(name)}! Du warst <b style="color:#fde68a">${her} Tage</b> nicht hier – seitdem ist ${neue.length===1?"das":"das alles"} dazugekommen:`
                       : `Hallo ${esc(name)}! Seit deinem letzten Besuch ist ${neue.length===1?"das":"das alles"} dazugekommen:`;
   }
