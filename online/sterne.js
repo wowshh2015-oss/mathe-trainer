@@ -125,8 +125,8 @@ window.Sterne=(function(){
     const schultag=heute.getDay()!==0 && heute.getDay()!==6;
     return {tage:n, heuteDa, lerntage:tage.size, verlustMorgen: !heuteDa && schultag && n>0};
   }
-  // 1 Flamme = 🔥 · 10 = 🏅 · 20 = 😀 · 30 = 🚀 · 40 = 💎 · 50 = 👑 (darüber: Krone und wieder von vorn)
-  const ZEHNER=["","🏅","😀","🚀","💎"];
+  // 1 Flamme = 🔥 · 10 = 🥉 · 20 = 🥈 · 30 = 🥇 · 40 = 💎 · 50 = 👑 (darüber: Krone und wieder von vorn)
+  const ZEHNER=["","🥉","🥈","🥇","💎"];
   function serieBild(s){
     const n=s.tage||0, kronen=Math.floor(n/50), rest=n%50;
     return "👑".repeat(Math.min(kronen,6))+ZEHNER[Math.floor(rest/10)]+"🔥".repeat(rest%10);
@@ -206,7 +206,7 @@ window.Sterne=(function(){
       : `<span class="stSerieBild an">${serieBild(se)}</span> <b>${se.tage} ${se.tage===1?"Lernflamme":"Lernflammen"}</b>`+
         (se.heuteDa ? ` – heute ist eine dazugekommen ✅${kommt?` Beim nächsten Mal gibt es ${kommt}!`:""}`
                     : se.verlustMorgen ? ` – <b style="color:#fca5a5">übe heute, sonst erlischt morgen eine Flamme!</b>` : ` – übe heute und es kommt eine dazu.`)+
-        `<span class="stSerieHilfe">Jeder Übungstag bringt eine Flamme, ein verpasster Schultag nimmt eine weg. 10 = 🏅 · 20 = 😀 · 30 = 🚀 · 40 = 💎 · 50 = 👑</span>`;
+        `<span class="stSerieHilfe">Jeder Übungstag bringt eine Flamme, ein verpasster Schultag nimmt eine weg. 10 = 🥉 · 20 = 🥈 · 30 = 🥇 · 40 = 💎 · 50 = 👑</span>`;
     const gabe = s.neuestes ? `<div class="stGabe">🎁 <b>${(+s.neuestes.silber||0)>0?"+"+s.neuestes.silber+" ⭐ ":""}${(+s.neuestes.gold||0)>0?"+"+s.neuestes.gold+" 🌟 ":""}</b>von deiner Lehrkraft${s.neuestes.grund?` – ${esc(s.neuestes.grund)}`:""}</div>` : "";
     return `<div class="stBand">
       <span class="stZahl"><span class="ic">⭐</span>${s.silber}<small>Sterne</small></span>

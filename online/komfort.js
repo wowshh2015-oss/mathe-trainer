@@ -173,7 +173,8 @@
     l.innerHTML=(kannReden?`<button type="button" data-k="lesen" title="Vorlesen" aria-label="Vorlesen">🔈</button>`:"")+
       `<button type="button" data-k="ton" title="Ton an oder aus" aria-label="Ton an oder aus"></button>
        <button type="button" data-k="schrift" title="Schriftgröße" aria-label="Schriftgröße">A<small>A</small></button>`+
-      (TOUCH?`<button type="button" data-k="tasten" title="Zahlentasten an oder aus" aria-label="Zahlentasten an oder aus">🔢</button>`:"");
+      (TOUCH?`<button type="button" data-k="tasten" title="Zahlentasten an oder aus" aria-label="Zahlentasten an oder aus">🔢</button>`:"")+
+      `<button type="button" data-k="hilfe" title="Anleitung für Eltern" aria-label="Anleitung für Eltern">❓</button>`;
     document.body.appendChild(l);
     const zeige=()=>{
       const t=l.querySelector('[data-k="ton"]'); t.textContent=ton?"🔊":"🔇"; t.classList.toggle("an",ton);
@@ -184,6 +185,10 @@
       const b=e.target.closest("button"); if(!b) return;
       const k=b.dataset.k;
       if(k==="lesen") vorlesen(b);
+      if(k==="hilfe"){                                   // Anleitung für Eltern (anleitung.js wird erst bei Bedarf geladen)
+        if(window.Anleitung) Anleitung.zeige();
+        else{ const sc=document.createElement("script"); sc.src="anleitung.js"; sc.onload=()=>{ if(window.Anleitung) Anleitung.zeige(); }; document.head.appendChild(sc); }
+      }
       if(k==="ton"){ ton=!ton; merke("mathe_ton",ton?"an":"aus"); if(ton) klang("gut"); sage(ton?"Ton ist an":"Ton ist aus"); }
       if(k==="schrift"){ stufe=(stufe+1)%STUFEN.length; merke("mathe_schrift",String(stufe)); setzeSchrift(); sage("Schrift: "+NAMEN[stufe]); }
       if(k==="tasten"){ padAn=!padAn; merke("mathe_tasten",padAn?"an":"aus"); pflegePad(); sage(padAn?"Eigene Zahlentasten":"Tastatur des Geräts"); }

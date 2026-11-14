@@ -31,6 +31,15 @@
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
   .tile.gesperrt{opacity:.75;border-style:dashed}
+  .tile.matt{opacity:.38}
+  .tile .kl{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;background:rgba(148,163,184,.16);color:#cbd5e1;line-height:1.4}
+  .tile .kl:empty{display:none} .tile .kl.an{background:rgba(250,204,21,.18);color:#fde68a;border-radius:10px}
+  .klRow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}
+  .klRow .lbl{font-size:13.5px;color:var(--muted);font-weight:600}
+  .klRow button{font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border-radius:999px;padding:7px 13px;background:transparent;color:var(--text);border:2px solid var(--card2)}
+  .klRow button.an{background:#fde047;border-color:#fde047;color:#422006}
+  .klRow button.anl{margin-left:auto;border-color:#38bdf8;color:#7dd3fc}
+  @media (max-width:480px){ .klRow button{font-size:13px;padding:6px 10px} .klRow button.anl{margin-left:0;flex-basis:100%} }
   .meldung{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(244,114,182,.2),rgba(244,114,182,.06));border:2px solid rgba(244,114,182,.55);
     border-radius:16px;padding:12px 15px;margin:0 0 14px;text-align:left;font-size:15.5px;line-height:1.5;color:#fbcfe8}
   .meldung .mi{font-size:30px;line-height:1;flex:none}
@@ -169,6 +178,11 @@
   <div class="card hallo hide" id="hallo"></div>
   <div class="lwOverlay hide" id="lwOverlay"><div class="lwBox" id="lwBox"></div></div>
 
+  <div class="klRow" id="klRow">
+    <span class="lbl">Für welche Klasse?</span>
+    <button type="button" data-kl="0">Alle</button><button type="button" data-kl="1">Klasse 1</button><button type="button" data-kl="2">Klasse 2</button><button type="button" data-kl="3">Klasse 3</button>
+    <button type="button" class="anl" id="anlBtn">❓ Anleitung für Eltern</button>
+  </div>
   <div class="grid dis" id="grid">
     <!-- immer zwei Kacheln nebeneinander, paarweise nach Thema -->
     <a class="tile t5" data-page="zerlegen-trainer.html"><div class="ic">🧩</div><div class="t">Zerlegen</div><div class="d">zerlegen und ergänzen · bis 10 · 20 · 100</div></a>
@@ -192,6 +206,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="anmeldung.js"></script>
 <script src="komfort.js"></script>
+<script src="anleitung.js"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
@@ -227,6 +242,24 @@ function zeigeUhrKachel(){
   $("uhrBald").classList.toggle("hide", UHR_OFFEN);
   $("uhrText").textContent = UHR_OFFEN ? "Die Uhr mit Zeigern lesen und stellen · halb · Viertel · Minuten" : "Bald lernst du hier die Uhr mit Zeigern – sei gespannt!";
 }
+// ===== Klassenstufen: zeigt auf jeder Kachel, was dort für die gewählte Klasse geübt wird (Liste in anleitung.js) =====
+let KLASSE=0;
+try{ KLASSE=+localStorage.getItem("mathe_klasse")||0; }catch(e){}
+function zeigeKlassen(){
+  document.querySelectorAll("#klRow button[data-kl]").forEach(b=>b.classList.toggle("an", +b.dataset.kl===KLASSE));
+  document.querySelectorAll(".tile[data-page]").forEach(t=>{
+    const app=t.dataset.page.replace("-trainer.html",""), k=Anleitung.KLASSEN[app];
+    let s=t.querySelector(".kl"); if(!s){ s=document.createElement("div"); s.className="kl"; t.appendChild(s); }
+    const passt = !k || !KLASSE || !!k[KLASSE];
+    t.classList.toggle("matt", !passt);
+    s.classList.toggle("an", !!(k && KLASSE && k[KLASSE]));
+    s.textContent = !k ? "" : (KLASSE && k[KLASSE]) ? `Klasse ${KLASSE}: ${k[KLASSE]}` : Anleitung.klassenText(app);
+  });
+}
+$("klRow").addEventListener("click", e=>{ const b=e.target.closest("button[data-kl]"); if(!b) return;
+  KLASSE=+b.dataset.kl; try{ localStorage.setItem("mathe_klasse", String(KLASSE)); }catch(e){} zeigeKlassen(); });
+$("anlBtn").addEventListener("click", ()=>Anleitung.zeige("start"));
+zeigeKlassen();
 // Alle anderen Programme kann die Lehrkraft genauso sperren (Klassenübersicht → „Programme öffnen und sperren")
 let GESPERRT=new Set();
 try{ JSON.parse(localStorage.getItem("mathe_zu")||"[]").forEach(a=>GESPERRT.add(a)); }catch(e){}
@@ -377,12 +410,13 @@ function begruessung(rows, name){
   return {gruss, seit};
 }
 // ===== Namensschild: der Name leuchtet in der Farbe der Lernflammen-Stufe =====
-const SCHILD_STUFEN=[[50,"#4ade80","grün","👑"],[40,"#22d3ee","türkis","💎"],[30,"#f472b6","rosa","🚀"],[20,"#fb923c","orange","😀"],[10,"#fde047","gelb","🏅"],[0,"#f1f5f9","",""]];
+// Bronze → Silber → Gold → Diamant → Krone: die Reihenfolge kennt jedes Kind von Medaillen
+const SCHILD_STUFEN=[[50,"#c084fc","königslila","👑"],[40,"#22d3ee","diamantblau","💎"],[30,"#fde047","golden","🥇"],[20,"#a5c4f5","silbern","🥈"],[10,"#e0935a","bronzefarben","🥉"],[0,"#f1f5f9","",""]];
 function zeigeSchild(rows, name){
   const box=$("schild"); if(!box) return;
   let s={tage:0}; try{ s=Sterne.serie(rows); }catch(e){}
   const n=s.tage||0, st=SCHILD_STUFEN.find(x=>n>=x[0]), ziel=SCHILD_STUFEN.slice().reverse().find(x=>x[0]>n);
-  const weiter = ziel ? `Noch ${ziel[0]-n} ${ziel[0]-n===1?"Flamme":"Flammen"} bis ${ziel[3]} – dann leuchtet dein Name ${ziel[2]}.` : `Höchste Stufe erreicht – dein Name leuchtet grün!`;
+  const weiter = ziel ? `Noch ${ziel[0]-n} ${ziel[0]-n===1?"Flamme":"Flammen"} bis ${ziel[3]} – dann leuchtet dein Name ${ziel[2]}.` : `Höchste Stufe erreicht – dein Name leuchtet königslila!`;
   box.style.color=st[1];
   box.innerHTML=`<span class="sn">${esc(name)}</span>`+(n ? `<span class="sf">${Sterne.serieBild(s)}</span><span class="sz">${n} ${n===1?"Lernflamme":"Lernflammen"}</span>` : "")+
     `<span class="sw">${n ? weiter : "🔥 Übe heute eine Runde – dann brennt deine erste Lernflamme."}</span>`;
@@ -519,6 +553,8 @@ const NEUES=[
   {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen.", app:"sach"},
   {d:"2026-11-15", ic:"💶", t:"Geld",                          x:"Eine neue Kachel: Münzen zählen, passend bezahlen und Rückgeld ausrechnen.", app:"geld"},
   {d:"2026-11-15", ic:"📏", t:"Längen",                        x:"Eine neue Kachel: mit dem Lineal messen und Längen umwandeln.", app:"laengen"},
+  {d:"2026-11-15", ic:"🎒", t:"Klasse 1, 2 oder 3?",          x:"Über den Kacheln kannst du deine Klasse antippen. Dann siehst du auf jeder Kachel, was für dich dabei ist."},
+  {d:"2026-11-15", ic:"❓", t:"Anleitung für Eltern",           x:"Oben rechts gibt es jetzt ein Fragezeichen. Dort wird alles erklärt – zeig es deinen Eltern."},
   {d:"2026-11-15", ic:"🧪", t:"Einstufung",                    x:"Du kannst schon viel? Zeig es in der Einstufung (bei „Mein Lernweg“) – dann musst du es nicht von vorn üben.", app:"einstufung"},
   {d:"2026-11-15", ic:"👨‍👩‍👧", t:"Seite für deine Eltern",        x:"Ganz unten auf der Startseite: „Für Eltern“. Dort sehen sie, was du schon alles kannst.", app:"eltern"}
 ];
