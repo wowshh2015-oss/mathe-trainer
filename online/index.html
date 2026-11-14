@@ -132,6 +132,9 @@
   .lwLegende{font-size:11.5px;color:var(--muted);margin-top:4px}
   .lwEin{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px;border-radius:14px;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.5);color:var(--text);text-decoration:none;font-size:14px;line-height:1.4}
   .lwEin span:first-child{font-size:26px;flex:none} .lwEin span:last-child{font-size:22px;flex:none;color:#f9a8d4} .lwEin b{display:block;font-size:15.5px;color:#fbcfe8}
+  .schild{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-top:14px;padding:11px 15px;border-radius:14px;background:#0b1220;border:2px solid currentColor}
+  .schild .sn{font-size:25px;font-weight:800;line-height:1.15} .schild .sf{font-size:21px;line-height:1.2;letter-spacing:1px}
+  .schild .sz{font-size:17px;font-weight:800} .schild .sw{flex-basis:100%;font-size:13px;font-weight:600;color:var(--muted)}
   .lwBtns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
   .lwBtns a,.lwBtns button{flex:1;font-family:inherit;font-size:16px;font-weight:700;border:none;
     border-radius:12px;padding:14px 16px;cursor:pointer;text-align:center;text-decoration:none;
@@ -160,6 +163,7 @@
       <button id="losBtn" style="flex:none;font-family:inherit;font-size:18px;font-weight:700;border:none;border-radius:12px;padding:0 20px;cursor:pointer;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433">Los ▶</button>
     </div>
     <div class="chips" id="nameChips"></div>
+    <div class="schild hide" id="schild"></div>
   </div>
 
   <div class="card hallo hide" id="hallo"></div>
@@ -249,6 +253,7 @@ function update(){
   try{ if(frei) localStorage.setItem("mathe_name",n); }catch(e){}
   // Elternseite: nur für das angemeldete Kind – und nur, wenn die Lehrkraft sie geöffnet hat
   $("elternSpan").classList.toggle("hide", !frei || istZu("eltern"));
+  if(!frei) $("schild").classList.add("hide");
   $("elternLink").href="eltern.html"+(frei ? "#name="+encodeURIComponent(n) : "");
 }
 async function anmelden(){
@@ -371,9 +376,22 @@ function begruessung(rows, name){
        Insgesamt ${nDurch} an ${nTage}.`;
   return {gruss, seit};
 }
+// ===== Namensschild: der Name leuchtet in der Farbe der Lernflammen-Stufe =====
+const SCHILD_STUFEN=[[50,"#4ade80","grün","👑"],[40,"#22d3ee","türkis","💎"],[30,"#f472b6","rosa","🚀"],[20,"#fb923c","orange","😀"],[10,"#fde047","gelb","🏅"],[0,"#f1f5f9","",""]];
+function zeigeSchild(rows, name){
+  const box=$("schild"); if(!box) return;
+  let s={tage:0}; try{ s=Sterne.serie(rows); }catch(e){}
+  const n=s.tage||0, st=SCHILD_STUFEN.find(x=>n>=x[0]), ziel=SCHILD_STUFEN.slice().reverse().find(x=>x[0]>n);
+  const weiter = ziel ? `Noch ${ziel[0]-n} ${ziel[0]-n===1?"Flamme":"Flammen"} bis ${ziel[3]} – dann leuchtet dein Name ${ziel[2]}.` : `Höchste Stufe erreicht – dein Name leuchtet grün!`;
+  box.style.color=st[1];
+  box.innerHTML=`<span class="sn">${esc(name)}</span>`+(n ? `<span class="sf">${Sterne.serieBild(s)}</span><span class="sz">${n} ${n===1?"Lernflamme":"Lernflammen"}</span>` : "")+
+    `<span class="sw">${n ? weiter : "🔥 Übe heute eine Runde – dann brennt deine erste Lernflamme."}</span>`;
+  box.classList.remove("hide");
+}
 function zeigeHallo(rows, name){
   const mitGeschenken=rows;                              // für den Tank
   rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk");   // Geschenke der Lehrkraft sind keine Durchgänge
+  zeigeSchild(rows, name);
   STERN_HTML=Sterne.bandHTML(mitGeschenken, name);       // Sterne und Sticker-Album (sterne.js)
   const box=$("hallo");
   box.classList.remove("hide");
