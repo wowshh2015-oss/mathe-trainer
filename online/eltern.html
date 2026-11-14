@@ -54,7 +54,7 @@ const STATIONEN=[["zerlegen","🧩","Zerlegen","Zahlen zerlegen und ergänzen �
                  ["minus","➖","Minus","Subtrahieren bis 20, 100 und 1000"],
                  ["einmaleins","✖️","Einmaleins","Malaufgaben auswendig können"],
                  ["einsdurcheins","➗","Einsdurcheins","Geteiltaufgaben bis 100"]];
-const THEMEN=[["uhr","🕒","Uhr mit Zeigern",8],["sach","📖","Sachaufgaben",5],["geld","💶","Geld",5],["laengen","📏","Längen",5]];
+const THEMEN=[["platz","🔍","Fachwörter und fehlende Zahl",6],["uhr","🕒","Uhr mit Zeigern",8],["sach","📖","Sachaufgaben",5],["geld","💶","Geld",5],["laengen","📏","Längen",5]];
 // Aufgaben, die noch nicht dreimal hintereinander richtig waren (rows: neueste zuerst)
 function offeneFehler(rows){
   const facts=new Set(); rows.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));

@@ -349,6 +349,7 @@ const APPS={
   zerlegen:     {label:"Zerlegen",      ic:"🧩"},
   uhr:          {label:"Uhr",           ic:"🕒"},
   sach:         {label:"Sachaufgaben",  ic:"📖"},
+  platz:        {label:"Fehlende Zahl", ic:"🔍"},
   geld:         {label:"Geld",          ic:"💶"},
   laengen:      {label:"Längen",        ic:"📏"},
   einstufung:   {label:"Einstufung",    ic:"🧪"}
@@ -373,7 +374,7 @@ function uebungLabel(e){
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
-  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
+  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -770,7 +771,7 @@ function renderHA(){
 // Uhr: offen nur, wenn freigabe.uhr === true (so war es von Anfang an). Alle anderen: gesperrt, wenn freigabe.zu[app] === true.
 let UHR_FREI=false, ZU={};
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
+                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
                  ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){

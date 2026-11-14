@@ -12,6 +12,7 @@ window.HA=(function(){
     {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins", datei:"einsdurcheins-trainer.html"},
     {app:"uhr",             ic:"🕒", name:"Uhr",           datei:"uhr-trainer.html"},
     {app:"sach",            ic:"📖", name:"Sachaufgaben",  datei:"sach-trainer.html"},
+    {app:"platz",           ic:"🔍", name:"Fehlende Zahl", datei:"platz-trainer.html"},
     {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
     {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"}
   ];
@@ -24,6 +25,7 @@ window.HA=(function(){
     zerlegen:{feld:"zr", liste:[["10","bis 10"],["20","bis 20"],["100","bis 100"]]},
     geld:    {feld:"zr", liste:[["1","Münzen zählen"],["2","Euro und Cent zählen"],["3","Umwandeln und Komma"],["4","Passend bezahlen"],["5","Einkaufen und Rückgeld"]]},
     laengen: {feld:"zr", liste:[["1","Mit dem Lineal messen"],["2","Zentimeter und Millimeter"],["3","Meter und Zentimeter"],["4","Welche Einheit passt?"],["5","Mit Längen rechnen"]]},
+    platz:   {feld:"zr", liste:[["1","Fachwörter: Plus und Minus"],["2","Fachwörter: Mal und Geteilt"],["3","Fehlende Zahl bei Plus"],["4","Fehlende Zahl bei Minus"],["5","Fehlende Zahl bei Mal und Geteilt"],["6","Alles gemischt – mit Fachwörtern"]]},
     sach:    {feld:"zr", liste:[["1","Plus und Minus bis 20"],["2","Plus und Minus bis 100"],["3","Mal und Geteilt"],["4","Alle vier Rechenarten"],["5","Mit unnötigen Angaben"]]},
     uhr:     {feld:"zr", liste:[["1","Nur der kleine Zeiger"],["2","Volle und halbe Stunden"],["3","Viertel nach und Viertel vor"],["4","Fünf-Minuten-Schritte"],["5","Auf die Minute genau"],
                      ["6","Vormittag und Nachmittag"],["8","Die Zeit vergeht"],["7","Fünf vor halb, zehn nach …"]]}

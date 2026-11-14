@@ -11,6 +11,7 @@ window.Anleitung=(function(){
     minus:           {ic:"➖", name:"Minus",          1:"bis 20", 2:"bis 100", 3:"bis 1000"},
     einmaleins:      {ic:"✖️", name:"Einmaleins",     2:"die Reihen kennenlernen und üben", 3:"alle Reihen sicher und schnell"},
     einsdurcheins:   {ic:"➗", name:"Einsdurcheins",  2:"Teilen kennenlernen und üben", 3:"alle Aufgaben sicher und schnell"},
+    platz:           {ic:"🔍", name:"Fehlende Zahl",  2:"Fachwörter Plus und Minus · ☐ + 5 = 13", 3:"Fachwörter Mal und Geteilt · ☐ × 4 = 28"},
     uhr:             {ic:"🕒", name:"Uhr-Trainer",    1:"volle und halbe Stunden", 2:"Viertel · 5 Minuten · Minuten · 13 bis 24 Uhr", 3:"Zeitspannen · „fünf vor halb“"},
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Euro und Cent mit Komma · Rückgeld"},
@@ -51,6 +52,7 @@ window.Anleitung=(function(){
      <li><b>🪜 Rechenwege</b> – Aufgaben Schritt für Schritt lösen, so wie im Unterricht (z. B. 47 + 25 oder 6 × 15).</li>
      <li><b>➕ Plus / ➖ Minus</b> – bis 20, bis 100 und bis 1000.</li>
      <li><b>✖️ Einmaleins / ➗ Einsdurcheins</b> – einzelne Reihen, Kernaufgaben oder gemischt.</li>
+     <li><b>🔍 Fehlende Zahl</b> – die Fachwörter (Summand, Summe, Minuend …) und Aufgaben mit Lücke: ☐ + 5 = 13. Ihr Kind überlegt zuerst, welche Rechnung hilft.</li>
      <li><b>🕒 Uhr-Trainer</b> – die Uhr mit Zeigern lesen und stellen, später Zeitspannen.</li>
      <li><b>📖 Sachaufgaben</b> – Geschichte lesen, Rechenart finden, rechnen, Antwortsatz.</li>
      <li><b>💶 Geld / 📏 Längen</b> – Münzen, bezahlen, Rückgeld; messen und umwandeln.</li>

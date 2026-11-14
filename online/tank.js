@@ -15,6 +15,7 @@ window.Tank=(function(){
     {app:"einsdurcheins",   ic:"➗", name:"Einsdurcheins", datei:"einsdurcheins-trainer.html"},
     {app:"uhr",             ic:"🕒", name:"Uhr",           datei:"uhr-trainer.html"},
     {app:"sach",            ic:"📖", name:"Sachaufgaben",  datei:"sach-trainer.html"},
+    {app:"platz",           ic:"🔍", name:"Fehlende Zahl", datei:"platz-trainer.html"},
     {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
     {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"}
   ];

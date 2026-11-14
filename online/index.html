@@ -32,6 +32,7 @@
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
   .tile.gesperrt{opacity:.75;border-style:dashed}
   .tile.matt{opacity:.38}
+  .tile.breit{grid-column:1/-1}
   .tile .kl{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;background:rgba(148,163,184,.16);color:#cbd5e1;line-height:1.4}
   .tile .kl:empty{display:none} .tile .kl.an{background:rgba(250,204,21,.18);color:#fde68a;border-radius:10px}
   .klRow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}
@@ -191,6 +192,7 @@
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t1" data-page="einmaleins-trainer.html"><div class="ic">✖️</div><div class="t">Ein&shy;mal&shy;eins</div><div class="d">Malnehmen 1×1 bis 10×10</div></a>
     <a class="tile t2" data-page="einsdurcheins-trainer.html"><div class="ic">➗</div><div class="t">Eins&shy;durch&shy;eins</div><div class="d">Teilen bis 100</div></a>
+    <a class="tile t5 breit" data-page="platz-trainer.html"><div class="ic">🔍</div><div class="t">Fehlende Zahl</div><div class="d">Fachwörter lernen · die verlorene Zahl finden: ☐ + 5 = 13</div></a>
     <a class="tile t7" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde · 5 Strecken</div></a>
     <a class="tile t6" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Mara&shy;thon</div><div class="d">Etage für Etage nach oben</div></a>
     <a class="tile t2 gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
@@ -326,7 +328,8 @@ const SEITEN={
   uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"},
   geld:           {datei:"geld-trainer.html",            ic:"💶", name:"Geld"},
   laengen:        {datei:"laengen-trainer.html",         ic:"📏", name:"Längen"},
-  sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"}
+  sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"},
+  platz:          {datei:"platz-trainer.html",           ic:"🔍", name:"Fehlende Zahl"}
 };
 let hdb=null, halloTimer=null, halloFuer="";
 function hTs(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
@@ -555,6 +558,7 @@ const NEUES=[
   {d:"2026-11-15", ic:"📏", t:"Längen",                        x:"Eine neue Kachel: mit dem Lineal messen und Längen umwandeln.", app:"laengen"},
   {d:"2026-11-15", ic:"🎒", t:"Klasse 1, 2 oder 3?",          x:"Über den Kacheln kannst du deine Klasse antippen. Dann siehst du auf jeder Kachel, was für dich dabei ist."},
   {d:"2026-11-15", ic:"❓", t:"Anleitung für Eltern",           x:"Oben rechts gibt es jetzt ein Fragezeichen. Dort wird alles erklärt – zeig es deinen Eltern."},
+  {d:"2026-11-15", ic:"🔍", t:"Fehlende Zahl",                 x:"Eine neue Kachel: Lerne, wie die Zahlen heißen (Summand, Summe …) und finde die verlorene Zahl.", app:"platz"},
   {d:"2026-11-15", ic:"🧪", t:"Einstufung",                    x:"Du kannst schon viel? Zeig es in der Einstufung (bei „Mein Lernweg“) – dann musst du es nicht von vorn üben.", app:"einstufung"},
   {d:"2026-11-15", ic:"👨‍👩‍👧", t:"Seite für deine Eltern",        x:"Ganz unten auf der Startseite: „Für Eltern“. Dort sehen sie, was du schon alles kannst.", app:"eltern"}
 ];

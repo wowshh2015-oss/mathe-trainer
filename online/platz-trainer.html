@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fehlende Zahl">
+<title>Fehlende Zahl</title>
+<script src="anmeldung.js"></script>
+<script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
+<script src="sterne.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#fbbf24; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#4a3410 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    padding:13px 18px;color:#3b2504;background:linear-gradient(180deg,#fde68a,var(--accent));transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:14.5px;padding:9px 13px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14.5px;color:var(--muted);line-height:1.5}
+  .info b{color:var(--text)}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px}
+  .credit a{color:var(--muted)}
+  h3{font-size:16px;margin:18px 0 8px}
+  .stufe{display:flex;align-items:center;gap:12px;background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .stufe.fertig{border-color:rgba(34,197,94,.55)}
+  .stufe.dran{border-color:var(--accent);box-shadow:0 0 0 2px rgba(251,191,36,.25)}
+  .stufe .nr{flex:none;width:34px;height:34px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .stufe.fertig .nr{background:var(--good);color:#04220f}
+  .stufe .tx{flex:1;min-width:0}
+  .stufe .tx b{display:block;font-size:15.5px}
+  .stufe .tx span{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .stufe .kn{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  /* Aufgabe */
+  .kopf{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;padding-right:120px}
+  .pille{display:inline-block;background:rgba(251,191,36,.16);color:#fde68a;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .fortschritt{display:flex;gap:4px;margin-bottom:12px}
+  .fortschritt i{flex:1;height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .fortschritt i.nein{background:var(--bad);border-color:var(--bad)}
+  .zeitbalken{height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);overflow:hidden;margin-bottom:10px}
+  .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+  .geschichte{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:16px 18px;font-size:20px;line-height:1.55}
+  .geschichte .frageSatz{display:block;margin-top:8px;font-weight:800;color:#fde68a}
+  .geschichte .zahl{font-weight:800;color:#7dd3fc}
+  .lautKn{font-size:18px;padding:6px 11px;background:#0b1220;color:var(--text);border:2px solid var(--card2);float:right;margin:0 0 6px 10px}
+  .schritte{display:flex;gap:6px;margin:14px 0 6px;font-size:12.5px;font-weight:800;color:var(--muted)}
+  .schritte span{flex:1;text-align:center;border-radius:999px;padding:5px 4px;background:#0b1220;border:1px solid var(--card2)}
+  .schritte span.an{border-color:var(--accent);color:#fde68a;background:rgba(251,191,36,.12)}
+  .schritte span.ok{border-color:rgba(34,197,94,.6);color:#86efac}
+  .schritte span.nein{border-color:rgba(239,68,68,.6);color:#fca5a5}
+  .auftrag{text-align:center;font-size:18px;font-weight:800;margin:12px 0 10px}
+  .wahl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .wahl button{background:#0b1220;color:var(--text);border:2px solid var(--card2);font-size:19px;padding:14px 8px}
+  .wahl button:hover{border-color:var(--accent)}
+  .wahl button small{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
+  .wahl button .zeichen{font-size:30px;display:block;line-height:1.1}
+  .wahl button.richtig{border-color:var(--good);background:rgba(34,197,94,.16)}
+  .wahl button.falsch{border-color:var(--bad);background:rgba(239,68,68,.14)}
+  .rechnung{display:flex;align-items:center;justify-content:center;gap:10px;font-size:30px;font-weight:800;flex-wrap:wrap}
+  .rechnung input{width:130px;font-size:30px;text-align:center;padding:10px;border-radius:12px;border:2px solid var(--accent);background:#0b1220;color:var(--text);outline:none;font-family:inherit;font-weight:800}
+  .rueck{min-height:26px;text-align:center;font-size:17px;font-weight:700;margin-top:12px;line-height:1.4}
+  .erkl{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;margin-top:12px;text-align:center;font-size:16px;line-height:1.5;color:#e2e8f0}
+  .erkl .t{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .erkl b{color:#fff}
+  .antwortsatz{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45);color:#bbf7d0;border-radius:14px;padding:12px 14px;font-size:18px;font-weight:700;text-align:center;margin-top:12px}
+  .reihe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .prozent{font-size:54px;font-weight:800;text-align:center;line-height:1}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btnrow button{flex:1}
+  .gl{display:flex;align-items:center;justify-content:center;gap:10px;font-size:40px;font-weight:800;flex-wrap:wrap;text-align:center}
+  .gl .z{display:inline-block;min-width:1.5em;padding:2px 10px;border-radius:12px;border:3px solid transparent}
+  .gl .z.mark{border-color:#fde68a;background:rgba(253,230,138,.14);color:#fde68a}
+  .gl .z.leer{border:3px dashed #fde68a;color:#fde68a}
+  .gl button.z{font-family:inherit;font-size:inherit;font-weight:800;background:#1e293b;color:var(--text);border:3px solid var(--card2);cursor:pointer}
+  .gl button.z:hover{border-color:var(--accent)} .gl button.z.richtig{border-color:var(--good);background:rgba(34,197,94,.18)} .gl button.z.falsch{border-color:var(--bad);background:rgba(239,68,68,.16)}
+  .gl button.z:disabled{opacity:1}
+  .gl input{width:110px;font-size:36px;text-align:center;padding:6px;border-radius:12px;border:3px solid var(--accent);background:#0b1220;color:var(--text);outline:none;font-family:inherit;font-weight:800}
+  .satz{font-size:19px;line-height:1.5;margin-bottom:12px;text-align:center}
+  .namen{display:grid;grid-template-columns:repeat(5,auto);justify-content:center;gap:2px 8px;font-weight:800;text-align:center;margin:8px 0}
+  .namen .n{font-size:26px;color:#fff} .namen .w{font-size:13px;color:#fde68a} .namen .w.an{color:#86efac;text-decoration:underline}
+  .tg{max-width:300px;margin:10px auto 6px;font-weight:800;font-size:20px;color:#fff}
+  .tg .ganz{background:rgba(56,189,248,.2);border:2px solid #38bdf8;border-radius:10px 10px 0 0;padding:6px} .tg .teile{display:flex}
+  .tg .teile span{flex:1;background:rgba(251,191,36,.16);border:2px solid var(--accent);border-top:none;padding:6px} .tg .teile span:first-child{border-radius:0 0 0 10px;border-right:none} .tg .teile span:last-child{border-radius:0 0 10px 0}
+  .tg .frag{color:#fde68a} .tg small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+  details.merk{background:#0b1220;border:1px solid var(--card2);border-radius:12px;margin-top:10px} details.merk summary{cursor:pointer;padding:11px 14px;font-weight:700;font-size:15px}
+  details.merk .in{padding:0 14px 12px;font-size:14.5px;line-height:1.5;color:#cbd5e1} details.merk .in b{color:#fff}
+  @media (max-width:430px){ body{padding:60px 14px 14px} .gl{font-size:30px;gap:6px} .gl input{width:84px;font-size:28px} .geschichte{font-size:18px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🔍 Fehlende Zahl</h1>
+  <p class="sub">Fachwörter lernen – und die verlorene Zahl finden.</p>
+
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div id="menue" class="hide" style="margin-top:18px">
+      <div class="info">🔍 <b>So geht es:</b> Zuerst lernst du, wie die Zahlen in einer Aufgabe <b>heißen</b>. Danach suchst du die <b>fehlende Zahl</b>:
+        Du überlegst zuerst, <b>welche Rechnung</b> hilft – und rechnest dann.</div>
+      <details class="merk"><summary>📘 Merkzettel: So heißen die Zahlen</summary><div class="in" id="merkzettel"></div></details>
+      <h3>Lernen und üben</h3>
+      <div id="stufen"></div>
+      <div class="stufe">
+        <span class="nr">🧠</span>
+        <span class="tx"><b>Meine Aufgaben</b><span id="meineText">Was noch nicht sicher sitzt</span></span>
+        <span class="kn"><button class="klein" id="meineBtn">Üben</button></span>
+      </div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <div id="spiel" class="card hide">
+    <div class="kopf"><span class="pille" id="spielTitel"></span><button class="ghost klein" id="abbruchBtn">✕ Aufhören</button></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
+    <div id="geschichte"></div>
+    <div class="schritte" id="schritte"></div>
+    <div id="buehne"></div>
+    <div class="rueck" id="rueck"></div>
+    <div id="erkl"></div>
+  </div>
+
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div class="prozent" id="ergProzent"></div>
+    <div class="info" id="ergText" style="margin-top:14px"></div>
+    <div class="btnrow"><button id="nochmalBtn">Noch einmal ▶</button><button class="ghost" id="zumMenue">Zur Übersicht</button></div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="platz", PRO_RUNDE=10, BESTANDEN=90;
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function aus(l){ return l[rnd(0,l.length-1)]; }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let db=null, playerName="", MEINE=[];
+
+//// ===== Fachwörter =====
+const ZEICHEN={"+":"+","-":"−","*":"×","/":"÷"};
+const OPNAME={"+":"Plus","-":"Minus","*":"Mal","/":"Geteilt"};
+const WORT={"+":["Summand","Summand","Summe"],"-":["Minuend","Subtrahend","Differenz"],"*":["Faktor","Faktor","Produkt"],"/":["Dividend","Divisor","Quotient"]};
+const ARTIKEL={Summand:"der",Summe:"die",Minuend:"der",Subtrahend:"der",Differenz:"die",Faktor:"der",Produkt:"das",Dividend:"der",Divisor:"der",Quotient:"der"};
+const AKK={Summand:"einen Summanden",Summe:"die Summe",Minuend:"den Minuenden",Subtrahend:"den Subtrahenden",Differenz:"die Differenz",
+           Faktor:"einen Faktor",Produkt:"das Produkt",Dividend:"den Dividenden",Divisor:"den Divisor",Quotient:"den Quotienten"};
+const Art=w=>ARTIKEL[w][0].toUpperCase()+ARTIKEL[w].slice(1);
+// Die Regeln – so, wie sie im Unterricht erklärt werden
+const REGEL={
+  "+0":"Bei <b>Plus</b> fehlt ein Summand. Rechne: <b>Summe minus die Zahl, die du kennst</b>.", "+1":"Bei <b>Plus</b> fehlt ein Summand. Rechne: <b>Summe minus die Zahl, die du kennst</b>.",
+  "-0":"Bei <b>Minus</b> fehlt die <b>erste, große Zahl</b> (der Minuend). Rechne: <b>Ergebnis plus die zweite Zahl</b>.",
+  "-1":"Bei <b>Minus</b> fehlt die <b>zweite Zahl</b> (der Subtrahend). Rechne: <b>erste Zahl minus Ergebnis</b>.",
+  "*0":"Bei <b>Mal</b> fehlt ein Faktor. Rechne: <b>Produkt geteilt durch die Zahl, die du kennst</b>.", "*1":"Bei <b>Mal</b> fehlt ein Faktor. Rechne: <b>Produkt geteilt durch die Zahl, die du kennst</b>.",
+  "/0":"Bei <b>Geteilt</b> fehlt die <b>erste, große Zahl</b> (der Dividend). Rechne: <b>Ergebnis mal die zweite Zahl</b>.",
+  "/1":"Bei <b>Geteilt</b> fehlt die <b>zweite Zahl</b> (der Divisor). Rechne: <b>erste Zahl geteilt durch das Ergebnis</b>." };
+function rechne(op,a,b){ return op==="+"?a+b:op==="-"?a-b:op==="*"?a*b:a/b; }
+// Gleichung mit den Fachwörtern darunter
+function beschriftet(op,z,wort){
+  const w=WORT[op];
+  return `<div class="namen"><span class="n">${z[0]}</span><span class="n">${ZEICHEN[op]}</span><span class="n">${z[1]}</span><span class="n">=</span><span class="n">${z[2]}</span>
+    <span class="w${w[0]===wort?" an":""}">${w[0]}</span><span></span><span class="w${w[1]===wort?" an":""}">${w[1]}</span><span></span><span class="w${w[2]===wort?" an":""}">${w[2]}</span></div>`;
+}
+function merkzettelHTML(){
+  return beschriftet("+",[8,5,13])+beschriftet("-",[13,5,8])+beschriftet("*",[7,4,28])+beschriftet("/",[28,4,7])+
+    `<p style="margin:10px 0 0"><b>Fehlt eine Zahl?</b> Frag dich: Fehlt das <b>Ganze</b> oder ein <b>Teil</b>?<br>
+     ➕ Bei Plus fehlt immer ein Teil: <b>Summe minus die bekannte Zahl</b>.<br>
+     ➖ Bei Minus fehlt die erste Zahl: <b>Ergebnis plus zweite Zahl</b>. Fehlt die zweite: <b>erste Zahl minus Ergebnis</b>.<br>
+     ✖️ Bei Mal: <b>Produkt geteilt durch die bekannte Zahl</b>.<br>
+     ➗ Bei Geteilt fehlt die erste Zahl: <b>Ergebnis mal zweite Zahl</b>. Fehlt die zweite: <b>erste Zahl geteilt durch Ergebnis</b>.</p>`;
+}
+// Teil-Teil-Ganzes: oben das Ganze, darunter die beiden Teile
+function teilGanzes(a){
+  if(a.op==="*"||a.op==="/"){
+    const f=a.op==="*"?[a.z[0],a.z[1],a.z[2]]:[a.z[2],a.z[1],a.z[0]];       // f[0] × f[1] = f[2]
+    return `<div style="margin-top:8px">Mal und Geteilt gehören zusammen:<br><b>${f[0]} × ${f[1]} = ${f[2]}</b> &nbsp;↔&nbsp; <b>${f[2]} ÷ ${f[1]} = ${f[0]}</b></div>`;
+  }
+  const g = a.op==="+" ? {ganz:2, teile:[0,1]} : {ganz:0, teile:[1,2]};
+  const zeig=i=> i===a.p ? `<b class="frag">?</b>` : a.z[i];
+  return `<div class="tg"><div class="ganz">${zeig(g.ganz)}<small>das Ganze</small></div><div class="teile"><span>${zeig(g.teile[0])}<small>ein Teil</small></span><span>${zeig(g.teile[1])}<small>ein Teil</small></span></div></div>
+    <div>${a.p===g.ganz ? "Das <b>Ganze</b> fehlt → beide Teile <b>zusammenzählen</b>." : "Ein <b>Teil</b> fehlt → vom Ganzen den anderen Teil <b>abziehen</b>."}</div>`;
+}
+
+//// ===== Die Stufen =====
+const STUFEN=[
+  {id:1, typ:"begriff", name:"Fachwörter: Plus und Minus",   kurz:"Summand · Summe · Minuend · Subtrahend · Differenz", ops:["+","-"], sek:20},
+  {id:2, typ:"begriff", name:"Fachwörter: Mal und Geteilt",  kurz:"Faktor · Produkt · Dividend · Divisor · Quotient", ops:["*","/"], sek:20},
+  {id:3, typ:"platz",   name:"Fehlende Zahl bei Plus",       kurz:"☐ + 5 = 13 · 8 + ☐ = 13", ops:["+"], sek:40},
+  {id:4, typ:"platz",   name:"Fehlende Zahl bei Minus",      kurz:"☐ − 5 = 8 · 13 − ☐ = 8", ops:["-"], sek:40},
+  {id:5, typ:"platz",   name:"Fehlende Zahl bei Mal und Geteilt", kurz:"☐ × 4 = 28 · 28 ÷ ☐ = 7", ops:["*","/"], sek:40},
+  {id:6, typ:"platz",   name:"Alles gemischt – mit Fachwörtern", kurz:"„Die Summe ist 13, ein Summand ist 5 …“", ops:["+","-","*","/"], sek:50, satz:true}
+];
+const stufe=id=>STUFEN.find(s=>s.id===id);
+const woerter=st=>[...new Set(st.ops.flatMap(o=>WORT[o]))];
+const sortenVon=st=> st.typ==="begriff" ? woerter(st) : st.ops.flatMap(o=>[o+"0",o+"1"]);
+
+// drei Zahlen einer richtigen Aufgabe: z[0] op z[1] = z[2] – alle drei verschieden, damit „Tippe auf …" eindeutig ist
+function zahlen(op, gross){
+  for(let i=0;i<300;i++){
+    let a,b;
+    if(op==="+"){ if(gross){ a=rnd(12,60); b=rnd(11,Math.min(38,99-a)); } else { a=rnd(2,12); b=rnd(2,Math.min(9,20-a)); } }
+    else if(op==="-"){ if(gross){ a=rnd(30,99); b=rnd(11,a-8); } else { a=rnd(8,20); b=rnd(2,a-2); } }
+    else if(op==="*"){ a=rnd(2,9); b=rnd(2,9); }
+    else { b=rnd(2,9); a=b*rnd(2,9); }
+    const c=rechne(op,a,b);
+    if(a!==b && a!==c && b!==c) return [a,b,c];
+  }
+  return op==="+"?[8,5,13]:op==="-"?[13,5,8]:op==="*"?[7,4,28]:[28,4,7];
+}
+function baueBegriff(st, wort, nr){
+  wort = wort || aus(woerter(st));
+  const op=st.ops.find(o=>WORT[o].includes(wort)) || st.ops[0], z=zahlen(op,false), w=WORT[op];
+  const art = (w[2]===wort && nr%3===2) ? "ergebnis" : nr%2===0 ? "name" : "zeig";
+  const a={typ:"begriff", st, art, op, z, wort, sorte:wort, key:`${st.id}|${wort}`, fact:`${z[0]} ${ZEICHEN[op]} ${z[1]} = ${z[2]}`};
+  if(art==="name"){ a.pos=aus([0,1,2].filter(i=>w[i]===wort)); a.opt=mische([wort].concat(mische(woerter(st).filter(x=>x!==wort)).slice(0,3))); }
+  if(art==="ergebnis") a.opt=mische(["Summe","Differenz","Produkt","Quotient"]);
+  return a;
+}
+function bauePlatz(st, sorte, nr){
+  sorte = sorte || aus(sortenVon(st));
+  const op=sorte[0], p=+sorte[1], gross = (op==="+"||op==="-") && nr>=6 && !st.satz;      // die letzten vier Aufgaben gehen bis 100
+  const z=zahlen(op,gross), r=z[p];
+  let gut, schlecht;
+  if(op==="+"){ const k=z[1-p]; gut=[z[2],"-",k]; schlecht=[z[2],"+",k]; }
+  else if(op==="-"){ if(p===0){ gut=[z[2],"+",z[1]]; schlecht=[Math.max(z[2],z[1]),"-",Math.min(z[2],z[1])]; } else { gut=[z[0],"-",z[2]]; schlecht=[z[0],"+",z[2]]; } }
+  else if(op==="*"){ const k=z[1-p]; gut=[z[2],"/",k]; schlecht=[z[2],"*",k]; }
+  else { if(p===0){ gut=[z[2],"*",z[1]]; schlecht=[z[2],"+",z[1]]; } else { gut=[z[0],"/",z[2]]; schlecht=[z[0],"*",z[2]]; } }
+  const w=WORT[op]; let satz="";
+  if(st.satz){
+    if(op==="+"||op==="*") satz=`${Art(w[2])} ${w[2]} ist <b>${z[2]}</b>. Ein ${w[0]} ist <b>${z[1-p]}</b>. Wie heißt der andere ${w[0]}?`;
+    else if(p===0) satz=`Der ${w[1]} ist <b>${z[1]}</b>, ${ARTIKEL[w[2]]} ${w[2]} ist <b>${z[2]}</b>. Wie heißt der ${w[0]}?`;
+    else satz=`Der ${w[0]} ist <b>${z[0]}</b>, ${ARTIKEL[w[2]]} ${w[2]} ist <b>${z[2]}</b>. Wie heißt der ${w[1]}?`;
+  }
+  const teile=[0,1,2].map(i=>i===p?"?":z[i]);
+  return {typ:"platz", st, op, p, z, r, gut, schlecht, satz, sorte, key:`${st.id}|${sorte}`, fact:`${teile[0]} ${ZEICHEN[op]} ${teile[1]} = ${teile[2]}`};
+}
+function baueRunde(st, sorten){
+  const liste=[], alle = sorten && sorten.length ? sorten : mische(sortenVon(st));
+  for(let i=0;i<PRO_RUNDE;i++) liste.push(st.typ==="begriff" ? baueBegriff(st, alle[i%alle.length], i) : bauePlatz(st, alle[i%alle.length], i));
+  // die Reihenfolge bleibt bei „Fehlende Zahl" erhalten (erst kleine, dann große Zahlen), sonst wird gemischt
+  return st.typ==="begriff" ? mische(liste) : liste;
+}
+
+//// ===== Ablauf =====
+let runde=null, wartet=false, timer=null, zeitRest=0, lauf=0, aufgabeOk=true;
+function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
+function spaeter(ms, was){ const meiner=lauf; setTimeout(()=>{ if(meiner===lauf && runde) was(); }, ms); }
+function zeichneFortschritt(){ $("fortschritt").innerHTML=runde.aufgaben.map((a,i)=>`<i class="${runde.verlauf[i]===true?"ok":runde.verlauf[i]===false?"nein":""}"></i>`).join(""); }
+function starte(st, modus, sorten){
+  lauf++;
+  runde={st, modus, aufgaben:baueRunde(st, sorten), i:0, richtig:0, gestellt:[], fehler:[], antworten:[], verlauf:[], start:Date.now()};
+  $("spielTitel").textContent=(modus==="Test"?"Test":modus==="mine"?"Meine Aufgaben":"Üben")+" · "+st.name;
+  zeige("spiel"); naechste();
+}
+function zeichneSchritte(namen, stand){
+  $("schritte").innerHTML=namen.length ? namen.map((n,i)=>`<span class="${i<stand.length?stand[i]:(i===stand.length?"an":"")}">${n}</span>`).join("") : "";
+  $("schritte").classList.toggle("hide", !namen.length);
+}
+function gut(text){ $("rueck").style.color="var(--good)"; $("rueck").textContent=text; }
+function schlecht(text){ $("rueck").style.color="var(--bad)"; $("rueck").textContent=text; }
+function naechste(){
+  if(runde.i>=runde.aufgaben.length){ fertig(); return; }
+  wartet=false; aufgabeOk=true;
+  const a=runde.aufgaben[runde.i]; a.stand=[];
+  runde.gestellt.push(a.key);
+  $("rueck").textContent=""; $("erkl").innerHTML=""; $("geschichte").innerHTML=""; $("buehne").innerHTML="";
+  zeichneFortschritt();
+  if(a.typ==="begriff") frageBegriff(a);
+  else if(runde.modus==="Test") platzDirekt(a);
+  else platzWahl(a);
+  starteZeit();
+}
+// Aufgabe abschließen: grün/rot, weiter (im Training nach einem Fehler erst nach „Weiter")
+function abschluss(a, erklaerung){
+  stoppZeit();
+  runde.verlauf[runde.i]=aufgabeOk; if(aufgabeOk) runde.richtig++; else runde.fehler.push(a.key);
+  zeichneFortschritt(); runde.i++;
+  const training=runde.modus!=="Test";
+  if(!aufgabeOk && training){
+    wartet=true;
+    $("erkl").innerHTML=`<div class="erkl">${erklaerung||""}<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+    $("weiterBtn").addEventListener("click",()=>{ wartet=false; naechste(); }); fokus();
+  }else{
+    if(erklaerung && training) $("erkl").innerHTML=`<div class="erkl">${erklaerung}</div>`;
+    spaeter(aufgabeOk ? (erklaerung&&training?1900:900) : 1500, naechste);
+  }
+}
+function fokus(){ setTimeout(()=>{ try{ $("weiterBtn").focus({preventScroll:true}); $("erkl").scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} }, 300); }
+function merkeFehler(a, soll, gegeben, art){
+  if(a.gemerkt) return; a.gemerkt=true;       // nur der erste Fehler einer Aufgabe zählt für die Auswertung
+  runde.antworten.push(`${a.fact}|${soll}|${gegeben}|${art}`);
+}
+
+// ---------- Fachwörter ----------
+function gleichung(a, wie){      // wie: "mark" (eine Zahl markiert) | "knopf" (Zahlen antippen) | ""
+  const zelle=i=> wie==="knopf" ? `<button class="z" data-i="${i}">${a.z[i]}</button>` : `<span class="z${wie==="mark"&&i===a.pos?" mark":""}">${a.z[i]}</span>`;
+  return `<div class="gl">${zelle(0)}<span>${ZEICHEN[a.op]}</span>${zelle(1)}<span>=</span>${zelle(2)}</div>`;
+}
+function frageBegriff(a){
+  zeichneSchritte([], []);
+  const w=WORT[a.op], merk=`<div class="t">📘 So heißen die Zahlen</div>${beschriftet(a.op,a.z,a.wort)}`;
+  const falschGewaehlt=gegeben=>{ aufgabeOk=false; merkeFehler(a, a.wort, gegeben, "begriff"); schlecht(`Richtig ist: ${ARTIKEL[a.wort]} ${a.wort}.`); abschluss(a, merk); };
+  if(a.art==="zeig"){
+    $("geschichte").innerHTML=`<div class="auftrag">Tippe auf <span style="color:#fde68a">${AKK[a.wort]}</span>.</div>`+gleichung(a,"knopf");
+    $("geschichte").querySelectorAll("button.z").forEach(b=>b.addEventListener("click",()=>{
+      if(wartet || b.disabled) return;
+      const i=+b.dataset.i, ok=w[i]===a.wort;
+      $("geschichte").querySelectorAll("button.z").forEach((x,j)=>{ x.disabled=true; if(w[j]===a.wort) x.classList.add("richtig"); });
+      if(ok){ gut("Richtig! 👍"); abschluss(a); } else { b.classList.add("falsch"); falschGewaehlt(w[i]); }
+    }));
+    return;
+  }
+  if(a.art==="name") $("geschichte").innerHTML=`<div class="auftrag">Wie heißt die markierte Zahl?</div>`+gleichung(a,"mark");
+  else $("geschichte").innerHTML=`<div class="auftrag">Wie heißt das Ergebnis einer <span style="color:#fde68a">${OPNAME[a.op]}-Aufgabe</span>?</div>`+gleichung(a,"");
+  $("buehne").innerHTML=`<div class="wahl" style="margin-top:14px">${a.opt.map(o=>`<button data-w="${o}">${o}</button>`).join("")}</div>`;
+  $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+    if(wartet || b.disabled) return;
+    const ok=b.dataset.w===a.wort;
+    $("buehne").querySelectorAll(".wahl button").forEach(x=>{ x.disabled=true; if(x.dataset.w===a.wort) x.classList.add("richtig"); });
+    if(ok){ gut("Richtig! 👍"); abschluss(a); } else { b.classList.add("falsch"); falschGewaehlt(b.dataset.w); }
+  }));
+}
+
+// ---------- Fehlende Zahl ----------
+const SCHRITTE=["1 Welche Rechnung?","2 Rechnen","Probe"];
+const rText=r=>`${r[0]} ${ZEICHEN[r[1]]} ${r[2]}`;
+function platzKopf(a, mitFeld){
+  const zelle=i=> i===a.p ? (mitFeld ? `<input type="text" id="antwort" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="?">` : `<span class="z leer">?</span>`) : `<span class="z">${a.z[i]}</span>`;
+  return (a.satz?`<div class="satz">${a.satz}</div>`:"")+`<div class="gl">${zelle(0)}<span>${ZEICHEN[a.op]}</span>${zelle(1)}<span>=</span>${zelle(2)}</div>`;
+}
+function probe(a){ return `<div class="antwortsatz">✔ Probe: ${a.z[0]} ${ZEICHEN[a.op]} ${a.z[1]} = ${a.z[2]}</div>`; }
+// Schritt 1: Welche Rechnung hilft?
+function platzWahl(a){
+  $("geschichte").innerHTML=platzKopf(a,false);
+  zeichneSchritte(SCHRITTE, a.stand);
+  const opt=mische([{r:a.gut,ok:true},{r:a.schlecht,ok:false}]);
+  $("buehne").innerHTML=`<div class="auftrag">Wie findest du die fehlende Zahl?</div>
+    <div class="wahl">${opt.map((o,i)=>`<button data-i="${i}">${rText(o.r)}</button>`).join("")}</div>`;
+  $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+    if(wartet || b.disabled) return;
+    const o=opt[+b.dataset.i];
+    $("buehne").querySelectorAll(".wahl button").forEach((x,i)=>{ x.disabled=true; if(opt[i].ok) x.classList.add("richtig"); });
+    if(o.ok){ a.stand.push("ok"); gut("Genau! 👍"); spaeter(700, ()=>{ $("rueck").textContent=""; platzRechnen(a); }); return; }
+    b.classList.add("falsch"); a.stand.push("nein"); aufgabeOk=false;
+    merkeFehler(a, rText(a.gut), rText(o.r), "platz_umkehr");
+    schlecht("Diese Rechnung hilft hier nicht.");
+    wartet=true;
+    $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So findest du sie</div>${REGEL[a.op+a.p]}${teilGanzes(a)}<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+    $("weiterBtn").addEventListener("click",()=>{ wartet=false; $("rueck").textContent=""; $("erkl").innerHTML=""; platzRechnen(a); });
+    fokus();
+  }));
+}
+// Schritt 2: ausrechnen
+function platzRechnen(a){
+  zeichneSchritte(SCHRITTE, a.stand);
+  $("buehne").innerHTML=`<div class="auftrag">Jetzt rechne aus.</div>
+    <div class="rechnung"><span>${rText(a.gut)} =</span><input type="text" id="antwort" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="?"><button id="okBtn">OK</button></div>`;
+  eingabe(a, roh=>{
+    const ok=parseInt(roh,10)===a.r;
+    if(ok){ a.stand.push("ok"); gut("Richtig gerechnet! 👍"); }
+    else { a.stand.push("nein"); aufgabeOk=false; merkeFehler(a, String(a.r), roh, "platz_rechnen"); schlecht(`${rText(a.gut)} = ${a.r}`); }
+    a.stand.push("ok"); zeichneSchritte(SCHRITTE, a.stand);
+    abschluss(a, probe(a));
+  });
+}
+// Test: die Zahl direkt in die Lücke schreiben
+function platzDirekt(a){
+  zeichneSchritte([], []);
+  $("geschichte").innerHTML=platzKopf(a,true);
+  $("buehne").innerHTML=`<div class="reihe"><button id="okBtn">OK</button></div>`;
+  eingabe(a, roh=>{
+    const ok=parseInt(roh,10)===a.r;
+    if(ok) gut("Richtig! 👍");
+    else { aufgabeOk=false; const g=parseInt(roh,10), umkehr = g===rechne(a.schlecht[1],a.schlecht[0],a.schlecht[2]);
+           merkeFehler(a, String(a.r), roh, umkehr?"platz_umkehr":"platz_rechnen"); schlecht(`Richtig ist ${a.r}.`); }
+    abschluss(a);
+  });
+}
+function eingabe(a, fertigMit){
+  const ein=$("antwort");
+  const pruefe=()=>{ if(wartet) return; const roh=ein.value.trim(); if(roh==="") return; ein.disabled=true; $("okBtn").disabled=true; fertigMit(roh); };
+  $("okBtn").addEventListener("click", pruefe);
+  ein.addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
+  try{ ein.focus({preventScroll:true}); }catch(e){}
+}
+function starteZeit(){
+  stoppZeit();
+  const test=runde && runde.modus==="Test", sek=runde ? runde.st.sek : 30;
+  $("zeitbalken").classList.toggle("hide", !test);
+  if(!test) return;
+  zeitRest=sek; $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{
+    zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/sek*100)+"%";
+    if(zeitRest<=0){ stoppZeit(); const a=runde.aufgaben[runde.i]; aufgabeOk=false; merkeFehler(a, a.typ==="platz"?String(a.r):a.wort, "zeit", "zeit");
+      document.querySelectorAll("#geschichte button,#geschichte input,#buehne button").forEach(x=>x.disabled=true);
+      schlecht("Die Zeit ist um."); abschluss(a); }
+  },250);
+}
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+$("abbruchBtn").addEventListener("click", ()=>{ lauf++; runde=null; zeige("start"); zeigeMenue(); });
+
+//// ===== Runde fertig =====
+let letzte=null;
+function fertig(){
+  stoppZeit();
+  const n=runde.aufgaben.length, proz=Math.round(runde.richtig/n*100), test=runde.modus==="Test", bestanden=test && proz>=BESTANDEN;
+  zeige("ergebnis");
+  $("ergProzent").textContent=proz+" %";
+  $("ergTitel").textContent = test ? (bestanden?"✅ Test bestanden!":"💪 Noch nicht ganz") : proz===100?"🌟 Perfekt!":proz>=90?"🎉 Super!":proz>=70?"👍 Gut gemacht!":"💪 Weiter üben";
+  const arten={}; runde.antworten.forEach(x=>{ const t=x.split("|")[3]; arten[t]=(arten[t]||0)+1; });
+  const tipp = arten.platz_umkehr>=2 ? "💡 Frag dich zuerst: <b>Fehlt das Ganze oder ein Teil?</b> Fehlt das Ganze, rechnest du zusammen. Fehlt ein Teil, ziehst du ab."
+             : arten.begriff>=2 ? "💡 Schau noch einmal auf den <b>Merkzettel</b> in der Übersicht – dort stehen alle Fachwörter."
+             : arten.platz_rechnen>=2 ? "💡 Die richtige Rechnung hast du gefunden – beim <b>Ausrechnen</b> hilft dir der passende Trainer." : "";
+  $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> Aufgaben ganz richtig – ${esc(runde.st.name)}.`+
+    (test ? `<br>${bestanden?"Diese Stufe sitzt. Probier die nächste!":`Bestanden ist der Test ab ${BESTANDEN} %.`}` : "")+(tipp?`<br><br>${tipp}`:"");
+  letzte=runde;
+  $("nochmalBtn").onclick=()=>starte(letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
+  speichere(proz, bestanden);
+  if(bestanden || (!test && proz>=90)) konfetti();
+}
+function speichere(proz, bestanden){
+  const d=new Date(), p=x=>String(x).padStart(2,"0"), r=runde, mine=r.modus==="mine";
+  const eintrag={ key:KEY, app:APP, name:playerName,
+    datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`,
+    modus: r.modus==="Test"?"Test":"Training", reihe: mine?"mine":"s"+r.st.id, zr:r.st.id,
+    stufe: r.modus==="Test"?"Mittel":(mine?"eigene Fehler":r.st.name), stufeName: mine?"Meine Aufgaben":r.st.name,
+    richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz, bestanden: r.modus==="Test"?(bestanden?"Ja":"Nein"):"–",
+    dauer:Math.round((Date.now()-r.start)/1000), gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
+  try{
+    const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
+    const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nachher=Sterne.stand(MEINE);
+    if(emp && nachher.silber>vor.silber) Sterne.empfehlungErledigt();
+    Sterne.zeigeUnterschied(vor, nachher, playerName, false, true, emp && nachher.silber>vor.silber);
+  }catch(e){ if(MEINE[0]!==eintrag) MEINE.unshift(eintrag); }
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+$("zumMenue").addEventListener("click", ()=>{ zeige("start"); zeigeMenue(); });
+
+//// ===== Menü =====
+function stufenStand(id){
+  const r=MEINE.filter(e=>+e.zr===id && e.reihe!=="mine");
+  return { geuebt:r.filter(e=>e.modus==="Training").length, tests:r.filter(e=>e.modus==="Test").length,
+           bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja"), besterTest:r.filter(e=>e.modus==="Test").reduce((m,e)=>Math.max(m,+e.prozent||0),0) };
+}
+// Sorten von Geschichten, die noch nicht sicher sitzen oder zur Wiederholung dran sind
+function meineSorten(){
+  const facts=new Set(); MEINE.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  const offen=[], faellig=[];
+  facts.forEach(k=>{ const s=Wdh.status(MEINE,k); if(s.offen) offen.push(k); else if(s.faellig) faellig.push(k); });
+  return {offen, faellig};
+}
+function zeigeMenue(){
+  const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
+  $("stufen").innerHTML=STUFEN.map(s=>{
+    const z=stufenStand(s.id);
+    const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
+    return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span>
+      <span class="tx"><b>${s.name}</b><span>${info}</span></span>
+      <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}">Test</button></span></div>`;
+  }).join("");
+  $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
+  $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
+  const z=meineSorten(), n=z.offen.length+z.faellig.length;
+  $("meineText").textContent = n ? `${z.offen.length?z.offen.length+(z.offen.length===1?" Sorte Aufgaben sitzt":" Sorten Aufgaben sitzen")+" noch nicht":""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`
+                                 : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";
+  $("meineBtn").disabled=!n;
+  $("merkzettel").innerHTML=merkzettelHTML();
+  $("menue").classList.remove("hide");
+}
+$("meineBtn").addEventListener("click", ()=>{
+  const z=meineSorten(), keys=z.offen.concat(z.faellig); if(!keys.length) return;
+  const proStufe={}; keys.forEach(k=>{ const [id,sorte]=k.split("|"); if(stufe(+id)) (proStufe[id]=proStufe[id]||[]).push(sorte); });
+  if(!Object.keys(proStufe).length) return;
+  const id=Object.keys(proStufe).sort((a,b)=>proStufe[b].length-proStufe[a].length)[0];
+  starte(stufe(+id), "mine", proStufe[id]);
+});
+
+//// ===== Laden =====
+function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
+function ladeMeine(){
+  if(!db || !playerName){ zeigeMenue(); return; }
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+    .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
+      if(!$("start").classList.contains("hide")) zeigeMenue(); })
+    .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
+}
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
+})();
+addEventListener("pagehide", stoppZeit);
+
+function konfetti(){
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+  document.body.appendChild(c);
+  const x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const col=["#fbbf24","#22c55e","#fbbf24","#ef4444","#38bdf8","#ec4899"], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const ende=Date.now()+2800;
+  (function f(){ x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.rot); x.fillStyle=p.c; x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); x.restore(); });
+    if(Date.now()<ende) requestAnimationFrame(f); else c.remove(); })();
+}
+</script>
+</body>
+</html>

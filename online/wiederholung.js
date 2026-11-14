@@ -63,6 +63,9 @@ window.Wdh=(function(){
     uhr_richtung:  "🕒 Zeitspanne: vor und zurück verwechselt",
     // Sachaufgaben
     sach_rechenart:"📖 Sachaufgabe: falsche Rechenart gewählt",
+    platz_umkehr:  "🔍 Fehlende Zahl: falsche Umkehrrechnung (plus statt minus oder umgekehrt)",
+    platz_rechnen: "🔍 Fehlende Zahl: Rechnung richtig gewählt, aber verrechnet",
+    begriff:       "🔍 Fachwort verwechselt (Summand, Minuend, Faktor …)",
     sach_angabe:   "📖 Sachaufgabe: unnötige Zahl verwendet",
     sach_rechnen:  "📖 Sachaufgabe: richtig gewählt, falsch gerechnet",
     // Geld und Längen
