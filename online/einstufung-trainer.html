@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Einstufung">
+<title>Einstufung</title>
+<script src="anmeldung.js"></script>
+<script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
+<script src="sterne.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:#f472b6; --good:#22c55e; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#4a1d3a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
+  .app{width:100%;max-width:680px} h1{font-size:28px;margin:0 0 4px} .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{font-family:inherit;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  #name{width:100%}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;padding:13px 18px;color:#3b0a25;background:linear-gradient(180deg,#f9a8d4,var(--accent));transition:.15s}
+  button:hover{filter:brightness(1.08)} button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600} button.klein{font-size:14.5px;padding:9px 13px}
+  button.full{width:100%;font-size:19px;padding:16px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .info{background:#0b1220;border-radius:12px;padding:13px 15px;font-size:15px;color:#cbd5e1;line-height:1.55} .info b{color:#fff}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px} .credit a{color:var(--muted)}
+  .kopf{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;padding-right:120px}
+  .pille{display:inline-block;background:rgba(244,114,182,.16);color:#fbcfe8;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .teile{display:flex;gap:5px;margin-bottom:10px}
+  .teile span{flex:1;text-align:center;font-size:20px;border-radius:10px;padding:5px 0;background:#0b1220;border:1px solid var(--card2);opacity:.45}
+  .teile span.an{opacity:1;border-color:var(--accent)} .teile span.ja{opacity:1;border-color:rgba(34,197,94,.6);background:rgba(34,197,94,.14)} .teile span.nein{opacity:1;border-color:var(--card2)}
+  .punkte{display:flex;gap:6px;justify-content:center;margin-bottom:8px}
+  .punkte i{width:16px;height:16px;border-radius:50%;background:#0b1220;border:2px solid var(--card2)} .punkte i.ok{background:var(--good);border-color:var(--good)} .punkte i.nein{background:var(--bad);border-color:var(--bad)}
+  .zeitbalken{height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2);overflow:hidden;margin-bottom:12px} .zeitbalken i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+  .frage{text-align:center;font-size:44px;font-weight:800;margin:14px 0 14px;line-height:1.2}
+  .frage .blank{display:inline-block;min-width:1.2em;border:3px dashed #fde68a;border-radius:12px;color:#fde68a;padding:0 .15em}
+  .antwortzeile{display:flex;gap:10px;justify-content:center}
+  .antwortzeile input{width:170px;font-size:32px;text-align:center;font-weight:800;border-color:var(--accent)}
+  .rueck{min-height:26px;text-align:center;font-size:17px;font-weight:700;margin-top:12px}
+  .erg{display:flex;align-items:center;gap:12px;background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:11px 14px;margin-bottom:8px}
+  .erg .ic{font-size:26px;flex:none;width:34px;text-align:center} .erg .tx{flex:1;font-size:13.5px;color:var(--muted)} .erg .tx b{display:block;font-size:16px;color:var(--text)}
+  .erg .p{flex:none;font-weight:800;font-size:13.5px;border-radius:999px;padding:5px 11px;white-space:nowrap;background:var(--card2)}
+  .erg.ja{border-color:rgba(34,197,94,.55)} .erg.ja .p{background:var(--good);color:#04220f}
+  .erg.offen{opacity:.6}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 12px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px} .btnrow a{flex:1;text-decoration:none} .btnrow button{width:100%}
+  @media (max-width:430px){ body{padding:60px 14px 14px} .frage{font-size:34px} .antwortzeile input{width:130px} }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🧪 Einstufung</h1>
+  <p class="sub">Zeig, was du schon sicher kannst.</p>
+
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="info" style="margin-top:16px">
+      🧪 <b>So geht die Einstufung:</b> Es gibt <b>bis zu 6 Teile</b> mit je <b>5 Aufgaben</b> – einen Teil für jede Stufe deines Lernwegs.
+      Für jede Aufgabe hast du <b>20 Sekunden</b>.<br><br>
+      Schaffst du in einem Teil <b>mindestens 4 von 5</b>, gilt diese Stufe als <b>gefestigt</b> – du musst sie nicht mehr von vorn üben.
+      Was noch nicht sitzt, zeigt dir dein Lernweg danach ganz genau.<br><br>
+      Wenn zwei Teile hintereinander zu schwer sind, hört die Einstufung von selbst auf. Das ist völlig in Ordnung!
+    </div>
+    <div class="info hide" id="schonHeute" style="margin-top:12px;border:1px solid rgba(244,114,182,.5)"></div>
+    <button class="full" id="losBtn" style="margin-top:16px">Los geht's ▶</button>
+    <div class="status" id="status">Verbinde …</div>
+  </div>
+
+  <div id="spiel" class="card hide">
+    <div class="kopf"><span class="pille" id="teilTitel"></span></div>
+    <div class="teile" id="teile"></div>
+    <div class="punkte" id="punkte"></div>
+    <div class="zeitbalken"><i id="zeitfuell"></i></div>
+    <div class="frage" id="frage"></div>
+    <div class="antwortzeile"><input type="text" id="antwort" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="?"><button id="okBtn">OK</button></div>
+    <div class="rueck" id="rueck"></div>
+  </div>
+
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div id="ergListe"></div>
+    <div class="info" id="ergText" style="margin-top:12px"></div>
+    <div class="btnrow"><a id="ergLink" href="index.html"><button>🧭 Zu meinem Lernweg ▶</button></a></div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="einstufung", PRO_TEIL=5, NOETIG=4, SEK=20;
+const $=id=>document.getElementById(id);
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const B='<span class="blank">?</span>';
+
+//// ===== Die sechs Teile – einer je Stufe des Lernwegs, jeweils auf dem Niveau des Tests dieser Stufe =====
+// Jede Aufgabe: [Anzeige, richtige Zahl, Schlüssel für die Auswertung]
+const ueber=(a,b)=>a%10+b%10>=10;
+function paar(test){ for(let i=0;i<500;i++){ const p=test(); if(p) return p; } return null; }
+const TEILE=[
+  {app:"zerlegen", ic:"🧩", name:"Zerlegen", bau:()=>{ const a=rnd(2,8), b=rnd(11,18), c=rnd(21,89), d=rnd(3,9), e=rnd(12,17);
+     return [[`${a} + ${B} = 10`,10-a,`10=${a}`], [`${b} + ${B} = 20`,20-b,`20=${b}`], [`${B} + ${d} = ${e}`,e-d,`${e}=${d}`], [`${c} + ${B} = 100`,100-c,`100=${c}`], [`100 = ${B} + ${rnd(31,79)}`,null,null]]; }},
+  {app:"halbschriftlich", ic:"🪜", name:"Rechenwege", bau:()=>{ const l=[];
+     for(let i=0;i<3;i++){ const [a,b]=paar(()=>{ const a=rnd(18,68), b=rnd(14,29); return ueber(a,b)&&a+b<=100?[a,b]:null; }); l.push([`${a} + ${b}`,a+b,`${a}+${b}`]); }
+     for(let i=0;i<2;i++){ const [a,b]=paar(()=>{ const a=rnd(41,95), b=rnd(14,38); return a%10<b%10?[a,b]:null; }); l.push([`${a} − ${b}`,a-b,`${a}−${b}`]); }
+     return l; }},
+  {app:"plus", ic:"➕", name:"Plus", bau:()=>{ const a=rnd(6,9), b=rnd(5,9), [c,d]=paar(()=>{ const c=rnd(26,58), d=rnd(17,39); return ueber(c,d)?[c,d]:null; }), e=rnd(13,48)*10, f=rnd(12,38)*10, g=rnd(215,580), h=rnd(125,380);
+     return [[`${a} + ${b}`,a+b,`${Math.min(a,b)}+${Math.max(a,b)}`], [`${c} + ${d}`,c+d,`${c}+${d}`], [`${e} + ${f}`,e+f,`${e}+${f}`], [`${g} + ${h}`,g+h,`${g}+${h}`], [`${rnd(55,89)} + ${rnd(13,19)}`,null,null]]; }},
+  {app:"minus", ic:"➖", name:"Minus", bau:()=>{ const a=rnd(12,17), b=rnd(a-9,9), [c,d]=paar(()=>{ const c=rnd(52,95), d=rnd(15,38); return c%10<d%10?[c,d]:null; }), e=rnd(40,90)*10, f=rnd(12,35)*10, g=rnd(520,930), h=rnd(125,380), k=rnd(23,79);
+     return [[`${a} − ${b}`,a-b,`${a}−${b}`], [`${c} − ${d}`,c-d,`${c}−${d}`], [`${e} − ${f}`,e-f,`${e}−${f}`], [`${g} − ${h}`,g-h,`${g}−${h}`], [`100 − ${k}`,100-k,`100−${k}`]]; }},
+  {app:"einmaleins", ic:"✖️", name:"Einmaleins", bau:()=>mische([[7,8],[6,9],[8,4],[9,7],[6,7],[8,8],[3,9],[7,4],[6,8],[9,9]]).slice(0,5).map(([a,b])=>[`${a} × ${b}`,a*b,`${Math.min(a,b)}×${Math.max(a,b)}`])},
+  {app:"einsdurcheins", ic:"➗", name:"Einsdurcheins", bau:()=>mische([[7,8],[6,9],[8,4],[9,7],[6,7],[8,8],[3,9],[7,4],[6,8],[9,5]]).slice(0,5).map(([a,b])=>[`${a*b} ÷ ${b}`,a,`${a*b}÷${b}`])}
+];
+// die beiden Platzhalter oben ausfüllen (damit die Listen lesbar bleiben)
+function fuelle(liste){
+  return liste.map(q=>{
+    if(q[1]!==null) return q;
+    const m=q[0].replace(/<[^>]+>/g,"").match(/^100 = \? \+ (\d+)$/);
+    if(m) return [q[0], 100-(+m[1]), `100=${m[1]}`];
+    const p=q[0].match(/^(\d+) \+ (\d+)$/); return [q[0], (+p[1])+(+p[2]), `${p[1]}+${p[2]}`];
+  });
+}
+
+let db=null, playerName="", MEINE=[];
+let AKTIV=TEILE.slice(), SCHON=new Set();      // SCHON: Stufen, die das Kind schon gefestigt hat – sie werden übersprungen
+let teilNr=0, fragen=[], fNr=0, teilRichtig=0, verlauf=[], ergebnis={}, antworten=[], gesamtR=0, gesamtN=0, fehlTeile=0, timer=null, zeitRest=0, wartet=false, lauf=0, startZeit=0;
+function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
+function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
+function zeichneKopf(){
+  $("teile").innerHTML=TEILE.map(t=>{ const e=ergebnis[t.app]; return `<span class="${t===AKTIV[teilNr]?"an":SCHON.has(t.app)?"ja":e?(e[0]>=NOETIG?"ja":"nein"):""}" title="${t.name}">${t.ic}</span>`; }).join("");
+  $("punkte").innerHTML=Array.from({length:PRO_TEIL},(_,i)=>`<i class="${verlauf[i]===true?"ok":verlauf[i]===false?"nein":""}"></i>`).join("");
+  $("teilTitel").textContent=`Teil ${teilNr+1} von ${AKTIV.length} · ${AKTIV[teilNr].name}`;
+}
+function starteTeil(){
+  fragen=fuelle(AKTIV[teilNr].bau()); fNr=0; teilRichtig=0; verlauf=[];
+  naechste();
+}
+function naechste(){
+  if(fNr>=fragen.length){ teilFertig(); return; }
+  wartet=false; zeichneKopf();
+  $("frage").innerHTML=fragen[fNr][0]; $("rueck").textContent="";
+  const ein=$("antwort"); ein.value=""; ein.disabled=false; $("okBtn").disabled=false;
+  try{ ein.focus({preventScroll:true}); }catch(e){}
+  stoppZeit(); zeitRest=SEK; $("zeitfuell").style.width="100%";
+  timer=setInterval(()=>{ zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/SEK*100)+"%"; if(zeitRest<=0) werte(null); },250);
+}
+function werte(roh){
+  if(wartet) return; wartet=true; stoppZeit();
+  const q=fragen[fNr], ok = roh!==null && parseInt(roh,10)===q[1];
+  $("antwort").disabled=true; $("okBtn").disabled=true;
+  verlauf[fNr]=ok; gesamtN++;
+  if(ok){ teilRichtig++; gesamtR++; $("rueck").style.color="var(--good)"; $("rueck").textContent="Richtig! 👍"; }
+  else{ antworten.push(`${q[2]}|${q[1]}|${roh===null?"zeit":roh}`); $("rueck").style.color="var(--bad)"; $("rueck").textContent = roh===null ? "Die Zeit ist um." : "Weiter geht's."; }
+  zeichneKopf(); fNr++;
+  const meiner=lauf; setTimeout(()=>{ if(meiner===lauf) naechste(); }, ok?650:900);
+}
+$("okBtn").addEventListener("click", ()=>{ const v=$("antwort").value.trim(); if(v!=="") werte(v); });
+$("antwort").addEventListener("keydown", e=>{ if(e.key==="Enter"){ const v=$("antwort").value.trim(); if(v!=="") werte(v); } });
+function teilFertig(){
+  const t=AKTIV[teilNr]; ergebnis[t.app]=[teilRichtig, PRO_TEIL];
+  fehlTeile = teilRichtig>=NOETIG ? 0 : fehlTeile+1;
+  teilNr++;
+  // zwei Teile hintereinander nicht geschafft: aufhören, damit niemand eine halbe Stunde raten muss
+  if(teilNr>=AKTIV.length || fehlTeile>=2){ fertig(); return; }
+  starteTeil();
+}
+function fertig(){
+  stoppZeit(); lauf++;
+  const geschafft=TEILE.filter(t=>ergebnis[t.app] && ergebnis[t.app][0]>=NOETIG).map(t=>t.app);
+  const ersteOffene=TEILE.find(t=>!geschafft.includes(t.app) && !SCHON.has(t.app));
+  const sitzt=geschafft.length+SCHON.size;
+  zeige("ergebnis");
+  $("ergTitel").textContent = sitzt===TEILE.length ? "🌟 Alle sechs Stufen sitzen!" : geschafft.length ? `🎉 ${geschafft.length===1?"Eine Stufe":geschafft.length+" Stufen"} mehr gefestigt!` : "💪 Gut, dass du es probiert hast!";
+  $("ergListe").innerHTML=TEILE.map(t=>{ const e=ergebnis[t.app], war=SCHON.has(t.app), ja=war || (e && e[0]>=NOETIG);
+    return `<div class="erg ${ja?"ja":e?"":"offen"}"><span class="ic">${t.ic}</span><span class="tx"><b>${t.name}</b>${war?"hattest du schon gefestigt":ja?"gefestigt – diese Stufe musst du nicht mehr von vorn üben":e?"hier lohnt sich das Üben":"nicht mehr geprüft"}</span>
+      <span class="p">${war?"✓":e?`${e[0]} von ${e[1]}`:"–"}</span></div>`; }).join("");
+  $("ergText").innerHTML = ersteOffene ? `🧭 Dein Lernweg geht jetzt bei <b>${ersteOffene.ic} ${ersteOffene.name}</b> weiter. Dort übst du im Trainingsraum und machst danach den Test.`
+                                        : `Du beherrschst den ganzen Lernweg. Jetzt warten die Spiele und die schwierigen Aufgaben auf dich!`;
+  speichere(geschafft);
+}
+function speichere(geschafft){
+  const d=new Date(), p=x=>String(x).padStart(2,"0");
+  const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`,
+    modus:"Einstufung", stufe:`${geschafft.length} von ${AKTIV.length} Teilen geschafft`, richtig:gesamtR, falsch:gesamtN-gesamtR, prozent:gesamtN?Math.round(gesamtR/gesamtN*100):0,
+    bestanden:"–", bestandenIn:geschafft, teile:ergebnis, dauer:Math.round((Date.now()-startZeit)/1000), gestellt:[], fehler:[], antworten:antworten.slice() };
+  try{ const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); Sterne.zeigeUnterschied(vor, Sterne.stand(MEINE), playerName, false, false); }catch(e){}
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(()=>{});
+}
+$("losBtn").addEventListener("click", ()=>{
+  lauf++; teilNr=0; ergebnis={}; antworten=[]; gesamtR=0; gesamtN=0; fehlTeile=0; startZeit=Date.now();
+  zeige("spiel"); starteTeil();
+});
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){}
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(!n) return;
+  playerName=capName(n); $("name").value=playerName;
+  $("menuLink").href=$("ergLink").href="index.html#name="+encodeURIComponent(playerName);
+  if(!db){ $("status").textContent="⚠️ Keine Verbindung."; return; }
+  // alle Durchgänge des Kindes: für die Sterne und um zu sehen, ob heute schon eingestuft wurde
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+    MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
+    $("status").textContent="☁️ Verbunden";
+    const dd=new Date(), p=x=>String(x).padStart(2,"0"), heute=`${p(dd.getDate())}.${p(dd.getMonth()+1)}.${dd.getFullYear()}`;
+    TEILE.forEach(t=>{ if(MEINE.some(e=>(e.app===t.app && e.modus==="Test" && e.bestanden==="Ja") || (e.app===APP && (e.bestandenIn||[]).includes(t.app)))) SCHON.add(t.app); });
+    AKTIV=TEILE.filter(t=>!SCHON.has(t.app));
+    if(!AKTIV.length){
+      $("schonHeute").classList.remove("hide"); $("schonHeute").innerHTML="🌟 Du hast <b>alle sechs Stufen</b> schon gefestigt – für dich gibt es hier nichts mehr zu prüfen.";
+      $("losBtn").disabled=true;
+    }else if(SCHON.size){
+      $("schonHeute").classList.remove("hide"); $("schonHeute").innerHTML=`✓ Schon gefestigt: <b>${TEILE.filter(t=>SCHON.has(t.app)).map(t=>t.ic+" "+t.name).join(" · ")}</b>. Geprüft ${AKTIV.length===1?"wird nur noch <b>1 Teil</b>":"werden nur noch <b>"+AKTIV.length+" Teile</b>"}.`;
+    }
+    if(AKTIV.length && MEINE.some(e=>e.app===APP && e.datum===heute)){
+      $("schonHeute").classList.remove("hide"); $("schonHeute").innerHTML="Du hast die Einstufung <b>heute schon gemacht</b>. Morgen kannst du es noch einmal probieren – bis dahin hilft dir dein Lernweg.";
+      $("losBtn").disabled=true;
+    }
+  }).catch(()=>{ $("status").textContent="⚠️ Keine Verbindung."; });
+})();
+addEventListener("pagehide", stoppZeit);
+</script>
+</body>
+</html>

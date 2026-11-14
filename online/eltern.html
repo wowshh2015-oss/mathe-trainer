@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Für Eltern</title>
+<script src="anmeldung.js"></script>
+<script src="sterne.js"></script>
+<style>
+  *{box-sizing:border-box} html,body{margin:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:#0f172a;color:#111;padding:18px 14px 30px;min-height:100vh}
+  .leiste{max-width:760px;margin:0 auto 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .leiste a{color:#94a3b8;font-size:14.5px;font-weight:600;text-decoration:none;flex:1}
+  .leiste button{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:10px;padding:10px 16px;cursor:pointer;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433}
+  .seite{background:#fff;max-width:760px;margin:0 auto;border-radius:12px;padding:30px 34px;font-size:15px;line-height:1.5}
+  h1{font-size:23px;margin:0 0 2px} h2{font-size:16.5px;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid #e2e8f0}
+  .klein{color:#555;font-size:13px}
+  .kacheln{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+  .kachel{background:#f1f5f9;border-radius:12px;padding:11px 10px;text-align:center}
+  .kachel b{display:block;font-size:21px;line-height:1.25} .kachel span{font-size:12.5px;color:#475569}
+  .tw{overflow-x:auto} table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th{text-align:left;font-size:12.5px;color:#64748b;font-weight:600;padding:5px 8px;border-bottom:1px solid #cbd5e1}
+  td{padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .st{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+  .st.gruen{background:#dcfce7;color:#166534} .st.gelb{background:#fef9c3;color:#854d0e} .st.grau{background:#f1f5f9;color:#64748b}
+  .tipp{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px}
+  .unsicher{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px} .unsicher span{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:3px 9px;font-weight:700;font-size:14.5px}
+  ul{margin:6px 0 0;padding-left:20px} li{margin-bottom:5px}
+  .leer{text-align:center;color:#475569;padding:26px 0}
+  @media (max-width:560px){ .seite{padding:20px 16px} .kacheln{grid-template-columns:repeat(2,minmax(0,1fr))}
+    thead{display:none} table,tbody,tr,td{display:block} tr{padding:9px 0;border-bottom:1px solid #e2e8f0} td{border:none;padding:2px 0} }
+  @media print{ body{background:#fff;padding:0} .leiste{display:none!important} .seite{border-radius:0;padding:0;max-width:none}
+    .kachel,.st,.tipp,.unsicher span{-webkit-print-color-adjust:exact;print-color-adjust:exact} h2{break-after:avoid} tr{break-inside:avoid} }
+</style>
+</head>
+<body>
+<div class="leiste"><a id="zurueck" href="index.html">← Zurück zum Mathe-Trainer</a><button id="druck">🖨️ Drucken</button></div>
+<div class="seite" id="seite"><div class="leer">Die Daten werden geladen …</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function ts(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
+function tageSeit(datum){ const p=String(datum||"").split("."), h=new Date(); h.setHours(0,0,0,0); return Math.round((h-new Date(+p[2],(+p[1])-1,+p[0]))/86400000); }
+const STATIONEN=[["zerlegen","🧩","Zerlegen","Zahlen zerlegen und ergänzen – die Grundlage für alles Weitere"],
+                 ["halbschriftlich","🪜","Rechenwege","Schritt für Schritt rechnen, wie im Unterricht"],
+                 ["plus","➕","Plus","Addieren bis 20, 100 und 1000"],
+                 ["minus","➖","Minus","Subtrahieren bis 20, 100 und 1000"],
+                 ["einmaleins","✖️","Einmaleins","Malaufgaben auswendig können"],
+                 ["einsdurcheins","➗","Einsdurcheins","Geteiltaufgaben bis 100"]];
+const THEMEN=[["uhr","🕒","Uhr mit Zeigern",8],["sach","📖","Sachaufgaben",5],["geld","💶","Geld",5],["laengen","📏","Längen",5]];
+// Aufgaben, die noch nicht dreimal hintereinander richtig waren (rows: neueste zuerst)
+function offeneFehler(rows){
+  const facts=new Set(); rows.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
+  const offen=[];
+  facts.forEach(f=>{ let s=0;
+    for(const e of rows){ if(!(e.gestellt||[]).includes(f)) continue; if((e.fehler||[]).includes(f)) break; s++; if(s>=3) break; }
+    if(s<3) offen.push(f); });
+  return offen;
+}
+function zeige(name, alle){
+  const r=alle.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk").sort((a,b)=>ts(b).localeCompare(ts(a)));
+  const d=new Date(), datum=`${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
+  const kopf=`<h1>Lernstand von ${esc(name)}</h1><div class="klein">Mathe-Trainer · Schule Hohe Landwehr · Stand: ${datum}</div>`;
+  if(!r.length){ $("seite").innerHTML=kopf+`<div class="leer">${esc(name)} hat im Mathe-Trainer noch nicht geübt.<br>Sobald die erste Runde gemacht ist, sehen Sie hier den Lernstand.</div>`; return; }
+
+  const st=STATIONEN.map(([app,ic,label,was])=>{
+    const x=r.filter(e=>e.app===app), tests=x.filter(e=>e.modus==="Test");
+    const best=tests.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+    const besterTest=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
+    const ein=r.some(e=>e.app==="einstufung" && (e.bestandenIn||[]).includes(app));
+    const mitP=x.filter(e=>typeof e.prozent==="number");
+    return {app,ic,label,was,n:x.length,tests:tests.length,best,besterTest,ein,offen:offeneFehler(x),
+            schnitt:mitP.length?Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length):null, farbe:(best||ein)?"gruen":!x.length?"grau":"gelb"};
+  });
+  const cur=st.find(s=>s.farbe!=="gruen")||null;
+  const tage=new Set(r.map(e=>e.datum)).size, tage14=new Set(r.filter(e=>tageSeit(e.datum)<14).map(e=>e.datum)).size;
+  const her=tageSeit(r[0].datum), zuletzt=her<=0?"heute":her===1?"gestern":`vor ${her} Tagen`;
+  let flammen=0, sterne=null;
+  try{ flammen=Sterne.serie(r).tage; sterne=Sterne.stand(alle); }catch(e){}
+
+  const stWort={gruen:"gefestigt",gelb:"in Arbeit",grau:"noch nicht begonnen"};
+  const zeilen=st.map((s,i)=>{
+    let det;
+    if(s.farbe==="grau") det="Hier wurde noch nicht geübt.";
+    else{
+      const t=[]; if(s.n) t.push(`${s.n}× geübt`); if(s.schnitt!==null) t.push(`im Schnitt ${s.schnitt} % richtig`);
+      t.push(s.best?`Test bestanden mit ${s.best} %`:s.ein?`in der Einstufung als sicher gezeigt`:s.tests?`Test noch nicht bestanden (bester Versuch: ${s.besterTest} %)`:"noch kein Test gemacht");
+      det=t.join(" · ");
+    }
+    return `<tr><td><b>${i+1}. ${s.ic} ${s.label}</b><div class="klein">${s.was}</div></td><td><span class="st ${s.farbe}">${stWort[s.farbe]}</span></td><td>${det}</td></tr>`;
+  }).join("");
+
+  // Aufgaben, die noch unsicher sind – nur dort, wo Eltern die Aufgabe lesen können
+  const lesbar=st.filter(s=>["plus","minus","einmaleins","einsdurcheins"].includes(s.app) && s.offen.length);
+  const unsicher=lesbar.map(s=>`<div style="margin-top:8px"><b>${s.ic} ${s.label}</b> <span class="klein">(${s.offen.length} ${s.offen.length===1?"Aufgabe":"Aufgaben"})</span>
+     <div class="unsicher">${s.offen.slice(0,14).map(f=>`<span>${esc(f)}</span>`).join("")}${s.offen.length>14?`<span>…</span>`:""}</div></div>`).join("");
+
+  const themen=THEMEN.map(([app,ic,label,max])=>{ const x=r.filter(e=>e.app===app); if(!x.length) return "";
+    const b=new Set(x.filter(e=>e.modus==="Test" && e.bestanden==="Ja").map(e=>+e.zr)).size;
+    return `<tr><td><b>${ic} ${label}</b></td><td>${x.length}× geübt</td><td><b>${b}</b> von ${max} Stufen mit Test bestanden</td></tr>`; }).join("");
+
+  const etage=r.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const runden=r.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
+  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye").length, lern=r.length-spiel;
+
+  let tipp;
+  if(!cur) tipp=`${esc(name)} hat alle sechs Stufen des Lernwegs gefestigt – herzlichen Glückwunsch! Zum Wachhalten eignen sich jetzt „Meine Aufgaben“ und die beiden Spiele.`;
+  else if(cur.farbe==="grau") tipp=`Als Nächstes ist <b>${cur.ic} ${cur.label}</b> an der Reihe: zuerst im Trainingsraum ohne Zeitdruck üben, danach den Test probieren.`;
+  else if(!cur.tests) tipp=`Bei <b>${cur.ic} ${cur.label}</b> wurde schon geübt. Der nächste Schritt ist der Test – ab 90 % richtigen Antworten gilt die Stufe als gefestigt.`;
+  else tipp=`Bei <b>${cur.ic} ${cur.label}</b> fehlt noch der bestandene Test (bisher bester Versuch: ${cur.besterTest} %). Am meisten hilft jetzt der Bereich „Meine Aufgaben“: Dort kommen genau die Aufgaben wieder, die noch unsicher sind.`;
+  if(spiel>=10 && spiel>lern*2 && cur) tipp+=` Die Spiele machen ${esc(name)} sichtlich Spaß – am wirksamsten sind sie, wenn vorher kurz auf dem Lernweg geübt wird.`;
+
+  $("seite").innerHTML=kopf+
+   `<div class="kacheln">
+      <div class="kachel"><b>${tage}</b><span>${tage===1?"Übungstag":"Übungstage"} insgesamt</span></div>
+      <div class="kachel"><b>${tage14}</b><span>davon in den letzten 14 Tagen</span></div>
+      <div class="kachel"><b>${flammen?"🔥 "+flammen:"–"}</b><span>Lernflammen</span></div>
+      <div class="kachel"><b>${sterne?`⭐ ${sterne.silber}`:"–"}</b><span>Sterne${sterne&&sterne.gold?` · 🌟 ${sterne.gold} Gold`:""}</span></div>
+    </div>
+    <div class="klein" style="margin-top:8px">Zuletzt geübt: <b>${zuletzt}</b> (${r[0].datum}) · insgesamt ${r.length} ${r.length===1?"Durchgang":"Durchgänge"}.
+      Eine Lernflamme gibt es für jeden Übungstag; ein verpasster Schultag nimmt eine weg. Sterne gibt es für Fleiß, Gold für sicheres Können.</div>
+
+    <h2>Der Lernweg – vom Leichten zum Schweren</h2>
+    <div class="tw"><table><thead><tr><th>Stufe</th><th>Stand</th><th>Einzelheiten</th></tr></thead><tbody>${zeilen}</tbody></table></div>
+    <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden – oder in der Einstufung als sicher gezeigt.</div>
+
+    ${unsicher?`<h2>Diese Aufgaben sind noch unsicher</h2><div class="klein">Sie kommen im Bereich „Meine Aufgaben“ so lange wieder, bis sie dreimal hintereinander richtig waren.</div>${unsicher}`:""}
+    ${themen?`<h2>Weitere Themen</h2><div class="tw"><table><tbody>${themen}</tbody></table></div>`:""}
+    ${etage||runden?`<h2>Spiele zum Wiederholen</h2><div>🏢 Rechen-Marathon: ${etage?`Etage <b>${etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${runden?`<b>${runden}</b> Runden`:"noch nicht gespielt"}</div>
+      <div class="klein">Für die Spiele braucht man „Sprit“ – und den gibt es nur fürs Lernen.</div>`:""}
+
+    <h2>Was jetzt am meisten hilft</h2>
+    <div class="tipp">${tipp}</div>
+
+    <h2>So können Sie zu Hause helfen</h2>
+    <ul>
+      <li><b>Lieber oft und kurz:</b> 10 Minuten an vier Tagen bringen mehr als eine Stunde am Sonntag.</li>
+      <li><b>Erklären lassen:</b> Fragen Sie „Wie hast du das gerechnet?“ – wer seinen Rechenweg erklärt, festigt ihn.</li>
+      <li><b>Fehler sind erlaubt:</b> Das Programm merkt sich unsichere Aufgaben und bringt sie wieder. Bitte nicht vorsagen.</li>
+      <li><b>Anstrengung loben, nicht nur Ergebnisse:</b> „Du bist drangeblieben“ wirkt stärker als „Du bist schlau“.</li>
+    </ul>
+    <div class="klein" style="margin-top:18px">Diese Seite zeigt ausschließlich die Übungsdaten von ${esc(name)}. Gespeichert werden nur der Vorname und die Übungsergebnisse.
+      Bei Fragen sprechen Sie gern die Klassenlehrkraft an.</div>`;
+}
+(function init(){
+  const m=location.hash.match(/name=([^&]+)/);
+  let n=""; if(m){ try{ n=decodeURIComponent(m[1]); }catch(e){} }
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  n=capName(n); if(!n) return;
+  document.title="Lernstand von "+n;
+  $("zurueck").href="index.html#name="+encodeURIComponent(n);
+  $("druck").addEventListener("click", ()=>window.print());
+  let db=null;
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){}
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  if(!db){ $("seite").innerHTML='<div class="leer">⚠️ Keine Verbindung. Bitte später noch einmal versuchen.</div>'; return; }
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",n).get().then(s=>{
+    const alle=[]; s.forEach(x=>alle.push(x.data())); zeige(n, alle);
+  }).catch(()=>{ $("seite").innerHTML='<div class="leer">⚠️ Keine Verbindung. Bitte später noch einmal versuchen.</div>'; });
+})();
+</script>
+</body>
+</html>

@@ -185,7 +185,7 @@
     <h2>🧭 Lernstand der Klasse <small>wer steht wo auf dem Lernweg? · Name anklicken = Elternblatt</small></h2>
     <div class="scroll"><div id="lernstand"></div></div>
     <div class="legende noprint">
-      <b style="color:#86efac">grün</b> = Test bestanden (ab 90 %) · <b style="color:#fde047">gelb</b> = geübt, noch nicht gefestigt · <b style="color:#64748b">grau</b> = noch nicht begonnen ·
+      <b style="color:#86efac">grün</b> = Test bestanden (ab 90 %) oder 🧪 in der Einstufung gezeigt · <b style="color:#fde047">gelb</b> = geübt, noch nicht gefestigt · <b style="color:#64748b">grau</b> = noch nicht begonnen ·
       blauer Rahmen = hier steht das Kind gerade · 🔁 = Aufgaben, die noch nicht dreimal hintereinander richtig waren ·
       <span class="warn">⚠️</span> = seit 14 Tagen nicht geübt oder an einer Stufe festgefahren
     </div>
@@ -350,7 +350,8 @@ const APPS={
   uhr:          {label:"Uhr",           ic:"🕒"},
   sach:         {label:"Sachaufgaben",  ic:"📖"},
   geld:         {label:"Geld",          ic:"💶"},
-  laengen:      {label:"Längen",        ic:"📏"}
+  laengen:      {label:"Längen",        ic:"📏"},
+  einstufung:   {label:"Einstufung",    ic:"🧪"}
 };
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -371,6 +372,7 @@ function uebungLabel(e){
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
+  if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
   if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen") return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
@@ -509,9 +511,10 @@ function kindStand(name){
     const best=tests.filter(e=>e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.prozent||0),0);
     const besterTest=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
     const mitP=x.filter(e=>typeof e.prozent==="number");
-    return {app,ic,label,n:x.length,tests:tests.length,best,besterTest,offen:offeneFehler(x),
+    const ein=r.some(e=>e.app==="einstufung" && (e.bestandenIn||[]).includes(app));      // in der Einstufung gezeigt
+    return {app,ic,label,n:x.length,tests:tests.length,best,besterTest,ein,offen:offeneFehler(x),
             schnitt:mitP.length?Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length):null,
-            zuletzt:x[0]?x[0].datum:"", farbe:!x.length?"grau":best?"gruen":"gelb"};
+            zuletzt:x[0]?x[0].datum:"", farbe:(best||ein)?"gruen":!x.length?"grau":"gelb"};
   });
   const jetzt=st.findIndex(s=>s.farbe!=="gruen");
   const cur=jetzt>=0?st[jetzt]:null;
@@ -537,8 +540,8 @@ function renderLernstand(){
   namen.forEach(n=>{
     const k=kindStand(n);
     const zellen=k.st.map((s,i)=>{
-      const haupt = s.farbe==="gruen" ? `✓ ${s.best} %` : s.farbe==="grau" ? "–" : (s.tests?`Test ${s.besterTest} %`:`${s.n}× geübt`);
-      const neben = s.farbe==="grau" ? "" : `<small>${s.farbe==="gruen"?s.n+"× geübt":(s.tests?s.n+"× geübt":"kein Test")}${s.offen.length?` · 🔁 ${s.offen.length}`:""}</small>`;
+      const haupt = s.farbe==="gruen" ? (s.best ? `✓ ${s.best} %` : `🧪 ✓`) : s.farbe==="grau" ? "–" : (s.tests?`Test ${s.besterTest} %`:`${s.n}× geübt`);
+      const neben = s.farbe==="grau" ? "" : `<small>${s.farbe==="gruen"?(s.best?"":"Einstufung"+(s.n?" · ":""))+(s.n||s.best?s.n+"× geübt":""):(s.tests?s.n+"× geübt":"kein Test")}${s.offen.length?` · 🔁 ${s.offen.length}`:""}</small>`;
       return `<td><span class="zelle ${s.farbe}${i===k.jetzt?" jetzt":""}">${haupt}${neben}</span></td>`;
     }).join("");
     const lange=k.her!==null && k.her>=14;
@@ -578,8 +581,8 @@ function zeigeBlatt(name){
     let det;
     if(s.farbe==="grau") det="Hier hat Ihr Kind noch nicht geübt.";
     else{
-      const t=[`${s.n}× geübt`]; if(s.schnitt!==null) t.push(`im Schnitt ${s.schnitt} % richtig`);
-      t.push(s.best?`Test bestanden mit ${s.best} %`:s.tests?`Test noch nicht bestanden (bester Versuch: ${s.besterTest} %)`:"noch kein Test gemacht");
+      const t=s.n?[`${s.n}× geübt`]:[]; if(s.schnitt!==null) t.push(`im Schnitt ${s.schnitt} % richtig`);
+      t.push(s.best?`Test bestanden mit ${s.best} %`:s.ein?`in der Einstufung als sicher gezeigt`:s.tests?`Test noch nicht bestanden (bester Versuch: ${s.besterTest} %)`:"noch kein Test gemacht");
       det=t.join(" · ");
       const lesbar=["plus","minus","einmaleins","einsdurcheins"].includes(s.app);   // Zerlegen/Rechenwege speichern Kürzel, die Eltern nicht lesen können
       if(s.offen.length) det+=`<br><span class="klein">Noch unsicher: ${s.offen.length} ${s.offen.length===1?"Aufgabe":"Aufgaben"}${lesbar?" – "+s.offen.slice(0,10).map(esc).join(" · ")+(s.offen.length>10?" …":""):""}</span>`;
@@ -601,7 +604,7 @@ function zeigeBlatt(name){
     <div>Geübt an <b>${k.tage}</b> ${k.tage===1?"Tag":"Tagen"} (davon ${k.tage14} in den letzten 14 Tagen) · insgesamt <b>${k.r.length}</b> ${k.r.length===1?"Durchgang":"Durchgänge"} · zuletzt ${zuletzt}</div>
     <h4>Der Lernweg – vom Leichten zum Schweren</h4>
     <table><thead><tr><th>Stufe</th><th>Stand</th><th>Einzelheiten</th></tr></thead><tbody>${zeilen}</tbody></table>
-    <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden.</div>
+    <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden – oder in der Einstufung als sicher gezeigt.</div>
     <h4>Spiele zum Wiederholen</h4>
     <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
     ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 8 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
@@ -767,7 +770,8 @@ function renderHA(){
 // Uhr: offen nur, wenn freigabe.uhr === true (so war es von Anfang an). Alle anderen: gesperrt, wenn freigabe.zu[app] === true.
 let UHR_FREI=false, ZU={};
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"]];
+                 ["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
+                 ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){
   $("sperrListe").innerHTML=`<table><tbody>`+PROGRAMME.map(([app,name])=>{ const zu=istGesperrt(app);

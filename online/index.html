@@ -130,6 +130,8 @@
   .lwEmpf li{margin-bottom:7px}
   .lwEmpf li span{color:#d6c48a;font-size:12.5px}
   .lwLegende{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .lwEin{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px;border-radius:14px;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.5);color:var(--text);text-decoration:none;font-size:14px;line-height:1.4}
+  .lwEin span:first-child{font-size:26px;flex:none} .lwEin span:last-child{font-size:22px;flex:none;color:#f9a8d4} .lwEin b{display:block;font-size:15.5px;color:#fbcfe8}
   .lwBtns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
   .lwBtns a,.lwBtns button{flex:1;font-family:inherit;font-size:16px;font-weight:700;border:none;
     border-radius:12px;padding:14px 16px;cursor:pointer;text-align:center;text-decoration:none;
@@ -179,7 +181,7 @@
     <a class="tile t1" data-page="laengen-trainer.html"><div class="ic">📏</div><div class="t">Längen</div><div class="d">messen · mm · cm · m</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
-  <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a></p>
+  <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a><span id="elternSpan" class="hide"> · <a id="elternLink" href="eltern.html" style="color:var(--muted)">👨‍👩‍👧 Für Eltern</a></span></p>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -245,6 +247,9 @@ function update(){
         : "Gib zuerst deinen Namen ein – dann wähle dein Training.";
   document.querySelectorAll(".tile[data-page]").forEach(a=>a.href = a.dataset.page + (frei ? "#name="+encodeURIComponent(n) : ""));
   try{ if(frei) localStorage.setItem("mathe_name",n); }catch(e){}
+  // Elternseite: nur für das angemeldete Kind – und nur, wenn die Lehrkraft sie geöffnet hat
+  $("elternSpan").classList.toggle("hide", !frei || istZu("eltern"));
+  $("elternLink").href="eltern.html"+(frei ? "#name="+encodeURIComponent(n) : "");
 }
 async function anmelden(){
   const n=capName($("name").value);
@@ -495,7 +500,9 @@ const NEUES=[
   {d:"2026-11-14", ic:"✖️", t:"Malnehmen bei den Rechenwegen", x:"Neu: 6 × 20 und 6 × 15 – Schritt für Schritt."},
   {d:"2026-11-14", ic:"📖", t:"Sachaufgaben",                  x:"Eine neue Kachel: Geschichten lesen, die Rechenart finden und rechnen.", app:"sach"},
   {d:"2026-11-15", ic:"💶", t:"Geld",                          x:"Eine neue Kachel: Münzen zählen, passend bezahlen und Rückgeld ausrechnen.", app:"geld"},
-  {d:"2026-11-15", ic:"📏", t:"Längen",                        x:"Eine neue Kachel: mit dem Lineal messen und Längen umwandeln.", app:"laengen"}
+  {d:"2026-11-15", ic:"📏", t:"Längen",                        x:"Eine neue Kachel: mit dem Lineal messen und Längen umwandeln.", app:"laengen"},
+  {d:"2026-11-15", ic:"🧪", t:"Einstufung",                    x:"Du kannst schon viel? Zeig es in der Einstufung (bei „Mein Lernweg“) – dann musst du es nicht von vorn üben.", app:"einstufung"},
+  {d:"2026-11-15", ic:"👨‍👩‍👧", t:"Seite für deine Eltern",        x:"Ganz unten auf der Startseite: „Für Eltern“. Dort sehen sie, was du schon alles kannst.", app:"eltern"}
 ];
 const NEU_FENSTER_SEIT="2026-11-13";      // seit diesem Tag gibt es das Fenster – vorher kann es niemand gesehen haben
 function isoHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
@@ -571,7 +578,9 @@ function nAufgaben(n){ return n===1 ? "1 Aufgabe" : `${n} Aufgaben`; }
 function stationInfo(app){
   const r=LW_ROWS.filter(e=>e.app===app);          // neueste zuerst
   const i={anzahl:r.length};
-  if(!r.length){ i.farbe="grau"; return i; }
+  // In der Einstufung gezeigt? Dann gilt die Stufe als gefestigt, auch ohne Test.
+  i.eingestuft=LW_ROWS.some(e=>e.app==="einstufung" && (e.bestandenIn||[]).includes(app));
+  if(!r.length){ i.farbe=i.eingestuft?"gruen":"grau"; i.schnitt=null; i.tests=0; i.bestanden=0; i.besterTest=0; i.offen=0; i.zuletzt=""; return i; }
   const mitP=r.filter(e=>typeof e.prozent==="number");
   i.schnitt = mitP.length ? Math.round(mitP.reduce((s,e)=>s+e.prozent,0)/mitP.length) : null;
   const tests=r.filter(e=>e.modus==="Test");
@@ -580,18 +589,20 @@ function stationInfo(app){
   i.besterTest=tests.reduce((m,e)=>Math.max(m,+e.prozent||0),0);
   i.offen=offeneFehler(r);
   i.zuletzt=r[0].datum;
-  i.farbe = i.bestanden ? "gruen" : "gelb";
+  i.farbe = (i.bestanden || i.eingestuft) ? "gruen" : "gelb";
   return i;
 }
 function stationDetails(z){
   if(z.farbe==="grau") return "Hier warst du noch nicht.";
+  if(!z.anzahl) return "🧪 In der Einstufung gezeigt: Das sitzt schon.";
   const teile=[`<b>${z.anzahl}×</b> geübt`];
   if(z.schnitt!==null) teile.push(`im Schnitt <b>${z.schnitt} %</b> richtig`);
   if(z.bestanden)      teile.push(`Test bestanden mit <b>${z.bestanden} %</b>`);
+  else if(z.eingestuft) teile.push(`🧪 in der Einstufung gezeigt`);
   else if(z.tests)     teile.push(`Test noch nicht bestanden (bester: ${z.besterTest} %)`);
   else                 teile.push(`noch kein Test gemacht`);
   let zeile2 = z.offen ? `🔁 ${nAufgaben(z.offen)} noch zu üben` : "✨ keine offenen Fehler";
-  zeile2 += ` · zuletzt am ${z.zuletzt}`;
+  if(z.zuletzt) zeile2 += ` · zuletzt am ${z.zuletzt}`;
   return teile.join(" · ")+"<br>"+zeile2;
 }
 function zeigeLernweg(){
@@ -658,7 +669,8 @@ function zeigeLernweg(){
     `<div class="gruss">${gruss}</div><div class="seit">${seit}</div>
      <div class="lwAbschnitt">🧭 Dein Lernweg <small>– Stufe für Stufe</small></div>
      ${stufen}
-     <div class="lwLegende">😊 gefestigt (Test ab 90 %) · 😐 angefangen, noch nicht gefestigt · ⚪ noch nicht begonnen</div>
+     <div class="lwLegende">😊 gefestigt (Test ab 90 %${istZu("einstufung")?"":" oder Einstufung"}) · 😐 angefangen, noch nicht gefestigt · ⚪ noch nicht begonnen</div>
+     ${!allesFertig && !istZu("einstufung") ? `<a class="lwEin" href="einstufung-trainer.html#name=${encodeURIComponent(name)}"><span>🧪</span><span><b>Du kannst schon mehr?</b>Zeig es in der Einstufung – was schon sitzt, musst du nicht von vorn üben.</span><span>›</span></a>` : ""}
      <div class="lwAbschnitt">🎮 Spiele <small>– ${allesFertig?"jetzt freigegeben 🎉":"am besten erst nach den sechs Stufen"}</small></div>
      ${spiele}
      <div class="lwAbschnitt">💡 Was jetzt?</div>

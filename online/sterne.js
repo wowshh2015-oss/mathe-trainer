@@ -52,7 +52,13 @@ window.Sterne=(function(){
     let silber=0, gold=0, heute=0, goldHeute=0;
     const S=(n,d)=>{ silber+=n; if(d===H) heute+=n; }, G=(n,d)=>{ gold+=n; if(d===H) goldHeute+=n; };
     const warDa={}, testDa={}, fest={}, proTag={}, tagDa={};
-    rows.filter(e=>LERN.includes(e.app)).sort((a,b)=>ts(a).localeCompare(ts(b))).forEach(e=>{
+    rows.filter(e=>LERN.includes(e.app) || e.app==="einstufung").sort((a,b)=>ts(a).localeCompare(ts(b))).forEach(e=>{
+      if(e.app==="einstufung"){                                                // Einstufung: gezeigte Stufen gelten als gefestigt
+        const d=tag(e);
+        (e.bestandenIn||[]).forEach(a=>{ if(!fest[a]){ fest[a]=true; G(W.fest, d); } });
+        S(W.runde, d); if(!tagDa[d]){ tagDa[d]=true; S(W.tag, d); }
+        return;
+      }
       if(!zaehlt(e)) return;
       const d=tag(e), neu=!warDa[e.app]; warDa[e.app]=true;
       const bestanden = e.modus==="Test" && e.bestanden==="Ja";
