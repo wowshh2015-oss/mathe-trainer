@@ -206,9 +206,10 @@
     <a class="tile t7" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde · 5 Strecken</div></a>
     <a class="tile t6" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Mara&shy;thon</div><div class="d">Etage für Etage nach oben</div></a>
     <a class="tile t2 gesperrt" id="uhrKachel" data-page="uhr-trainer.html"><div class="ic">🕒</div><div class="t">Uhr-Trainer <span id="uhrBald" class="baldTag">🚧 öffnet bald</span></div><div class="d" id="uhrText">Bald lernst du hier die Uhr mit Zeigern – sei gespannt!</div></a>
+    <a class="tile t5" data-page="kalender-trainer.html"><div class="ic">📅</div><div class="t">Kalender und Zeit</div><div class="d">Wochentage · Monate · Stunden und Minuten</div></a>
     <a class="tile t6" data-page="geld-trainer.html"><div class="ic">💶</div><div class="t">Geld</div><div class="d">Euro und Cent · bezahlen · Rückgeld</div></a>
     <a class="tile t1" data-page="laengen-trainer.html"><div class="ic">📏</div><div class="t">Längen</div><div class="d">messen · mm · cm · m</div></a>
-    <a class="tile t4" data-page="gewichte-trainer.html"><div class="ic">⚖️</div><div class="t">Gewichte</div><div class="d">wiegen · Gramm · Kilogramm</div></a>
+    <a class="tile t4 breit" data-page="gewichte-trainer.html"><div class="ic">⚖️</div><div class="t">Gewichte und Liter</div><div class="d">wiegen · Gramm · Kilogramm · Liter und Milliliter</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a><span id="elternSpan" class="hide"> · <a id="elternLink" href="eltern.html" style="color:var(--muted)">👨‍👩‍👧 Für Eltern</a></span></p>
@@ -341,6 +342,7 @@ const SEITEN={
   gewichte:       {datei:"gewichte-trainer.html",        ic:"⚖️", name:"Gewichte"},
   zahlen:         {datei:"zahlen-trainer.html",          ic:"🔢", name:"Zahlen bis 1000"},
   schrift:        {datei:"schrift-trainer.html",         ic:"✍️", name:"Schriftlich rechnen"},
+  kalender:       {datei:"kalender-trainer.html",        ic:"📅", name:"Kalender und Zeit"},
   geo:            {datei:"geo-trainer.html",             ic:"📐", name:"Formen und Körper"},
   daten:          {datei:"daten-trainer.html",           ic:"📊", name:"Daten und Zufall"},
   sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"},
@@ -613,6 +615,7 @@ const NEUES=[
   {d:"2026-11-15", ic:"❓", t:"Anleitung für Eltern",           x:"Oben rechts gibt es jetzt ein Fragezeichen. Dort wird alles erklärt – zeig es deinen Eltern."},
   {d:"2026-11-15", ic:"🔍", t:"Fehlende Zahl",                 x:"Eine neue Kachel: Lerne, wie die Zahlen heißen (Summand, Summe …) und finde die verlorene Zahl.", app:"platz"},
   {d:"2026-11-17", ic:"✍️", t:"Schriftlich rechnen",           x:"Eine neue Kachel: große Zahlen untereinander rechnen – Stelle für Stelle.", app:"schrift"},
+  {d:"2026-11-17", ic:"📅", t:"Kalender und Zeit",             x:"Eine neue Kachel: Wochentage, Monate, Stunden, Minuten und Sekunden.", app:"kalender"},
   {d:"2026-11-17", ic:"🔢", t:"Zahlen bis 1000",               x:"Eine neue Kachel: Zehner und Einer, vergleichen, runden – und der Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"zahlen"},
   {d:"2026-11-17", ic:"📐", t:"Formen und Körper",             x:"Eine neue Kachel: Würfel, Kugel, Dreieck … erkennen, Ecken zählen, Spiegelachsen finden.", app:"geo"},
   {d:"2026-11-17", ic:"📊", t:"Daten und Zufall",              x:"Eine neue Kachel: Diagramme lesen – und was ist sicher, möglich oder unmöglich?", app:"daten"},

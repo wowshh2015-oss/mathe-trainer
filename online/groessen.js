@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -13,8 +13,9 @@
   const TITEL = { geld:["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."], gewichte:["⚖️","Gewichte","Wiegen, schätzen, umwandeln und mit Gewichten rechnen."],
     laengen:["📏","Längen","Messen, umwandeln und mit Längen rechnen."], zahlen:["🔢","Zahlen bis 1000","Stellenwerte, Zahlenstrahl, vergleichen und runden."],
     geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"],
-    schrift:["✍️","Schriftlich rechnen","Untereinander rechnen – Stelle für Stelle, von rechts nach links."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"] }[WAS];
+    schrift:["✍️","Schriftlich rechnen","Untereinander rechnen – Stelle für Stelle, von rechts nach links."],
+    kalender:["📅","Kalender und Zeit","Wochentage, Monate, Stunden, Minuten und Sekunden."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -143,7 +144,9 @@
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
-            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100} };
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1} };
+  const WTAGE=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"], MTAGE=[31,28,31,30,31,30,31,31,30,31,30,31];
   const GELD=[
     {id:1, name:"Münzen zählen", kurz:"Wie viele Cent sind das?", typen:["g_cent"]},
     {id:2, name:"Euro und Cent zählen", kurz:"Münzen und Scheine zusammen", typen:["g_euro"]},
@@ -163,7 +166,8 @@
     {id:2, name:"Mit Gewichtsstücken wiegen", kurz:"Wie schwer ist das zusammen?", typen:["w_stuecke","w_stuecke","w_stueckeKg"]},
     {id:3, name:"Gramm und Kilogramm", kurz:"1 kg = 1000 g · ein halbes Kilo", typen:["w_kgInG","w_kgGInG","w_gAus","w_bruch"]},
     {id:4, name:"Mit Gewichten rechnen", kurz:"1 kg − 350 g · 600 g + 700 g", typen:["w_rechneMinus","w_rechnePlus","w_mal","w_rechneMinus","w_rechnePlus"]},
-    {id:5, name:"Tonnen", kurz:"1 t = 1000 kg · für Klasse 4", typen:["w_tInKg","w_kgAusT","w_schaetzenT","w_lkw"]}
+    {id:5, name:"Tonnen", kurz:"1 t = 1000 kg · für Klasse 4", typen:["w_tInKg","w_kgAusT","w_schaetzenT","w_lkw"]},
+    {id:6, name:"Liter und Milliliter", kurz:"1 l = 1000 ml · ein halber Liter", typen:["w_lSchaetzen","w_lInMl","w_mlAus","w_lBruch","w_lGlaeser"]}
   ];
   const ZAHLEN=[
     {id:1, name:"Zehner und Einer", kurz:"3 Zehner und 7 Einer = 37", typen:["z_ze","z_stelle2","z_ze"]},
@@ -200,7 +204,14 @@
     {id:6, name:"Minus über die Null", kurz:"503 − 247 · 700 − 386", typen:["sm_null","sm_null","sm_mit"], sek:130},
     {id:7, name:"Malnehmen", kurz:"47 · 6 · 238 · 4 – für Klasse 4", typen:["sx_zwei","sx_drei","sx_zwei","sx_drei"], sek:120}
   ];
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT}[WAS];
+  const KALENDER=[
+    {id:1, name:"Wochentage und Monate", kurz:"Was kommt nach Mittwoch? Was kommt vor März?", typen:["k_tag","k_monat","k_tag","k_monatNr"]},
+    {id:2, name:"Wie lang ist ein Monat?", kurz:"30 oder 31 Tage · Wochen in Tage umrechnen", typen:["k_tageMonat","k_wochen","k_wissen","k_tageMonat"]},
+    {id:3, name:"Stunden und Minuten", kurz:"1 Stunde = 60 Minuten · eine Viertelstunde", typen:["k_hMin","k_minAus","k_bruch","k_minAus"]},
+    {id:4, name:"Sekunden, Stunden, Tage", kurz:"1 Minute = 60 Sekunden · 1 Tag = 24 Stunden", typen:["k_sek","k_tageStd","k_wissen"]},
+    {id:5, name:"Mit dem Datum rechnen", kurz:"Welches Datum ist in 5 Tagen?", typen:["k_datum"]}
+  ];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -471,6 +482,57 @@
     sm_null(){ let a,b; do{ a=aus([rnd(2,9)*100, rnd(2,9)*100+rnd(1,9), rnd(2,9)*100+rnd(1,9)]); b=rnd(114,a-13); }while(ohneEntbuendeln(a,b) || b%10===0); return mitErkl(schriftMinus(a,b)); },
     sx_zwei(){ const a=rnd(12,98), m=rnd(2,9); return mitErkl(schriftMal(a,m)); },
     sx_drei(){ const a=rnd(112,489), m=rnd(2,9); return mitErkl(schriftMal(a,m)); },
+    // ===== Liter und Milliliter (Stufe 6 bei den Gewichten) =====
+    w_lInMl(){ const l=rnd(2,9), r=aus([0,0,rnd(1,19)*50]);
+      return eingabe(`<span class="ziel">${l} l${r?` ${r} ml`:""}</span> = wie viele Milliliter?`, [F.ml], l*1000+r, {tag:"umrechnen", sollText:`${l*1000+r} ml`, erkl:`<b>1 l (Liter) sind 1000 ml.</b> ${l} l sind ${l*1000} ml${r?`, dazu ${r} ml: <b>${l*1000+r} ml</b>`:""}.`}); },
+    w_mlAus(){ let c; do{ c=rnd(21,179)*50; }while(c%1000===0);
+      return eingabe(`<span class="ziel">${c} ml</span> = wie viele Liter und Milliliter?`, [F.l,F.ml], c, {tag:"umrechnen", sollText:`${Math.floor(c/1000)} l ${c%1000} ml`, streng:true,
+        erkl:`<b>1000 ml sind 1 l.</b> In ${c} ml stecken ${Math.floor(c/1000)} volle Tausender – das sind ${Math.floor(c/1000)} l. Übrig bleiben ${c%1000} ml.`}); },
+    w_lSchaetzen(){ const s=aus([["In ein Trinkglas passen ungefähr …","200 ml",["2 ml","20 l"]],["In eine Badewanne passen ungefähr …","150 l",["150 ml","15 l"]],["In einen Eimer passen ungefähr …","10 l",["10 ml","1000 l"]],
+        ["Auf einen Teelöffel passen ungefähr …","5 ml",["500 ml","5 l"]],["In eine große Wasserflasche passt …","1 l",["10 ml","100 l"]],["In eine Tasse passen ungefähr …","250 ml",["25 l","2 ml"]],
+        ["In eine Gießkanne passen ungefähr …","5 l",["5 ml","500 l"]],["In ein Schwimmbecken passen …","viele tausend Liter",["100 ml","10 l"]]]);
+      return {art:"wahl", frage:s[0].replace("…",'<span class="ziel">…</span>'), optionen:mische([s[1]].concat(s[2])), ok:s[1], tag:"einheit", sollText:s[1],
+        erkl:`${s[0].replace("…",`<b>${s[1]}</b>`)}<br>Zum Merken: <b>1 l</b> ist eine große Flasche Wasser oder eine Packung Milch. <b>1 ml</b> sind nur ein paar Tropfen.`}; },
+    w_lBruch(){ const b=aus([["Ein halber Liter","500 ml",["50 ml","250 ml","5000 ml"],"Die Hälfte von 1000 ml ist 500 ml."],["Ein Viertelliter","250 ml",["25 ml","400 ml","500 ml"],"1000 ml geteilt durch 4 sind 250 ml."],
+        ["Ein Dreiviertelliter","750 ml",["75 ml","300 ml","340 ml"],"Ein Viertel sind 250 ml – drei Viertel sind 750 ml."],["Eineinhalb Liter","1500 ml",["150 ml","1050 ml","1005 ml"],"1 l sind 1000 ml, ein halber dazu sind 500 ml."]]);
+      return {art:"wahl", frage:`<span class="ziel">${b[0]}</span> – wie viele Milliliter sind das?`, optionen:mische([b[1]].concat(b[2])), ok:b[1], tag:"umrechnen", sollText:b[1], erkl:`<b>1 l = 1000 ml.</b> ${b[3]}`}; },
+    w_lGlaeser(){ const g=aus([[250,"Gläser"],[200,"Gläser"],[500,"Flaschen"],[100,"Becher"]]), l=rnd(1,3), n=l*1000/g[0];
+      return eingabe(`In ${g[1]==="Flaschen"?"eine Flasche":g[1]==="Becher"?"einen Becher":"ein Glas"} passen <span class="ziel">${g[0]} ml</span>.<br>Wie viele ${g[1]} kannst du mit <span class="ziel">${l} l</span> Saft füllen?`, [F.zahl], n, {tag:"rechnen", sollText:String(n),
+        erkl:`Wandle um: ${l} l = ${l*1000} ml. Wie oft passen ${g[0]} ml hinein? ${l*1000} ÷ ${g[0]} = <b>${n}</b>.`}); },
+    // ===== Kalender und Zeit =====
+    k_tag(){ const i=rnd(0,6), d=aus([[1,"nach"],[1,"nach"],[-1,"vor"],[2,"übermorgen"],[-2,"vorgestern"]]), ok=WTAGE[(i+d[0]+7)%7];
+      const frage = d[1]==="nach" ? `Welcher Tag kommt <span class="ziel">nach ${WTAGE[i]}</span>?` : d[1]==="vor" ? `Welcher Tag kommt <span class="ziel">vor ${WTAGE[i]}</span>?` : d[1]==="übermorgen" ? `Heute ist <span class="ziel">${WTAGE[i]}</span>. Welcher Tag ist <span class="ziel">übermorgen</span>?` : `Heute ist <span class="ziel">${WTAGE[i]}</span>. Welcher Tag war <span class="ziel">vorgestern</span>?`;
+      return {art:"wahl", frage, optionen:mische([ok].concat(mische(WTAGE.filter(x=>x!==ok && x!==WTAGE[i])).slice(0,3))), ok, tag:"kalender", sollText:ok, erkl:`Die Woche: ${WTAGE.join(" – ")}. Nach Sonntag geht es wieder mit Montag los. Die Antwort ist <b>${ok}</b>.`}; },
+    k_monat(){ const i=rnd(0,11), nach=Math.random()<0.6, ok=MONATE[(i+(nach?1:11))%12];
+      return {art:"wahl", frage:`Welcher Monat kommt <span class="ziel">${nach?"nach":"vor"} ${MONATE[i]}</span>?`, optionen:mische([ok].concat(mische(MONATE.filter(x=>x!==ok && x!==MONATE[i])).slice(0,3))), ok, tag:"kalender", sollText:ok,
+        erkl:`Die Monate: ${MONATE.join(", ")}. Nach Dezember beginnt ein neues Jahr mit Januar. Die Antwort ist <b>${ok}</b>.`}; },
+    k_monatNr(){ const i=rnd(0,11);
+      return eingabe(`Der wievielte Monat im Jahr ist der <span class="ziel">${MONATE[i]}</span>?`, [F.zahl], i+1, {tag:"kalender", sollText:String(i+1), erkl:`Zähle von vorn: ${MONATE.slice(0,i+1).map((m,k)=>`${k+1} ${m}`).join(", ")}. Der ${MONATE[i]} ist der <b>${i+1}.</b> Monat – so schreibt man auch das Datum.`}); },
+    k_tageMonat(){ const i=rnd(0,11), n=MTAGE[i], ok=i===1?"28 oder 29":String(n);
+      return {art:"wahl", frage:`Wie viele Tage hat der <span class="ziel">${MONATE[i]}</span>?`, optionen:["28 oder 29","30","31"], ok, tag:"kalender", sollText:ok,
+        erkl:`<b>31 Tage:</b> Januar, März, Mai, Juli, August, Oktober, Dezember. <b>30 Tage:</b> April, Juni, September, November. Nur der <b>Februar</b> hat 28 Tage (im Schaltjahr 29).<br>Trick: Zähle an den Fingerknöcheln – Knöchel 31, Tal 30.`}; },
+    k_wochen(){ const w=rnd(2,9);
+      return eingabe(`Wie viele Tage sind <span class="ziel">${w} Wochen</span>?`, [F.zahl], w*7, {tag:"zeiteinheit", sollText:String(w*7), erkl:`<b>Eine Woche hat 7 Tage.</b> ${w} Wochen sind ${w} × 7 = <b>${w*7} Tage</b>.`}); },
+    k_wissen(){ const d=aus([["Wie viele Monate hat ein Jahr?",12,"Ein Jahr hat <b>12 Monate</b>."],["Wie viele Tage hat eine Woche?",7,"Eine Woche hat <b>7 Tage</b>."],["Wie viele Stunden hat ein Tag?",24,"Ein Tag hat <b>24 Stunden</b> – der kleine Zeiger dreht zwei Runden."],
+        ["Wie viele Minuten hat eine Stunde?",60,"Eine Stunde hat <b>60 Minuten</b>."],["Wie viele Sekunden hat eine Minute?",60,"Eine Minute hat <b>60 Sekunden</b>."],["Wie viele Tage hat ein Jahr (kein Schaltjahr)?",365,"Ein Jahr hat <b>365 Tage</b>, ein Schaltjahr 366."],
+        ["Wie viele Jahreszeiten gibt es?",4,"Es gibt <b>4 Jahreszeiten</b>: Frühling, Sommer, Herbst, Winter."]]);
+      return eingabe(d[0], [F.zahl], d[1], {tag:"zeiteinheit", sollText:String(d[1]), erkl:d[2]}); },
+    k_hMin(){ const h=rnd(2,6);
+      return eingabe(`<span class="ziel">${h} Stunden</span> = wie viele Minuten?`, [F.zahl], h*60, {tag:"zeiteinheit", sollText:String(h*60), erkl:`<b>1 Stunde sind 60 Minuten.</b> ${h} Stunden sind ${h} × 60 = <b>${h*60} Minuten</b>.`}); },
+    k_minAus(){ let m; do{ m=rnd(13,47)*5; }while(m%60===0);
+      return eingabe(`<span class="ziel">${m} Minuten</span> = wie viele Stunden und Minuten?`, [F.std,F.min], m, {tag:"zeiteinheit", sollText:`${Math.floor(m/60)} h ${m%60} min`, streng:true,
+        erkl:`<b>60 Minuten sind 1 Stunde.</b> In ${m} Minuten stecken ${Math.floor(m/60)} volle Stunden (${Math.floor(m/60)*60} Minuten). Übrig bleiben ${m%60} Minuten.`}); },
+    k_bruch(){ const b=aus([["Eine halbe Stunde","30",["15","50","45"]],["Eine Viertelstunde","15",["25","4","30"]],["Eine Dreiviertelstunde","45",["75","34","30"]],["Eineinhalb Stunden","90",["150","130","65"]]]);
+      return {art:"wahl", frage:`<span class="ziel">${b[0]}</span> – wie viele Minuten sind das?`, optionen:mische([b[1]].concat(b[2])).map(x=>x+" Minuten"), ok:b[1]+" Minuten", tag:"zeiteinheit", sollText:b[1]+" Minuten",
+        erkl:`Eine Stunde hat 60 Minuten. Die Hälfte sind 30, ein Viertel sind 15, drei Viertel sind 45 Minuten.`}; },
+    k_sek(){ const m=rnd(2,9);
+      return eingabe(`<span class="ziel">${m} Minuten</span> = wie viele Sekunden?`, [F.zahl], m*60, {tag:"zeiteinheit", sollText:String(m*60), erkl:`<b>1 Minute sind 60 Sekunden.</b> ${m} × 60 = <b>${m*60} Sekunden</b>.`}); },
+    k_tageStd(){ const d=rnd(2,5);
+      return eingabe(`<span class="ziel">${d} Tage</span> = wie viele Stunden?`, [F.zahl], d*24, {tag:"zeiteinheit", sollText:String(d*24), erkl:`<b>1 Tag hat 24 Stunden.</b> ${d} × 24 = <b>${d*24} Stunden</b>.`}); },
+    k_datum(){ const i=rnd(0,11), tag=rnd(MTAGE[i]-6,MTAGE[i]-1), plus=rnd(MTAGE[i]-tag+1,9), neu=tag+plus-MTAGE[i], ok=`${neu}. ${MONATE[(i+1)%12]}`;
+      const falsch=[`${tag+plus}. ${MONATE[i]}`, `${neu}. ${MONATE[i]}`, `${neu+1}. ${MONATE[(i+1)%12]}`];
+      return {art:"wahl", frage:`Heute ist der <span class="ziel">${tag}. ${MONATE[i]}</span>.<br>Welches Datum ist <span class="ziel">in ${plus} Tagen</span>?`, optionen:mische([ok].concat(falsch)), ok, tag:"kalender", sollText:ok,
+        erkl:`Der ${MONATE[i]} hat ${i===1?"28":MTAGE[i]} Tage. Bis zum Monatsende sind es noch ${MTAGE[i]-tag} Tage, dann bleiben ${neu} Tage für den nächsten Monat: <b>${ok}</b>.`}; },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },

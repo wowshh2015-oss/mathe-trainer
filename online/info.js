@@ -53,6 +53,13 @@
     "Minus mit Entbündeln":"Reicht es oben nicht, holst du dir einen von links: Ein Zehner wird zu 10 Einern. <b>Klasse 3.</b>",
     "Minus über die Null":"Steht links eine 0, musst du dir erst noch einen Stellenwert weiter links holen: 503 − 247. <b>Klasse 3 und 4.</b>",
     "Malnehmen":"Du nimmst jede Stelle einzeln mal, von rechts nach links, und merkst dir die Zehner. <b>Klasse 4.</b>",
+    // Kalender und Zeit
+    "Wochentage und Monate":"Die Reihenfolge der sieben Wochentage und der zwölf Monate – auch „übermorgen“ und „vorgestern“. <b>Klasse 1 und 2.</b>",
+    "Wie lang ist ein Monat?":"Welche Monate haben 30 und welche 31 Tage? Und: 1 Woche = 7 Tage. <b>Klasse 2.</b>",
+    "Stunden und Minuten":"1 Stunde = 60 Minuten. Eine halbe Stunde sind 30, eine Viertelstunde 15 Minuten. <b>Klasse 2 und 3.</b>",
+    "Sekunden, Stunden, Tage":"1 Minute = 60 Sekunden, 1 Tag = 24 Stunden. <b>Klasse 3.</b>",
+    "Mit dem Datum rechnen":"Welches Datum ist in ein paar Tagen – auch über das Monatsende hinaus? <b>Klasse 3.</b>",
+    "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
     "Nachbarzahlen und Zahlenstrahl":"Vorgänger (1 kleiner), Nachfolger (1 größer), Nachbarzehner – und Zahlen am Zahlenstrahl ablesen. <b>Klasse 2.</b>",
@@ -104,10 +111,11 @@
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
     schrift:"<b>Schriftlich rechnen:</b> große Zahlen untereinander schreiben und Stelle für Stelle rechnen – immer rechts bei den Einern anfangen. <b>Klasse 3:</b> Plus und Minus. <b>Klasse 4:</b> Malnehmen.",
+    kalender:"<b>Kalender und Zeit:</b> Wochentage und Monate, wie viele Tage ein Monat hat, und Stunden, Minuten, Sekunden umrechnen. <b>Klasse 1 bis 3.</b>",
     zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
     geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
     daten:"<b>Daten und Zufall:</b> Strichlisten und Diagramme lesen – und überlegen, was sicher, möglich oder unmöglich ist. <b>Klasse 2 und 3.</b>",
-    gewichte:"<b>Gewichte:</b> schätzen, was schwerer ist, mit Gewichtsstücken wiegen und Gramm in Kilogramm umwandeln. <b>Klasse 3</b>, Tonnen <b>Klasse 4</b>.",
+    gewichte:"<b>Gewichte und Liter:</b> schätzen, was schwerer ist, mit Gewichtsstücken wiegen, Gramm in Kilogramm umwandeln – und Liter und Milliliter. <b>Klasse 3</b>, Tonnen <b>Klasse 4</b>.",
     laengen:"<b>Längen:</b> mit dem Lineal messen und Millimeter, Zentimeter und Meter umwandeln. <b>Klasse 2 und 3.</b>"
   };
   const kachelText=el=>{ const app=(el.dataset.page||"").replace("-trainer.html",""); const t=KACHEL[app]||"";
@@ -197,6 +205,7 @@
     laengen:[["#menue > h3, #start h3", T.stufen]],
     gewichte:[["#menue > h3, #start h3", T.stufen]],
     schrift:[["#menue > h3, #start h3", T.stufen]],
+    kalender:[["#menue > h3, #start h3", T.stufen]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],

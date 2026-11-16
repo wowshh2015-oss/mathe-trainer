@@ -84,6 +84,8 @@ window.Wdh=(function(){
     groesse_schriftM: "✍️ Schriftlich Minus: verrechnet oder falsch entbündelt",
     groesse_kleinerGroesser:"✍️ Schriftlich Minus: einfach die kleinere von der größeren Ziffer abgezogen",
     groesse_schriftMal:"✍️ Schriftlich Mal: verrechnet oder Übertrag vergessen",
+    groesse_kalender: "📅 Wochentage, Monate oder Datum",
+    groesse_zeiteinheit:"📅 Zeiteinheiten umrechnen (60 Minuten, 24 Stunden, 7 Tage)",
     groesse_stelle:   "🔢 Stellenwert verwechselt (Zehner und Einer, die Null)",
     groesse_nachbar:  "🔢 Nachbarzahl falsch (Übergang zum nächsten Zehner oder Hunderter)",
     groesse_strahl:   "🔢 Zahlenstrahl falsch abgelesen",
