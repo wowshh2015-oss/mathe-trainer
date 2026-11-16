@@ -15,6 +15,7 @@ window.Anleitung=(function(){
     uhr:             {ic:"🕒", name:"Uhr-Trainer",    1:"volle und halbe Stunden", 2:"Viertel · 5 Minuten · Minuten · 13 bis 24 Uhr", 3:"Zeitspannen · „fünf vor halb“"},
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Euro und Cent mit Komma · Rückgeld"},
+    schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest"},
     geo:             {ic:"📐", name:"Formen und Körper", 1:"Flächen erkennen", 2:"Ecken und Seiten · Körper · Symmetrie", 3:"Ecken, Kanten, Flächen · Umfang und Fläche"},
     daten:           {ic:"📊", name:"Daten und Zufall", 2:"Strichlisten · Diagramme lesen", 3:"sicher, möglich, unmöglich · kombinieren"},
@@ -60,6 +61,7 @@ window.Anleitung=(function(){
      <li><b>🕒 Uhr-Trainer</b> – die Uhr mit Zeigern lesen und stellen, später Zeitspannen.</li>
      <li><b>📖 Sachaufgaben</b> – Geschichte lesen, Rechenart finden, rechnen, Antwortsatz.</li>
      <li><b>💶 Geld / 📏 Längen / ⚖️ Gewichte</b> – Münzen, bezahlen, Rückgeld; messen und umwandeln; wiegen, Gramm und Kilogramm.</li>
+     <li><b>✍️ Schriftlich rechnen</b> – Plus, Minus und Mal untereinander, Stelle für Stelle von rechts nach links.</li>
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>
      <li><b>📐 Formen und Körper</b> – Flächen und Körper benennen, Ecken und Kanten zählen, Symmetrie, Umfang und Fläche.</li>
      <li><b>📊 Daten und Zufall</b> – Strichlisten und Diagramme lesen; sicher, möglich oder unmöglich?</li>

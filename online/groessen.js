@@ -5,15 +5,16 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
   const APP=WAS, PRO_RUNDE=10, BESTANDEN=90, TEST_SEK=45;
   const TITEL = { geld:["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."], gewichte:["⚖️","Gewichte","Wiegen, schätzen, umwandeln und mit Gewichten rechnen."],
     laengen:["📏","Längen","Messen, umwandeln und mit Längen rechnen."], zahlen:["🔢","Zahlen bis 1000","Stellenwerte, Zahlenstrahl, vergleichen und runden."],
-    geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"] }[WAS];
+    geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"],
+    schrift:["✍️","Schriftlich rechnen","Untereinander rechnen – Stelle für Stelle, von rechts nach links."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -75,6 +76,12 @@
   .reihe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
   .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px} .prozent{font-size:54px;font-weight:800;text-align:center;line-height:1}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px} .btnrow button{flex:1}
+  .schrift{display:grid;justify-content:center;gap:5px 4px;font-size:30px;font-weight:800;margin:8px 0 4px;align-items:center}
+  .schrift span{text-align:center;min-height:10px} .schrift .sk{font-size:12px;color:var(--muted);font-weight:700} .schrift .so{color:var(--muted)}
+  .schrift input.sz{width:46px;height:52px;font-size:30px;text-align:center;padding:0;border:2px solid var(--accent);font-weight:800;border-radius:10px}
+  .schrift input.su{width:30px;height:28px;font-size:16px;padding:0;text-align:center;border:1.5px dashed var(--card2);justify-self:center;border-radius:8px;color:#fde68a;font-weight:800}
+  .schrift span.su{font-size:16px;color:#fde68a;min-height:20px} .schrift .slinie{height:3px;background:var(--text);border-radius:2px;min-height:3px} .schrift .sl{color:#86efac}
+  .schriftTipp{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
   document.head.appendChild(css);
   document.body.insertAdjacentHTML("afterbegin", `<div class="app">
@@ -184,7 +191,16 @@
     {id:4, name:"Sicher, möglich, unmöglich", kurz:"Kugeln aus dem Beutel ziehen", typen:["d_sicher","d_sicher","d_wahrsch"]},
     {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]}
   ];
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN}[WAS];
+  const SCHRIFT=[
+    {id:1, name:"Plus ohne Übertrag", kurz:"342 + 215 – Stelle für Stelle", typen:["sp_ohne"], sek:90},
+    {id:2, name:"Plus mit Übertrag", kurz:"347 + 285 – die gemerkte Zahl nicht vergessen", typen:["sp_mit","sp_mit","sp_gross"], sek:100},
+    {id:3, name:"Plus mit drei Zahlen", kurz:"245 + 138 + 76", typen:["sp_drei"], sek:120},
+    {id:4, name:"Minus ohne Entbündeln", kurz:"586 − 243", typen:["sm_ohne"], sek:90},
+    {id:5, name:"Minus mit Entbündeln", kurz:"532 − 248 – wenn es oben nicht reicht", typen:["sm_mit"], sek:120},
+    {id:6, name:"Minus über die Null", kurz:"503 − 247 · 700 − 386", typen:["sm_null","sm_null","sm_mit"], sek:130},
+    {id:7, name:"Malnehmen", kurz:"47 · 6 · 238 · 4 – für Klasse 4", typen:["sx_zwei","sx_drei","sx_zwei","sx_drei"], sek:120}
+  ];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -219,6 +235,46 @@
     ["Ein voller Lastwagen wiegt ungefähr …","40 t",["40 kg","400 kg"]],["Ein Blauwal wiegt ungefähr …","150 t",["150 kg","15 kg"]],["Eine Kuh wiegt ungefähr …","600 kg",["6 kg","60 t"]],
     ["Ein Stadtbus wiegt ungefähr …","12 t",["12 kg","120 kg"]],["Ein Motorrad wiegt ungefähr …","200 kg",["2 kg","20 t"]]];
   const PACKUNG=[["Eine Tafel Schokolade","Tafeln",100],["Ein Päckchen Butter","Päckchen",250],["Eine Packung Nudeln","Packungen",500],["Ein Becher Joghurt","Becher",150],["Eine Dose Mais","Dosen",300]];
+  // ---------- Schriftlich rechnen: untereinander, Stelle für Stelle ----------
+  const STELLEN=["Einer","Zehner","Hunderter","Tausender","Zehntausender"];
+  const ziffern=(n,W)=>String(n).padStart(W,"0").split("").map(Number);      // links = höchste Stelle
+  function schriftGitter(a, fertig){
+    const W=a.breite, kurz=["E","Z","H","T","ZT"], z=n=>String(n).padStart(W," ").split("");
+    const kopf=`<span></span>`+Array.from({length:W},(_,i)=>`<span class="sk">${kurz[W-1-i]}</span>`).join("");
+    const reihen=a.zeilen.map((n,k)=>`<span class="so">${k?a.zeichen:""}</span>`+z(n).map(c=>`<span class="sz">${c.trim()}</span>`).join("")).join("");
+    const ueb = a.uebertrag ? `<span class="so"></span>`+Array.from({length:W},(_,i)=> i<W-1 ? (fertig?`<span class="su">${a.uebertrag[i]||""}</span>`:`<input class="su" data-u="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Übertrag">`) : `<span></span>`).join("") : "";
+    const erg=`<span class="so">=</span>`+z(a.soll).map((c,i)=> fertig?`<span class="sz sl">${c.trim()}</span>`:`<input class="sz" data-e="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="${kurz[W-1-i]}">`).join("");
+    return `<div class="schrift" style="grid-template-columns:30px repeat(${W},46px)">${kopf}${reihen}${ueb}<span class="slinie" style="grid-column:1/-1"></span>${erg}</div>`;
+  }
+  function schriftPlus(zahlen){
+    const soll=zahlen.reduce((x,y)=>x+y,0), W=String(soll).length, d=zahlen.map(n=>ziffern(n,W)), ueb=[], schritte=[]; let c=0, ohne="";
+    for(let i=W-1;i>=0;i--){ const teil=d.map(x=>x[i]), s=teil.reduce((x,y)=>x+y,0)+c, st=STELLEN[W-1-i];
+      if(teil.some(x=>x) || c) schritte.push(`<b>${st}:</b> ${teil.filter((x,k)=>x||k<2).join(" + ")}${c?` + ${c} (gemerkt)`:""} = ${s}${s>9?` → schreibe <b>${s%10}</b>, merke <b>${Math.floor(s/10)}</b>`:` → schreibe <b>${s}</b>`}`);
+      ohne=String(teil.reduce((x,y)=>x+y,0)%10)+ohne; c=Math.floor(s/10); if(c && i>0) ueb[i-1]=c; }
+    return {art:"schrift", zeichen:"+", zeilen:zahlen, soll, breite:W, uebertrag:ueb, tag:"schriftP", sollText:String(soll), falle:+ohne!==soll?+ohne:0, falleArt:"uebertrag",
+      frage:`Rechne schriftlich: <span class="ziel">${zahlen.join(" + ")}</span>`, schritte};
+  }
+  function schriftMinus(a,b){
+    const soll=a-b, W=String(a).length, da=ziffern(a,W), db=ziffern(b,W), schritte=[]; let leih=0, falsch="";
+    for(let i=W-1;i>=0;i--){ const oben=da[i]-leih, st=STELLEN[W-1-i]; let r, text;
+      if(oben>=db[i]){ r=oben-db[i]; text=`${oben}${leih?" (einer ist schon entbündelt)":""} − ${db[i]} = <b>${r}</b>`; leih=0; }
+      else if(oben<0){ r=9-db[i]; text=`Hier steht 0 und einer ist schon entbündelt. Hol dir zuerst einen ${STELLEN[W-i]||"Stellenwert"} von links: 9 − ${db[i]} = <b>${r}</b>`; leih=1; }
+      else { r=oben+10-db[i]; text=`${oben}${leih?" (einer ist schon entbündelt)":""} − ${db[i]} geht nicht. Entbündle einen ${STELLEN[W-i]||"Stellenwert"} von links: ${oben+10} − ${db[i]} = <b>${r}</b>`; leih=1; }
+      if(da[i]||db[i]||leih||i===W-1) schritte.push(`<b>${st}:</b> ${text}`); falsch=String(Math.abs(da[i]-db[i]))+falsch; }
+    return {art:"schrift", zeichen:"−", zeilen:[a,b], soll, breite:W, tag:"schriftM", sollText:String(soll), falle:+falsch!==soll?+falsch:0, falleArt:"kleinerGroesser",
+      frage:`Rechne schriftlich: <span class="ziel">${a} − ${b}</span>`, schritte};
+  }
+  function schriftMal(a,m){
+    const soll=a*m, W=String(soll).length, da=ziffern(a,W), n=String(a).length, ueb=[], schritte=[]; let c=0;
+    for(let i=W-1;i>=W-n;i--){ const p=da[i]*m+c; schritte.push(`<b>${STELLEN[W-1-i]}:</b> ${m} × ${da[i]} = ${da[i]*m}${c?` + ${c} (gemerkt) = ${p}`:""}${p>9?` → schreibe <b>${p%10}</b>, merke <b>${Math.floor(p/10)}</b>`:` → schreibe <b>${p}</b>`}`);
+      c=Math.floor(p/10); if(c && i>0) ueb[i-1]=c; }
+    if(c) schritte.push(`Die gemerkte <b>${c}</b> kommt ganz nach vorn.`);
+    return {art:"schrift", zeichen:"·", zeilen:[], soll, breite:W, uebertrag:ueb, tag:"schriftMal", sollText:String(soll),
+      frage:`Rechne schriftlich – fang bei den Einern an:<br><span class="ziel" style="font-size:30px">${a} · ${m}</span>`, schritte};
+  }
+  const mitErkl=a=>{ a.erkl=`<div style="text-align:left;font-size:15px;line-height:1.6">${a.schritte.join("<br>")}</div>${schriftGitter(a,true)}`; return a; };
+  const ohneUebertrag=(x,y)=>{ const W=Math.max(String(x).length,String(y).length), a=ziffern(x,W), b=ziffern(y,W); return a.every((v,i)=>v+b[i]<=9); };
+  const ohneEntbuendeln=(x,y)=>{ const W=String(x).length, a=ziffern(x,W), b=ziffern(y,W); return a.every((v,i)=>v>=b[i]); };
   // ---------- Zahlen, Formen, Daten: Bilder ----------
   function zeBild(z,e){
     const stange=`<svg width="14" height="74" viewBox="0 0 14 74"><rect x="1" y="1" width="12" height="72" rx="2" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.5"/>${[1,2,3,4,5,6,7,8,9].map(i=>`<line x1="1" y1="${1+i*7.2}" x2="13" y2="${1+i*7.2}" stroke="#1e3a8a" stroke-width="1"/>`).join("")}</svg>`;
@@ -405,6 +461,16 @@
         erkl:`Such die größte Malaufgabe mit ${b}, die in ${a} passt: ${q} × ${b} = ${q*b}. Bis ${a} bleiben ${a} − ${q*b} = ${r} übrig: <b>${q} Rest ${r}</b>.`}); },
     s_schritte(){ return strahlAufgabe(STRAHL100,"schritte"); }, s_schritt(){ return strahlAufgabe(STRAHL100,"schritt"); }, s_pfeil(){ return strahlAufgabe(STRAHL100,"pfeil"); }, s_wo(){ return strahlAufgabe(STRAHL100,"wo"); },
     t_schritt(){ return strahlAufgabe(STRAHL1000,"schritt"); }, t_pfeil(){ return strahlAufgabe(STRAHL1000,"pfeil"); }, t_wo(){ return strahlAufgabe(STRAHL1000,"wo"); },
+    // ===== Schriftlich rechnen =====
+    sp_ohne(){ let a,b; do{ a=rnd(112,786); b=rnd(101,812); }while(a+b>999 || !ohneUebertrag(a,b)); return mitErkl(schriftPlus([a,b])); },
+    sp_mit(){ let a,b; do{ a=rnd(125,789); b=rnd(116,768); }while(a+b>999 || ohneUebertrag(a,b)); return mitErkl(schriftPlus([a,b])); },
+    sp_gross(){ let a,b; do{ a=rnd(356,989); b=rnd(245,978); }while(a+b<1000); return mitErkl(schriftPlus([a,b])); },
+    sp_drei(){ let a,b,c; do{ a=rnd(105,589); b=rnd(34,389); c=rnd(17,289); }while(a+b+c>999); return mitErkl(schriftPlus([a,b,c])); },
+    sm_ohne(){ let a,b; do{ a=rnd(345,999); b=rnd(112,876); }while(a-b<11 || !ohneEntbuendeln(a,b)); return mitErkl(schriftMinus(a,b)); },
+    sm_mit(){ let a,b; do{ a=rnd(321,998); b=rnd(114,889); }while(a-b<11 || ohneEntbuendeln(a,b) || String(a).slice(1).includes("0")); return mitErkl(schriftMinus(a,b)); },
+    sm_null(){ let a,b; do{ a=aus([rnd(2,9)*100, rnd(2,9)*100+rnd(1,9), rnd(2,9)*100+rnd(1,9)]); b=rnd(114,a-13); }while(ohneEntbuendeln(a,b) || b%10===0); return mitErkl(schriftMinus(a,b)); },
+    sx_zwei(){ const a=rnd(12,98), m=rnd(2,9); return mitErkl(schriftMal(a,m)); },
+    sx_drei(){ const a=rnd(112,489), m=rnd(2,9); return mitErkl(schriftMal(a,m)); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
@@ -605,6 +671,20 @@
         if(o!==a.ok) b.classList.add("falsch");
         auswerten(a, o===a.ok, o, null, false);
       }));
+    }else if(a.art==="schrift"){
+      $("buehne").innerHTML=schriftGitter(a,false)+`<div class="schriftTipp">${a.uebertrag?"Die kleinen Kästchen sind für die gemerkten Zahlen – du darfst sie benutzen.":"Fang rechts bei den Einern an."}</div><div class="reihe"><button id="okBtn">OK</button></div>`;
+      const erg=[...$("buehne").querySelectorAll("input[data-e]")], alle=[...$("buehne").querySelectorAll("input")];
+      const pruef=()=>{
+        if(wartet) return;
+        const s=erg.map(x=>x.value.trim()).join(""); if(s==="") return;
+        const luecke=/\S\s+\S/.test(erg.map(x=>x.value.trim()||" ").join("")), wert=/^\d+$/.test(s)&&!luecke ? parseInt(s,10) : NaN;
+        alle.forEach(x=>x.disabled=true); $("okBtn").disabled=true;
+        auswerten(a, wert===a.soll, s, isNaN(wert)?null:wert, false);
+      };
+      erg.forEach((x,i)=>x.addEventListener("input", ()=>{ x.value=x.value.replace(/\D/g,"").slice(-1); if(x.value && i>0) erg[i-1].focus(); }));
+      alle.forEach(x=>{ x.addEventListener("keydown", e=>{ if(e.key==="Enter") pruef(); }); if(x.dataset.u!==undefined) x.addEventListener("input", ()=>{ x.value=x.value.replace(/\D/g,"").slice(-1); }); });
+      $("okBtn").addEventListener("click", pruef);
+      try{ erg[erg.length-1].focus({preventScroll:true}); }catch(e){}
     }else{   // legen
       haufen=[];
       $("buehne").innerHTML=`<div class="haufen" id="haufen">Tippe unten auf Münzen und Scheine.</div>
@@ -631,7 +711,7 @@
     // Denkfehler erkennen: Umrechnungszahl verwechselt (10 statt 100) oder beim Lineal das Ende abgelesen
     let art="groesse_"+a.tag, zusatz="";
     if(summe!==null && a.tag==="umrechnen" && (summe===a.soll*10 || summe*10===a.soll)){ art="groesse_faktor"; }
-    if(a.falle && summe===a.falle){ art="groesse_ablesen"; }
+    if(a.falle && summe===a.falle){ art="groesse_"+(a.falleArt||"ablesen"); }
     if(a.streng && summe===a.soll && !nichtGetauscht===false) zusatz="";
     if(a.art==="legen" && summe!==null) zusatz=` Du hast ${komma(summe)} gelegt – das ist ${summe>a.soll?"zu viel":"zu wenig"}.`;
     runde.antworten.push(`${a.typ.slice(2)}|${a.sollText}|${gegebenText}|${art}`);
@@ -646,8 +726,8 @@
     const test=runde && runde.modus==="Test";
     $("zeitbalken").classList.toggle("hide", !test);
     if(!test) return;
-    zeitRest=TEST_SEK; $("zeitfuell").style.width="100%";
-    timer=setInterval(()=>{ zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/TEST_SEK*100)+"%";
+    const sek=runde.st.sek||TEST_SEK; zeitRest=sek; $("zeitfuell").style.width="100%";
+    timer=setInterval(()=>{ zeitRest-=0.25; $("zeitfuell").style.width=Math.max(0,zeitRest/sek*100)+"%";
       if(zeitRest<=0){ stoppZeit(); const a=runde.aufgaben[runde.i]; runde.verlauf[runde.i]=false; runde.fehler.push(a.key); runde.fehlerTexte.push(a.sollText); runde.antworten.push(`${a.typ.slice(2)}|${a.sollText}|zeit|zeit`);
         zeichneFortschritt(); runde.i++; $("rueck").style.color="var(--bad)"; $("rueck").textContent=`Die Zeit ist um. Richtig ist ${a.sollText}.`; wartet=false; spaeter(1700); } },250);
   }
@@ -745,5 +825,5 @@
   addEventListener("pagehide", stoppZeit);
   // für die automatischen Tests
   window.Groessen={ STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
-                    komma, euroCent, zerlege, linealBild, geldBild, gewText, tText };
+                    komma, euroCent, zerlege, linealBild, geldBild, gewText, tText, ziffern };
 })();

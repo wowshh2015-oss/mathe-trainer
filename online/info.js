@@ -45,6 +45,14 @@
     "Umwandeln und Komma":"3 € 45 ct = 345 ct = <b>3,45 €</b>. Vor dem Komma stehen die Euro, dahinter die Cent. <b>Klasse 3.</b>",
     "Passend bezahlen":"Du legst einen Betrag selbst mit Münzen und Scheinen. <b>Klasse 2.</b>",
     "Einkaufen und Rückgeld":"Preise zusammenrechnen und ausrechnen, wie viel Geld du zurückbekommst. <b>Klasse 2 und 3.</b>",
+    // Schriftlich rechnen
+    "Plus ohne Übertrag":"Du rechnest Stelle für Stelle von rechts nach links: erst die Einer, dann die Zehner, dann die Hunderter. <b>Klasse 3.</b>",
+    "Plus mit Übertrag":"Wird eine Stelle größer als 9, schreibst du nur die Einer hin und merkst dir die 1 für die nächste Stelle. Dafür sind die kleinen Kästchen da. <b>Klasse 3.</b>",
+    "Plus mit drei Zahlen":"Drei Zahlen untereinander – hier kann man sich auch eine 2 merken müssen. <b>Klasse 3.</b>",
+    "Minus ohne Entbündeln":"Oben steht in jeder Stelle genug: einfach Stelle für Stelle abziehen. <b>Klasse 3.</b>",
+    "Minus mit Entbündeln":"Reicht es oben nicht, holst du dir einen von links: Ein Zehner wird zu 10 Einern. <b>Klasse 3.</b>",
+    "Minus über die Null":"Steht links eine 0, musst du dir erst noch einen Stellenwert weiter links holen: 503 − 247. <b>Klasse 3 und 4.</b>",
+    "Malnehmen":"Du nimmst jede Stelle einzeln mal, von rechts nach links, und merkst dir die Zehner. <b>Klasse 4.</b>",
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
     "Nachbarzahlen und Zahlenstrahl":"Vorgänger (1 kleiner), Nachfolger (1 größer), Nachbarzehner – und Zahlen am Zahlenstrahl ablesen. <b>Klasse 2.</b>",
@@ -95,6 +103,7 @@
     uhr:"<b>Uhr-Trainer:</b> die Uhr mit Zeigern lesen und stellen – von vollen Stunden bis zu Zeitspannen. <b>Klasse 1 bis 3.</b>",
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
+    schrift:"<b>Schriftlich rechnen:</b> große Zahlen untereinander schreiben und Stelle für Stelle rechnen – immer rechts bei den Einern anfangen. <b>Klasse 3:</b> Plus und Minus. <b>Klasse 4:</b> Malnehmen.",
     zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
     geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
     daten:"<b>Daten und Zufall:</b> Strichlisten und Diagramme lesen – und überlegen, was sicher, möglich oder unmöglich ist. <b>Klasse 2 und 3.</b>",
@@ -187,6 +196,7 @@
     geld:[["#menue > h3, #start h3", T.stufen]],
     laengen:[["#menue > h3, #start h3", T.stufen]],
     gewichte:[["#menue > h3, #start h3", T.stufen]],
+    schrift:[["#menue > h3, #start h3", T.stufen]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],

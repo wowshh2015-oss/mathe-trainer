@@ -370,6 +370,7 @@ const APPS={
   laengen:      {label:"Längen",        ic:"📏"},
   gewichte:     {label:"Gewichte",      ic:"⚖️"},
   zahlen:       {label:"Zahlen",        ic:"🔢"},
+  schrift:      {label:"Schriftlich",   ic:"✍️"},
   geo:          {label:"Geometrie",     ic:"📐"},
   daten:        {label:"Daten",         ic:"📊"},
   einstufung:   {label:"Einstufung",    ic:"🧪"}
@@ -394,7 +395,7 @@ function uebungLabel(e){
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
-  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
+  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -853,7 +854,7 @@ function renderHA(){
 let UHR_FREI=false, ZU={};
 let KLASSE=null;       // Namen der eigenen Klasse für den Projektor (einstellungen/freigabe.klasse) – gilt auf jedem Gerät
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["zahlen","🔢 Zahlen bis 1000"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
+                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["schrift","✍️ Schriftlich rechnen"],["zahlen","🔢 Zahlen bis 1000"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
                  ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){
