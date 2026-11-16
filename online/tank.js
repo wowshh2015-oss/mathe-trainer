@@ -18,7 +18,10 @@ window.Tank=(function(){
     {app:"platz",           ic:"🔍", name:"Fehlende Zahl", datei:"platz-trainer.html"},
     {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
     {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"},
-    {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"}
+    {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"},
+    {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
+    {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
+    {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
   ];
   const LERN=STATIONEN.map(s=>s.app);
   // Was eine Lernrunde bringt

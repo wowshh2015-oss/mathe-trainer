@@ -5,12 +5,15 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=window.GROESSE==="laengen" ? "laengen" : window.GROESSE==="gewichte" ? "gewichte" : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
   const APP=WAS, PRO_RUNDE=10, BESTANDEN=90, TEST_SEK=45;
-  const TITEL = WAS==="geld" ? ["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."] : WAS==="gewichte" ? ["⚖️","Gewichte","Wiegen, schätzen, umwandeln und mit Gewichten rechnen."] : ["📏","Längen","Messen, umwandeln und mit Längen rechnen."];
+  const TITEL = { geld:["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."], gewichte:["⚖️","Gewichte","Wiegen, schätzen, umwandeln und mit Gewichten rechnen."],
+    laengen:["📏","Längen","Messen, umwandeln und mit Längen rechnen."], zahlen:["🔢","Zahlen bis 1000","Stellenwerte, Zahlenstrahl, vergleichen und runden."],
+    geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -22,9 +25,9 @@
   // ---------- Seite aufbauen ----------
   const css=document.createElement("style");
   css.textContent=`
-  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:${WAS==="geld"?"#facc15":WAS==="gewichte"?"#2dd4bf":"#60a5fa"}; --good:#22c55e; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:${FARBE[0]}; --good:#22c55e; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
   *{box-sizing:border-box} html,body{margin:0;min-height:100%}
-  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,${WAS==="geld"?"#4a3a0c":WAS==="gewichte"?"#0f3d3a":"#172554"} 0%,var(--bg) 60%);
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,${FARBE[1]} 0%,var(--bg) 60%);
     color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
   .app{width:100%;max-width:680px} h1{font-size:28px;margin:0 0 4px} .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
   .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
@@ -133,7 +136,7 @@
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
-            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1} };
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100} };
   const GELD=[
     {id:1, name:"Münzen zählen", kurz:"Wie viele Cent sind das?", typen:["g_cent"]},
     {id:2, name:"Euro und Cent zählen", kurz:"Münzen und Scheine zusammen", typen:["g_euro"]},
@@ -155,7 +158,31 @@
     {id:4, name:"Mit Gewichten rechnen", kurz:"1 kg − 350 g · 600 g + 700 g", typen:["w_rechneMinus","w_rechnePlus","w_mal","w_rechneMinus","w_rechnePlus"]},
     {id:5, name:"Tonnen", kurz:"1 t = 1000 kg · für Klasse 4", typen:["w_tInKg","w_kgAusT","w_schaetzenT","w_lkw"]}
   ];
-  const STUFEN = WAS==="geld" ? GELD : WAS==="gewichte" ? GEWICHTE : LAENGEN;
+  const ZAHLEN=[
+    {id:1, name:"Zehner und Einer", kurz:"3 Zehner und 7 Einer = 37", typen:["z_ze","z_stelle2","z_ze"]},
+    {id:2, name:"Nachbarzahlen und Zahlenstrahl", kurz:"Vorgänger · Nachfolger · Nachbarzehner", typen:["z_vorNach","z_zehnerNachbar","z_strahl","z_vorNach","z_strahl"]},
+    {id:3, name:"Vergleichen", kurz:"größer, kleiner oder gleich: 47 ☐ 74", typen:["z_vergleich","z_groesste","z_vergleich"]},
+    {id:4, name:"Verdoppeln, halbieren, gerade und ungerade", kurz:"das Doppelte von 35 · die Hälfte von 70", typen:["z_doppelt","z_haelfte","z_gerade"]},
+    {id:5, name:"Hunderter, Zehner, Einer", kurz:"Zahlen bis 1000 · 3 H 5 E = 305", typen:["z_hze","z_stelle3","z_vorNach1000","z_strahl1000"]},
+    {id:6, name:"Runden", kurz:"auf Zehner und auf Hunderter", typen:["z_rundeZ","z_rundeH","z_rundeZ"]},
+    {id:7, name:"Teilen mit Rest", kurz:"17 ÷ 5 = 3 Rest 2", typen:["z_rest"]}
+  ];
+  const GEO=[
+    {id:1, name:"Flächen erkennen", kurz:"Kreis · Dreieck · Quadrat · Rechteck", typen:["f_form","f_form","f_form2"]},
+    {id:2, name:"Ecken und Seiten", kurz:"Wie viele Ecken hat ein Sechseck?", typen:["f_ecken","f_form2","f_ecken"]},
+    {id:3, name:"Körper erkennen", kurz:"Würfel · Quader · Kugel · Zylinder · Kegel · Pyramide", typen:["f_koerper","f_alltag","f_koerper"]},
+    {id:4, name:"Ecken, Kanten, Flächen", kurz:"Ein Würfel hat 8 Ecken", typen:["f_eck","f_eck","f_rund"]},
+    {id:5, name:"Symmetrie", kurz:"Ist das eine Spiegelachse?", typen:["f_sym"]},
+    {id:6, name:"Umfang und Fläche", kurz:"Kästchen zählen · einmal außen herum", typen:["f_flaeche","f_umfang"]}
+  ];
+  const DATEN=[
+    {id:1, name:"Strichlisten", kurz:"immer fünf im Bündel", typen:["d_strich"]},
+    {id:2, name:"Diagramme lesen", kurz:"Wie viele? Was ist am beliebtesten?", typen:["d_diaLesen","d_diaMax","d_diaLesen"]},
+    {id:3, name:"Mit Diagrammen rechnen", kurz:"Wie viele mehr? Wie viele insgesamt?", typen:["d_diaUnterschied","d_diaSumme"]},
+    {id:4, name:"Sicher, möglich, unmöglich", kurz:"Kugeln aus dem Beutel ziehen", typen:["d_sicher","d_sicher","d_wahrsch"]},
+    {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]}
+  ];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -190,6 +217,77 @@
     ["Ein voller Lastwagen wiegt ungefähr …","40 t",["40 kg","400 kg"]],["Ein Blauwal wiegt ungefähr …","150 t",["150 kg","15 kg"]],["Eine Kuh wiegt ungefähr …","600 kg",["6 kg","60 t"]],
     ["Ein Stadtbus wiegt ungefähr …","12 t",["12 kg","120 kg"]],["Ein Motorrad wiegt ungefähr …","200 kg",["2 kg","20 t"]]];
   const PACKUNG=[["Eine Tafel Schokolade","Tafeln",100],["Ein Päckchen Butter","Päckchen",250],["Eine Packung Nudeln","Packungen",500],["Ein Becher Joghurt","Becher",150],["Eine Dose Mais","Dosen",300]];
+  // ---------- Zahlen, Formen, Daten: Bilder ----------
+  function zeBild(z,e){
+    const stange=`<svg width="14" height="74" viewBox="0 0 14 74"><rect x="1" y="1" width="12" height="72" rx="2" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.5"/>${[1,2,3,4,5,6,7,8,9].map(i=>`<line x1="1" y1="${1+i*7.2}" x2="13" y2="${1+i*7.2}" stroke="#1e3a8a" stroke-width="1"/>`).join("")}</svg>`;
+    const wuerfel=`<svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="2" fill="#facc15" stroke="#a16207" stroke-width="1.5"/></svg>`;
+    return stange.repeat(z)+(e?`<span style="display:inline-grid;grid-template-columns:repeat(${Math.min(e,5)},14px);gap:3px;margin-left:8px">${wuerfel.repeat(e)}</span>`:"");
+  }
+  function strahlBild(max, wert){
+    const X=v=>12+v*(296/max), schritt=max/100; let s=`<line x1="6" y1="40" x2="314" y2="40" stroke="#e2e8f0" stroke-width="2"/>`;
+    for(let i=0;i<=100;i++){ const v=i*schritt, lang=i%10===0?13:i%5===0?9:5;
+      s+=`<line x1="${X(v)}" y1="${40-lang}" x2="${X(v)}" y2="${40+lang}" stroke="#e2e8f0" stroke-width="${i%10===0?1.8:0.8}"/>`;
+      if(i%10===0) s+=`<text x="${X(v)}" y="68" text-anchor="middle" font-size="${max>100?9:11}" font-weight="700" fill="#e2e8f0">${v}</text>`; }
+    s+=`<path d="M${X(wert)} 26 l-6 -14 h12 z" fill="#f87171"/><line x1="${X(wert)}" y1="4" x2="${X(wert)}" y2="14" stroke="#f87171" stroke-width="3"/>`;
+    return `<svg viewBox="0 0 320 74" role="img" aria-label="Zahlenstrahl">${s}</svg>`;
+  }
+  const FORMFARBE=["#60a5fa","#f472b6","#34d399","#fbbf24","#a78bfa","#fb923c"];
+  const eck=(n,r,dreh)=>Array.from({length:n},(_,i)=>{ const w=(dreh||-90)*Math.PI/180+i*2*Math.PI/n; return `${(50+r*Math.cos(w)).toFixed(1)},${(50+r*Math.sin(w)).toFixed(1)}`; }).join(" ");
+  function formBild(name){
+    const f=aus(FORMFARBE), st=`fill="${f}" stroke="#0f172a" stroke-width="3"`;
+    const innen = name==="Kreis" ? `<circle cx="50" cy="50" r="38" ${st}/>` : name==="Dreieck" ? `<polygon points="${aus(["50,10 90,86 10,86","14,84 86,84 30,18","12,20 88,34 40,88"])}" ${st}/>`
+      : name==="Quadrat" ? `<rect x="16" y="16" width="68" height="68" ${st}/>` : name==="Rechteck" ? (Math.random()<0.6?`<rect x="6" y="26" width="88" height="48" ${st}/>`:`<rect x="28" y="6" width="44" height="88" ${st}/>`)
+      : name==="Fünfeck" ? `<polygon points="${eck(5,42)}" ${st}/>` : `<polygon points="${eck(6,42,0)}" ${st}/>`;
+    return `<svg width="130" height="130" viewBox="0 0 100 100" role="img">${innen}</svg>`;
+  }
+  const FORMINFO={ Kreis:"Ein <b>Kreis</b> ist ganz rund – er hat keine Ecken.", Dreieck:"Ein <b>Dreieck</b> hat 3 Ecken und 3 Seiten.", Quadrat:"Ein <b>Quadrat</b> hat 4 Ecken und 4 <b>gleich lange</b> Seiten.",
+    Rechteck:"Ein <b>Rechteck</b> hat 4 Ecken. Gegenüberliegende Seiten sind gleich lang – zwei lange und zwei kurze.", "Fünfeck":"Ein <b>Fünfeck</b> hat 5 Ecken und 5 Seiten.", Sechseck:"Ein <b>Sechseck</b> hat 6 Ecken und 6 Seiten – wie eine Bienenwabe." };
+  const KOERPER={
+    "Würfel":  {ekf:[8,12,6], info:"Ein <b>Würfel</b> hat 6 gleich große quadratische Flächen."},
+    "Quader":  {ekf:[8,12,6], info:"Ein <b>Quader</b> hat 6 rechteckige Flächen – wie ein Schuhkarton."},
+    "Kugel":   {info:"Eine <b>Kugel</b> ist überall rund – sie hat keine Ecken und keine Kanten und kann in jede Richtung rollen."},
+    "Zylinder":{info:"Ein <b>Zylinder</b> hat oben und unten einen Kreis – wie eine Dose."},
+    "Kegel":   {info:"Ein <b>Kegel</b> hat unten einen Kreis und oben eine Spitze – wie eine Eistüte."},
+    "Pyramide":{ekf:[5,8,5], info:"Eine <b>Pyramide</b> hat unten ein Viereck und vier Dreiecke, die sich in einer Spitze treffen."} };
+  function koerperBild(name){
+    const a='fill="#7dd3fc" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"', b='fill="#38bdf8" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"', c='fill="#0ea5e9" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"';
+    const innen = name==="Würfel" ? `<polygon points="20,34 68,34 68,82 20,82" ${b}/><polygon points="20,34 36,18 84,18 68,34" ${a}/><polygon points="68,34 84,18 84,66 68,82" ${c}/>`
+      : name==="Quader" ? `<polygon points="6,44 76,44 76,80 6,80" ${b}/><polygon points="6,44 22,28 92,28 76,44" ${a}/><polygon points="76,44 92,28 92,64 76,80" ${c}/>`
+      : name==="Kugel" ? `<circle cx="50" cy="50" r="38" ${b}/><ellipse cx="50" cy="50" rx="38" ry="12" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="4 4"/><ellipse cx="36" cy="34" rx="9" ry="6" fill="#e0f2fe" opacity=".8"/>`
+      : name==="Zylinder" ? `<path d="M22 24 V76 A28 10 0 0 0 78 76 V24" ${b}/><ellipse cx="50" cy="24" rx="28" ry="10" ${a}/>`
+      : name==="Kegel" ? `<path d="M50 10 L22 78 A28 10 0 0 0 78 78 Z" ${b}/><path d="M22 78 A28 10 0 0 1 78 78" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="4 4"/>`
+      : `<polygon points="50,10 14,74 62,88" ${b}/><polygon points="50,10 62,88 90,66" ${c}/><path d="M14 74 L42 56 L90 66" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+    return `<svg width="140" height="140" viewBox="0 0 100 100" role="img">${innen}</svg>`;
+  }
+  function symBild(l, achse){
+    return `<svg width="150" height="150" viewBox="0 0 100 100" role="img"><text x="50" y="80" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="84" font-weight="700" fill="#fde68a">${l}</text>
+      ${achse==="senkrecht"?`<line x1="50" y1="2" x2="50" y2="98"`:`<line x1="2" y1="50" x2="98" y2="50"`} stroke="#f87171" stroke-width="2.5" stroke-dasharray="6 5"/></svg>`;
+  }
+  function gitterBild(a,b){
+    const k=24, W=10*k+2, Hh=7*k+2; let s="";
+    for(let x=0;x<=10;x++) s+=`<line x1="${1+x*k}" y1="1" x2="${1+x*k}" y2="${1+7*k}" stroke="#475569" stroke-width="1"/>`;
+    for(let y=0;y<=7;y++) s+=`<line x1="1" y1="${1+y*k}" x2="${1+10*k}" y2="${1+y*k}" stroke="#475569" stroke-width="1"/>`;
+    s+=`<rect x="${1+k}" y="${1+k}" width="${a*k}" height="${b*k}" fill="rgba(250,204,21,.35)" stroke="#facc15" stroke-width="3"/>`;
+    return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Kästchenpapier">${s}</svg>`;
+  }
+  function strichBild(n){
+    const buendel=k=>`<svg width="52" height="54" viewBox="0 0 52 54">${Array.from({length:Math.min(k,4)},(_,i)=>`<line x1="${8+i*10}" y1="6" x2="${8+i*10}" y2="48" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>`).join("")}${k===5?`<line x1="2" y1="44" x2="46" y2="10" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>`:""}</svg>`;
+    let s=""; for(let r=n;r>0;r-=5) s+=buendel(Math.min(r,5)); return s;
+  }
+  const TIERE=[["Hunde","#60a5fa"],["Katzen","#f472b6"],["Pferde","#fbbf24"],["Hasen","#34d399"],["Vögel","#a78bfa"],["Fische","#fb923c"]];
+  function diaDaten(){ const t=mische(TIERE).slice(0,4), w=mische([1,2,3,4,5,6,7,8,9,10]).slice(0,4); return t.map((x,i)=>[x[0],w[i],x[1]]); }
+  function balkenBild(d){
+    const Y=v=>150-v*13; let s="";
+    for(let v=0;v<=10;v++){ s+=`<line x1="30" y1="${Y(v)}" x2="312" y2="${Y(v)}" stroke="${v===0?"#e2e8f0":"#475569"}" stroke-width="${v===0?2:1}"/><text x="24" y="${Y(v)+4}" text-anchor="end" font-size="10" font-weight="700" fill="#e2e8f0">${v}</text>`; }
+    d.forEach((x,i)=>{ const x0=46+i*68; s+=`<rect x="${x0}" y="${Y(x[1])}" width="44" height="${x[1]*13}" fill="${x[2]}" stroke="#0f172a" stroke-width="1.5"/><text x="${x0+22}" y="166" text-anchor="middle" font-size="12" font-weight="700" fill="#e2e8f0">${x[0]}</text>`; });
+    return `<svg viewBox="0 0 320 172" role="img" aria-label="Säulendiagramm: Lieblingstiere">${s}</svg>`;
+  }
+  const FARBEN={rot:"#ef4444", blau:"#3b82f6", gelb:"#facc15", grün:"#22c55e"};
+  function beutelBild(kugeln){
+    const n=kugeln.length, pro=Math.min(5,n);
+    const k=kugeln.map((f,i)=>`<circle cx="${50-(pro-1)*8+(i%pro)*16}" cy="${99-Math.floor(i/pro)*16}" r="7" fill="${FARBEN[f]}" stroke="#0f172a" stroke-width="1.5"/>`).join("");
+    return `<svg width="170" height="170" viewBox="0 0 100 116" role="img" aria-label="Beutel mit Kugeln"><path d="M34 14 Q50 22 66 14 L62 28 Q96 52 90 96 Q88 112 50 112 Q12 112 10 96 Q4 52 38 28 Z" fill="#334155" stroke="#94a3b8" stroke-width="2.5"/><path d="M36 28 H64" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>${k}</svg>`;
+  }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   const BAU={
     g_cent(){ let l,sum; do{ l=[]; const n=rnd(2,5); for(let i=0;i<n;i++) l.push(aus([1,2,5,10,10,20,20,50])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=100 || l.filter(x=>x===50).length>1);
@@ -222,6 +320,119 @@
       return eingabe(`${w[2]} kostet <span class="ziel">${komma(w[1])}</span>. Du bezahlst mit einem <span class="ziel">${gibt/100}-€-Schein</span>.<br>Wie viel bekommst du zurück?`, [F.eur,F.ct], c, {tag:"rechnen", sollText:euroCent(c), streng:true,
         erkl: bisVoll ? `Zähle weiter bis zum Schein: von ${komma(w[1])} bis ${voll/100} € sind es ${bisVoll} ct, von ${voll/100} € bis ${gibt/100} € noch ${(gibt-voll)/100} €. Zusammen <b>${euroCent(c)}</b>.`
                       : `${gibt/100} € − ${w[1]/100} € = <b>${euroCent(c)}</b>.`}); },
+    // ===== Zahlen bis 1000 =====
+    z_ze(){ const z=rnd(1,9), e=rnd(0,9);
+      return eingabe(`<span class="ziel">${z} Zehner und ${e} Einer</span> – welche Zahl ist das?`, [F.zahl], z*10+e, {bild:zeBild(z,e), tag:"stelle", sollText:String(z*10+e),
+        erkl:`Die Zehner stehen vorn, die Einer hinten: ${z} Zehner sind ${z*10}, dazu ${e} Einer: <b>${z*10+e}</b>.`}); },
+    z_stelle2(){ const n=rnd(11,99), was=aus(["Zehner","Einer"]), r=was==="Zehner"?Math.floor(n/10):n%10; if(!r) return BAU.z_stelle2();
+      return eingabe(`Wie viele <span class="ziel">${was}</span> hat die Zahl <span class="ziel">${n}</span>?`, [F.zahl], r, {tag:"stelle", sollText:String(r),
+        erkl:`${n} = ${Math.floor(n/10)} Zehner und ${n%10} Einer. Die Zehner stehen <b>vorn</b>, die Einer <b>hinten</b>.`}); },
+    z_vorNach(){ const n=aus([rnd(2,98),rnd(1,9)*10,rnd(1,9)*10+9]), vor=Math.random()<0.5, r=vor?n-1:n+1;
+      return eingabe(`Welche Zahl kommt direkt <span class="ziel">${vor?"vor":"nach"} ${n}</span>?`, [F.zahl], r, {tag:"nachbar", sollText:String(r),
+        erkl:`${vor?"Der Vorgänger ist immer 1 kleiner":"Der Nachfolger ist immer 1 größer"}: ${n} ${vor?"−":"+"} 1 = <b>${r}</b>.`}); },
+    z_zehnerNachbar(){ let n; do{ n=rnd(11,98); }while(n%10===0); const a=Math.floor(n/10)*10, ok=`${a} und ${a+10}`;
+      const falsch=[`${a-10} und ${a}`,`${a+10} und ${a+20}`,`${n-1} und ${n+1}`];
+      return {art:"wahl", frage:`Zwischen welchen <span class="ziel">Zehnerzahlen</span> liegt <span class="ziel">${n}</span>?`, optionen:mische([ok].concat(falsch)), ok, tag:"nachbar", sollText:ok,
+        erkl:`Die Nachbarzehner sind der Zehner davor und der Zehner danach: <b>${a}</b> &lt; ${n} &lt; <b>${a+10}</b>.`}; },
+    z_strahl(){ const n=rnd(3,97);
+      return eingabe("Auf welche Zahl zeigt der Pfeil?", [F.zahl], n, {bild:strahlBild(100,n), lineal:true, tag:"strahl", sollText:String(n),
+        erkl:`Such den beschrifteten Zehner davor: <b>${Math.floor(n/10)*10}</b>. Von dort sind es noch ${n%10} kleine Striche: <b>${n}</b>.`}); },
+    z_vergleich(){ let a,b; const fall=rnd(0,3); if(fall===0){ a=rnd(12,98); b=+String(a).split("").reverse().join(""); } else if(fall===1){ a=rnd(11,99); b=a; } else { a=rnd(10,99); b=rnd(10,99); }
+      const ok=a<b?"<":a>b?">":"=";
+      return {art:"wahl", frage:`Welches Zeichen passt?<br><span class="ziel">${a} ☐ ${b}</span>`, optionen:["<","=",">"], ok, tag:"zvergleich", sollText:`${a} ${ok} ${b}`,
+        erkl:`Vergleiche zuerst die <b>Zehner</b>, dann die Einer. Das Zeichen ist wie ein Krokodilmaul: Es schnappt immer nach der größeren Zahl. <b>${a} ${ok} ${b}</b>`}; },
+    z_groesste(){ const s=new Set(); const basis=rnd(2,8); while(s.size<4) s.add(aus([basis*10+rnd(0,9),rnd(1,9)*10+basis,rnd(10,99)])); const l=[...s], gross=Math.random()<0.5, r=gross?Math.max(...l):Math.min(...l);
+      return {art:"wahl", frage:`Welche Zahl ist am <span class="ziel">${gross?"größten":"kleinsten"}</span>?`, optionen:mische(l.map(String)), ok:String(r), tag:"zvergleich", sollText:String(r),
+        erkl:`Schau zuerst auf die Zehner. Der Größe nach geordnet: ${l.slice().sort((a,b)=>a-b).join(" &lt; ")}. Am ${gross?"größten":"kleinsten"} ist <b>${r}</b>.`}; },
+    z_hze(){ const h=rnd(1,9), z=aus([0,rnd(1,9),rnd(1,9)]), e=aus([0,rnd(1,9),rnd(1,9)]), n=h*100+z*10+e; if(!z&&!e) return BAU.z_hze();
+      const teile=[`${h} Hunderter`].concat(z?[`${z} Zehner`]:[]).concat(e?[`${e} Einer`]:[]);
+      return eingabe(`<span class="ziel">${teile.join(", ")}</span> – welche Zahl ist das?`, [F.zahl], n, {tag:"stelle", sollText:String(n),
+        erkl:`Hunderter, Zehner, Einer – jede Stelle bekommt eine Ziffer. ${!z?"Es gibt <b>keine Zehner</b>, also steht dort eine 0. ":!e?"Es gibt <b>keine Einer</b>, also steht dort eine 0. ":""}H ${h} · Z ${z} · E ${e}: <b>${n}</b>.`}); },
+    z_stelle3(){ let n; do{ n=rnd(102,987); }while(new Set(String(n)).size<3 || String(n).includes("0")); const i=rnd(0,2), namen=["Hunderterstelle","Zehnerstelle","Einerstelle"], r=+String(n)[i];
+      return eingabe(`Welche Ziffer steht an der <span class="ziel">${namen[i]}</span> von <span class="ziel">${n}</span>?`, [F.zahl], r, {tag:"stelle", sollText:String(r),
+        erkl:`${n}: Hunderter <b>${String(n)[0]}</b> · Zehner <b>${String(n)[1]}</b> · Einer <b>${String(n)[2]}</b>. An der ${namen[i]} steht die <b>${r}</b>.`}); },
+    z_vorNach1000(){ const n=aus([rnd(1,9)*100,rnd(1,9)*100+99,rnd(10,98)*10,rnd(10,98)*10+9,rnd(101,998)]), vor=Math.random()<0.5, r=vor?n-1:n+1;
+      return eingabe(`Welche Zahl kommt direkt <span class="ziel">${vor?"vor":"nach"} ${n}</span>?`, [F.zahl], r, {tag:"nachbar", sollText:String(r),
+        erkl:`${vor?"Der Vorgänger ist 1 kleiner":"Der Nachfolger ist 1 größer"}: ${n} ${vor?"−":"+"} 1 = <b>${r}</b>. Achte auf den Übergang zum nächsten Zehner oder Hunderter.`}); },
+    z_strahl1000(){ const n=rnd(3,97)*10;
+      return eingabe("Auf welche Zahl zeigt der Pfeil?", [F.zahl], n, {bild:strahlBild(1000,n), lineal:true, tag:"strahl", sollText:String(n),
+        erkl:`Hier ist jeder kleine Strich <b>10</b>. Such den Hunderter davor: <b>${Math.floor(n/100)*100}</b>. Von dort sind es noch ${(n%100)/10} Striche: <b>${n}</b>.`}); },
+    z_rundeZ(){ let n; do{ n=rnd(11,989); }while(n%10===0); const r=Math.round(n/10)*10, e=n%10;
+      return eingabe(`Runde <span class="ziel">${n}</span> auf <span class="ziel">Zehner</span>.`, [F.zahl], r, {tag:"runden", sollText:String(r),
+        erkl:`Schau auf die <b>Einer</b>: ${e}. Bei 0, 1, 2, 3, 4 wird <b>ab</b>gerundet, bei 5, 6, 7, 8, 9 <b>auf</b>gerundet. ${n} ≈ <b>${r}</b>.`}); },
+    z_rundeH(){ let n; do{ n=rnd(101,949); }while(n%100===0); const r=Math.round(n/100)*100, z=Math.floor(n/10)%10;
+      return eingabe(`Runde <span class="ziel">${n}</span> auf <span class="ziel">Hunderter</span>.`, [F.zahl], r, {tag:"runden", sollText:String(r),
+        erkl:`Schau auf die <b>Zehner</b>: ${z}. Bei 0 bis 4 wird <b>ab</b>gerundet, bei 5 bis 9 <b>auf</b>gerundet. ${n} ≈ <b>${r}</b>.`}); },
+    z_doppelt(){ const n=aus([rnd(6,25),rnd(11,49),rnd(3,24)*5]);
+      return eingabe(`Das <span class="ziel">Doppelte von ${n}</span> ist …`, [F.zahl], n*2, {tag:"doppelt", sollText:String(n*2), erkl:`Verdoppeln heißt: die Zahl zweimal nehmen. ${n} + ${n} = <b>${n*2}</b>.`}); },
+    z_haelfte(){ const n=aus([rnd(6,25),rnd(11,49),rnd(3,24)*5])*2;
+      return eingabe(`Die <span class="ziel">Hälfte von ${n}</span> ist …`, [F.zahl], n/2, {tag:"doppelt", sollText:String(n/2), erkl:`Halbieren heißt: in zwei gleiche Teile teilen. ${n/2} + ${n/2} = ${n}, also ist die Hälfte <b>${n/2}</b>.`}); },
+    z_gerade(){ const n=rnd(11,998), ok=n%2===0?"gerade":"ungerade";
+      return {art:"wahl", frage:`Ist <span class="ziel">${n}</span> gerade oder ungerade?`, optionen:["gerade","ungerade"], ok, tag:"doppelt", sollText:ok,
+        erkl:`Schau nur auf die <b>letzte Ziffer</b>: ${n%10}. Endet eine Zahl auf 0, 2, 4, 6 oder 8, ist sie gerade – sie lässt sich ohne Rest halbieren. ${n} ist <b>${ok}</b>.`}; },
+    z_rest(){ const b=rnd(2,9), q=rnd(2,9), r=rnd(1,b-1), a=b*q+r;
+      return eingabe(`<span class="ziel">${a} ÷ ${b}</span> = ?`, [F.quot,F.zahl], q*100+r, {tag:"rest", sollText:`${q} Rest ${r}`,
+        erkl:`Such die größte Malaufgabe mit ${b}, die in ${a} passt: ${q} × ${b} = ${q*b}. Bis ${a} bleiben ${a} − ${q*b} = ${r} übrig: <b>${q} Rest ${r}</b>.`}); },
+    // ===== Formen und Körper =====
+    f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
+      return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
+    f_form2(){ const p=["Dreieck","Quadrat","Rechteck","Fünfeck","Sechseck","Kreis"], ok=aus(p);
+      return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische([ok].concat(mische(p.filter(x=>x!==ok)).slice(0,3))), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
+    f_ecken(){ const f=aus([["Dreieck",3],["Quadrat",4],["Rechteck",4],["Fünfeck",5],["Sechseck",6]]), was=aus(["Ecken","Seiten"]);
+      return eingabe(`Wie viele <span class="ziel">${was}</span> hat ein <span class="ziel">${f[0]}</span>?`, [F.zahl], f[1], {bild:formBild(f[0]), tag:"ecken", sollText:String(f[1]),
+        erkl:`Zähle reihum: Ein ${f[0]} hat <b>${f[1]} Ecken</b> und <b>${f[1]} Seiten</b>. Es sind immer gleich viele.`}); },
+    f_koerper(){ const p=Object.keys(KOERPER), ok=aus(p);
+      return {art:"wahl", frage:"Wie heißt dieser Körper?", bild:koerperBild(ok), optionen:mische([ok].concat(mische(p.filter(x=>x!==ok)).slice(0,3))), ok, tag:"koerper", sollText:ok, erkl:KOERPER[ok].info}; },
+    f_alltag(){ const d=aus([["Ein Fußball","Kugel"],["Ein Spielwürfel","Würfel"],["Ein Schuhkarton","Quader"],["Eine Konservendose","Zylinder"],["Eine Eistüte","Kegel"],["Ein Partyhut","Kegel"],
+        ["Ein Zelt mit Spitze","Pyramide"],["Eine Orange","Kugel"],["Ein Ziegelstein","Quader"],["Eine Kerze","Zylinder"],["Ein Zuckerwürfel","Würfel"],["Eine Murmel","Kugel"]]), p=Object.keys(KOERPER);
+      return {art:"wahl", frage:`<span class="ziel">${d[0]}</span> hat die Form von …`, optionen:mische([d[1]].concat(mische(p.filter(x=>x!==d[1])).slice(0,3))), ok:d[1], tag:"koerper", sollText:d[1],
+        bildDanach:koerperBild(d[1]), erkl:`${d[0]} sieht aus wie ein Körper mit dem Namen <b>${d[1]}</b>. ${KOERPER[d[1]].info}`}; },
+    f_eck(){ const k=aus(["Würfel","Quader","Pyramide"]), i=rnd(0,2), was=["Ecken","Kanten","Flächen"][i], w=KOERPER[k].ekf;
+      return eingabe(`Wie viele <span class="ziel">${was}</span> hat ${k==="Pyramide"?"eine":"ein"} <span class="ziel">${k}</span>?`, [F.zahl], w[i], {bild:koerperBild(k), tag:"ecken", sollText:String(w[i]),
+        erkl:`${k}: <b>${w[0]} Ecken</b>, <b>${w[1]} Kanten</b>, <b>${w[2]} Flächen</b>. Eine Kante ist dort, wo zwei Flächen zusammenstoßen.`}); },
+    f_rund(){ const d=aus([["Zylinder","Flächen",3,"zwei Kreise (oben und unten) und eine gebogene Fläche rundherum"],["Kegel","Flächen",2,"einen Kreis unten und eine gebogene Fläche"],["Kugel","Flächen",1,"nur eine einzige gebogene Fläche – und keine Ecken und Kanten"],["Kegel","Spitzen",1,"genau eine Spitze oben"]]);
+      return eingabe(`Wie viele <span class="ziel">${d[1]}</span> hat ${d[0]==="Kugel"?"eine":"ein"} <span class="ziel">${d[0]}</span>?`, [F.zahl], d[2], {bild:koerperBild(d[0]), tag:"ecken", sollText:String(d[2]), erkl:`${d[0]==="Kugel"?"Eine":"Ein"} ${d[0]} hat ${d[3]}: <b>${d[2]}</b>.`}); },
+    f_sym(){ const senk="AHMOTUVWXY", waag="BCDEHKOX", keine="FGJLNPRSZ", l=aus((senk+waag+keine+keine).split("")), achse=aus(["senkrecht","waagerecht"]);
+      const ja=(achse==="senkrecht"?senk:waag).includes(l), ok=ja?"Ja":"Nein";
+      return {art:"wahl", frage:"Ist die gestrichelte Linie eine <span class=\"ziel\">Spiegelachse</span>?", bild:symBild(l,achse), optionen:["Ja","Nein"], ok, tag:"symmetrie", sollText:ok,
+        erkl:`Stell dir vor, du faltest das Bild an der Linie. ${ja?"Beide Hälften liegen <b>genau aufeinander</b> – es ist eine Spiegelachse.":"Die beiden Hälften passen <b>nicht</b> aufeinander – es ist keine Spiegelachse."}`}; },
+    f_flaeche(){ const a=rnd(2,8), b=rnd(2,5);
+      return eingabe("Wie viele <span class=\"ziel\">Kästchen</span> groß ist das Rechteck?", [F.zahl], a*b, {bild:gitterBild(a,b), lineal:true, tag:"flaeche", sollText:String(a*b),
+        erkl:`Du musst nicht jedes Kästchen zählen: In einer Reihe sind ${a}, es gibt ${b} Reihen. ${b} × ${a} = <b>${a*b} Kästchen</b>. Das ist der <b>Flächeninhalt</b>.`}); },
+    f_umfang(){ let a,b; do{ a=rnd(2,8); b=rnd(2,5); }while(2*(a+b)===a*b);
+      return eingabe("Wie lang ist der <span class=\"ziel\">Rand</span> des Rechtecks (in Kästchenlängen)?", [F.zahl], 2*(a+b), {bild:gitterBild(a,b), lineal:true, tag:"flaeche", falle:a*b, sollText:String(2*(a+b)),
+        erkl:`Geh einmal außen herum: ${a} + ${b} + ${a} + ${b} = <b>${2*(a+b)}</b>. Das ist der <b>Umfang</b>. (Der Flächeninhalt wären ${a*b} Kästchen – das ist etwas anderes.)`}); },
+    // ===== Daten und Zufall =====
+    d_strich(){ const n=rnd(3,24);
+      return eingabe("Wie viele Striche sind das?", [F.zahl], n, {bild:strichBild(n), tag:"liste", sollText:String(n),
+        erkl:`Ein Bündel mit Querstrich sind immer <b>5</b>. ${Math.floor(n/5)} Bündel sind ${Math.floor(n/5)*5}${n%5?`, dazu ${n%5} einzelne`:""}: <b>${n}</b>.`}); },
+    d_diaLesen(){ const d=diaDaten(), x=aus(d);
+      return eingabe(`Wie viele Kinder mögen am liebsten <span class="ziel">${x[0]}</span>?`, [F.zahl], x[1], {bild:balkenBild(d), lineal:true, tag:"diagramm", sollText:String(x[1]),
+        erkl:`Such die Säule „${x[0]}“ und schau, bis zu welcher Linie sie reicht. Links liest du die Zahl ab: <b>${x[1]}</b>.`}); },
+    d_diaMax(){ const d=diaDaten(), gross=Math.random()<0.6, w=d.map(x=>x[1]), r=d.find(x=>x[1]===(gross?Math.max(...w):Math.min(...w)));
+      return {art:"wahl", frage:`Welches Tier ist am <span class="ziel">${gross?"beliebtesten":"wenigsten beliebt"}</span>?`, bild:balkenBild(d), lineal:true, optionen:d.map(x=>x[0]), ok:r[0], tag:"diagramm", sollText:r[0],
+        erkl:`Die ${gross?"höchste":"niedrigste"} Säule gehört zu „${r[0]}“: ${r[1]} Kinder.`}; },
+    d_diaUnterschied(){ const d=diaDaten(), s=mische(d), a=s[0][1]>s[1][1]?s[0]:s[1], b=a===s[0]?s[1]:s[0];
+      return eingabe(`Wie viele Kinder mögen <span class="ziel">${a[0]}</span> <span class="ziel">mehr</span> als ${b[0]}?`, [F.zahl], a[1]-b[1], {bild:balkenBild(d), lineal:true, tag:"diagramm", sollText:String(a[1]-b[1]),
+        erkl:`${a[0]}: ${a[1]} · ${b[0]}: ${b[1]}. Der Unterschied ist ${a[1]} − ${b[1]} = <b>${a[1]-b[1]}</b>.`}); },
+    d_diaSumme(){ const d=diaDaten(), s=d.reduce((x,y)=>x+y[1],0);
+      return eingabe("Wie viele Kinder wurden <span class=\"ziel\">insgesamt</span> gefragt?", [F.zahl], s, {bild:balkenBild(d), lineal:true, tag:"diagramm", sollText:String(s),
+        erkl:`Zähle alle Säulen zusammen: ${d.map(x=>x[1]).join(" + ")} = <b>${s}</b>.`}); },
+    d_sicher(){ const fall=aus(["sicher","möglich","möglich","unmöglich"]), f=mische(Object.keys(FARBEN)); let kugeln, frag;
+      if(fall==="sicher"){ kugeln=Array(rnd(4,7)).fill(f[0]); frag=f[0]; }
+      else if(fall==="unmöglich"){ kugeln=Array(rnd(2,4)).fill(f[0]).concat(Array(rnd(2,4)).fill(f[1])); frag=f[2]; }
+      else { kugeln=Array(rnd(1,4)).fill(f[0]).concat(Array(rnd(1,4)).fill(f[1])); frag=f[0]; }
+      return {art:"wahl", frage:`Du ziehst mit geschlossenen Augen eine Kugel.<br>„Die Kugel ist <span class="ziel">${frag}</span>.“ – Das ist …`, bild:beutelBild(mische(kugeln)), optionen:["sicher","möglich","unmöglich"], ok:fall, tag:"zufall", sollText:fall,
+        erkl: fall==="sicher" ? `Im Beutel sind <b>nur</b> ${frag}e Kugeln. Es <b>muss</b> eine ${frag}e sein: <b>sicher</b>.` : fall==="unmöglich" ? `Im Beutel ist <b>keine</b> ${frag}e Kugel. Das kann nie passieren: <b>unmöglich</b>.`
+              : `Im Beutel sind ${frag}e Kugeln, aber auch andere. Es <b>kann</b> passieren, muss aber nicht: <b>möglich</b>.`}; },
+    d_wahrsch(){ const f=mische(Object.keys(FARBEN)).slice(0,3), n=mische([rnd(1,2),rnd(3,4),rnd(5,7)]), gross=Math.random()<0.6;
+      const kugeln=f.flatMap((x,i)=>Array(n[i]).fill(x)), ziel=f[n.indexOf(gross?Math.max(...n):Math.min(...n))];
+      return {art:"wahl", frage:`Welche Farbe ziehst du am <span class="ziel">${gross?"wahrscheinlichsten":"unwahrscheinlichsten"}</span>?`, bild:beutelBild(mische(kugeln)), optionen:f.slice().sort(), ok:ziel, tag:"zufall", sollText:ziel,
+        erkl:`Zähle die Kugeln: ${f.map((x,i)=>`${n[i]} ${x}`).join(", ")}. Von ${ziel} gibt es am ${gross?"meisten":"wenigsten"} – diese Farbe ziehst du am ${gross?"wahrscheinlichsten":"unwahrscheinlichsten"}.`}; },
+    d_kombi(){ const a=rnd(2,4), b=rnd(2,4), s=aus([[`Lena hat <span class="ziel">${a} T-Shirts</span> und <span class="ziel">${b} Hosen</span>.<br>Wie viele verschiedene Outfits kann sie anziehen?`,"Jedes T-Shirt passt zu jeder Hose"],
+        [`Es gibt <span class="ziel">${a} Eissorten</span> und <span class="ziel">${b} Sorten Streusel</span>.<br>Wie viele verschiedene Eisbecher (eine Sorte Eis, eine Sorte Streusel) gibt es?`,"Jede Eissorte passt zu jeder Sorte Streusel"],
+        [`Tom hat <span class="ziel">${a} Mützen</span> und <span class="ziel">${b} Schals</span>.<br>Wie viele verschiedene Paare aus Mütze und Schal kann er tragen?`,"Jede Mütze passt zu jedem Schal"]]);
+      return eingabe(s[0], [F.zahl], a*b, {tag:"kombi", falle:a+b, sollText:String(a*b), erkl:`${s[1]}. Das sind ${a} × ${b} = <b>${a*b} Möglichkeiten</b> (nicht ${a} + ${b}).`}); },
     // ----- Gewichte -----
     w_schwerer(){ let a,b; do{ a=aus(WIEGT); b=aus(WIEGT); }while(a===b || Math.max(a[1],b[1])<Math.min(a[1],b[1])*3); const ok=a[1]>b[1]?a:b, gross=s=>s[0].toUpperCase()+s.slice(1);
       return {art:"wahl", frage:"Was ist <span class=\"ziel\">schwerer</span>?", optionen:mische([gross(a[0]),gross(b[0])]), ok:gross(ok[0]), tag:"vergleich", sollText:gross(ok[0]),

@@ -79,6 +79,22 @@ window.Wdh=(function(){
     groesse_legen:    "💶 Betrag falsch gelegt",
     groesse_rechnen:  "📏 Mit Größen falsch gerechnet",
     groesse_wiegen:   "⚖️ Gewichtsstücke falsch zusammengezählt",
+    groesse_stelle:   "🔢 Stellenwert verwechselt (Zehner und Einer, die Null)",
+    groesse_nachbar:  "🔢 Nachbarzahl falsch (Übergang zum nächsten Zehner oder Hunderter)",
+    groesse_strahl:   "🔢 Zahlenstrahl falsch abgelesen",
+    groesse_zvergleich:"🔢 Zahlen falsch verglichen",
+    groesse_runden:   "🔢 falsch gerundet",
+    groesse_doppelt:  "🔢 Verdoppeln, Halbieren oder gerade/ungerade",
+    groesse_rest:     "🔢 Teilen mit Rest",
+    groesse_form:     "📐 Form verwechselt",
+    groesse_koerper:  "📐 Körper verwechselt",
+    groesse_ecken:    "📐 Ecken, Kanten oder Flächen falsch gezählt",
+    groesse_symmetrie:"📐 Spiegelachse nicht erkannt",
+    groesse_flaeche:  "📐 Umfang und Fläche verwechselt oder falsch gezählt",
+    groesse_liste:    "📊 Strichliste falsch gezählt",
+    groesse_diagramm: "📊 Diagramm falsch abgelesen",
+    groesse_zufall:   "📊 sicher – möglich – unmöglich verwechselt",
+    groesse_kombi:    "📊 Kombinieren: addiert statt multipliziert",
     groesse_vergleich:"⚖️ Gewichte falsch verglichen"
   };
   function carries(a,b){ return a%10+b%10>=10; }

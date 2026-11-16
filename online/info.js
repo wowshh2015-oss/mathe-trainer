@@ -45,6 +45,27 @@
     "Umwandeln und Komma":"3 € 45 ct = 345 ct = <b>3,45 €</b>. Vor dem Komma stehen die Euro, dahinter die Cent. <b>Klasse 3.</b>",
     "Passend bezahlen":"Du legst einen Betrag selbst mit Münzen und Scheinen. <b>Klasse 2.</b>",
     "Einkaufen und Rückgeld":"Preise zusammenrechnen und ausrechnen, wie viel Geld du zurückbekommst. <b>Klasse 2 und 3.</b>",
+    // Zahlen bis 1000
+    "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
+    "Nachbarzahlen und Zahlenstrahl":"Vorgänger (1 kleiner), Nachfolger (1 größer), Nachbarzehner – und Zahlen am Zahlenstrahl ablesen. <b>Klasse 2.</b>",
+    "Vergleichen":"Größer (&gt;), kleiner (&lt;) oder gleich (=)? Das Zeichen schnappt wie ein Krokodil nach der größeren Zahl. <b>Klasse 2.</b>",
+    "Verdoppeln, halbieren, gerade und ungerade":"Das Doppelte, die Hälfte – und: Gerade Zahlen enden auf 0, 2, 4, 6, 8. <b>Klasse 2.</b>",
+    "Hunderter, Zehner, Einer":"Zahlen bis 1000: drei Stellen. Achtung bei der Null – 3 Hunderter und 5 Einer sind 305. <b>Klasse 3.</b>",
+    "Runden":"Bei 0 bis 4 wird abgerundet, bei 5 bis 9 aufgerundet: 47 ≈ 50, 342 ≈ 300. <b>Klasse 3.</b>",
+    "Teilen mit Rest":"Wenn es nicht aufgeht: 17 ÷ 5 = 3 Rest 2. Du schreibst das Ergebnis und den Rest in zwei Felder. <b>Klasse 3.</b>",
+    // Formen und Körper
+    "Flächen erkennen":"Kreis, Dreieck, Quadrat und Rechteck – später auch Fünfeck und Sechseck. <b>Klasse 1.</b>",
+    "Ecken und Seiten":"Du zählst die Ecken und Seiten. Es sind immer gleich viele. <b>Klasse 2.</b>",
+    "Körper erkennen":"Würfel, Quader, Kugel, Zylinder, Kegel und Pyramide – auch an Dingen aus dem Alltag. <b>Klasse 2.</b>",
+    "Ecken, Kanten, Flächen":"Ein Würfel hat 8 Ecken, 12 Kanten und 6 Flächen. Eine Kante ist dort, wo zwei Flächen zusammenstoßen. <b>Klasse 3.</b>",
+    "Symmetrie":"Kann man das Bild an der gestrichelten Linie falten, sodass beide Hälften genau aufeinanderliegen? <b>Klasse 2 und 3.</b>",
+    "Umfang und Fläche":"Fläche: Wie viele Kästchen passen hinein? Umfang: Wie lang ist der Weg einmal außen herum? <b>Klasse 3 und 4.</b>",
+    // Daten und Zufall
+    "Strichlisten":"Gezählt wird in Fünferbündeln: vier Striche und ein Querstrich. <b>Klasse 1 und 2.</b>",
+    "Diagramme lesen":"Ein Säulendiagramm zeigt, wie viele Kinder welches Tier mögen. Du liest die Zahlen ab. <b>Klasse 2.</b>",
+    "Mit Diagrammen rechnen":"Wie viele mehr? Wie viele insgesamt? Erst ablesen, dann rechnen. <b>Klasse 3.</b>",
+    "Sicher, möglich, unmöglich":"Du ziehst blind eine Kugel aus dem Beutel. Was passiert sicher, was vielleicht, was nie? <b>Klasse 3.</b>",
+    "Kombinieren":"3 T-Shirts und 2 Hosen: Jedes T-Shirt passt zu jeder Hose – also 3 × 2 Möglichkeiten. <b>Klasse 3 und 4.</b>",
     // Gewichte
     "Leicht oder schwer?":"Du vergleichst, was schwerer ist, und schätzt: Wiegt das eher Gramm oder Kilogramm? <b>Klasse 2 und 3.</b>",
     "Mit Gewichtsstücken wiegen":"Auf der Waage liegen Gewichtsstücke. Du zählst zusammen, wie schwer sie sind. <b>Klasse 3.</b>",
@@ -72,6 +93,9 @@
     uhr:"<b>Uhr-Trainer:</b> die Uhr mit Zeigern lesen und stellen – von vollen Stunden bis zu Zeitspannen. <b>Klasse 1 bis 3.</b>",
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
+    zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
+    geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
+    daten:"<b>Daten und Zufall:</b> Strichlisten und Diagramme lesen – und überlegen, was sicher, möglich oder unmöglich ist. <b>Klasse 2 und 3.</b>",
     gewichte:"<b>Gewichte:</b> schätzen, was schwerer ist, mit Gewichtsstücken wiegen und Gramm in Kilogramm umwandeln. <b>Klasse 3</b>, Tonnen <b>Klasse 4</b>.",
     laengen:"<b>Längen:</b> mit dem Lineal messen und Millimeter, Zentimeter und Meter umwandeln. <b>Klasse 2 und 3.</b>"
   };
@@ -161,6 +185,7 @@
     geld:[["#menue > h3, #start h3", T.stufen]],
     laengen:[["#menue > h3, #start h3", T.stufen]],
     gewichte:[["#menue > h3, #start h3", T.stufen]],
+    zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],
       ["#startBox > h3", el=>txt(el).includes("Strecke")

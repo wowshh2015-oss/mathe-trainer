@@ -15,7 +15,10 @@ window.HA=(function(){
     {app:"platz",           ic:"🔍", name:"Fehlende Zahl", datei:"platz-trainer.html"},
     {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
     {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"},
-    {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"}
+    {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"},
+    {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
+    {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
+    {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
   ];
   // Genauer: eine bestimmte Übung innerhalb eines Bereichs. feld = Feld im gespeicherten Durchgang, an dem man sie erkennt.
   const TEILE={
@@ -25,6 +28,9 @@ window.HA=(function(){
     minus:   {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
     zerlegen:{feld:"zr", liste:[["10","bis 10"],["20","bis 20"],["100","bis 100"]]},
     geld:    {feld:"zr", liste:[["1","Münzen zählen"],["2","Euro und Cent zählen"],["3","Umwandeln und Komma"],["4","Passend bezahlen"],["5","Einkaufen und Rückgeld"]]},
+    zahlen:  {feld:"zr", liste:[["1","Zehner und Einer"],["2","Nachbarzahlen und Zahlenstrahl"],["3","Vergleichen"],["4","Verdoppeln, halbieren, gerade und ungerade"],["5","Hunderter, Zehner, Einer"],["6","Runden"],["7","Teilen mit Rest"]]},
+    geo:     {feld:"zr", liste:[["1","Flächen erkennen"],["2","Ecken und Seiten"],["3","Körper erkennen"],["4","Ecken, Kanten, Flächen"],["5","Symmetrie"],["6","Umfang und Fläche"]]},
+    daten:   {feld:"zr", liste:[["1","Strichlisten"],["2","Diagramme lesen"],["3","Mit Diagrammen rechnen"],["4","Sicher, möglich, unmöglich"],["5","Kombinieren"]]},
     gewichte:{feld:"zr", liste:[["1","Leicht oder schwer?"],["2","Mit Gewichtsstücken wiegen"],["3","Gramm und Kilogramm"],["4","Mit Gewichten rechnen"],["5","Tonnen"]]},
     laengen: {feld:"zr", liste:[["1","Mit dem Lineal messen"],["2","Zentimeter und Millimeter"],["3","Meter und Zentimeter"],["4","Welche Einheit passt?"],["5","Mit Längen rechnen"]]},
     platz:   {feld:"zr", liste:[["1","Fachwörter: Plus und Minus"],["2","Fachwörter: Mal und Geteilt"],["3","Fehlende Zahl bei Plus"],["4","Fehlende Zahl bei Minus"],["5","Fehlende Zahl bei Mal und Geteilt"],["6","Alles gemischt – mit Fachwörtern"]]},
