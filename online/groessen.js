@@ -218,7 +218,8 @@
     {id:6, name:"Umwandeln mit allen Zahlen", kurz:"1 h 27 min = 87 min · 1 ¾ h · 85 s = 1 min 25 s", typen:["k_hMinIn","k_minAus2","k_bruchH","k_minSekIn","k_sekAus","k_vollMin"]},
     {id:7, name:"Wie spät ist es in …? Wie spät war es vor …?", kurz:"13.34 Uhr + 16 min · auch über die volle Stunde", typen:["zs_voll","zs_in","zs_in","zs_inH","zs_vor"]},
     {id:8, name:"Wie viel Zeit ist vergangen?", kurz:"17.44 Uhr bis 18.12 Uhr · 8.10 Uhr bis 11.05 Uhr", typen:["zs_dauer","zs_dauerH","zs_dauer","zs_dauerH","zs_voll"], sek:90},
-    {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100}
+    {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100},
+    {id:10, name:"Uhr: zwei Uhrzeiten, drei Schreibweisen", kurz:"3.10 Uhr und 15.10 Uhr · Viertel vor 8 = 7.45 Uhr = 19:45", typen:["u_beide","u_wortUhr","u_digitalWort","u_uhrPaar","u_nachm"], sek:60}
   ];
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
@@ -295,6 +296,29 @@
   const mitErkl=a=>{ a.erkl=`<div style="text-align:left;font-size:15px;line-height:1.6">${a.schritte.join("<br>")}</div>${schriftGitter(a,true)}`; return a; };
   const ohneUebertrag=(x,y)=>{ const W=Math.max(String(x).length,String(y).length), a=ziffern(x,W), b=ziffern(y,W); return a.every((v,i)=>v+b[i]<=9); };
   const ohneEntbuendeln=(x,y)=>{ const W=String(x).length, a=ziffern(x,W), b=ziffern(y,W); return a.every((v,i)=>v>=b[i]); };
+  // ---------- Uhr mit Zeigern (kurzer blauer Stundenzeiger, langer roter Minutenzeiger – wie im Uhr-Trainer) ----------
+  function uhrBild(h, m, px){
+    const P=(w,r)=>[(50+r*Math.sin(w*Math.PI/180)).toFixed(1),(50-r*Math.cos(w*Math.PI/180)).toFixed(1)], wm=m*6, wh=(h%12)*30+m*0.5; let s=`<circle cx="50" cy="50" r="47" fill="#f8fafc" stroke="#7c3aed" stroke-width="3"/>`;
+    for(let i=0;i<60;i++){ const a=P(i*6,i%5===0?40:43), b=P(i*6,45); s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#0f172a" stroke-width="${i%5===0?1.6:0.6}"/>`; }
+    for(let i=1;i<=12;i++){ const p=P(i*30,33); s+=`<text x="${p[0]}" y="${(+p[1]+3.6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="#0f172a" font-family="Arial,sans-serif">${i}</text>`; }
+    const ph=P(wh,22), pm=P(wm,37);
+    s+=`<line x1="50" y1="50" x2="${ph[0]}" y2="${ph[1]}" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/><line x1="50" y1="50" x2="${pm[0]}" y2="${pm[1]}" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round"/><circle cx="50" cy="50" r="3" fill="#0f172a"/>`;
+    return `<svg width="${px||150}" height="${px||150}" viewBox="0 0 100 100" role="img" aria-label="Uhr">${s}</svg>`;
+  }
+  // Uhrzeit in Worten – nur Ausdrücke, die überall in Deutschland gelten (h: 1 bis 12, m: Vielfaches von 5)
+  function uhrWort(h, m){
+    const n=x=>((x-1)%12+12)%12+1, nach=n(h), vor=n(h+1);
+    return m===0 ? `${nach} Uhr` : m===15 ? `Viertel nach ${nach}` : m===30 ? `halb ${vor}` : m===45 ? `Viertel vor ${vor}` : m===25 ? `5 Minuten vor halb ${vor}` : m===35 ? `5 Minuten nach halb ${vor}`
+         : m<25 ? `${m} Minuten nach ${nach}` : `${60-m} Minuten vor ${vor}`;
+  }
+  const uhrZeit=(h,m)=>`${h}.${zz(m)} Uhr`;
+  function uhrZufall(){ return [rnd(1,11), aus([0,5,10,15,20,25,30,35,40,45,50,55])]; }
+  // typische Verwechslungen: Zeiger vertauscht, eine Stunde daneben, „vor" und „nach" gespiegelt
+  function uhrFallen(h, m){
+    const l=[], hh=(m/5)||12, mm=(h*5)%60; if((hh!==h || mm!==m) && hh<12) l.push([hh, mm]);      // Stunde 12 auslassen – sonst entstünde „24.55 Uhr"
+    l.push([h%11+1, m]); if(m%30) l.push([h, 60-m]); l.push([(h+5)%11+1, (m+30)%60]); l.push([(h+2)%11+1, m]);
+    const s=new Set([h+":"+m]); return l.filter(x=>{ const k=x[0]+":"+x[1]; if(s.has(k)) return false; s.add(k); return true; });
+  }
   // ---------- Zahlen, Formen, Daten: Bilder ----------
   function zeBild(z,e){
     const stange=`<svg width="14" height="74" viewBox="0 0 14 74"><rect x="1" y="1" width="12" height="72" rx="2" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.5"/>${[1,2,3,4,5,6,7,8,9].map(i=>`<line x1="1" y1="${1+i*7.2}" x2="13" y2="${1+i*7.2}" stroke="#1e3a8a" stroke-width="1"/>`).join("")}</svg>`;
@@ -596,6 +620,24 @@
       const tab=`<table style="border-collapse:collapse;font-size:15px;margin:0 auto"><tr><th colspan="2" style="text-align:left;padding:2px 8px;color:#fde68a">🚌 Linie 14</th></tr>${halt.map((h,k)=>`<tr><td style="border:1px solid #475569;padding:3px 10px;text-align:left;${k===i||k===j?"font-weight:800;color:#fff":""}">${h}</td><td style="border:1px solid #475569;padding:3px 10px">${uhr(zeiten[k]).replace(" Uhr","")}</td></tr>`).join("")}</table>`;
       return eingabe(`Wie viele Minuten fährt der Bus von <span class="ziel">${halt[i]}</span> bis <span class="ziel">${halt[j]}</span>?`, [F.min], d, {bild:tab, tag:"zeitspanne", sollText:`${d} min`,
         erkl:`Lies beide Zeiten im Fahrplan ab: ${halt[i]} ${uhr(zeiten[i])}, ${halt[j]} ${uhr(zeiten[j])}.<br>${pfeil(zeiten[i],(60-zeiten[i]%60)<d?[60-zeiten[i]%60,d-(60-zeiten[i]%60)]:[d])}`}); },
+    // ===== Uhr: zwei Uhrzeiten zu einem Zifferblatt, drei Schreibweisen =====
+    u_beide(){ const [h,m]=uhrZufall(), ok=`${uhrZeit(h,m)} und ${uhrZeit(h+12,m)}`, f=uhrFallen(h,m);
+      const falsch=[`${uhrZeit(h,m)} und ${uhrZeit(h+10,m)}`, `${uhrZeit(f[0][0],f[0][1])} und ${uhrZeit(f[0][0]+12,f[0][1])}`, `${uhrZeit(f[1][0],f[1][1])} und ${uhrZeit(f[1][0]+12,f[1][1])}`];
+      return {art:"wahl", frage:"Diese Uhr zeigt zwei Uhrzeiten am Tag – einmal am Morgen, einmal am Nachmittag oder Abend.<br><span class=\"ziel\">Welche beiden sind es?</span>", bild:uhrBild(h,m), optionen:mische([ok].concat(falsch)), ok, tag:"uhrform", sollText:ok, spalten:1,
+        erkl:`Der kurze blaue Zeiger zeigt die Stunde (${h}), der lange rote die Minuten (${m}). Am Vormittag ist es <b>${uhrZeit(h,m)}</b>. Am Nachmittag zählt man weiter: ${h} + 12 = ${h+12}, also <b>${uhrZeit(h+12,m)}</b>.`}; },
+    u_nachm(){ const [h,m]=uhrZufall(), wann=h<6?"Nachmittag":h<10?"Abend":"spät am Abend";
+      return eingabe(`Es ist <span class="ziel">${wann}</span>. Wie spät ist es?<br>Schreibe die Uhrzeit mit einer Zahl von 13 bis 24.`, [F.uhrH,F.uhrM], (h+12)*60+m, {bild:uhrBild(h,m), tag:"uhrform", sollText:uhrZeit(h+12,m), streng:true,
+        erkl:`Die Uhr zeigt ${uhrZeit(h,m)}. Nach 12 Uhr mittags zählt man weiter: ${h} + 12 = <b>${h+12}</b>. Es ist <b>${uhrZeit(h+12,m)}</b>.`}); },
+    u_wortUhr(){ const [h,m]=uhrZufall(), f=uhrFallen(h,m).slice(0,3), ok=uhrBild(h,m,112), opt=[[h,m]].concat(f), o=mische(opt);
+      return {art:"wahl", frage:`<span class="ziel">${uhrWort(h,m)}</span> – welche Uhr passt?`, optionen:o.map(x=>uhrBild(x[0],x[1],112)), optText:o.map(x=>uhrZeit(x[0],x[1])), ok, tag:"uhrform", sollText:uhrZeit(h,m),
+        erkl:`„${uhrWort(h,m)}“ heißt ${uhrZeit(h,m)}: Der lange rote Zeiger steht auf der ${m/5||12}, der kurze blaue ${m===0?"genau auf der "+h:m<30?"kurz hinter der "+h:"schon nah an der "+(h%12+1)}.<br>${uhrBild(h,m,120)}`}; },
+    u_digitalWort(){ const [h,m]=uhrZufall(), H=Math.random()<0.5?h:h+12, ok=uhrWort(h,m), f=uhrFallen(h,m).map(x=>uhrWort(x[0],x[1])).filter(x=>x!==ok);
+      return {art:"wahl", frage:`Auf der Digitaluhr steht <span class="ziel" style="font-family:monospace;font-size:30px">${zz(H)}:${zz(m)}</span><br>Wie sagt man das?`, optionen:mische([ok].concat([...new Set(f)].slice(0,3))), ok, tag:"uhrform", sollText:ok, spalten:1,
+        erkl:`${zz(H)}:${zz(m)}${H>12?` – das ist am Nachmittag oder Abend. ${H} − 12 = ${h}, also ${uhrZeit(h,m)} auf der Uhr mit Zeigern`:""}. In Worten: <b>${ok}</b>.<br>${uhrBild(h,m,120)}`}; },
+    u_uhrPaar(){ const [h,m]=uhrZufall(), ok=`${uhrZeit(h,m)} · ${uhrWort(h,m)}`, f=uhrFallen(h,m);
+      const falsch=[`${uhrZeit(h,m)} · ${uhrWort(f[0][0],f[0][1])}`, `${uhrZeit(f[0][0],f[0][1])} · ${uhrWort(f[0][0],f[0][1])}`, `${uhrZeit(f[1][0],f[1][1])} · ${uhrWort(h,m)}`].filter(x=>x!==ok);
+      return {art:"wahl", frage:"Was gehört zu dieser Uhr? <span class=\"ziel\">Beides muss stimmen.</span>", bild:uhrBild(h,m), optionen:mische([ok].concat([...new Set(falsch)])), ok, tag:"uhrform", sollText:ok, spalten:1,
+        erkl:`Der kurze blaue Zeiger: Stunde ${h}. Der lange rote Zeiger: ${m} Minuten. Das ist <b>${uhrZeit(h,m)}</b> – in Worten <b>${uhrWort(h,m)}</b>.`}; },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
@@ -788,13 +830,13 @@
       felder.forEach((x,i)=>x.addEventListener("keydown", e=>{ if(e.key!=="Enter") return; if(i<felder.length-1 && x.value.trim()!=="" && felder[i+1].value.trim()==="") felder[i+1].focus(); else pruef(); }));
       try{ felder[0].focus({preventScroll:true}); }catch(e){}
     }else if(a.art==="wahl"){
-      $("buehne").innerHTML=bild+`<div class="wahl"${a.optionen.length===3?' style="grid-template-columns:1fr 1fr 1fr"':""}>${a.optionen.map((o,i)=>`<button data-i="${i}">${o}</button>`).join("")}</div>`;
+      $("buehne").innerHTML=bild+`<div class="wahl"${a.spalten===1?' style="grid-template-columns:1fr"':a.optionen.length===3?' style="grid-template-columns:1fr 1fr 1fr"':""}>${a.optionen.map((o,i)=>`<button data-i="${i}">${o}</button>`).join("")}</div>`;
       $("buehne").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
         if(wartet) return;
         const o=a.optionen[+b.dataset.i];
         $("buehne").querySelectorAll(".wahl button").forEach((x,i)=>{ x.disabled=true; if(a.optionen[i]===a.ok) x.classList.add("richtig"); });
         if(o!==a.ok) b.classList.add("falsch");
-        auswerten(a, o===a.ok, o, null, false);
+        auswerten(a, o===a.ok, a.optText ? a.optText[+b.dataset.i] : o, null, false);      // bei Bildern als Antwort nur den Text speichern
       }));
     }else if(a.art==="schrift"){
       $("buehne").innerHTML=schriftGitter(a,false)+`<div class="schriftTipp">${a.uebertrag?"Die kleinen Kästchen sind für die gemerkten Zahlen – du darfst sie benutzen.":"Fang rechts bei den Einern an."}</div><div class="reihe"><button id="okBtn">OK</button></div>`;

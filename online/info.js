@@ -63,6 +63,7 @@
     "Wie spät ist es in …? Wie spät war es vor …?":"Von einer Uhrzeit vorwärts oder rückwärts rechnen – auf die Minute genau. Trick: erst bis zur vollen Stunde, dann den Rest. <b>Klasse 3.</b>",
     "Wie viel Zeit ist vergangen?":"Von 17.44 Uhr bis 18.12 Uhr: erst bis zur vollen Stunde (16 min), dann der Rest (12 min) – zusammen 28 min. <b>Klasse 3.</b>",
     "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
+    "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
