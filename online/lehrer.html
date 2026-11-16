@@ -148,6 +148,20 @@
     body.blattOffen #blatt .seite{border-radius:0;padding:0;max-width:none}
     #blatt .st{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   }
+  #projektor{position:fixed;inset:0;z-index:3000;background:#0b1220;color:#f1f5f9;padding:1.6vh 2vw;display:flex;flex-direction:column;overflow:auto}
+  #projektor .pKopf{display:flex;align-items:center;gap:2vw;margin-bottom:1.2vh;flex:none}
+  #projektor .pKopf h2{margin:0;font-size:3.4vh;flex:1} #projektor .pKopf span{font-size:2vh;color:#94a3b8}
+  #projektor .pKopf button{font-size:2vh;padding:.8vh 1.4vw}
+  #projektor .pTabellen{display:flex;gap:1.6vw;flex:1;align-items:flex-start} #projektor .pKopf select{font-size:1.8vh;padding:.6vh .6vw;border-radius:.8vh;background:#1e293b;color:#f1f5f9;border:1px solid #475569}
+  #projektor table{border-collapse:separate;border-spacing:.3vw .4vh;flex:1;min-width:0;table-layout:fixed;font-size:var(--pf)} #projektor td.pName{cursor:pointer}
+  #projektor th{font-size:.62em;color:#94a3b8;font-weight:700;padding:0 0 .4vh;text-align:center;line-height:1.15;border:none;background:none}
+  #projektor td{padding:0 .5vw;text-align:center;border:none;border-radius:.6vh;height:var(--ph);font-weight:800;white-space:nowrap;overflow:hidden}
+  #projektor td.pName{text-align:left;font-size:1.08em;background:#1e293b;border-left:.9vw solid #475569;padding-left:1vw;text-overflow:ellipsis}
+  #projektor td.pName.gruen{border-left-color:#22c55e} #projektor td.pName.gelb{border-left-color:#facc15} #projektor td.pName.rot{border-left-color:#ef4444}
+  #projektor td.gruen{background:#15803d;color:#fff} #projektor td.gelb{background:#a16207;color:#fff} #projektor td.grau{background:#1e293b;color:#475569} #projektor td.rot{background:#b91c1c;color:#fff}
+  #projektor td.pTage{background:#1e293b;letter-spacing:.1vw;font-size:.8em;padding:0} #projektor td.pTage i{font-style:normal;color:#334155} #projektor td.pTage i.an{color:#4ade80}
+  #projektor .pFuss{flex:none;font-size:1.9vh;color:#94a3b8;margin-top:1vh;display:flex;gap:2.4vw;flex-wrap:wrap}
+  #projektor .pFuss b{display:inline-block;width:1.8vh;height:1.8vh;border-radius:.4vh;vertical-align:middle;margin-right:.5vw}
   @media print{ body{background:#fff;color:#000;padding:0} .noprint{display:none!important}
     .card{background:#fff;box-shadow:none;border:1px solid #ccc} th,td{border-color:#ccc} h1,h2{color:#000} }
 </style>
@@ -166,6 +180,7 @@
       <button class="ghost" data-tage="30">Letzte 30 Tage</button>
       <button class="ghost" data-tage="-1">Alles</button>
       <span style="flex:1"></span>
+      <button id="projBtn" title="Große Übersicht für den Beamer: wer hat diese Woche geübt, wer steht wo?">📽️ Projektor</button>
       <button class="ghost" id="wocheBtn" title="Die letzten 7 Tage auf einer Seite zum Ausdrucken">🗓️ Wochenblatt</button>
       <button class="ghost" id="druckBtn">🖨️ Drucken</button>
       <button class="ghost" id="csvBtn">CSV</button>
@@ -324,6 +339,7 @@
 </div>
 
 <div id="blatt" class="hide"></div>
+<div id="projektor" class="hide"></div>
 <div id="pinOverlay" class="overlay"><div class="modal" id="pinModal"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -664,6 +680,45 @@ $("meldSenden").addEventListener("click", ()=>{
 });
 $("meldWeg").addEventListener("click", ()=>{ if(confirm("Die Nachricht entfernen?")) setzeMeld(null); });
 
+//// ===== Projektor: große Übersicht für den Beamer =====
+// Alphabetisch, ohne Rangliste: Jedes Kind sieht, an welchen Tagen der letzten Woche es geübt hat und wo es auf dem Lernweg steht.
+// Gezeigt werden Kinder, die in den letzten 60 Tagen geübt haben (Testnamen mit „Zz" nie).
+function zeigeProjektor(){
+  // Wer nicht zur Klasse gehört (Geschwister, doppelt geschriebene Namen), lässt sich per Tipp auf den Namen ausblenden – das merkt sich dieses Gerät.
+  let aus=[], zeitraum=30; try{ aus=JSON.parse(localStorage.getItem("proj_aus")||"[]"); zeitraum=+localStorage.getItem("proj_tage")||30; }catch(e){}
+  const alle=[...new Set(ALLE.map(e=>e.name))].filter(n=>n && !/^zz/i.test(n)).map(n=>kindStand(n)).filter(k=>k.her!==null && k.her<=zeitraum);
+  const kinder=alle.filter(k=>!aus.includes(k.name)).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  const p=x=>String(x).padStart(2,"0"), tage=[];
+  for(let i=6;i>=0;i--){ const d=heute(); d.setDate(d.getDate()-i); tage.push({ds:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, wt:["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()]}); }
+  const zwei=kinder.length>16, proSpalte=Math.max(1, zwei?Math.ceil(kinder.length/2):kinder.length), box=$("projektor");
+  box.style.setProperty("--ph", `calc((100vh - 19vh) / ${proSpalte+1})`);
+  box.style.setProperty("--pf", `clamp(10px, calc((100vh - 19vh) / ${proSpalte+1} * 0.5), ${zwei?22:30}px)`);
+  const zeile=k=>{
+    const da=tage.map(t=>k.r.some(e=>e.datum===t.ds)), w=da.filter(Boolean).length, farbe=w>=3?"gruen":w>=1?"gelb":"rot";
+    const st=k.st.map(s=>`<td class="${s.farbe}">${s.farbe==="gruen"?"✓":s.farbe==="gelb"?"…":""}</td>`).join("");
+    return `<tr><td class="pName ${farbe}" data-aus="${esc(k.name)}" title="Tippen = dieses Kind ausblenden">${esc(k.name)}</td><td class="pTage">${da.map(x=>`<i class="${x?"an":""}">●</i>`).join("")}</td>
+      <td class="${farbe}">${w}</td><td class="${k.serie.tage?"gelb":"grau"}" style="${k.serie.tage?"background:#7c2d12":""}">${k.serie.tage?"🔥"+k.serie.tage:"–"}</td>${st}</tr>`; };
+  const tabelle=liste=>`<table><colgroup><col style="width:${zwei?24:17}%"><col style="width:${zwei?17:13}%"><col style="width:7%"><col style="width:${zwei?10:8}%">${STATIONEN.map(()=>`<col>`).join("")}</colgroup>
+    <thead><tr><th>Name</th><th>${zwei?"7 Tage":tage.map(t=>t.wt).join(" ")+"<br>die letzten 7 Tage"}</th><th>Tage</th><th>🔥</th>${STATIONEN.map(s=>`<th>${s[1]}${zwei?"":"<br>"+s[2]}</th>`).join("")}</tr></thead>
+    <tbody>${liste.map(zeile).join("")}</tbody></table>`;
+  const d=new Date(), wahl=[14,30,60].map(x=>`<option value="${x}"${x===zeitraum?" selected":""}>aktiv in den letzten ${x} Tagen</option>`).join("");
+  box.innerHTML=`<div class="pKopf"><h2>🧮 Mathe-Trainer · Unsere Klasse</h2><span>${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} · ${kinder.length} Kinder</span>
+      <select id="projTage">${wahl}</select>${aus.length?`<button class="ghost" id="projAlle" style="color:#fff">${aus.length} ausgeblendet – alle zeigen</button>`:""}<button id="projZu">✕ Schließen</button></div>
+    <div class="pTabellen">${kinder.length ? (zwei ? tabelle(kinder.slice(0,proSpalte))+tabelle(kinder.slice(proSpalte)) : tabelle(kinder)) : `<div style="font-size:3vh;padding:4vh">Noch keine Daten.</div>`}</div>
+    <div class="pFuss"><span><b style="background:#22c55e"></b>3 Tage oder mehr geübt</span><span><b style="background:#facc15"></b>1–2 Tage geübt</span><span><b style="background:#ef4444"></b>in den letzten 7 Tagen nicht geübt</span>
+      <span>Lernweg ${STATIONEN.map(s=>s[1]).join(" ")}: <b style="background:#15803d"></b>✓ gefestigt <b style="background:#a16207;margin-left:1vw"></b>… in Arbeit <b style="background:#1e293b;border:1px solid #475569;margin-left:1vw"></b>noch nicht begonnen</span></div>`;
+  box.classList.remove("hide"); document.body.style.overflow="hidden";
+  const zu=()=>{ box.classList.add("hide"); document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} };
+  $("projZu").addEventListener("click", zu);
+  $("projTage").addEventListener("change", e=>{ try{ localStorage.setItem("proj_tage", e.target.value); }catch(x){} zeigeProjektor(); });
+  if($("projAlle")) $("projAlle").addEventListener("click", ()=>{ try{ localStorage.removeItem("proj_aus"); }catch(x){} zeigeProjektor(); });
+  box.querySelectorAll("td[data-aus]").forEach(td=>td.addEventListener("click", ()=>{
+    if(!confirm(`„${td.dataset.aus}“ in dieser Übersicht ausblenden?\n\n(Die Daten bleiben erhalten. Oben kannst du alle wieder einblenden.)`)) return;
+    aus.push(td.dataset.aus); try{ localStorage.setItem("proj_aus", JSON.stringify(aus)); }catch(x){} zeigeProjektor(); }));
+  try{ if(box.requestFullscreen && !document.fullscreenElement) box.requestFullscreen().catch(()=>{}); }catch(e){}
+}
+$("projBtn").addEventListener("click", zeigeProjektor);
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("projektor").classList.contains("hide")){ $("projektor").classList.add("hide"); document.body.style.overflow=""; } });
 //// ===== Wochenblatt: die letzten 7 Tage auf einer Seite =====
 function zeigeWoche(){
   const h=heute(), ab=new Date(h); ab.setDate(ab.getDate()-6);

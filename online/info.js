@@ -48,6 +48,8 @@
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
     "Nachbarzahlen und Zahlenstrahl":"Vorgänger (1 kleiner), Nachfolger (1 größer), Nachbarzehner – und Zahlen am Zahlenstrahl ablesen. <b>Klasse 2.</b>",
+    "Zahlenstrahl: Wie groß ist ein Schritt?":"Nur Anfang und Ende sind beschriftet. So geht es: 1. Wie weit ist es vom Anfang bis zum Ende? 2. Zähle die Schritte (die Sprünge, nicht die Striche). 3. Teile – dann weißt du, wie groß ein Schritt ist. <b>Klasse 2.</b>",
+    "Zahlenstrahl bis 1000":"Dasselbe mit großen Zahlen: Ein Schritt kann 10, 20, 25, 50 oder 100 sein. Immer zuerst den Schritt ausrechnen! <b>Klasse 3.</b>",
     "Vergleichen":"Größer (&gt;), kleiner (&lt;) oder gleich (=)? Das Zeichen schnappt wie ein Krokodil nach der größeren Zahl. <b>Klasse 2.</b>",
     "Verdoppeln, halbieren, gerade und ungerade":"Das Doppelte, die Hälfte – und: Gerade Zahlen enden auf 0, 2, 4, 6, 8. <b>Klasse 2.</b>",
     "Hunderter, Zehner, Einer":"Zahlen bis 1000: drei Stellen. Achtung bei der Null – 3 Hunderter und 5 Einer sind 305. <b>Klasse 3.</b>",

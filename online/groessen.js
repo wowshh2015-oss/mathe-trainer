@@ -161,11 +161,13 @@
   const ZAHLEN=[
     {id:1, name:"Zehner und Einer", kurz:"3 Zehner und 7 Einer = 37", typen:["z_ze","z_stelle2","z_ze"]},
     {id:2, name:"Nachbarzahlen und Zahlenstrahl", kurz:"Vorgänger · Nachfolger · Nachbarzehner", typen:["z_vorNach","z_zehnerNachbar","z_strahl","z_vorNach","z_strahl"]},
-    {id:3, name:"Vergleichen", kurz:"größer, kleiner oder gleich: 47 ☐ 74", typen:["z_vergleich","z_groesste","z_vergleich"]},
-    {id:4, name:"Verdoppeln, halbieren, gerade und ungerade", kurz:"das Doppelte von 35 · die Hälfte von 70", typen:["z_doppelt","z_haelfte","z_gerade"]},
-    {id:5, name:"Hunderter, Zehner, Einer", kurz:"Zahlen bis 1000 · 3 H 5 E = 305", typen:["z_hze","z_stelle3","z_vorNach1000","z_strahl1000"]},
-    {id:6, name:"Runden", kurz:"auf Zehner und auf Hunderter", typen:["z_rundeZ","z_rundeH","z_rundeZ"]},
-    {id:7, name:"Teilen mit Rest", kurz:"17 ÷ 5 = 3 Rest 2", typen:["z_rest"]}
+    {id:3, name:"Zahlenstrahl: Wie groß ist ein Schritt?", kurz:"nur Anfang und Ende stehen da – finde den Schritt", typen:["s_schritte","s_schritt","s_pfeil","s_schritt","s_pfeil","s_wo"]},
+    {id:4, name:"Vergleichen", kurz:"größer, kleiner oder gleich: 47 ☐ 74", typen:["z_vergleich","z_groesste","z_vergleich"]},
+    {id:5, name:"Verdoppeln, halbieren, gerade und ungerade", kurz:"das Doppelte von 35 · die Hälfte von 70", typen:["z_doppelt","z_haelfte","z_gerade"]},
+    {id:6, name:"Hunderter, Zehner, Einer", kurz:"Zahlen bis 1000 · 3 H 5 E = 305", typen:["z_hze","z_stelle3","z_vorNach1000","z_strahl1000"]},
+    {id:7, name:"Zahlenstrahl bis 1000", kurz:"Schritt finden: 10er, 20er, 25er, 50er, 100er", typen:["t_schritt","t_pfeil","t_pfeil","t_wo","t_schritt","t_pfeil"]},
+    {id:8, name:"Runden", kurz:"auf Zehner und auf Hunderter", typen:["z_rundeZ","z_rundeH","z_rundeZ"]},
+    {id:9, name:"Teilen mit Rest", kurz:"17 ÷ 5 = 3 Rest 2", typen:["z_rest"]}
   ];
   const GEO=[
     {id:1, name:"Flächen erkennen", kurz:"Kreis · Dreieck · Quadrat · Rechteck", typen:["f_form","f_form","f_form2"]},
@@ -230,6 +232,34 @@
       if(i%10===0) s+=`<text x="${X(v)}" y="68" text-anchor="middle" font-size="${max>100?9:11}" font-weight="700" fill="#e2e8f0">${v}</text>`; }
     s+=`<path d="M${X(wert)} 26 l-6 -14 h12 z" fill="#f87171"/><line x1="${X(wert)}" y1="4" x2="${X(wert)}" y2="14" stroke="#f87171" stroke-width="3"/>`;
     return `<svg viewBox="0 0 320 74" role="img" aria-label="Zahlenstrahl">${s}</svg>`;
+  }
+  // Zahlenstrahl, bei dem nur Anfang und Ende beschriftet sind. o: {pfeil:Strich-Nr., buchstaben:{Strich-Nr.:"A"}, alle:true (jeden Strich beschriften)}
+  function leerStrahl(von, bis, n, o){
+    o=o||{}; const X=i=>16+i*(288/n), schritt=(bis-von)/n; let s=`<line x1="8" y1="46" x2="312" y2="46" stroke="#e2e8f0" stroke-width="2"/>`;
+    for(let i=0;i<=n;i++){ const rand=i===0||i===n;
+      s+=`<line x1="${X(i)}" y1="${rand?32:36}" x2="${X(i)}" y2="${rand?60:56}" stroke="#e2e8f0" stroke-width="${rand?2.4:1.4}"/>`;
+      if(rand || (o.alle && (n<=10 || i%2===0))) s+=`<text x="${X(i)}" y="76" text-anchor="middle" font-size="${rand?12:(n>10||bis>=1000?8.5:10)}" font-weight="${rand?800:600}" fill="${rand?"#fde68a":"#93c5fd"}">${von+i*schritt}</text>`;
+      if(o.buchstaben && o.buchstaben[i]) s+=`<text x="${X(i)}" y="24" text-anchor="middle" font-size="15" font-weight="800" fill="#f87171">${o.buchstaben[i]}</text><line x1="${X(i)}" y1="27" x2="${X(i)}" y2="34" stroke="#f87171" stroke-width="2"/>`; }
+    if(o.pfeil!==undefined) s+=`<path d="M${X(o.pfeil)} 33 l-6 -13 h12 z" fill="#f87171"/><line x1="${X(o.pfeil)}" y1="6" x2="${X(o.pfeil)}" y2="22" stroke="#f87171" stroke-width="3"/>`;
+    if(o.bogen) for(let i=0;i<n;i++) s+=`<path d="M${X(i)} 30 Q${(X(i)+X(i+1))/2} ${14} ${X(i+1)} 30" fill="none" stroke="#34d399" stroke-width="1.6"/>`;
+    return `<svg viewBox="0 0 320 82" role="img" aria-label="Zahlenstrahl von ${von} bis ${bis}" style="width:100%;height:auto;display:block">${s}</svg>`;
+  }
+  // [von, bis, Anzahl der Schritte]
+  const STRAHL100=[[0,100,10],[0,50,5],[0,20,10],[0,100,20],[0,50,10],[0,40,8],[0,30,6],[20,70,5],[0,10,5],[0,60,6],[50,100,10],[0,80,8],[0,100,5],[40,60,10],[0,20,4]];
+  const STRAHL1000=[[0,1000,10],[0,500,5],[0,1000,20],[0,200,10],[200,300,10],[0,400,8],[500,1000,5],[0,100,4],[300,400,4],[100,200,5],[0,600,6],[400,500,5],[0,1000,5],[600,700,10],[0,300,6]];
+  function strahlAufgabe(liste, art){
+    const [von,bis,n]=aus(liste), d=bis-von, schritt=d/n, i=rnd(1,n-1), wert=von+i*schritt;
+    const weg=`<b>1.</b> Von ${von} bis ${bis} sind es <b>${d}</b>.<br><b>2.</b> Zähle die <b>Schritte</b> (die Sprünge – den ersten Strich zählst du nicht mit): <b>${n}</b>.<br><b>3.</b> ${d} ÷ ${n} = <b>${schritt}</b>. Jeder Schritt ist <b>${schritt}</b> groß.`;
+    const beschriftet=`<div style="margin-top:8px">Schreib jetzt an jeden Strich seine Zahl:</div>${leerStrahl(von,bis,n,{alle:true})}`;
+    if(art==="schritte") return eingabe(`Wie viele <span class="ziel">Schritte</span> sind es von ${von} bis ${bis}?`, [F.zahl], n, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(n),
+      erkl:`Zähle die <b>Sprünge</b> zwischen den Strichen, nicht die Striche selbst. Es sind ${n+1} Striche, aber nur <b>${n} Schritte</b>.${leerStrahl(von,bis,n,{bogen:true})}`});
+    if(art==="schritt") return eingabe(`Wie <span class="ziel">groß ist ein Schritt</span> auf diesem Zahlenstrahl?`, [F.zahl], schritt, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(schritt), erkl:weg+beschriftet});
+    if(art==="wo"){ const stellen=mische(Array.from({length:n-1},(_,k)=>k+1)).slice(0,3).sort((a,b)=>a-b), b={}; stellen.forEach((k,j)=>b[k]="ABC"[j]); const ziel=aus(stellen);
+      return {art:"wahl", frage:`Bei welchem Buchstaben steht die <span class="ziel">${von+ziel*schritt}</span>?`, bild:leerStrahl(von,bis,n,{buchstaben:b}), lineal:true, optionen:stellen.map(k=>b[k]), ok:b[ziel], tag:"strahl", sollText:b[ziel],
+        erkl:weg+`<br><b>4.</b> Zähle in ${schritt}er-Schritten, bis du bei ${von+ziel*schritt} bist: Dort steht <b>${b[ziel]}</b>.`+beschriftet}; }
+    const kette=Array.from({length:i+1},(_,k)=>von+k*schritt);
+    return eingabe("Welche Zahl gehört zum Pfeil?", [F.zahl], wert, {bild:leerStrahl(von,bis,n,{pfeil:i}), lineal:true, tag:"strahl", sollText:String(wert),
+      erkl:weg+`<br><b>4.</b> Zähle in ${schritt}er-Schritten bis zum Pfeil: ${kette.length>7?kette.slice(0,3).join(", ")+" … "+kette.slice(-2).join(", "):kette.join(", ")} → <b>${wert}</b>.`+beschriftet});
   }
   const FORMFARBE=["#60a5fa","#f472b6","#34d399","#fbbf24","#a78bfa","#fb923c"];
   const eck=(n,r,dreh)=>Array.from({length:n},(_,i)=>{ const w=(dreh||-90)*Math.PI/180+i*2*Math.PI/n; return `${(50+r*Math.cos(w)).toFixed(1)},${(50+r*Math.sin(w)).toFixed(1)}`; }).join(" ");
@@ -373,6 +403,8 @@
     z_rest(){ const b=rnd(2,9), q=rnd(2,9), r=rnd(1,b-1), a=b*q+r;
       return eingabe(`<span class="ziel">${a} ÷ ${b}</span> = ?`, [F.quot,F.zahl], q*100+r, {tag:"rest", sollText:`${q} Rest ${r}`,
         erkl:`Such die größte Malaufgabe mit ${b}, die in ${a} passt: ${q} × ${b} = ${q*b}. Bis ${a} bleiben ${a} − ${q*b} = ${r} übrig: <b>${q} Rest ${r}</b>.`}); },
+    s_schritte(){ return strahlAufgabe(STRAHL100,"schritte"); }, s_schritt(){ return strahlAufgabe(STRAHL100,"schritt"); }, s_pfeil(){ return strahlAufgabe(STRAHL100,"pfeil"); }, s_wo(){ return strahlAufgabe(STRAHL100,"wo"); },
+    t_schritt(){ return strahlAufgabe(STRAHL1000,"schritt"); }, t_pfeil(){ return strahlAufgabe(STRAHL1000,"pfeil"); }, t_wo(){ return strahlAufgabe(STRAHL1000,"wo"); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
