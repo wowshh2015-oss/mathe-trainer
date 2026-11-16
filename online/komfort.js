@@ -198,6 +198,8 @@
   }
   document.addEventListener("DOMContentLoaded", ()=>{
     baueLeiste(); horche();
+    // kleine Fragezeichen mit Erklärungen (info.js) – auf jeder Seite, ohne dass die Seite selbst etwas einbinden muss
+    try{ const sc=document.createElement("script"); sc.src="info.js"; document.head.appendChild(sc); }catch(e){}
     if(TOUCH){ pflegePad(); setInterval(pflegePad, 350); }
   });
   window.Komfort={ klang, stimme };
