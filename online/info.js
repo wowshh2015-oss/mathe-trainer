@@ -94,6 +94,11 @@
     "Gramm und Kilogramm":"1 kg = <b>1000 g</b>. Umwandeln – auch ein halbes Kilo (500 g) und ein Viertel (250 g). <b>Klasse 3.</b>",
     "Mit Gewichten rechnen":"Zum Beispiel 1 kg − 350 g. Erst in Gramm umwandeln, dann rechnen. <b>Klasse 3.</b>",
     "Tonnen":"1 t = <b>1000 kg</b>. So schwer ist ein kleines Auto. <b>Klasse 4.</b>",
+    "Kommazahlen sicher schreiben":"Das Komma trennt Euro und Cent, dahinter stehen immer zwei Stellen: 205 ct = 2,05 €, 7 ct = 0,07 €. <b>Klasse 3.</b>",
+    "Mit Kommazahlen rechnen":"Plus und Minus mit Kommazahlen in zwei Schritten (erst die Euro, dann die Cent) – und überschlagen: Reicht das Geld? <b>Klasse 3.</b>",
+    "Malnehmen und Teilen mit Geld":"3 · 1,40 € · Vier Anspitzer kosten 8,24 € – was kostet einer? · Fünf Karten kosten 3,45 € – was kosten zwei? <b>Klasse 3.</b>",
+    "Schriftlich rechnen mit Komma":"Untereinander schreiben – Komma steht immer unter Komma. Dann rechnest du wie sonst von rechts nach links. <b>Klasse 3.</b>",
+    "Große Geldbeträge":"Scheine bis 200 € zählen und einen Betrag mit möglichst wenigen Scheinen legen. <b>Klasse 3.</b>",
     // Längen
     "Mit dem Lineal messen":"Du liest am Lineal ab, wie lang etwas ist. Wichtig: bei der <b>0</b> anfangen! <b>Klasse 2.</b>",
     "Zentimeter und Millimeter":"1 cm = <b>10 mm</b>. Genau messen und umwandeln. <b>Klasse 3.</b>",

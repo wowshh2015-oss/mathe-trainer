@@ -85,6 +85,8 @@ window.Wdh=(function(){
     groesse_kleinerGroesser:"✍️ Schriftlich Minus: einfach die kleinere von der größeren Ziffer abgezogen",
     groesse_schriftMal:"✍️ Schriftlich Mal: verrechnet oder Übertrag vergessen",
     groesse_kalender: "📅 Wochentage, Monate oder Datum",
+    groesse_ueberschlag:"💶 Überschlag: Reicht das Geld?",
+    groesse_geldmal:  "💶 Malnehmen oder Teilen mit Geld",
     groesse_uhrform:  "📅 Uhr: Schreibweisen verwechselt (Zeiger, Digitaluhr, in Worten, 13 bis 24 Uhr)",
     groesse_zeitspanne:"📅 Zeitspanne falsch berechnet (über die volle Stunde, vor/zurück)",
     groesse_zeiteinheit:"📅 Zeiteinheiten umrechnen (60 Minuten, 24 Stunden, 7 Tage)",

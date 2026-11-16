@@ -14,7 +14,7 @@ window.Anleitung=(function(){
     platz:           {ic:"🔍", name:"Fehlende Zahl",  2:"Fachwörter Plus und Minus · ☐ + 5 = 13", 3:"Fachwörter Mal und Geteilt · ☐ × 4 = 28"},
     uhr:             {ic:"🕒", name:"Uhr-Trainer",    1:"volle und halbe Stunden", 2:"Viertel · 5 Minuten · Minuten · 13 bis 24 Uhr", 3:"Zeitspannen · „fünf vor halb“"},
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
-    geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Euro und Cent mit Komma · Rückgeld"},
+    geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest"},

@@ -29,7 +29,7 @@ window.HA=(function(){
     plus:    {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
     minus:   {feld:"zr", liste:[["20","bis 20"],["100","bis 100"],["1000","bis 1000"]]},
     zerlegen:{feld:"zr", liste:[["10","bis 10"],["20","bis 20"],["100","bis 100"]]},
-    geld:    {feld:"zr", liste:[["1","Münzen zählen"],["2","Euro und Cent zählen"],["3","Umwandeln und Komma"],["4","Passend bezahlen"],["5","Einkaufen und Rückgeld"]]},
+    geld:    {feld:"zr", liste:[["1","Münzen zählen"],["2","Euro und Cent zählen"],["3","Umwandeln und Komma"],["4","Passend bezahlen"],["5","Einkaufen und Rückgeld"],["6","Kommazahlen sicher schreiben"],["7","Mit Kommazahlen rechnen"],["8","Malnehmen und Teilen mit Geld"],["9","Schriftlich rechnen mit Komma"],["10","Große Geldbeträge"]]},
     schrift: {feld:"zr", liste:[["1","Plus ohne Übertrag"],["2","Plus mit Übertrag"],["3","Plus mit drei Zahlen"],["4","Minus ohne Entbündeln"],["5","Minus mit Entbündeln"],["6","Minus über die Null"],["7","Malnehmen"]]},
     kalender:{feld:"zr", liste:[["1","Wochentage und Monate"],["2","Wie lang ist ein Monat?"],["3","Stunden und Minuten"],["4","Sekunden, Stunden, Tage"],["5","Mit dem Datum rechnen"],["6","Umwandeln mit allen Zahlen"],["7","Wie spät ist es in …? Wie spät war es vor …?"],["8","Wie viel Zeit ist vergangen?"],["9","Zeit in Sachaufgaben"],["10","Uhr: zwei Uhrzeiten, drei Schreibweisen"]]},
     zahlen:  {feld:"zr", liste:[["1","Zehner und Einer"],["2","Nachbarzahlen und Zahlenstrahl"],["3","Zahlenstrahl: Wie groß ist ein Schritt?"],["4","Vergleichen"],["5","Verdoppeln, halbieren, gerade und ungerade"],["6","Hunderter, Zehner, Einer"],["7","Zahlenstrahl bis 1000"],["8","Runden"],["9","Teilen mit Rest"]]},

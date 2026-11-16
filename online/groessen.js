@@ -82,6 +82,7 @@
   .schrift input.sz{width:46px;height:52px;font-size:30px;text-align:center;padding:0;border:2px solid var(--accent);font-weight:800;border-radius:10px}
   .schrift input.su{width:30px;height:28px;font-size:16px;padding:0;text-align:center;border:1.5px dashed var(--card2);justify-self:center;border-radius:8px;color:#fde68a;font-weight:800}
   .schrift span.su{font-size:16px;color:#fde68a;min-height:20px} .schrift .slinie{height:3px;background:var(--text);border-radius:2px;min-height:3px} .schrift .sl{color:#86efac}
+  .schrift .skomma{font-size:26px;align-self:end;line-height:1.5;min-width:0} .schrift input.sz{max-width:100%}
   .schriftTipp{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
   document.head.appendChild(css);
@@ -112,11 +113,11 @@
     <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer></div>`);
 
   // ---------- Geld: Bilder und Schreibweisen ----------
-  const STUECKE=[1000,500,200,100,50,20,10,5,2,1];
+  const STUECKE=[20000,10000,5000,2000,1000,500,200,100,50,20,10,5,2,1];
   function geldBild(v, klein){
     const k=klein?0.82:1;
-    if(v>=500){ const f=v===500?["#94a3b8","#475569"]:v===1000?["#f87171","#991b1b"]:["#60a5fa","#1e3a8a"], w=92*k, h=50*k;
-      return `<svg width="${w}" height="${h}" viewBox="0 0 92 50"><rect x="1.5" y="1.5" width="89" height="47" rx="6" fill="${f[0]}" stroke="${f[1]}" stroke-width="3"/><rect x="8" y="8" width="20" height="34" rx="3" fill="${f[1]}" opacity=".35"/><text x="58" y="33" text-anchor="middle" font-size="24" font-weight="800" fill="#0f172a">${v/100} €</text></svg>`; }
+    if(v>=500){ const f=({500:["#94a3b8","#475569"],1000:["#f87171","#991b1b"],2000:["#60a5fa","#1e3a8a"],5000:["#fb923c","#9a3412"],10000:["#4ade80","#166534"],20000:["#fde047","#a16207"]})[v]||["#60a5fa","#1e3a8a"], w=92*k, h=50*k;
+      return `<svg width="${w}" height="${h}" viewBox="0 0 92 50"><rect x="1.5" y="1.5" width="89" height="47" rx="6" fill="${f[0]}" stroke="${f[1]}" stroke-width="3"/><rect x="8" y="8" width="20" height="34" rx="3" fill="${f[1]}" opacity=".35"/><text x="59" y="${v>=10000?32:33}" text-anchor="middle" font-size="${v>=10000?19:24}" font-weight="800" fill="#0f172a">${v/100} €</text></svg>`; }
     const euro=v>=100, d=({1:34,2:38,5:42,10:40,20:44,50:48,100:46,200:50}[v])*k;
     const farbe = v<=5 ? ["#d97706","#92400e"] : v<=50 ? ["#facc15","#a16207"] : v===100 ? ["#e2e8f0","#facc15"] : ["#facc15","#e2e8f0"];
     return `<svg width="${d}" height="${d}" viewBox="0 0 50 50"><circle cx="25" cy="25" r="23" fill="${euro?farbe[1]:farbe[0]}" stroke="#78350f" stroke-width="2"/>${euro?`<circle cx="25" cy="25" r="15.5" fill="${farbe[0]}"/>`:""}
@@ -145,7 +146,7 @@
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
             kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
-            sek:{e:"s",f:1}, minS:{e:"min",f:60}, uhrH:{e:".",f:60}, uhrM:{e:"Uhr",f:1} };
+            sek:{e:"s",f:1}, minS:{e:"min",f:60}, euK:{e:",",f:100}, ctK:{e:"€",f:1,zwei:true}, uhrH:{e:".",f:60}, uhrM:{e:"Uhr",f:1} };
   // Uhrzeit wie im Schulbuch: 13.50 Uhr (t = Minuten seit Mitternacht)
   const uhr=t=>`${Math.floor(t/60)}.${zz(t%60)} Uhr`;
   // Pfeilbild wie im Heft: 17.44 Uhr —16 min→ 18.00 Uhr —12 min→ 18.12 Uhr
@@ -157,7 +158,12 @@
     {id:2, name:"Euro und Cent zählen", kurz:"Münzen und Scheine zusammen", typen:["g_euro"]},
     {id:3, name:"Umwandeln und Komma", kurz:"3 € 45 ct = 345 ct = 3,45 €", typen:["g_inCent","g_ausCent","g_kommaLesen","g_kommaWahl"]},
     {id:4, name:"Passend bezahlen", kurz:"Lege den Betrag mit Münzen", typen:["g_legen"]},
-    {id:5, name:"Einkaufen und Rückgeld", kurz:"zusammenrechnen · wie viel bekommst du zurück?", typen:["g_einkauf","g_rueckgeld","g_einkauf","g_rueckgeld","g_legen"]}
+    {id:5, name:"Einkaufen und Rückgeld", kurz:"zusammenrechnen · wie viel bekommst du zurück?", typen:["g_einkauf","g_rueckgeld","g_einkauf","g_rueckgeld","g_legen"]},
+    {id:6, name:"Kommazahlen sicher schreiben", kurz:"205 ct = 2,05 € · 0,07 € = 7 ct · bis zum vollen Euro", typen:["g_ctKomma","g_kommaCt","g_ecKomma","g_vergleich","g_vollEuro"]},
+    {id:7, name:"Mit Kommazahlen rechnen", kurz:"2,80 € + 3,70 € · 10,00 € − 3,60 € · Reicht das Geld?", typen:["g_kPlus","g_kMinus","g_reicht","g_kPlus","g_kMinus"], sek:70},
+    {id:8, name:"Malnehmen und Teilen mit Geld", kurz:"3 · 1,40 € · vier kosten 8,24 € – was kostet eines?", typen:["g_mal","g_teil","g_wieviele","g_dreisatz","g_mal","g_teil"], sek:90},
+    {id:9, name:"Schriftlich rechnen mit Komma", kurz:"Komma steht immer unter Komma", typen:["gs_plus","gs_minus","gs_plus3","gs_minus"], sek:120},
+    {id:10, name:"Große Geldbeträge", kurz:"Scheine bis 200 € zählen und legen", typen:["g_gross","g_gross","g_grossLegen"]}
   ];
   const LAENGEN=[
     {id:1, name:"Mit dem Lineal messen", kurz:"Wie viele Zentimeter?", typen:["l_messen","l_messen","l_messenVersetzt"]},
@@ -257,33 +263,36 @@
     ["Ein Stadtbus wiegt ungefähr …","12 t",["12 kg","120 kg"]],["Ein Motorrad wiegt ungefähr …","200 kg",["2 kg","20 t"]]];
   const PACKUNG=[["Eine Tafel Schokolade","Tafeln",100],["Ein Päckchen Butter","Päckchen",250],["Eine Packung Nudeln","Packungen",500],["Ein Becher Joghurt","Becher",150],["Eine Dose Mais","Dosen",300]];
   // ---------- Schriftlich rechnen: untereinander, Stelle für Stelle ----------
-  const STELLEN=["Einer","Zehner","Hunderter","Tausender","Zehntausender"];
+  const STELLEN_Z=["Einer","Zehner","Hunderter","Tausender","Zehntausender"], STELLEN=STELLEN_Z;
   const ziffern=(n,W)=>String(n).padStart(W,"0").split("").map(Number);      // links = höchste Stelle
   function schriftGitter(a, fertig){
-    const W=a.breite, kurz=["E","Z","H","T","ZT"], z=n=>String(n).padStart(W," ").split("");
-    const kopf=`<span></span>`+Array.from({length:W},(_,i)=>`<span class="sk">${kurz[W-1-i]}</span>`).join("");
-    const reihen=a.zeilen.map((n,k)=>`<span class="so">${k?a.zeichen:""}</span>`+z(n).map(c=>`<span class="sz">${c.trim()}</span>`).join("")).join("");
-    const ueb = a.uebertrag ? `<span class="so"></span>`+Array.from({length:W},(_,i)=> i<W-1 ? (fertig?`<span class="su">${a.uebertrag[i]||""}</span>`:`<input class="su" data-u="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Übertrag">`) : `<span></span>`).join("") : "";
-    const erg=`<span class="so">=</span>`+z(a.soll).map((c,i)=> fertig?`<span class="sz sl">${c.trim()}</span>`:`<input class="sz" data-e="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="${kurz[W-1-i]}">`).join("");
-    return `<div class="schrift" style="grid-template-columns:30px repeat(${W},46px)">${kopf}${reihen}${ueb}<span class="slinie" style="grid-column:1/-1"></span>${erg}</div>`;
+    const W=a.breite, G=a.komma, kurz=G?["1 ct","10 ct","1 €","10 €","100 €"]:["E","Z","H","T","ZT"], z=n=>String(n).padStart(G?3:1,"0").padStart(W," ").split("");
+    // bei Geld steht zwischen Euro und Cent in jeder Zeile ein Komma: „Komma steht immer unter Komma"
+    const mk=(zellen,zeichen)=> G ? zellen.slice(0,W-2).concat([`<span class="skomma">${zeichen}</span>`], zellen.slice(W-2)) : zellen;
+    const kopf=`<span></span>`+mk(Array.from({length:W},(_,i)=>`<span class="sk">${kurz[W-1-i]}</span>`),"").join("");
+    const reihen=a.zeilen.map((n,k)=>`<span class="so">${k?a.zeichen:""}</span>`+mk(z(n).map(c=>`<span class="sz">${c.trim()}</span>`),",").join("")+(G?`<span class="so">€</span>`:"")).join("");
+    const ueb = a.uebertrag ? `<span class="so"></span>`+mk(Array.from({length:W},(_,i)=> i<W-1 ? (fertig?`<span class="su">${a.uebertrag[i]||""}</span>`:`<input class="su" data-u="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Übertrag">`) : `<span></span>`),"").join("")+(G?`<span></span>`:"") : "";
+    const erg=`<span class="so">=</span>`+mk(z(a.soll).map((c,i)=> fertig?`<span class="sz sl">${c.trim()}</span>`:`<input class="sz" data-e="${i}" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="${kurz[W-1-i]}">`),",").join("")+(G?`<span class="so">€</span>`:"");
+    return `<div class="schrift" style="grid-template-columns:${G?`26px repeat(${W-2},42px) 10px repeat(2,42px) 22px`:`30px repeat(${W},46px)`}">${kopf}${G?"<span></span>":""}${reihen}${ueb}<span class="slinie" style="grid-column:1/-1"></span>${erg}</div>`;
   }
-  function schriftPlus(zahlen){
-    const soll=zahlen.reduce((x,y)=>x+y,0), W=String(soll).length, d=zahlen.map(n=>ziffern(n,W)), ueb=[], schritte=[]; let c=0, ohne="";
+  const GELDSTELLEN=["Cent (1 ct)","Zehn-Cent (10 ct)","Euro (1 €)","Zehn-Euro (10 €)","Hundert-Euro"];
+  function schriftPlus(zahlen, geld){
+    const soll=zahlen.reduce((x,y)=>x+y,0), W=Math.max(String(soll).length, geld?3:1), d=zahlen.map(n=>ziffern(n,W)), ueb=[], schritte=[], STELLEN=geld?GELDSTELLEN:STELLEN_Z; let c=0, ohne="";
     for(let i=W-1;i>=0;i--){ const teil=d.map(x=>x[i]), s=teil.reduce((x,y)=>x+y,0)+c, st=STELLEN[W-1-i];
       if(teil.some(x=>x) || c) schritte.push(`<b>${st}:</b> ${teil.filter((x,k)=>x||k<2).join(" + ")}${c?` + ${c} (gemerkt)`:""} = ${s}${s>9?` → schreibe <b>${s%10}</b>, merke <b>${Math.floor(s/10)}</b>`:` → schreibe <b>${s}</b>`}`);
       ohne=String(teil.reduce((x,y)=>x+y,0)%10)+ohne; c=Math.floor(s/10); if(c && i>0) ueb[i-1]=c; }
-    return {art:"schrift", zeichen:"+", zeilen:zahlen, soll, breite:W, uebertrag:ueb, tag:"schriftP", sollText:String(soll), falle:+ohne!==soll?+ohne:0, falleArt:"uebertrag",
-      frage:`Rechne schriftlich: <span class="ziel">${zahlen.join(" + ")}</span>`, schritte};
+    return {art:"schrift", zeichen:"+", zeilen:zahlen, soll, breite:W, uebertrag:ueb, tag:"schriftP", sollText:geld?komma(soll):String(soll), falle:+ohne!==soll?+ohne:0, falleArt:"uebertrag", komma:!!geld,
+      frage:`Rechne schriftlich${geld?" – Komma unter Komma":""}: <span class="ziel">${zahlen.map(n=>geld?komma(n):n).join(" + ")}</span>`, schritte};
   }
-  function schriftMinus(a,b){
-    const soll=a-b, W=String(a).length, da=ziffern(a,W), db=ziffern(b,W), schritte=[]; let leih=0, falsch="";
+  function schriftMinus(a,b,geld){
+    const soll=a-b, W=String(a).length, da=ziffern(a,W), db=ziffern(b,W), schritte=[], STELLEN=geld?GELDSTELLEN:STELLEN_Z; let leih=0, falsch="";
     for(let i=W-1;i>=0;i--){ const oben=da[i]-leih, st=STELLEN[W-1-i]; let r, text;
       if(oben>=db[i]){ r=oben-db[i]; text=`${oben}${leih?" (einer ist schon entbündelt)":""} − ${db[i]} = <b>${r}</b>`; leih=0; }
       else if(oben<0){ r=9-db[i]; text=`Hier steht 0 und einer ist schon entbündelt. Hol dir zuerst einen ${STELLEN[W-i]||"Stellenwert"} von links: 9 − ${db[i]} = <b>${r}</b>`; leih=1; }
       else { r=oben+10-db[i]; text=`${oben}${leih?" (einer ist schon entbündelt)":""} − ${db[i]} geht nicht. Entbündle einen ${STELLEN[W-i]||"Stellenwert"} von links: ${oben+10} − ${db[i]} = <b>${r}</b>`; leih=1; }
       if(da[i]||db[i]||leih||i===W-1) schritte.push(`<b>${st}:</b> ${text}`); falsch=String(Math.abs(da[i]-db[i]))+falsch; }
-    return {art:"schrift", zeichen:"−", zeilen:[a,b], soll, breite:W, tag:"schriftM", sollText:String(soll), falle:+falsch!==soll?+falsch:0, falleArt:"kleinerGroesser",
-      frage:`Rechne schriftlich: <span class="ziel">${a} − ${b}</span>`, schritte};
+    return {art:"schrift", zeichen:"−", zeilen:[a,b], soll, breite:W, tag:"schriftM", sollText:geld?komma(soll):String(soll), falle:+falsch!==soll?+falsch:0, falleArt:"kleinerGroesser", komma:!!geld,
+      frage:`Rechne schriftlich${geld?" – Komma unter Komma":""}: <span class="ziel">${geld?komma(a):a} − ${geld?komma(b):b}</span>`, schritte};
   }
   function schriftMal(a,m){
     const soll=a*m, W=String(soll).length, da=ziffern(a,W), n=String(a).length, ueb=[], schritte=[]; let c=0;
@@ -638,6 +647,57 @@
       const falsch=[`${uhrZeit(h,m)} · ${uhrWort(f[0][0],f[0][1])}`, `${uhrZeit(f[0][0],f[0][1])} · ${uhrWort(f[0][0],f[0][1])}`, `${uhrZeit(f[1][0],f[1][1])} · ${uhrWort(h,m)}`].filter(x=>x!==ok);
       return {art:"wahl", frage:"Was gehört zu dieser Uhr? <span class=\"ziel\">Beides muss stimmen.</span>", bild:uhrBild(h,m), optionen:mische([ok].concat([...new Set(falsch)])), ok, tag:"uhrform", sollText:ok, spalten:1,
         erkl:`Der kurze blaue Zeiger: Stunde ${h}. Der lange rote Zeiger: ${m} Minuten. Das ist <b>${uhrZeit(h,m)}</b> – in Worten <b>${uhrWort(h,m)}</b>.`}; },
+    // ===== Geld, Klasse 3: Kommazahlen, rechnen, malnehmen und teilen, schriftlich, große Beträge =====
+    g_ctKomma(){ const c=aus([rnd(1,9),rnd(10,99),rnd(101,999),rnd(1,9)*100+rnd(1,9)]);
+      return eingabe(`Schreibe <span class="ziel">${c} ct</span> als Kommazahl.`, [F.euK,F.ctK], c, {tag:"komma", sollText:komma(c), streng:true,
+        erkl:`<b>Das Komma trennt Euro und Cent.</b> ${c<100?`${c} ct sind weniger als 1 €, also steht vorn eine 0. `:`100 ct sind 1 €: ${Math.floor(c/100)} € und ${c%100} ct. `}Hinter dem Komma stehen <b>immer zwei Stellen</b>: <b>${komma(c)}</b>.`}); },
+    g_kommaCt(){ const c=aus([rnd(1,9),rnd(10,99),rnd(101,999),rnd(1,9)*100+rnd(1,9),1000]);
+      return eingabe(`<span class="ziel">${komma(c)}</span> = wie viele Cent?`, [F.ct], c, {tag:"komma", sollText:`${c} ct`,
+        erkl:`Vor dem Komma stehen die Euro: ${Math.floor(c/100)} € = ${Math.floor(c/100)*100} ct. Dahinter stehen ${c%100} ct. Zusammen <b>${c} ct</b>.`}); },
+    g_ecKomma(){ const e=rnd(1,12), r=aus([rnd(1,9),rnd(1,9),rnd(10,99)]), c=e*100+r;
+      return eingabe(`Schreibe <span class="ziel">${e} € ${r} ct</span> als Kommazahl.`, [F.euK,F.ctK], c, {tag:"komma", sollText:komma(c), streng:true,
+        erkl:`Hinter dem Komma stehen immer <b>zwei Stellen</b>. ${r} ct schreibt man als „${zz(r)}“: <b>${komma(c)}</b>.`}); },
+    g_vergleich(){ const a=rnd(1,9), b=rnd(1,9), werte=[...new Set([a*100+b, a*10+b, a*100+b*10, b*100+a, a*110, a])].slice(0,3), gross=Math.random()<0.5;
+      if(werte.length<3) return BAU.g_vergleich();
+      const form=[c=>komma(c), c=>`${c} ct`, c=>euroCent(c)], opt=mische(werte).map((c,i)=>[c, form[i](c)]), ziel=gross?Math.max(...werte):Math.min(...werte), ok=opt.find(x=>x[0]===ziel)[1];
+      return {art:"wahl", frage:`Welcher Betrag ist am <span class="ziel">${gross?"größten":"kleinsten"}</span>?`, optionen:opt.map(x=>x[1]), ok, tag:"komma", sollText:ok, spalten:1,
+        erkl:`Schreibe alle Beträge gleich – zum Beispiel als Kommazahl: ${opt.map(x=>`${x[1]} = <b>${komma(x[0])}</b>`).join(" · ")}. Am ${gross?"größten":"kleinsten"} ist <b>${ok}</b>.`}; },
+    g_vollEuro(){ let c; do{ c=rnd(1,9)*100+rnd(3,97); }while(c%100===0); const plus=Math.random()<0.6, r=plus?100-c%100:c%100, voll=plus?Math.ceil(c/100)*100:Math.floor(c/100)*100;
+      return eingabe(`<span class="ziel">${komma(c)} ${plus?"+":"−"} ☐ ct = ${komma(voll)}</span>`, [F.ct], r, {tag:"komma", sollText:`${r} ct`,
+        erkl: plus ? `Bis zum nächsten vollen Euro: erst bis zum nächsten Zehner, dann weiter. Von ${c%100} ct bis 100 ct fehlen <b>${r} ct</b>.` : `Du musst genau die Cent wegnehmen: ${komma(c)} hat <b>${r} ct</b> hinter dem Komma.`}); },
+    g_kPlus(){ const a=rnd(3,58)*10+aus([0,0,5]), b=rnd(2,48)*10+aus([0,0,5]), s=a+b, be=Math.floor(b/100)*100;
+      return eingabe(`<span class="ziel">${komma(a)} + ${komma(b)}</span> = ?`, [F.euK,F.ctK], s, {tag:"rechnen", sollText:komma(s), streng:true,
+        erkl:`In zwei Schritten: erst die Euro, dann die Cent.<br>${komma(a)}${be?` <span style="color:#fde68a">—+${komma(be)}→</span> ${komma(a+be)}`:""}${b-be?` <span style="color:#fde68a">—+${komma(b-be)}→</span> <b>${komma(s)}</b>`:""}<br>Oder in Cent: ${a} ct + ${b} ct = ${s} ct = <b>${komma(s)}</b>.`}); },
+    g_kMinus(){ const a=aus([500,1000,1000,1500,2000,rnd(31,99)*10,rnd(31,99)*10+5]); let b; do{ b=rnd(4,Math.min(98,a/10-3))*10+aus([0,0,5]); }while(b>=a); const s=a-b, be=Math.floor(b/100)*100;
+      return eingabe(`<span class="ziel">${komma(a)} − ${komma(b)}</span> = ?`, [F.euK,F.ctK], s, {tag:"rechnen", sollText:komma(s), streng:true,
+        erkl:`In zwei Schritten: erst die Euro wegnehmen, dann die Cent.<br>${komma(a)}${be?` <span style="color:#fde68a">—−${komma(be)}→</span> ${komma(a-be)}`:""}${b-be?` <span style="color:#fde68a">—−${komma(b-be)}→</span> <b>${komma(s)}</b>`:""}`}); },
+    g_reicht(){ const karte=[["eine Pizza Margherita",620],["eine Pizza Salami",690],["eine Pizza Tonno",730],["eine Pizza Hawaii",740],["eine Pizza Funghi",780],["eine Lasagne",790],["einen gemischten Salat",410],["einen Bauernsalat",490],["eine Pizza Speciale",850]];
+      const w=mische(karte).slice(0,rnd(2,3)), s=w.reduce((x,y)=>x+y[1],0), diff=aus([-150,-90,-60,40,80,130,210]), geld=Math.round((s+diff)/100)*100; if(Math.abs(geld-s)<30 || geld<=0) return BAU.g_reicht();
+      const ok=geld>=s?"Ja":"Nein", rund=w.map(x=>Math.round(x[1]/100));
+      return {art:"wahl", frage:`Die Kinder haben <span class="ziel">${geld/100} €</span>. Sie möchten ${w.map(x=>`${x[0]} (${komma(x[1])})`).join(w.length===2?" und ":", ").replace(/, ([^,]*)$/," und $1")} bestellen.<br><span class="ziel">Reicht das Geld?</span>`, optionen:["Ja","Nein"], ok, tag:"ueberschlag", sollText:ok,
+        erkl:`<b>Überschlage:</b> Runde jeden Preis auf volle Euro: ${rund.map(x=>x+" €").join(" + ")} = ungefähr ${rund.reduce((x,y)=>x+y,0)} €. Genau sind es ${komma(s)}. ${geld>=s?`Das ist weniger als ${geld/100} € – <b>es reicht</b>, es bleiben ${komma(geld-s)} übrig.`:`Das ist mehr als ${geld/100} € – <b>es reicht nicht</b>, es fehlen ${komma(s-geld)}.`}`}; },
+    g_mal(){ const klein=Math.random()<0.45, n=rnd(2,klein?9:5), p=klein?aus([40,50,60,70,90]):aus([110,120,140,150,170,180,225,103,315,255]), s=n*p, was=aus(["Brötchen","Äpfel","Hefte","Stifte","Becher"]);
+      return eingabe(`Ein Stück kostet <span class="ziel">${klein?p+" ct":komma(p)}</span>.<br>Wie viel kosten <span class="ziel">${n} ${was}</span>?`, [F.euK,F.ctK], s, {tag:"geldmal", sollText:komma(s), streng:true,
+        erkl: klein ? `${n} · ${p} ct = ${s} ct. Je 100 ct sind 1 €: ${s} ct = <b>${komma(s)}</b>.` : `Rechne Euro und Cent getrennt: ${n} · ${komma(Math.floor(p/100)*100)} = ${komma(n*Math.floor(p/100)*100)} und ${n} · ${komma(p%100)} = ${komma(n*(p%100))}. Zusammen <b>${komma(s)}</b>.`}); },
+    g_teil(){ const n=rnd(2,8), p=aus([rnd(12,95),rnd(12,95),rnd(101,260)]), s=n*p, d=aus([["Anspitzer","Ein Anspitzer"],["Filzstifte","Ein Filzstift"],["Pinsel","Ein Pinsel"],["Kreisel","Ein Kreisel"],["Kerzen","Eine Kerze"],["Becher","Ein Becher"]]);
+      const eu=Math.floor(s/100/n)*n*100, rest=s-eu;
+      return eingabe(`<span class="ziel">${n} ${d[0]}</span> kosten zusammen <span class="ziel">${komma(s)}</span>.<br>Wie viel kostet ${d[1].replace(/^E/,"e")}?`, [F.euK,F.ctK], p, {tag:"geldmal", sollText:komma(p), streng:true,
+        erkl:`Teile durch ${n}. Am leichtesten in Cent: ${s} ct ÷ ${n} = ${p} ct = <b>${komma(p)}</b>.${eu&&rest?`<br>Oder zerlegt: ${komma(eu)} ÷ ${n} = ${komma(eu/n)} und ${komma(rest)} ÷ ${n} = ${komma(rest/n)}.`:""}<br>Probe: ${n} · ${komma(p)} = ${komma(s)}.`}); },
+    g_wieviele(){ const p=aus([40,50,60,70,90]), n=rnd(3,9), s=n*p, d=aus(["Mohnbrötchen","Roggenbrötchen","Brezeln","Äpfel","Zitronen"]);
+      return eingabe(`Ein Stück kostet <span class="ziel">${p} ct</span>. Frau Arslan bezahlt <span class="ziel">${komma(s)}</span> für ${d}.<br>Wie viele hat sie gekauft?`, [F.zahl], n, {tag:"geldmal", sollText:String(n),
+        erkl:`Rechne in Cent: ${komma(s)} = ${s} ct. Wie oft passen ${p} ct hinein? ${s} ÷ ${p} = <b>${n}</b>.`}); },
+    g_dreisatz(){ const n1=rnd(3,7), p=aus([rnd(21,98),rnd(21,98),rnd(102,160)]), n2=rnd(2,n1-1), d=aus(["Einladungskarten","Girlanden","Lampions","Kerzen","Luftballons"]);
+      return eingabe(`<span class="ziel">${n1} ${d}</span> kosten <span class="ziel">${komma(n1*p)}</span>.<br>Wie teuer sind <span class="ziel">${n2} ${d}</span>?`, [F.euK,F.ctK], n2*p, {tag:"geldmal", sollText:komma(n2*p), streng:true,
+        erkl:`Zwei Schritte: <b>erst eine</b>, dann ${n2}.<br>1. ${komma(n1*p)} ÷ ${n1} = <b>${komma(p)}</b> – so viel kostet ein Stück.<br>2. ${n2} · ${komma(p)} = <b>${komma(n2*p)}</b>.`}); },
+    gs_plus(){ let a,b; do{ a=rnd(105,6999); b=rnd(95,5999); }while(a+b>9999 || ohneUebertrag(a,b)); return mitErkl(schriftPlus([a,b],true)); },
+    gs_plus3(){ let a,b,c; do{ a=rnd(115,995); b=rnd(95,899); c=rnd(15,599); }while(a+b+c>2999); return mitErkl(schriftPlus([a,b,c],true)); },
+    gs_minus(){ let a,b; do{ a=aus([1000,1000,2000,1500,3000,rnd(301,999),rnd(301,999)]); b=rnd(105,a-15); }while(ohneEntbuendeln(a,b)); return mitErkl(schriftMinus(a,b,true)); },
+    g_gross(){ const e=rnd(11,98)*10+aus([0,0,5,1,2,3,7]), l=zerlege(e*100);
+      return eingabe("Wie viel Geld ist das?", [F.eur], e*100, {bild:mische(l).map(v=>geldBild(v,true)).join(""), tag:"zaehlen", sollText:`${e} €`,
+        erkl:`Fang mit den größten Scheinen an und zähle weiter: ${summenKette(l)} = <b>${e} €</b>.`}); },
+    g_grossLegen(){ const e=rnd(12,98)*10+aus([0,5,5,2,3,7]);
+      return {art:"legen", frage:`Lege genau <span class="ziel">${e} €</span> – mit möglichst wenigen Scheinen und Münzen.`, soll:e*100, kasse:[20000,10000,5000,2000,1000,500,200,100], tag:"legen", sollText:`${e} €`,
+        erkl:`Eine Möglichkeit mit wenigen Stücken: ${summenKette(zerlege(e*100))} = <b>${e} €</b>.`}; },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
@@ -824,6 +884,8 @@
         const text=werte.map((w,i)=>`${w} ${a.felder[i].e}`).join(" ");
         // „streng": bei zwei Feldern muss richtig getauscht sein (nicht 0 € 345 ct)
         const getauscht = a.felder.length<2 || werte[1] < a.felder[0].f/a.felder[1].f;
+        const zweiOk=a.felder.every((f,i)=>!f.zwei || felder[i].value.trim().length===2);      // 2,5 € ist nicht 2,05 € – hinter dem Komma stehen zwei Stellen
+        if(!zweiOk){ a.zweiFalsch=true; auswerten(a, false, text+" (Cent nicht zweistellig)", null, false); return; }
         auswerten(a, summe===a.soll && (getauscht || !a.streng), text, summe, summe===a.soll && !getauscht);
       };
       $("okBtn").addEventListener("click", pruef);
@@ -881,6 +943,7 @@
     if(a.falle && summe===a.falle){ art="groesse_"+(a.falleArt||"ablesen"); }
     if(a.streng && summe===a.soll && !nichtGetauscht===false) zusatz="";
     if(a.art==="legen" && summe!==null) zusatz=` Du hast ${komma(summe)} gelegt – das ist ${summe>a.soll?"zu viel":"zu wenig"}.`;
+    if(a.zweiFalsch){ zusatz=`<br><b>Achtung:</b> Hinter dem Komma stehen immer <b>zwei</b> Ziffern – 5 ct schreibt man als „05“, 50 ct als „50“.`; art="groesse_komma"; }
     runde.antworten.push(`${a.typ.slice(2)}|${a.sollText}|${gegebenText}|${art}`);
     r.style.color="var(--bad)"; r.textContent=`Das stimmt noch nicht. Richtig ist ${a.sollText}.`;
     if(runde.modus==="Test"){ wartet=false; spaeter(1700); return; }
