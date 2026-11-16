@@ -77,7 +77,9 @@ window.Wdh=(function(){
     groesse_einheit:  "📏 Einheit falsch eingeschätzt",
     groesse_zaehlen:  "💶 Geld falsch gezählt",
     groesse_legen:    "💶 Betrag falsch gelegt",
-    groesse_rechnen:  "📏 Mit Größen falsch gerechnet"
+    groesse_rechnen:  "📏 Mit Größen falsch gerechnet",
+    groesse_wiegen:   "⚖️ Gewichtsstücke falsch zusammengezählt",
+    groesse_vergleich:"⚖️ Gewichte falsch verglichen"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"

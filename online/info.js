@@ -45,6 +45,12 @@
     "Umwandeln und Komma":"3 € 45 ct = 345 ct = <b>3,45 €</b>. Vor dem Komma stehen die Euro, dahinter die Cent. <b>Klasse 3.</b>",
     "Passend bezahlen":"Du legst einen Betrag selbst mit Münzen und Scheinen. <b>Klasse 2.</b>",
     "Einkaufen und Rückgeld":"Preise zusammenrechnen und ausrechnen, wie viel Geld du zurückbekommst. <b>Klasse 2 und 3.</b>",
+    // Gewichte
+    "Leicht oder schwer?":"Du vergleichst, was schwerer ist, und schätzt: Wiegt das eher Gramm oder Kilogramm? <b>Klasse 2 und 3.</b>",
+    "Mit Gewichtsstücken wiegen":"Auf der Waage liegen Gewichtsstücke. Du zählst zusammen, wie schwer sie sind. <b>Klasse 3.</b>",
+    "Gramm und Kilogramm":"1 kg = <b>1000 g</b>. Umwandeln – auch ein halbes Kilo (500 g) und ein Viertel (250 g). <b>Klasse 3.</b>",
+    "Mit Gewichten rechnen":"Zum Beispiel 1 kg − 350 g. Erst in Gramm umwandeln, dann rechnen. <b>Klasse 3.</b>",
+    "Tonnen":"1 t = <b>1000 kg</b>. So schwer ist ein kleines Auto. <b>Klasse 4.</b>",
     // Längen
     "Mit dem Lineal messen":"Du liest am Lineal ab, wie lang etwas ist. Wichtig: bei der <b>0</b> anfangen! <b>Klasse 2.</b>",
     "Zentimeter und Millimeter":"1 cm = <b>10 mm</b>. Genau messen und umwandeln. <b>Klasse 3.</b>",
@@ -66,6 +72,7 @@
     uhr:"<b>Uhr-Trainer:</b> die Uhr mit Zeigern lesen und stellen – von vollen Stunden bis zu Zeitspannen. <b>Klasse 1 bis 3.</b>",
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
+    gewichte:"<b>Gewichte:</b> schätzen, was schwerer ist, mit Gewichtsstücken wiegen und Gramm in Kilogramm umwandeln. <b>Klasse 3</b>, Tonnen <b>Klasse 4</b>.",
     laengen:"<b>Längen:</b> mit dem Lineal messen und Millimeter, Zentimeter und Meter umwandeln. <b>Klasse 2 und 3.</b>"
   };
   const kachelText=el=>{ const app=(el.dataset.page||"").replace("-trainer.html",""); const t=KACHEL[app]||"";
@@ -153,6 +160,7 @@
     platz:[["#menue > h3", T.stufen], ["details.merk summary", "<b>Merkzettel:</b> Hier stehen alle Fachwörter und die Regeln für die fehlende Zahl. Du darfst jederzeit nachschauen."]],
     geld:[["#menue > h3, #start h3", T.stufen]],
     laengen:[["#menue > h3, #start h3", T.stufen]],
+    gewichte:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],
       ["#startBox > h3", el=>txt(el).includes("Strecke")

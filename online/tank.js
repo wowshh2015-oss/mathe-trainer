@@ -17,7 +17,8 @@ window.Tank=(function(){
     {app:"sach",            ic:"📖", name:"Sachaufgaben",  datei:"sach-trainer.html"},
     {app:"platz",           ic:"🔍", name:"Fehlende Zahl", datei:"platz-trainer.html"},
     {app:"geld",            ic:"💶", name:"Geld",          datei:"geld-trainer.html"},
-    {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"}
+    {app:"laengen",         ic:"📏", name:"Längen",        datei:"laengen-trainer.html"},
+    {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"}
   ];
   const LERN=STATIONEN.map(s=>s.app);
   // Was eine Lernrunde bringt

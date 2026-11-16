@@ -1,16 +1,16 @@
-// ===== Größen: Geld und Längen =====
-// Gemeinsamer Motor für geld-trainer.html und laengen-trainer.html (window.GROESSE = "geld" | "laengen").
+// ===== Größen: Geld, Längen und Gewichte =====
+// Gemeinsamer Motor für geld-trainer.html, laengen-trainer.html und gewichte-trainer.html (window.GROESSE = "geld" | "laengen" | "gewichte").
 // Jede Aufgabe ist eine von drei Arten:
 //   eingabe – ein oder zwei Zahlenfelder mit Einheit (3 € 45 ct)
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=window.GROESSE==="laengen" ? "laengen" : "geld";
+  const WAS=window.GROESSE==="laengen" ? "laengen" : window.GROESSE==="gewichte" ? "gewichte" : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
   const APP=WAS, PRO_RUNDE=10, BESTANDEN=90, TEST_SEK=45;
-  const TITEL = WAS==="geld" ? ["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."] : ["📏","Längen","Messen, umwandeln und mit Längen rechnen."];
+  const TITEL = WAS==="geld" ? ["💶","Geld","Münzen und Scheine zählen, umwandeln, bezahlen."] : WAS==="gewichte" ? ["⚖️","Gewichte","Wiegen, schätzen, umwandeln und mit Gewichten rechnen."] : ["📏","Längen","Messen, umwandeln und mit Längen rechnen."];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -22,9 +22,9 @@
   // ---------- Seite aufbauen ----------
   const css=document.createElement("style");
   css.textContent=`
-  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:${WAS==="geld"?"#facc15":"#60a5fa"}; --good:#22c55e; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:${WAS==="geld"?"#facc15":WAS==="gewichte"?"#2dd4bf":"#60a5fa"}; --good:#22c55e; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
   *{box-sizing:border-box} html,body{margin:0;min-height:100%}
-  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,${WAS==="geld"?"#4a3a0c":"#172554"} 0%,var(--bg) 60%);
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,${WAS==="geld"?"#4a3a0c":WAS==="gewichte"?"#0f3d3a":"#172554"} 0%,var(--bg) 60%);
     color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
   .app{width:100%;max-width:680px} h1{font-size:28px;margin:0 0 4px} .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
   .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
@@ -132,7 +132,8 @@
 
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
-  const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1} };
+  const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1} };
   const GELD=[
     {id:1, name:"Münzen zählen", kurz:"Wie viele Cent sind das?", typen:["g_cent"]},
     {id:2, name:"Euro und Cent zählen", kurz:"Münzen und Scheine zusammen", typen:["g_euro"]},
@@ -147,7 +148,14 @@
     {id:4, name:"Welche Einheit passt?", kurz:"mm, cm, m oder km – schätzen", typen:["l_einheit"]},
     {id:5, name:"Mit Längen rechnen", kurz:"1 m − 35 cm · 45 cm + 80 cm", typen:["l_rechneMinus","l_rechnePlus","l_rechneMm","l_seil"]}
   ];
-  const STUFEN = WAS==="geld" ? GELD : LAENGEN;
+  const GEWICHTE=[
+    {id:1, name:"Leicht oder schwer?", kurz:"Was ist schwerer? · Gramm oder Kilogramm?", typen:["w_schwerer","w_schaetzen","w_schwerer","w_schaetzen"]},
+    {id:2, name:"Mit Gewichtsstücken wiegen", kurz:"Wie schwer ist das zusammen?", typen:["w_stuecke","w_stuecke","w_stueckeKg"]},
+    {id:3, name:"Gramm und Kilogramm", kurz:"1 kg = 1000 g · ein halbes Kilo", typen:["w_kgInG","w_kgGInG","w_gAus","w_bruch"]},
+    {id:4, name:"Mit Gewichten rechnen", kurz:"1 kg − 350 g · 600 g + 700 g", typen:["w_rechneMinus","w_rechnePlus","w_mal","w_rechneMinus","w_rechnePlus"]},
+    {id:5, name:"Tonnen", kurz:"1 t = 1000 kg · für Klasse 4", typen:["w_tInKg","w_kgAusT","w_schaetzenT","w_lkw"]}
+  ];
+  const STUFEN = WAS==="geld" ? GELD : WAS==="gewichte" ? GEWICHTE : LAENGEN;
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -158,6 +166,30 @@
     ["Ein Streichholz ist ungefähr … lang.","4 cm",["4 mm","40 cm"]],["Eine Bleistiftmine ist ungefähr … dick.","2 mm",["2 cm","20 cm"]],["Ein Klassenraum ist ungefähr … lang.","9 m",["9 cm","90 m"]],
     ["Ein Schulweg zu Fuß ist ungefähr … lang.","1 km",["1 cm","100 km"]],["Ein Tisch ist ungefähr … hoch.","75 cm",["75 mm","75 m"]],["Ein Blatt Papier ist ungefähr … dick.","weniger als 1 mm",["1 cm","1 m"]],
     ["Ein Bett ist ungefähr … lang.","2 m",["20 cm","20 m"]]];
+  // ---------- Gewichte: Gewichtsstücke, Dinge zum Vergleichen und Schätzen ----------
+  const GSTUECKE=[5000,2000,1000,500,200,100,50,20,10];
+  const gName=v=>v>=1000 ? `${v/1000} kg` : `${v} g`;
+  const gewText=c=>{ const k=Math.floor(c/1000), r=c%1000; return k&&r ? `${k} kg ${r} g` : k ? `${k} kg` : `${r} g`; };
+  const tText=c=>{ const t=Math.floor(c/1000), r=c%1000; return t&&r ? `${t} t ${r} kg` : t ? `${t} t` : `${r} kg`; };
+  function gewichtBild(v){
+    const h=({10:34,20:38,50:42,100:48,200:54,500:60,1000:68,2000:76,5000:84})[v], w=h*0.92, farbe=v>=1000?["#94a3b8","#475569"]:["#fbbf24","#92400e"];
+    return `<svg width="${w}" height="${h}" viewBox="0 0 46 50"><rect x="19" y="1" width="8" height="8" rx="3" fill="${farbe[1]}"/><path d="M11 9 H35 L43 47 Q43 49 41 49 H5 Q3 49 3 47 Z" fill="${farbe[0]}" stroke="${farbe[1]}" stroke-width="2"/>
+      <text x="23" y="${v>=1000?31:30}" text-anchor="middle" font-size="${v>=1000?15:13}" font-weight="800" fill="#0f172a">${v>=1000?v/1000:v}</text><text x="23" y="43" text-anchor="middle" font-size="10" font-weight="800" fill="#0f172a">${v>=1000?"kg":"g"}</text></svg>`;
+  }
+  function zerlegeG(c){ const l=[]; GSTUECKE.forEach(s=>{ while(c>=s){ l.push(s); c-=s; } }); return l; }
+  const gKette=l=>l.slice().sort((a,b)=>b-a).map(gName).join(" + ");
+  // [Ding, ungefähres Gewicht in Gramm, Text]
+  const WIEGT=[["eine Feder",1,"1 g"],["eine Büroklammer",1,"1 g"],["ein Brief",20,"20 g"],["ein Bleistift",5,"5 g"],["eine Tafel Schokolade",100,"100 g"],["ein Apfel",150,"150 g"],
+    ["ein Päckchen Butter",250,"250 g"],["ein dickes Buch",500,"500 g"],["eine Packung Mehl",1000,"1 kg"],["eine Flasche Wasser",1000,"1 kg"],["ein voller Schulranzen",4000,"4 kg"],
+    ["eine Katze",4000,"4 kg"],["ein Fahrrad",12000,"12 kg"],["ein Kind in der 3. Klasse",30000,"30 kg"],["ein Erwachsener",75000,"75 kg"]];
+  const GSCHAETZEN=[["Ein Apfel wiegt ungefähr …","150 g",["15 g","15 kg"]],["Eine Tafel Schokolade wiegt …","100 g",["10 g","1 kg"]],["Ein Kind in der 3. Klasse wiegt ungefähr …","30 kg",["30 g","300 kg"]],
+    ["Eine Packung Mehl wiegt …","1 kg",["1 g","100 kg"]],["Ein Brief wiegt ungefähr …","20 g",["2 kg","200 g"]],["Ein voller Schulranzen wiegt ungefähr …","4 kg",["40 g","40 kg"]],
+    ["Eine Büroklammer wiegt ungefähr …","1 g",["100 g","1 kg"]],["Ein Päckchen Butter wiegt …","250 g",["25 g","25 kg"]],["Ein Fahrrad wiegt ungefähr …","12 kg",["120 g","120 kg"]],
+    ["Ein Ei wiegt ungefähr …","60 g",["6 g","6 kg"]],["Eine Wassermelone wiegt ungefähr …","5 kg",["50 g","500 g"]],["Ein Hund (Schäferhund) wiegt ungefähr …","35 kg",["350 g","3 kg"]]];
+  const TSCHAETZEN=[["Ein Auto wiegt ungefähr …","1 t",["10 kg","100 t"]],["Ein Elefant wiegt ungefähr …","5 t",["50 kg","500 kg"]],["Ein Pferd wiegt ungefähr …","500 kg",["5 kg","50 t"]],
+    ["Ein voller Lastwagen wiegt ungefähr …","40 t",["40 kg","400 kg"]],["Ein Blauwal wiegt ungefähr …","150 t",["150 kg","15 kg"]],["Eine Kuh wiegt ungefähr …","600 kg",["6 kg","60 t"]],
+    ["Ein Stadtbus wiegt ungefähr …","12 t",["12 kg","120 kg"]],["Ein Motorrad wiegt ungefähr …","200 kg",["2 kg","20 t"]]];
+  const PACKUNG=[["Eine Tafel Schokolade","Tafeln",100],["Ein Päckchen Butter","Päckchen",250],["Eine Packung Nudeln","Packungen",500],["Ein Becher Joghurt","Becher",150],["Eine Dose Mais","Dosen",300]];
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   const BAU={
     g_cent(){ let l,sum; do{ l=[]; const n=rnd(2,5); for(let i=0;i<n;i++) l.push(aus([1,2,5,10,10,20,20,50])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=100 || l.filter(x=>x===50).length>1);
@@ -190,6 +222,50 @@
       return eingabe(`${w[2]} kostet <span class="ziel">${komma(w[1])}</span>. Du bezahlst mit einem <span class="ziel">${gibt/100}-€-Schein</span>.<br>Wie viel bekommst du zurück?`, [F.eur,F.ct], c, {tag:"rechnen", sollText:euroCent(c), streng:true,
         erkl: bisVoll ? `Zähle weiter bis zum Schein: von ${komma(w[1])} bis ${voll/100} € sind es ${bisVoll} ct, von ${voll/100} € bis ${gibt/100} € noch ${(gibt-voll)/100} €. Zusammen <b>${euroCent(c)}</b>.`
                       : `${gibt/100} € − ${w[1]/100} € = <b>${euroCent(c)}</b>.`}); },
+    // ----- Gewichte -----
+    w_schwerer(){ let a,b; do{ a=aus(WIEGT); b=aus(WIEGT); }while(a===b || Math.max(a[1],b[1])<Math.min(a[1],b[1])*3); const ok=a[1]>b[1]?a:b, gross=s=>s[0].toUpperCase()+s.slice(1);
+      return {art:"wahl", frage:"Was ist <span class=\"ziel\">schwerer</span>?", optionen:mische([gross(a[0]),gross(b[0])]), ok:gross(ok[0]), tag:"vergleich", sollText:gross(ok[0]),
+        erkl:`${gross(a[0])} wiegt ungefähr <b>${a[2]}</b>, ${b[0]} ungefähr <b>${b[2]}</b>. Schwerer ist: <b>${ok[0]}</b>.`}; },
+    w_schaetzen(){ const s=aus(GSCHAETZEN);
+      return {art:"wahl", frage:s[0].replace("…",'<span class="ziel">…</span>'), optionen:mische([s[1]].concat(s[2])), ok:s[1], tag:"einheit", sollText:s[1],
+        erkl:`${s[0].replace("…",`<b>${s[1]}</b>`)}<br>Zum Merken: <b>1 g</b> wiegt eine Büroklammer, <b>100 g</b> eine Tafel Schokolade, <b>1 kg</b> eine Packung Mehl.`}; },
+    w_stuecke(){ let l,sum; do{ l=[]; const n=rnd(2,4); for(let i=0;i<n;i++) l.push(aus([500,200,200,100,100,50,50,20,10])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=1000 || l.filter(x=>x===500).length>1);
+      l.sort((a,b)=>b-a);
+      return eingabe("Wie schwer sind die Gewichtsstücke zusammen?", [F.g], sum, {bild:l.map(gewichtBild).join(""), tag:"wiegen", sollText:`${sum} g`,
+        erkl:`Fang mit dem größten Stück an und zähle weiter: ${gKette(l)} = <b>${sum} g</b>.`}); },
+    w_stueckeKg(){ const c=rnd(1,6)*1000+aus([100,200,250,300,500,550,700,750,120,60]), l=zerlegeG(c);
+      return eingabe("Wie schwer sind die Gewichtsstücke zusammen?", [F.kg,F.g], c, {bild:mische(l).map(gewichtBild).join(""), tag:"wiegen", sollText:gewText(c), streng:true,
+        erkl:`Zähle zuerst die <b>Kilogramm</b>, dann die <b>Gramm</b>: ${gKette(l)} = <b>${gewText(c)}</b>.`}); },
+    w_kgInG(){ const k=rnd(2,9);
+      return eingabe(`<span class="ziel">${k} kg</span> = wie viele Gramm?`, [F.g], k*1000, {tag:"umrechnen", sollText:`${k*1000} g`, erkl:`<b>1 kg sind 1000 g.</b> ${k} kg sind ${k} × 1000 = <b>${k*1000} g</b>.`}); },
+    w_kgGInG(){ const k=rnd(1,8), r=aus([rnd(1,19)*50, rnd(1,19)*50, rnd(1,9)*10, rnd(1,9)]);
+      return eingabe(`<span class="ziel">${k} kg ${r} g</span> = wie viele Gramm?`, [F.g], k*1000+r, {tag:"umrechnen", sollText:`${k*1000+r} g`, erkl:`${k} kg sind ${k*1000} g, dazu ${r} g: <b>${k*1000+r} g</b>.`}); },
+    w_gAus(){ let c; do{ c=rnd(21,179)*50; }while(c%1000===0);
+      return eingabe(`<span class="ziel">${c} g</span> = wie viele Kilogramm und Gramm?`, [F.kg,F.g], c, {tag:"umrechnen", sollText:gewText(c), streng:true,
+        erkl:`<b>1000 g sind 1 kg.</b> In ${c} g stecken ${Math.floor(c/1000)} volle Tausender – das sind ${Math.floor(c/1000)} kg. Übrig bleiben ${c%1000} g.`}); },
+    w_bruch(){ const b=aus([["Ein halbes Kilogramm","500 g",["50 g","250 g","5000 g"],"Die Hälfte von 1000 g ist 500 g."],["Ein Viertel Kilogramm","250 g",["25 g","400 g","500 g"],"1000 g geteilt durch 4 sind 250 g."],
+        ["Drei Viertel Kilogramm","750 g",["75 g","300 g","340 g"],"Ein Viertel sind 250 g – drei Viertel sind 3 × 250 g = 750 g."],["Ein ganzes Kilogramm","1000 g",["100 g","10 g","10 000 g"],"Kilo heißt tausend: 1 kg = 1000 g."],
+        ["Eineinhalb Kilogramm","1500 g",["150 g","1050 g","1005 g"],"1 kg sind 1000 g, ein halbes dazu sind 500 g: zusammen 1500 g."]]);
+      return {art:"wahl", frage:`<span class="ziel">${b[0]}</span> – wie viele Gramm sind das?`, optionen:mische([b[1]].concat(b[2])), ok:b[1], tag:"umrechnen", sollText:b[1], erkl:`<b>1 kg = 1000 g.</b> ${b[3]}`}; },
+    w_rechneMinus(){ const c=aus([rnd(1,19)*50, rnd(1,19)*50, rnd(1,39)*25]);
+      return eingabe(`<span class="ziel">1 kg − ${c} g</span> = wie viele Gramm?`, [F.g], 1000-c, {tag:"rechnen", sollText:`${1000-c} g`, erkl:`Wandle zuerst um: <b>1 kg = 1000 g</b>. Dann 1000 g − ${c} g = <b>${1000-c} g</b>.`}); },
+    w_rechnePlus(){ let a,b; do{ a=rnd(7,19)*50; b=rnd(5,19)*50; }while(a+b<=1000 || (a+b)%1000===0); const s=a+b;
+      return eingabe(`<span class="ziel">${a} g + ${b} g</span> = wie viele Kilogramm und Gramm?`, [F.kg,F.g], s, {tag:"rechnen", sollText:gewText(s), streng:true,
+        erkl:`${a} g + ${b} g = ${s} g. 1000 g davon sind 1 kg: <b>${gewText(s)}</b>.`}); },
+    w_mal(){ let p,n; do{ p=aus(PACKUNG); n=rnd(3,8); }while(p[2]*n<=1000 || (p[2]*n)%1000===0); const s=p[2]*n;
+      return eingabe(`${p[0]} wiegt <span class="ziel">${p[2]} g</span>.<br>Wie viel wiegen <span class="ziel">${n} ${p[1]}</span>?`, [F.kg,F.g], s, {tag:"rechnen", sollText:gewText(s), streng:true,
+        erkl:`${n} × ${p[2]} g = ${s} g. 1000 g davon sind 1 kg: <b>${gewText(s)}</b>.`}); },
+    w_tInKg(){ const t=rnd(2,9);
+      return eingabe(`<span class="ziel">${t} t</span> = wie viele Kilogramm?`, [F.kgT], t*1000, {tag:"umrechnen", sollText:`${t*1000} kg`, erkl:`<b>1 t (Tonne) sind 1000 kg.</b> ${t} t sind ${t} × 1000 = <b>${t*1000} kg</b>.`}); },
+    w_kgAusT(){ let c; do{ c=rnd(21,179)*50; }while(c%1000===0);
+      return eingabe(`<span class="ziel">${c} kg</span> = wie viele Tonnen und Kilogramm?`, [F.t,F.kgT], c, {tag:"umrechnen", sollText:tText(c), streng:true,
+        erkl:`<b>1000 kg sind 1 t.</b> In ${c} kg stecken ${Math.floor(c/1000)} volle Tausender – das sind ${Math.floor(c/1000)} t. Übrig bleiben ${c%1000} kg.`}); },
+    w_schaetzenT(){ const s=aus(TSCHAETZEN);
+      return {art:"wahl", frage:s[0].replace("…",'<span class="ziel">…</span>'), optionen:mische([s[1]].concat(s[2])), ok:s[1], tag:"einheit", sollText:s[1],
+        erkl:`${s[0].replace("…",`<b>${s[1]}</b>`)}<br>Zum Merken: <b>1 t</b> wiegt ein kleines Auto. 1 t = 1000 kg.`}; },
+    w_lkw(){ const t=rnd(2,6), drauf=rnd(3,t*20-3)*50, rest=t*1000-drauf;
+      return eingabe(`Ein Lastwagen darf <span class="ziel">${t} t</span> laden. <span class="ziel">${drauf} kg</span> sind schon aufgeladen.<br>Wie viele Kilogramm passen noch darauf?`, [F.kgT], rest, {tag:"rechnen", sollText:`${rest} kg`,
+        erkl:`Wandle um: ${t} t = ${t*1000} kg. Dann ${t*1000} kg − ${drauf} kg = <b>${rest} kg</b>.`}); },
     // ----- Längen -----
     l_messen(){ const cm=rnd(2,11);
       return eingabe("Wie lang ist der Stift?", [F.cmM], cm, {bild:linealBild(0,cm*10), lineal:true, tag:"messen", sollText:`${cm} cm`,
@@ -426,5 +502,5 @@
   addEventListener("pagehide", stoppZeit);
   // für die automatischen Tests
   window.Groessen={ STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
-                    komma, euroCent, zerlege, linealBild, geldBild };
+                    komma, euroCent, zerlege, linealBild, geldBild, gewText, tText };
 })();
