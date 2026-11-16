@@ -54,9 +54,9 @@
     "Minus über die Null":"Steht links eine 0, musst du dir erst noch einen Stellenwert weiter links holen: 503 − 247. <b>Klasse 3 und 4.</b>",
     "Malnehmen":"Du nimmst jede Stelle einzeln mal, von rechts nach links, und merkst dir die Zehner. <b>Klasse 4.</b>",
     // Bunte Mischung
-    "Klasse 1 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 1. Klasse: Zehner und Einer, Formen, Münzen, Wochentage, Strichlisten.",
-    "Klasse 2 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 2. Klasse: Zahlenstrahl, Uhr und Kalender, Geld, Körper, Längen, Diagramme.",
-    "Klasse 3 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 3. Klasse: Zahlen bis 1000, schriftlich rechnen, Kommazahlen, Zeitspannen, Gewichte, Zufall. Jede Runde ist anders.",
+    "Klasse 1 – bunt gemischt":"Zehn Aufgaben für die 1. Klasse: immer vier Rechenaufgaben (Plus und Minus bis 20, Partnerzahlen) und sechs aus den anderen Themen – Zehner und Einer, Formen, Münzen, Wochentage.",
+    "Klasse 2 – bunt gemischt":"Zehn Aufgaben für die 2. Klasse: immer vier Rechenaufgaben (Plus und Minus bis 100, Einmaleins, Teilen) und sechs aus den anderen Themen – Zahlenstrahl, Uhr, Geld, Körper, Längen, Diagramme.",
+    "Klasse 3 – bunt gemischt":"Zehn Aufgaben für die 3. Klasse: immer vier Rechenaufgaben (Einmaleins, Teilen, Plus und Minus, Rechenwege, fehlende Zahl) und sechs aus den anderen Themen – bis 1000, schriftlich, Kommazahlen, Zeitspannen, Gewichte, Zufall. Jede Runde ist anders.",
     "Vorschau auf Klasse 4":"Für alle, die schon weiter sind: Tonnen, schriftlich malnehmen, lange Zeitspannen, Dreisatz.",
     // Kalender und Zeit
     "Wochentage und Monate":"Die Reihenfolge der sieben Wochentage und der zwölf Monate – auch „übermorgen“ und „vorgestern“. <b>Klasse 1 und 2.</b>",

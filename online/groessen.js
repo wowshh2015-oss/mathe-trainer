@@ -230,16 +230,16 @@
   ];
   // Bunte Mischung: jede Runde zieht 10 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
-    {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Zahlen bis 100 · Formen · Münzen · Wochentage",
+    {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Plus und Minus bis 20 · Zahlen · Formen · Münzen · Wochentage", kern:["rp_20","rm_20","rz_10","rz_20","rp_20","rm_20"],
       typen:["z_ze","z_stelle2","z_vorNach","f_form","f_form2","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen"]},
-    {id:2, mix:true, sek:75, name:"Klasse 2 – bunt gemischt", kurz:"Zahlenstrahl · Uhr und Kalender · Geld · Körper · Diagramme",
+    {id:2, mix:true, sek:75, name:"Klasse 2 – bunt gemischt", kurz:"Plus und Minus bis 100 · Einmaleins · Uhr · Geld · Körper · Diagramme", kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rz_100","rf_plus","rp_20","rm_20"],
       typen:["z_strahl","s_schritt","s_pfeil","z_vergleich","z_groesste","z_doppelt","z_haelfte","z_gerade","z_zehnerNachbar","k_tageMonat","k_wochen","k_hMin","k_bruch","u_wortUhr","u_uhrPaar",
              "f_ecken","f_koerper","f_alltag","f_sym","g_inCent","g_ausCent","g_legen","g_einkauf","l_messenVersetzt","l_mInCm","l_cmAus","w_schaetzen","d_diaLesen","d_diaMax"]},
-    {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"bis 1000 · schriftlich · Kommazahlen · Zeitspannen · Gewichte",
+    {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"Einmaleins und Teilen · bis 1000 · schriftlich · Kommazahlen · Zeit · Gewichte", kern:["rx_alle","rd_alle","rp_1000","rm_1000","rp_100","rm_100","rw_malZehner","rw_malZerlegen","rf_minus","rf_mal","rx_alle","rd_alle"],
       typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","z_rundeH","z_rest","sp_mit","sp_drei","sm_mit","sm_null","k_minAus2","k_hMinIn","k_bruchH","k_sekAus","zs_in","zs_vor","zs_dauer","zs_training","zs_los",
              "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
              "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum"]},
-    {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz",
+    {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
       typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal"]}
   ];
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX}[WAS];
@@ -446,8 +446,12 @@
   function THEMA(typ){ const p=String(typ).split("_")[0];
     return ({z:["zahlen","🔢 Zahlen"],s:["zahlen","🔢 Zahlen"],t:["zahlen","🔢 Zahlen"],k:["kalender","📅 Kalender und Zeit"],zs:["kalender","📅 Kalender und Zeit"],u:["kalender","📅 Kalender und Zeit"],
       g:["geld","💶 Geld"],gs:["geld","💶 Geld"],f:["geo","📐 Formen und Körper"],w:["gewichte","⚖️ Gewichte und Liter"],l:["laengen","📏 Längen"],d:["daten","📊 Daten und Zufall"],
-      sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"]})[p] || ["mix","🎲 Verschiedenes"]; }
+      sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"],
+      rp:["plus","➕ Plus"],rm:["minus","➖ Minus"],rx:["einmaleins","✖️ Einmaleins"],rd:["einsdurcheins","➗ Einsdurcheins"],rz:["zerlegen","🧩 Zerlegen"],
+      rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
+  // reine Rechenaufgabe: große Aufgabe, ein Zahlenfeld
+  function rechen(text, soll, probe, erkl){ return eingabe(`<span class="ziel" style="font-size:34px">${text}</span>`, [F.zahl], soll, {tag:"kopf", sollText:String(soll), erkl, probe}); }
   const BAU={
     g_cent(){ let l,sum; do{ l=[]; const n=rnd(2,5); for(let i=0;i<n;i++) l.push(aus([1,2,5,10,10,20,20,50])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=100 || l.filter(x=>x===50).length>1);
       l.sort((a,b)=>b-a);
@@ -718,6 +722,43 @@
     g_grossLegen(){ const e=rnd(12,98)*10+aus([0,5,5,2,3,7]);
       return {art:"legen", frage:`Lege genau <span class="ziel">${e} €</span> – mit möglichst wenigen Scheinen und Münzen.`, soll:e*100, kasse:[20000,10000,5000,2000,1000,500,200,100], tag:"legen", sollText:`${e} €`,
         erkl:`Eine Möglichkeit mit wenigen Stücken: ${summenKette(zerlege(e*100))} = <b>${e} €</b>.`}; },
+    // ===== Rechnen für die Bunte Mischung: Plus, Minus, Mal, Geteilt, Zerlegen, Rechenwege, fehlende Zahl =====
+    // (probe = [linke Zahl, Rechenzeichen, rechte Zahl, Ergebnis] – damit prüfen die Tests jede Aufgabe nach)
+    rp_20(){ const a=rnd(4,9), b=rnd(11-a,9), bis=10-a;
+      return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Erst bis zur 10, dann der Rest: ${a} + ${bis} = 10, dann noch + ${b-bis} = <b>${a+b}</b>.`); },
+    rm_20(){ const a=rnd(11,18), b=rnd(a-9,9), bis=a-10;
+      return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Erst zurück bis zur 10, dann der Rest: ${a} − ${bis} = 10, dann noch − ${b-bis} = <b>${a-b}</b>.`); },
+    rp_100(){ let a,b; do{ a=rnd(16,68); b=rnd(13,29); }while(a%10+b%10<10 || a+b>99);
+      return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Schrittweise: ${a} + ${Math.floor(b/10)*10} = ${a+Math.floor(b/10)*10}, dann + ${b%10} = <b>${a+b}</b>.`); },
+    rm_100(){ let a,b; do{ a=rnd(41,95); b=rnd(13,38); }while(a%10>=b%10);
+      return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Schrittweise: ${a} − ${Math.floor(b/10)*10} = ${a-Math.floor(b/10)*10}, dann − ${b%10} = <b>${a-b}</b>.`); },
+    rp_1000(){ const a=rnd(12,58)*10, b=rnd(12,38)*10;
+      return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Rechne mit den Zehnern wie mit kleinen Zahlen: ${a/10} + ${b/10} = ${(a+b)/10} – also <b>${a+b}</b>.`); },
+    rm_1000(){ const a=rnd(42,95)*10, b=rnd(12,38)*10;
+      return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Rechne mit den Zehnern wie mit kleinen Zahlen: ${a/10} − ${b/10} = ${(a-b)/10} – also <b>${a-b}</b>.`); },
+    rx_kern(){ const a=aus([2,5,10,rnd(2,9)]), b=aus([2,5,10]), q=Math.random()<0.3, x=q?rnd(3,9):a, y=q?x:b;
+      return rechen(`${x} × ${y}`, x*y, [x,"*",y,x*y], `Das ist eine <b>Kernaufgabe</b> – die sollte man auswendig wissen: ${x} × ${y} = <b>${x*y}</b>.`); },
+    rx_alle(){ const a=rnd(3,9), b=rnd(3,9), n=b===5||b===10?null:b>5?[10,`${a} × 10 = ${a*10}, dann ${10-b}-mal ${a} zurück`]:[5,`${a} × 5 = ${a*5}, dann ${b-5>0?b-5:5-b}-mal ${a} ${b>5?"dazu":"zurück"}`];
+      return rechen(`${a} × ${b}`, a*b, [a,"*",b,a*b], `${a} × ${b} = <b>${a*b}</b>. Hilfe über eine Kernaufgabe: ${a} × ${b>=5?5:2} = ${a*(b>=5?5:2)}, dann ${Math.abs(b-(b>=5?5:2))}-mal ${a} dazu.`); },
+    rd_alle(){ const b=rnd(2,9), q=rnd(2,9);
+      return rechen(`${b*q} ÷ ${b}`, q, [b*q,"/",b,q], `Denk an die Malaufgabe: Welche Zahl mal ${b} ergibt ${b*q}? <b>${q}</b> × ${b} = ${b*q}.`); },
+    rz_10(){ const a=rnd(1,9);
+      return rechen(`${a} + ☐ = 10`, 10-a, [a,"+",10-a,10], `Die Partnerzahlen zur 10: ${a} und <b>${10-a}</b> gehören zusammen.`); },
+    rz_20(){ const a=rnd(11,19);
+      return rechen(`${a} + ☐ = 20`, 20-a, [a,"+",20-a,20], `Wie bei der 10: ${a-10} + ${20-a} = 10, also ${a} + <b>${20-a}</b> = 20.`); },
+    rz_100(){ let a; do{ a=rnd(12,89); }while(a%10===0); const z=10-a%10;
+      return rechen(`${a} + ☐ = 100`, 100-a, [a,"+",100-a,100], `Erst bis zum nächsten Zehner (${z}), dann bis 100 (${100-a-z}): zusammen <b>${100-a}</b>.`); },
+    rw_malZehner(){ const a=rnd(3,9), b=rnd(2,9)*10;
+      return rechen(`${a} × ${b}`, a*b, [a,"*",b,a*b], `Erst die kleine Aufgabe: ${a} × ${b/10} = ${a*b/10}. Dann die Null wieder dazu: <b>${a*b}</b>.`); },
+    rw_malZerlegen(){ const a=rnd(3,8), b=rnd(11,19);
+      return rechen(`${a} × ${b}`, a*b, [a,"*",b,a*b], `Zerlege die ${b} in 10 und ${b-10}: ${a} × 10 = ${a*10} und ${a} × ${b-10} = ${a*(b-10)}. Zusammen <b>${a*b}</b>.`); },
+    rf_plus(){ const b=rnd(3,9), c=rnd(b+3,20), vorn=Math.random()<0.5;
+      return rechen(vorn?`☐ + ${b} = ${c}`:`${b} + ☐ = ${c}`, c-b, [c-b,"+",b,c], `Bei Plus fehlt ein Teil: <b>Summe minus die Zahl, die du kennst</b>. ${c} − ${b} = <b>${c-b}</b>.`); },
+    rf_minus(){ const b=rnd(3,9), c=rnd(4,12), vorn=Math.random()<0.5, a=b+c;
+      return vorn ? rechen(`☐ − ${b} = ${c}`, a, [a,"-",b,c], `Die erste, große Zahl fehlt: <b>Ergebnis plus die zweite Zahl</b>. ${c} + ${b} = <b>${a}</b>.`)
+                  : rechen(`${a} − ☐ = ${c}`, b, [a,"-",b,c], `Die zweite Zahl fehlt: <b>erste Zahl minus Ergebnis</b>. ${a} − ${c} = <b>${b}</b>.`); },
+    rf_mal(){ const a=rnd(3,9), b=rnd(3,9), vorn=Math.random()<0.5;
+      return rechen(vorn?`☐ × ${b} = ${a*b}`:`${a*b} ÷ ☐ = ${b}`, a, vorn?[a,"*",b,a*b]:[a*b,"/",a,b], `Mal und Geteilt helfen sich gegenseitig: ${a*b} ÷ ${b} = <b>${a}</b>, denn ${a} × ${b} = ${a*b}.`); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
@@ -868,7 +909,7 @@
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
   function baueAufgabe(st, typ){ typ=typ||aus(st.typen); const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
-    const liste=[], quelle = typen && typen.length ? typen : st.mix ? mische(st.typen) : st.typen;
+    const liste=[], quelle = typen && typen.length ? typen : st.mix ? mische([...new Set(mische(st.kern||[]))].slice(0,4).concat(mische(st.typen).slice(0,6))) : st.typen;
     for(let i=0;i<PRO_RUNDE;i++) liste.push(baueAufgabe(st, quelle[i%quelle.length]));
     return mische(liste);
   }
