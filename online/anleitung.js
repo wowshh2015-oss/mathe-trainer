@@ -16,7 +16,7 @@ window.Anleitung=(function(){
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Euro und Cent mit Komma · Rückgeld"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
-    kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Tage in Stunden · Datum"},
+    kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest"},
     geo:             {ic:"📐", name:"Formen und Körper", 1:"Flächen erkennen", 2:"Ecken und Seiten · Körper · Symmetrie", 3:"Ecken, Kanten, Flächen · Umfang und Fläche"},
     daten:           {ic:"📊", name:"Daten und Zufall", 2:"Strichlisten · Diagramme lesen", 3:"sicher, möglich, unmöglich · kombinieren"},

@@ -59,6 +59,10 @@
     "Stunden und Minuten":"1 Stunde = 60 Minuten. Eine halbe Stunde sind 30, eine Viertelstunde 15 Minuten. <b>Klasse 2 und 3.</b>",
     "Sekunden, Stunden, Tage":"1 Minute = 60 Sekunden, 1 Tag = 24 Stunden. <b>Klasse 3.</b>",
     "Mit dem Datum rechnen":"Welches Datum ist in ein paar Tagen – auch über das Monatsende hinaus? <b>Klasse 3.</b>",
+    "Umwandeln mit allen Zahlen":"Jetzt mit beliebigen Zahlen: 1 h 27 min = 87 min, 147 min = 2 h 27 min, 1 ¾ h = 105 min, 85 s = 1 min 25 s. <b>Klasse 3.</b>",
+    "Wie spät ist es in …? Wie spät war es vor …?":"Von einer Uhrzeit vorwärts oder rückwärts rechnen – auf die Minute genau. Trick: erst bis zur vollen Stunde, dann den Rest. <b>Klasse 3.</b>",
+    "Wie viel Zeit ist vergangen?":"Von 17.44 Uhr bis 18.12 Uhr: erst bis zur vollen Stunde (16 min), dann der Rest (12 min) – zusammen 28 min. <b>Klasse 3.</b>",
+    "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",

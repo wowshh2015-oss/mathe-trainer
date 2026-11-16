@@ -144,7 +144,12 @@
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
-            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1} };
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
+            sek:{e:"s",f:1}, minS:{e:"min",f:60}, uhrH:{e:".",f:60}, uhrM:{e:"Uhr",f:1} };
+  // Uhrzeit wie im Schulbuch: 13.50 Uhr (t = Minuten seit Mitternacht)
+  const uhr=t=>`${Math.floor(t/60)}.${zz(t%60)} Uhr`;
+  // Pfeilbild wie im Heft: 17.44 Uhr —16 min→ 18.00 Uhr —12 min→ 18.12 Uhr
+  function pfeil(t, schritte){ let s=`<b>${uhr(t)}</b>`; schritte.forEach(d=>{ t+=d; s+=` <span style="color:#fde68a;white-space:nowrap">—${d>=60 && d%60===0 ? d/60+" h" : d+" min"}→</span> <b>${uhr(t)}</b>`; }); return `<span style="display:inline-block;margin-top:6px;line-height:1.9">${s}</span>`; }
   const WTAGE=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
   const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"], MTAGE=[31,28,31,30,31,30,31,31,30,31,30,31];
   const GELD=[
@@ -209,7 +214,11 @@
     {id:2, name:"Wie lang ist ein Monat?", kurz:"30 oder 31 Tage · Wochen in Tage umrechnen", typen:["k_tageMonat","k_wochen","k_wissen","k_tageMonat"]},
     {id:3, name:"Stunden und Minuten", kurz:"1 Stunde = 60 Minuten · eine Viertelstunde", typen:["k_hMin","k_minAus","k_bruch","k_minAus"]},
     {id:4, name:"Sekunden, Stunden, Tage", kurz:"1 Minute = 60 Sekunden · 1 Tag = 24 Stunden", typen:["k_sek","k_tageStd","k_wissen"]},
-    {id:5, name:"Mit dem Datum rechnen", kurz:"Welches Datum ist in 5 Tagen?", typen:["k_datum"]}
+    {id:5, name:"Mit dem Datum rechnen", kurz:"Welches Datum ist in 5 Tagen?", typen:["k_datum"]},
+    {id:6, name:"Umwandeln mit allen Zahlen", kurz:"1 h 27 min = 87 min · 1 ¾ h · 85 s = 1 min 25 s", typen:["k_hMinIn","k_minAus2","k_bruchH","k_minSekIn","k_sekAus","k_vollMin"]},
+    {id:7, name:"Wie spät ist es in …? Wie spät war es vor …?", kurz:"13.34 Uhr + 16 min · auch über die volle Stunde", typen:["zs_voll","zs_in","zs_in","zs_inH","zs_vor"]},
+    {id:8, name:"Wie viel Zeit ist vergangen?", kurz:"17.44 Uhr bis 18.12 Uhr · 8.10 Uhr bis 11.05 Uhr", typen:["zs_dauer","zs_dauerH","zs_dauer","zs_dauerH","zs_voll"], sek:90},
+    {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100}
   ];
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
@@ -533,6 +542,60 @@
       const falsch=[`${tag+plus}. ${MONATE[i]}`, `${neu}. ${MONATE[i]}`, `${neu+1}. ${MONATE[(i+1)%12]}`];
       return {art:"wahl", frage:`Heute ist der <span class="ziel">${tag}. ${MONATE[i]}</span>.<br>Welches Datum ist <span class="ziel">in ${plus} Tagen</span>?`, optionen:mische([ok].concat(falsch)), ok, tag:"kalender", sollText:ok,
         erkl:`Der ${MONATE[i]} hat ${i===1?"28":MTAGE[i]} Tage. Bis zum Monatsende sind es noch ${MTAGE[i]-tag} Tage, dann bleiben ${neu} Tage für den nächsten Monat: <b>${ok}</b>.`}; },
+    // ===== Zeit, Klasse 3: umwandeln mit beliebigen Zahlen, Zeitspannen auf die Minute, Sachsituationen =====
+    k_hMinIn(){ const h=rnd(1,5), m=aus([rnd(1,9),rnd(10,59),rnd(10,59)]);
+      return eingabe(`<span class="ziel">${h} h ${m} min</span> = wie viele Minuten?`, [F.min], h*60+m, {tag:"zeiteinheit", sollText:`${h*60+m} min`, erkl:`<b>1 h = 60 min.</b> ${h} h sind ${h*60} min, dazu ${m} min: ${h*60} + ${m} = <b>${h*60+m} min</b>.`}); },
+    k_minAus2(){ let m; do{ m=rnd(61,370); }while(m%60===0);
+      return eingabe(`<span class="ziel">${m} min</span> = wie viele Stunden und Minuten?`, [F.std,F.min], m, {tag:"zeiteinheit", sollText:`${Math.floor(m/60)} h ${m%60} min`, streng:true,
+        erkl:`<b>60 min = 1 h.</b> Wie oft passt 60 in ${m}? ${Math.floor(m/60)}-mal (${Math.floor(m/60)*60} min). Übrig bleiben ${m} − ${Math.floor(m/60)*60} = ${m%60} min: <b>${Math.floor(m/60)} h ${m%60} min</b>.`}); },
+    k_bruchH(){ const g=rnd(0,4), b=aus([["¼",15],["½",30],["¾",45]]), ok=g*60+b[1];
+      return eingabe(`<span class="ziel">${g?g+" ":""}${b[0]} h</span> = wie viele Minuten?`, [F.min], ok, {tag:"zeiteinheit", sollText:`${ok} min`,
+        erkl:`¼ h = 15 min · ½ h = 30 min · ¾ h = 45 min · 1 h = 60 min.${g?` ${g} h sind ${g*60} min, dazu ${b[1]} min: <b>${ok} min</b>.`:` Also sind ${b[0]} h = <b>${ok} min</b>.`}`}); },
+    k_minSekIn(){ const m=rnd(1,6), s=rnd(5,58);
+      return eingabe(`<span class="ziel">${m} min ${s} s</span> = wie viele Sekunden?`, [F.sek], m*60+s, {tag:"zeiteinheit", sollText:`${m*60+s} s`, erkl:`<b>1 min = 60 s.</b> ${m} min sind ${m*60} s, dazu ${s} s: <b>${m*60+s} s</b>.`}); },
+    k_sekAus(){ let s; do{ s=rnd(65,370); }while(s%60===0);
+      return eingabe(`<span class="ziel">${s} s</span> = wie viele Minuten und Sekunden?`, [F.minS,F.sek], s, {tag:"zeiteinheit", sollText:`${Math.floor(s/60)} min ${s%60} s`, streng:true,
+        erkl:`<b>60 s = 1 min.</b> In ${s} s passt 60 genau ${Math.floor(s/60)}-mal (${Math.floor(s/60)*60} s). Übrig bleiben ${s%60} s: <b>${Math.floor(s/60)} min ${s%60} s</b>.`}); },
+    k_vollMin(){ const s=rnd(3,57);
+      return eingabe(`Ergänze zur vollen Minute:<br><span class="ziel">${s} s + ☐ s = 1 min</span>`, [F.sek], 60-s, {tag:"zeiteinheit", sollText:`${60-s} s`, erkl:`Eine Minute hat <b>60 Sekunden</b>. Von ${s} bis 60 fehlen 60 − ${s} = <b>${60-s} s</b>.`}); },
+    zs_voll(){ const h=rnd(6,21), m=aus([rnd(1,11)*5,rnd(1,11)*5,rnd(2,58)]), t=h*60+m;
+      return eingabe(`Es ist <span class="ziel">${uhr(t)}</span>.<br>Wie viele Minuten sind es bis zur <span class="ziel">vollen Stunde</span>?`, [F.min], 60-m, {tag:"zeitspanne", sollText:`${60-m} min`,
+        erkl:`Die nächste volle Stunde ist ${uhr((h+1)*60)}. Eine Stunde hat 60 Minuten: 60 − ${m} = <b>${60-m} min</b>.<br>${pfeil(t,[60-m])}`}); },
+    zs_in(){ const t=rnd(7,19)*60+rnd(3,57), d=aus([rnd(5,25),rnd(26,58),rnd(26,58)]), z=t+d, bis=60-t%60;
+      return eingabe(`Es ist <span class="ziel">${uhr(t)}</span>.<br>Wie spät ist es <span class="ziel">in ${d} Minuten</span>?`, [F.uhrH,F.uhrM], z, {tag:"zeitspanne", sollText:uhr(z), streng:true,
+        erkl: d<bis ? `Du bleibst in derselben Stunde: ${t%60} + ${d} = ${z%60}.<br>${pfeil(t,[d])}` : `Geh zuerst bis zur vollen Stunde (${bis} min), dann den Rest (${d-bis} min).<br>${pfeil(t,d-bis?[bis,d-bis]:[bis])}`}); },
+    zs_inH(){ const t=rnd(7,15)*60+rnd(1,11)*5, h=rnd(1,3), m=aus([0,rnd(1,11)*5,rnd(1,11)*5]), z=t+h*60+m;
+      return eingabe(`Es ist <span class="ziel">${uhr(t)}</span>.<br>Wie spät ist es <span class="ziel">in ${h} h${m?` ${m} min`:""}</span>?`, [F.uhrH,F.uhrM], z, {tag:"zeitspanne", sollText:uhr(z), streng:true,
+        erkl:`Erst die Stunden, dann die Minuten.<br>${pfeil(t,[h*60].concat(m?[m]:[]))}`}); },
+    zs_vor(){ const t=rnd(8,19)*60+rnd(3,57), d=aus([rnd(4,20),rnd(21,59),rnd(21,59)]), z=t-d, ab=t%60;
+      return eingabe(`Es ist <span class="ziel">${uhr(t)}</span>.<br>Wie spät war es <span class="ziel">vor ${d} Minuten</span>?`, [F.uhrH,F.uhrM], z, {tag:"zeitspanne", sollText:uhr(z), streng:true,
+        erkl: d<=ab ? `Du bleibst in derselben Stunde: ${ab} − ${d} = ${z%60}. Es war <b>${uhr(z)}</b>.` : `Geh zuerst zurück bis zur vollen Stunde (${ab} min), dann noch ${d-ab} min weiter zurück: ${uhr(t-ab)} → <b>${uhr(z)}</b>.<br>Probe: ${pfeil(z,[60-z%60].concat(ab?[ab]:[]))}`}); },
+    zs_dauer(){ const t=rnd(7,19)*60+rnd(31,58), d=rnd(15,58), bis=60-t%60; if(d<=bis) return BAU.zs_dauer();
+      return eingabe(`Von <span class="ziel">${uhr(t)}</span> bis <span class="ziel">${uhr(t+d)}</span> – wie viele Minuten sind vergangen?`, [F.min], d, {tag:"zeitspanne", sollText:`${d} min`,
+        erkl:`Rechne in zwei Schritten über die volle Stunde: ${bis} min + ${d-bis} min = <b>${d} min</b>.<br>${pfeil(t,[bis,d-bis])}`}); },
+    zs_dauerH(){ const t=rnd(7,13)*60+rnd(2,11)*5, h=rnd(1,3), bis=60-t%60, rest=rnd(1,11)*5, d=bis+h*60+rest;
+      return eingabe(`Von <span class="ziel">${uhr(t)}</span> bis <span class="ziel">${uhr(t+d)}</span> – wie viel Zeit ist vergangen?`, [F.std,F.min], d, {tag:"zeitspanne", sollText:`${Math.floor(d/60)} h ${d%60} min`, streng:true,
+        erkl:`Drei Schritte: bis zur vollen Stunde, dann die ganzen Stunden, dann der Rest.<br>${pfeil(t,[bis,h*60,rest])}<br>${bis} min + ${h} h + ${rest} min = ${h} h ${bis+rest} min${bis+rest>=60?` = <b>${Math.floor(d/60)} h ${d%60} min</b>`:""}.`}); },
+    zs_training(){ const a=aus([["Das Fußballtraining","Julius"],["Der Schlagzeugunterricht","Mia"],["Die Bandprobe","Erik"],["Das Angebot „Zirkus“","Finja"],["Der Schwimmkurs","Tom"]]), t=rnd(9,16)*60+rnd(2,11)*5, d=rnd(6,18)*5;
+      return eingabe(`${a[0]} beginnt um <span class="ziel">${uhr(t)}</span> und endet um <span class="ziel">${uhr(t+d)}</span>.<br>Wie lange dauert es?`, [F.min], d, {tag:"zeitspanne", sollText:`${d} min`,
+        erkl:`Geh von Anfang bis Ende – wenn nötig über die volle Stunde.<br>${pfeil(t,(60-t%60)<d?[60-t%60,d-(60-t%60)]:[d])}`}); },
+    zs_woche(){ const d=aus([35,40,45,50,75,80]), n=aus([2,3,5,5]), s=d*n, wer=aus(["Arda","Lina","Finja","Erik"]);
+      return eingabe(`${wer} hat ${n===5?"von Montag bis Freitag jeden Tag":n+"-mal in der Woche"} <span class="ziel">${d} Minuten</span> Training.<br>Wie lange trainiert ${wer} in der Woche?`, [F.std,F.min], s, {tag:"zeitspanne", sollText:`${Math.floor(s/60)} h ${s%60} min`, streng:true,
+        erkl:`${n} × ${d} min = ${s} min. 60 min sind 1 h: ${s} min = <b>${Math.floor(s/60)} h ${s%60} min</b>.`}); },
+    zs_los(){ const t=rnd(8,16)*60+rnd(0,11)*5, w=aus([10,15,20,25,35,40]), z=t-w;
+      return eingabe(`Die Probe beginnt um <span class="ziel">${uhr(t)}</span>. Für den Weg braucht Erik <span class="ziel">${w} Minuten</span>.<br>Wann muss er spätestens losgehen?`, [F.uhrH,F.uhrM], z, {tag:"zeitspanne", sollText:uhr(z), streng:true,
+        erkl:`Du musst <b>zurück</b>rechnen: ${uhr(t)} − ${w} min = <b>${uhr(z)}</b>.<br>Probe: ${pfeil(z,(60-z%60)<w?[60-z%60,w-(60-z%60)]:[w])}`}); },
+    zs_beginn(){ const t=rnd(8,16)*60+rnd(1,11)*5, d=rnd(2,9)*5;
+      return eingabe(`Es ist <span class="ziel">${uhr(t)}</span>. Der Unterricht beginnt um <span class="ziel">${uhr(t+d)}</span>.<br>In wie vielen Minuten beginnt er?`, [F.min], d, {tag:"zeitspanne", sollText:`${d} min`,
+        erkl:`${pfeil(t,(60-t%60)<d?[60-t%60,d-(60-t%60)]:[d])}`}); },
+    zs_takt(){ const t=rnd(6,20)*60+rnd(2,57), takt=aus([10,10,15,20,30]), n=rnd(1,3), z=t+takt*n;
+      return eingabe(`Der Bus fährt <span class="ziel">alle ${takt} Minuten</span>. Ein Bus ist um <span class="ziel">${uhr(t)}</span> abgefahren.<br>Wann fährt der ${["nächste","übernächste","dritte"][n-1]} Bus${n===3?" danach":""}?`, [F.uhrH,F.uhrM], z, {tag:"zeitspanne", sollText:uhr(z), streng:true,
+        erkl:`Zähle in ${takt}er-Schritten weiter: ${Array.from({length:n+1},(_,k)=>uhr(t+k*takt)).join(" → ")}. Antwort: <b>${uhr(z)}</b>.`}); },
+    zs_fahrplan(){ const halt=mische(["Busbahnhof","Lange Straße","Schubertplatz","Wilhelmstraße","Erichweg","Kreuzstraße","Bachstraße","Marktplatz"]).slice(0,5); let t=rnd(7,15)*60+rnd(2,20); const zeiten=halt.map((h,i)=>{ if(i) t+=rnd(3,12); return t; });
+      const i=rnd(0,3), j=rnd(i+1,4), d=zeiten[j]-zeiten[i];
+      const tab=`<table style="border-collapse:collapse;font-size:15px;margin:0 auto"><tr><th colspan="2" style="text-align:left;padding:2px 8px;color:#fde68a">🚌 Linie 14</th></tr>${halt.map((h,k)=>`<tr><td style="border:1px solid #475569;padding:3px 10px;text-align:left;${k===i||k===j?"font-weight:800;color:#fff":""}">${h}</td><td style="border:1px solid #475569;padding:3px 10px">${uhr(zeiten[k]).replace(" Uhr","")}</td></tr>`).join("")}</table>`;
+      return eingabe(`Wie viele Minuten fährt der Bus von <span class="ziel">${halt[i]}</span> bis <span class="ziel">${halt[j]}</span>?`, [F.min], d, {bild:tab, tag:"zeitspanne", sollText:`${d} min`,
+        erkl:`Lies beide Zeiten im Fahrplan ab: ${halt[i]} ${uhr(zeiten[i])}, ${halt[j]} ${uhr(zeiten[j])}.<br>${pfeil(zeiten[i],(60-zeiten[i]%60)<d?[60-zeiten[i]%60,d-(60-zeiten[i]%60)]:[d])}`}); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
