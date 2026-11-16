@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -14,8 +14,9 @@
     laengen:["📏","Längen","Messen, umwandeln und mit Längen rechnen."], zahlen:["🔢","Zahlen bis 1000","Stellenwerte, Zahlenstrahl, vergleichen und runden."],
     geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"],
     schrift:["✍️","Schriftlich rechnen","Untereinander rechnen – Stelle für Stelle, von rechts nach links."],
-    kalender:["📅","Kalender und Zeit","Wochentage, Monate, Stunden, Minuten und Sekunden."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"] }[WAS];
+    kalender:["📅","Kalender und Zeit","Wochentage, Monate, Stunden, Minuten und Sekunden."],
+    mix:["🎲","Bunte Mischung","Aufgaben aus allen Themen – passend zu deiner Klasse."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -227,7 +228,21 @@
     {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100},
     {id:10, name:"Uhr: zwei Uhrzeiten, drei Schreibweisen", kurz:"3.10 Uhr und 15.10 Uhr · Viertel vor 8 = 7.45 Uhr = 19:45", typen:["u_beide","u_wortUhr","u_digitalWort","u_uhrPaar","u_nachm"], sek:60}
   ];
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER}[WAS];
+  // Bunte Mischung: jede Runde zieht 10 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
+  const MIX=[
+    {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Zahlen bis 100 · Formen · Münzen · Wochentage",
+      typen:["z_ze","z_stelle2","z_vorNach","f_form","f_form2","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen"]},
+    {id:2, mix:true, sek:75, name:"Klasse 2 – bunt gemischt", kurz:"Zahlenstrahl · Uhr und Kalender · Geld · Körper · Diagramme",
+      typen:["z_strahl","s_schritt","s_pfeil","z_vergleich","z_groesste","z_doppelt","z_haelfte","z_gerade","z_zehnerNachbar","k_tageMonat","k_wochen","k_hMin","k_bruch","u_wortUhr","u_uhrPaar",
+             "f_ecken","f_koerper","f_alltag","f_sym","g_inCent","g_ausCent","g_legen","g_einkauf","l_messenVersetzt","l_mInCm","l_cmAus","w_schaetzen","d_diaLesen","d_diaMax"]},
+    {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"bis 1000 · schriftlich · Kommazahlen · Zeitspannen · Gewichte",
+      typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","z_rundeH","z_rest","sp_mit","sp_drei","sm_mit","sm_null","k_minAus2","k_hMinIn","k_bruchH","k_sekAus","zs_in","zs_vor","zs_dauer","zs_training","zs_los",
+             "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
+             "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum"]},
+    {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz",
+      typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal"]}
+  ];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -427,6 +442,11 @@
     const k=kugeln.map((f,i)=>`<circle cx="${50-(pro-1)*8+(i%pro)*16}" cy="${99-Math.floor(i/pro)*16}" r="7" fill="${FARBEN[f]}" stroke="#0f172a" stroke-width="1.5"/>`).join("");
     return `<svg width="170" height="170" viewBox="0 0 100 116" role="img" aria-label="Beutel mit Kugeln"><path d="M34 14 Q50 22 66 14 L62 28 Q96 52 90 96 Q88 112 50 112 Q12 112 10 96 Q4 52 38 28 Z" fill="#334155" stroke="#94a3b8" stroke-width="2.5"/><path d="M36 28 H64" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>${k}</svg>`;
   }
+  // Zu welchem Thema (Trainer) gehört eine Aufgabenart? Gebraucht für die Auswertung der Bunten Mischung.
+  function THEMA(typ){ const p=String(typ).split("_")[0];
+    return ({z:["zahlen","🔢 Zahlen"],s:["zahlen","🔢 Zahlen"],t:["zahlen","🔢 Zahlen"],k:["kalender","📅 Kalender und Zeit"],zs:["kalender","📅 Kalender und Zeit"],u:["kalender","📅 Kalender und Zeit"],
+      g:["geld","💶 Geld"],gs:["geld","💶 Geld"],f:["geo","📐 Formen und Körper"],w:["gewichte","⚖️ Gewichte und Liter"],l:["laengen","📏 Längen"],d:["daten","📊 Daten und Zufall"],
+      sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   const BAU={
     g_cent(){ let l,sum; do{ l=[]; const n=rnd(2,5); for(let i=0;i<n;i++) l.push(aus([1,2,5,10,10,20,20,50])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=100 || l.filter(x=>x===50).length>1);
@@ -848,7 +868,7 @@
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
   function baueAufgabe(st, typ){ typ=typ||aus(st.typen); const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
-    const liste=[], quelle = typen && typen.length ? typen : st.typen;
+    const liste=[], quelle = typen && typen.length ? typen : st.mix ? mische(st.typen) : st.typen;
     for(let i=0;i<PRO_RUNDE;i++) liste.push(baueAufgabe(st, quelle[i%quelle.length]));
     return mische(liste);
   }
@@ -972,6 +992,16 @@
     const f=[...new Set(runde.fehlerTexte)];
     $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> richtig – ${esc(runde.st.name)}.`+(test?`<br>${bestanden?"Diese Stufe sitzt. Probier die nächste!":`Bestanden ist der Test ab ${BESTANDEN} %.`}`:"")+
       (f.length?`<br><br><b>Das üben wir noch:</b> ${f.slice(0,8).map(esc).join(" · ")}`:"");
+    // Bunte Mischung = Check über alle Themen: nach der Runde zeigen, welches Thema sitzt und welches noch nicht
+    if(WAS==="mix"){
+      const th={}; runde.aufgaben.forEach((a,i)=>{ const t=THEMA(a.typ); (th[t[0]]=th[t[0]]||{name:t[1],r:0,n:0}); th[t[0]].n++; if(runde.verlauf[i]) th[t[0]].r++; });
+      let zu=[]; try{ if(localStorage.getItem("uhr_test_frei")!=="1") zu=JSON.parse(localStorage.getItem("mathe_zu")||"[]"); }catch(e){}
+      const zeilen=Object.keys(th).sort((x,y)=>th[x].r/th[x].n-th[y].r/th[y].n).map(app=>{ const x=th[app], gut=x.r===x.n;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--card2)"><span style="flex:1"><b>${x.name}</b></span><span style="font-weight:800;color:${gut?"#86efac":x.r?"#fde047":"#fca5a5"}">${gut?"✅":"⚠️"} ${x.r} von ${x.n}</span>`+
+          (!gut && !zu.includes(app) ? `<a href="${app}-trainer.html#name=${encodeURIComponent(playerName)}" style="color:#7dd3fc;font-weight:700;font-size:13.5px;white-space:nowrap">üben ›</a>` : `<span style="width:52px"></span>`)+`</div>`; }).join("");
+      $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> richtig – ${esc(runde.st.name)}.`+(test?`<br>${bestanden?"Stark – das meiste sitzt!":`Bestanden ist der Check ab ${BESTANDEN} %.`}`:"")+
+        `<div style="margin-top:12px;font-weight:800;color:var(--text)">So sieht es bei den Themen aus:</div>${zeilen}<div style="margin-top:8px;font-size:13px">Was noch nicht sitzt, schlägt dir der Mathe-Trainer auf der Startseite zum Üben vor.</div>`;
+    }
     letzte=runde;
     $("nochmalBtn").onclick=()=>starte(letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
     speichere(proz, bestanden);
@@ -1055,5 +1085,5 @@
   addEventListener("pagehide", stoppZeit);
   // für die automatischen Tests
   window.Groessen={ STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
-                    komma, euroCent, zerlege, linealBild, geldBild, gewText, tText, ziffern };
+                    komma, euroCent, zerlege, linealBild, geldBild, gewText, tText, ziffern, THEMA };
 })();

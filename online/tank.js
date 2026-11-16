@@ -21,6 +21,7 @@ window.Tank=(function(){
     {app:"gewichte",        ic:"⚖️", name:"Gewichte",      datei:"gewichte-trainer.html"},
     {app:"schrift",         ic:"✍️", name:"Schriftlich rechnen", datei:"schrift-trainer.html"},
     {app:"kalender",        ic:"📅", name:"Kalender und Zeit", datei:"kalender-trainer.html"},
+    {app:"mix",             ic:"🎲", name:"Bunte Mischung", datei:"mix-trainer.html"},
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
     {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
     {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}

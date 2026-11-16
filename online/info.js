@@ -53,6 +53,11 @@
     "Minus mit Entbündeln":"Reicht es oben nicht, holst du dir einen von links: Ein Zehner wird zu 10 Einern. <b>Klasse 3.</b>",
     "Minus über die Null":"Steht links eine 0, musst du dir erst noch einen Stellenwert weiter links holen: 503 − 247. <b>Klasse 3 und 4.</b>",
     "Malnehmen":"Du nimmst jede Stelle einzeln mal, von rechts nach links, und merkst dir die Zehner. <b>Klasse 4.</b>",
+    // Bunte Mischung
+    "Klasse 1 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 1. Klasse: Zehner und Einer, Formen, Münzen, Wochentage, Strichlisten.",
+    "Klasse 2 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 2. Klasse: Zahlenstrahl, Uhr und Kalender, Geld, Körper, Längen, Diagramme.",
+    "Klasse 3 – bunt gemischt":"Zehn Aufgaben aus allen Themen der 3. Klasse: Zahlen bis 1000, schriftlich rechnen, Kommazahlen, Zeitspannen, Gewichte, Zufall. Jede Runde ist anders.",
+    "Vorschau auf Klasse 4":"Für alle, die schon weiter sind: Tonnen, schriftlich malnehmen, lange Zeitspannen, Dreisatz.",
     // Kalender und Zeit
     "Wochentage und Monate":"Die Reihenfolge der sieben Wochentage und der zwölf Monate – auch „übermorgen“ und „vorgestern“. <b>Klasse 1 und 2.</b>",
     "Wie lang ist ein Monat?":"Welche Monate haben 30 und welche 31 Tage? Und: 1 Woche = 7 Tage. <b>Klasse 2.</b>",
@@ -121,6 +126,7 @@
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
     schrift:"<b>Schriftlich rechnen:</b> große Zahlen untereinander schreiben und Stelle für Stelle rechnen – immer rechts bei den Einern anfangen. <b>Klasse 3:</b> Plus und Minus. <b>Klasse 4:</b> Malnehmen.",
+    mix:"<b>Bunte Mischung:</b> zehn Aufgaben aus ganz verschiedenen Themen – Zahlen, Uhr, Geld, Formen, Gewichte … Du wählst deine Klasse. Gut zum Wiederholen.",
     kalender:"<b>Kalender und Zeit:</b> Wochentage und Monate, wie viele Tage ein Monat hat, und Stunden, Minuten, Sekunden umrechnen. <b>Klasse 1 bis 3.</b>",
     zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
     geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
@@ -216,6 +222,7 @@
     gewichte:[["#menue > h3, #start h3", T.stufen]],
     schrift:[["#menue > h3, #start h3", T.stufen]],
     kalender:[["#menue > h3, #start h3", T.stufen]],
+    mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat zehn Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Test:</b> auf Zeit – das ist dein Wochen-Check."]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],

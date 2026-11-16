@@ -209,7 +209,8 @@
     <a class="tile t5" data-page="kalender-trainer.html"><div class="ic">📅</div><div class="t">Kalender und Zeit</div><div class="d">Wochentage · Monate · Stunden und Minuten</div></a>
     <a class="tile t6" data-page="geld-trainer.html"><div class="ic">💶</div><div class="t">Geld</div><div class="d">Euro und Cent · bezahlen · Rückgeld</div></a>
     <a class="tile t1" data-page="laengen-trainer.html"><div class="ic">📏</div><div class="t">Längen</div><div class="d">messen · mm · cm · m</div></a>
-    <a class="tile t4 breit" data-page="gewichte-trainer.html"><div class="ic">⚖️</div><div class="t">Gewichte und Liter</div><div class="d">wiegen · Gramm · Kilogramm · Liter und Milliliter</div></a>
+    <a class="tile t4" data-page="gewichte-trainer.html"><div class="ic">⚖️</div><div class="t">Gewichte und Liter</div><div class="d">wiegen · Gramm · Kilogramm · Liter und Milliliter</div></a>
+    <a class="tile t8" data-page="mix-trainer.html"><div class="ic">🎲</div><div class="t">Bunte Mischung</div><div class="d">alle Themen gemischt · nach Klasse</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a><span id="elternSpan" class="hide"> · <a id="elternLink" href="eltern.html" style="color:var(--muted)">👨‍👩‍👧 Für Eltern</a></span></p>
@@ -343,6 +344,7 @@ const SEITEN={
   zahlen:         {datei:"zahlen-trainer.html",          ic:"🔢", name:"Zahlen bis 1000"},
   schrift:        {datei:"schrift-trainer.html",         ic:"✍️", name:"Schriftlich rechnen"},
   kalender:       {datei:"kalender-trainer.html",        ic:"📅", name:"Kalender und Zeit"},
+  mix:            {datei:"mix-trainer.html",             ic:"🎲", name:"Bunte Mischung"},
   geo:            {datei:"geo-trainer.html",             ic:"📐", name:"Formen und Körper"},
   daten:          {datei:"daten-trainer.html",           ic:"📊", name:"Daten und Zufall"},
   sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"},
@@ -506,9 +508,17 @@ function zeigeHallo(rows, name){
       (anz===1 ? `Dort wartet <b>eine Aufgabe</b> auf dich.` : `Dort warten <b>${anz} Aufgaben</b> auf dich.`)+
       (wdh ? ` 🔁 ${wdh===1?"Eine davon ist":wdh+" davon sind"} heute zum Wiederholen dran – damit sie für immer sitzen.` : ` Mit ihnen hattest du zuletzt Mühe.`), s.datei, name));
   }
+  // 1b) Check (Bunte Mischung): Themen, bei denen in den letzten drei Wochen mehrere Aufgaben danebengingen, zum Üben vorschlagen
+  const CHECK_THEMA={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u:"kalender",g:"geld",gs:"geld",f:"geo",w:"gewichte",l:"laengen",d:"daten",sp:"schrift",sm:"schrift",sx:"schrift"};
+  const checks=rows.filter(e=>e.app==="mix" && tageHer(e.datum)<=21), schwach={};
+  checks.forEach(e=>{ (e.gestellt||[]).forEach(k=>{ const a=CHECK_THEMA[String(k).split("|")[1].split("_")[0]]; if(a){ (schwach[a]=schwach[a]||{n:0,f:0}).n++; } });
+                      (e.fehler||[]).forEach(k=>{ const a=CHECK_THEMA[String(k).split("|")[1].split("_")[0]]; if(a && schwach[a]) schwach[a].f++; }); });
+  const ausCheck=Object.keys(schwach).filter(a=>schwach[a].f>=2 && schwach[a].f/schwach[a].n>=0.4 && SEITEN[a] && !istZu(a)).sort((x,y)=>schwach[y].f/schwach[y].n-schwach[x].f/schwach[x].n);
+  if(ausCheck.length && tipps.length<3){ const a=ausCheck[0], s=SEITEN[a];
+    tipps.push(tippHTML(s.ic, `Aus deinem Check: ${s.name}`, `Im Check gingen hier <b>${schwach[a].f} von ${schwach[a].n} Aufgaben</b> daneben. Ein paar Runden – und es sitzt wieder.`, s.datei, name)); }
   // 2) lange nicht geübt
   const lange=Object.entries(proApp)
-    .filter(([a])=>SEITEN[a])
+    .filter(([a])=>SEITEN[a] && a!=="mix")            // an den Check erinnert ein eigener Hinweis
     .map(([a,r])=>{ r.sort((x,y)=>hTs(y).localeCompare(hTs(x))); return [a, tageHer(r[0].datum)]; })
     .filter(x=>x[1]>=7).sort((a,b)=>b[1]-a[1]);
   if(lange.length && tipps.length<3){
@@ -523,12 +533,17 @@ function zeigeHallo(rows, name){
     tipps.push(tippHTML(s.ic, `Neu für dich: ${s.name}`, `Das hast du noch nie probiert – schau doch mal rein!`, s.datei, name));
   }
   // 4) knapp an der Urkunde vorbei
-  const knapp=tests.filter(e=>e.bestanden==="Nein" && e.prozent>=70).sort((a,b)=>b.prozent-a.prozent)[0];
+  const knapp=tests.filter(e=>e.bestanden==="Nein" && e.prozent>=70 && e.app!=="mix" && !istZu(e.app)).sort((a,b)=>b.prozent-a.prozent)[0];
   if(knapp && tipps.length<3 && SEITEN[knapp.app]){
     const s=SEITEN[knapp.app];
     tipps.push(tippHTML("🎯", `Fast geschafft bei ${s.name}`,
       `Dein bester Test war <b>${knapp.prozent} %</b> – ab 90 % gibt es die Urkunde. Das packst du!`, s.datei, name));
   }
+  // 4b) einmal in der Woche ein Check über alle Themen – zeigt, was noch sitzt und was man vergisst
+  const letzterCheck=rows.filter(e=>e.app==="mix" && e.modus==="Test").map(e=>tageHer(e.datum)).sort((x,y)=>x-y)[0];
+  if(!istZu("mix") && rows.length>=5 && (letzterCheck===undefined || letzterCheck>=7) && tipps.length<3)
+    tipps.push(tippHTML("📝", letzterCheck===undefined ? "Mach deinen ersten Check" : "Zeit für deinen Wochen-Check",
+      (letzterCheck===undefined ? "Zehn Aufgaben aus allen Themen" : `Dein letzter Check ist <b>${letzterCheck} Tage</b> her. Zehn Aufgaben aus allen Themen`)+" – danach siehst du, was sitzt und was du noch üben kannst. Tippe bei deiner Klasse auf <b>Test</b>.", SEITEN.mix.datei, name));
   // 5) Marathon / Rallye weiterziehen
   if(tipps.length<3 && mEtage){
     const naechste=(Math.floor(mEtage/5)+1)*5;
@@ -576,6 +591,7 @@ const WUSSTEST=[
   {id:"pokal",  ic:"🏆", wenn:r=>!istZu("rallye"), x:"In der <b>Rechen-Rallye</b> gibt es Pokale: nach 50, 100 und 180 Runden. Danach öffnet die Profi-Garage."},
   {id:"hilfe",  ic:"❓", x:"Das <b>Fragezeichen</b> oben rechts erklärt alles im Mathe-Trainer. Zeig es auch deinen Eltern!"},
   {id:"eltern", ic:"👨‍👩‍👧", wenn:r=>!istZu("eltern"), x:"Ganz unten auf dieser Seite steht <b>„Für Eltern“</b>. Dort sehen deine Eltern, was du schon alles kannst."},
+  {id:"check",  ic:"📝", wenn:r=>!istZu("mix") && !r.some(e=>e.app==="mix"), app:"mix", x:"In der <b>Bunten Mischung</b> kannst du einen <b>Check</b> machen: zehn Aufgaben aus allen Themen. Danach siehst du, was schon sitzt und was du vergessen hast."},
   {id:"tier",   ic:"🐾", x:"Dein <b>Geheimtier</b> ist dein Schlüssel. Verrate es niemandem – dann gehören deine Sterne nur dir."}
 ];
 function zeigeWusstest(rows, name, weiter){
@@ -615,6 +631,7 @@ const NEUES=[
   {d:"2026-11-15", ic:"❓", t:"Anleitung für Eltern",           x:"Oben rechts gibt es jetzt ein Fragezeichen. Dort wird alles erklärt – zeig es deinen Eltern."},
   {d:"2026-11-15", ic:"🔍", t:"Fehlende Zahl",                 x:"Eine neue Kachel: Lerne, wie die Zahlen heißen (Summand, Summe …) und finde die verlorene Zahl.", app:"platz"},
   {d:"2026-11-17", ic:"✍️", t:"Schriftlich rechnen",           x:"Eine neue Kachel: große Zahlen untereinander rechnen – Stelle für Stelle.", app:"schrift"},
+  {d:"2026-11-17", ic:"🎲", t:"Bunte Mischung",                x:"Eine neue Kachel: zehn Aufgaben aus allen Themen – such dir deine Klasse aus.", app:"mix"},
   {d:"2026-11-17", ic:"📅", t:"Kalender und Zeit",             x:"Eine neue Kachel: Wochentage, Monate, Stunden, Minuten und Sekunden.", app:"kalender"},
   {d:"2026-11-17", ic:"🔢", t:"Zahlen bis 1000",               x:"Eine neue Kachel: Zehner und Einer, vergleichen, runden – und der Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"zahlen"},
   {d:"2026-11-17", ic:"📐", t:"Formen und Körper",             x:"Eine neue Kachel: Würfel, Kugel, Dreieck … erkennen, Ecken zählen, Spiegelachsen finden.", app:"geo"},

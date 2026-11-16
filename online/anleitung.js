@@ -16,6 +16,7 @@ window.Anleitung=(function(){
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
+    mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest"},
     geo:             {ic:"📐", name:"Formen und Körper", 1:"Flächen erkennen", 2:"Ecken und Seiten · Körper · Symmetrie", 3:"Ecken, Kanten, Flächen · Umfang und Fläche"},
@@ -63,6 +64,7 @@ window.Anleitung=(function(){
      <li><b>📖 Sachaufgaben</b> – Geschichte lesen, Rechenart finden, rechnen, Antwortsatz.</li>
      <li><b>💶 Geld / 📏 Längen / ⚖️ Gewichte</b> – Münzen, bezahlen, Rückgeld; messen und umwandeln; wiegen, Gramm und Kilogramm.</li>
      <li><b>✍️ Schriftlich rechnen</b> – Plus, Minus und Mal untereinander, Stelle für Stelle von rechts nach links.</li>
+     <li><b>🎲 Bunte Mischung</b> – zehn Aufgaben quer durch alle Themen, passend zur Klasse. Der <b>Test</b> dort ist der Wochen-Check: Danach sieht Ihr Kind Thema für Thema, was sitzt und was es vergessen hat – und der Mathe-Trainer schlägt genau das zum Üben vor.</li>
      <li><b>📅 Kalender und Zeit</b> – Wochentage, Monate, Tage im Monat; Stunden, Minuten und Sekunden umrechnen.</li>
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>
      <li><b>📐 Formen und Körper</b> – Flächen und Körper benennen, Ecken und Kanten zählen, Symmetrie, Umfang und Fläche.</li>
