@@ -686,8 +686,10 @@ $("meldWeg").addEventListener("click", ()=>{ if(confirm("Die Nachricht entfernen
 function zeigeProjektor(){
   // Wer nicht zur Klasse gehört (Geschwister, doppelt geschriebene Namen), lässt sich per Tipp auf den Namen ausblenden – das merkt sich dieses Gerät.
   let aus=[], zeitraum=30; try{ aus=JSON.parse(localStorage.getItem("proj_aus")||"[]"); zeitraum=+localStorage.getItem("proj_tage")||30; }catch(e){}
-  const alle=[...new Set(ALLE.map(e=>e.name))].filter(n=>n && !/^zz/i.test(n)).map(n=>kindStand(n)).filter(k=>k.her!==null && k.her<=zeitraum);
-  const kinder=alle.filter(k=>!aus.includes(k.name)).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  // Ist eine Klasse ausgewählt, werden genau diese Kinder gezeigt – auch die, die noch nie oder lange nicht geübt haben.
+  const alleNamen=[...new Set(ALLE.map(e=>e.name).concat(KLASSE||[]))].filter(n=>n && !/^zz/i.test(n)).sort((a,b)=>a.localeCompare(b,"de"));
+  const alle = KLASSE ? KLASSE.map(n=>kindStand(n)) : alleNamen.map(n=>kindStand(n)).filter(k=>k.her!==null && k.her<=zeitraum);
+  const kinder=alle.filter(k=>KLASSE || !aus.includes(k.name)).sort((a,b)=>a.name.localeCompare(b.name,"de"));
   const p=x=>String(x).padStart(2,"0"), tage=[];
   for(let i=6;i>=0;i--){ const d=heute(); d.setDate(d.getDate()-i); tage.push({ds:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, wt:["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()]}); }
   const zwei=kinder.length>16, proSpalte=Math.max(1, zwei?Math.ceil(kinder.length/2):kinder.length), box=$("projektor");
@@ -703,16 +705,36 @@ function zeigeProjektor(){
     <tbody>${liste.map(zeile).join("")}</tbody></table>`;
   const d=new Date(), wahl=[14,30,60].map(x=>`<option value="${x}"${x===zeitraum?" selected":""}>aktiv in den letzten ${x} Tagen</option>`).join("");
   box.innerHTML=`<div class="pKopf"><h2>🧮 Mathe-Trainer · Unsere Klasse</h2><span>${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} · ${kinder.length} Kinder</span>
-      <select id="projTage">${wahl}</select>${aus.length?`<button class="ghost" id="projAlle" style="color:#fff">${aus.length} ausgeblendet – alle zeigen</button>`:""}<button id="projZu">✕ Schließen</button></div>
+      <button class="ghost" id="projWahl" style="color:#fff">👥 Kinder auswählen${KLASSE?" ("+KLASSE.length+")":""}</button>
+      <select id="projTage"${KLASSE?' class="hide"':""}>${wahl}</select>${aus.length && !KLASSE?`<button class="ghost" id="projAlle" style="color:#fff">${aus.length} ausgeblendet – alle zeigen</button>`:""}<button id="projZu">✕ Schließen</button></div>
     <div class="pTabellen">${kinder.length ? (zwei ? tabelle(kinder.slice(0,proSpalte))+tabelle(kinder.slice(proSpalte)) : tabelle(kinder)) : `<div style="font-size:3vh;padding:4vh">Noch keine Daten.</div>`}</div>
     <div class="pFuss"><span><b style="background:#22c55e"></b>3 Tage oder mehr geübt</span><span><b style="background:#facc15"></b>1–2 Tage geübt</span><span><b style="background:#ef4444"></b>in den letzten 7 Tagen nicht geübt</span>
       <span>Lernweg ${STATIONEN.map(s=>s[1]).join(" ")}: <b style="background:#15803d"></b>✓ gefestigt <b style="background:#a16207;margin-left:1vw"></b>… in Arbeit <b style="background:#1e293b;border:1px solid #475569;margin-left:1vw"></b>noch nicht begonnen</span></div>`;
   box.classList.remove("hide"); document.body.style.overflow="hidden";
   const zu=()=>{ box.classList.add("hide"); document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} };
   $("projZu").addEventListener("click", zu);
+  $("projWahl").addEventListener("click", ()=>{
+    const gewaehlt=new Set(KLASSE || kinder.map(k=>k.name));
+    const w=document.createElement("div"); w.id="projWahlBox";
+    w.style.cssText="position:absolute;inset:0;z-index:5;background:rgba(5,10,22,.96);padding:3vh 3vw;overflow:auto;font-size:16px";
+    w.innerHTML=`<h2 style="margin:0 0 6px">👥 Welche Kinder gehören zu deiner Klasse?</h2>
+      <div style="color:#94a3b8;margin-bottom:14px">Nur die angekreuzten Kinder erscheinen im Projektor – auch dann, wenn sie lange nicht geübt haben. Die Auswahl gilt auf jedem Gerät. Die Daten der anderen Kinder bleiben erhalten.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px">${alleNamen.map(n=>{ const k=kindStand(n);
+        return `<label style="display:flex;align-items:center;gap:10px;background:#1e293b;border-radius:10px;padding:10px 12px;margin:0;color:#f1f5f9;font-size:17px;cursor:pointer"><input type="checkbox" value="${esc(n)}"${gewaehlt.has(n)?" checked":""} style="width:22px;height:22px;flex:none"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${esc(n)}</b><br><small style="color:#94a3b8">${k.r.length} Durchgänge${k.her===null?"":k.her===0?" · heute":" · vor "+k.her+" T."}</small></span></label>`; }).join("")}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center"><button id="pwOk">✓ Speichern</button><button class="ghost" id="pwKeine" style="color:#fff">Alle abwählen</button>
+        <button class="ghost" id="pwWeg" style="color:#fff">Auswahl aufheben (wieder alle aktiven Kinder zeigen)</button><button class="ghost" id="pwZu" style="color:#fff">Abbrechen</button><span id="pwZahl" style="color:#94a3b8"></span></div>`;
+    box.appendChild(w);
+    const zaehl=()=>{ w.querySelector("#pwZahl").textContent=w.querySelectorAll("input:checked").length+" Kinder ausgewählt"; }; zaehl();
+    w.addEventListener("change", zaehl);
+    const sichere=async liste=>{ try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, klasse:liste}, {merge:true}); KLASSE=liste.length?liste:null; zeigeProjektor(); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); } };
+    w.querySelector("#pwOk").addEventListener("click", ()=>sichere([...w.querySelectorAll("input:checked")].map(x=>x.value)));
+    w.querySelector("#pwKeine").addEventListener("click", ()=>{ w.querySelectorAll("input").forEach(x=>x.checked=false); zaehl(); });
+    w.querySelector("#pwWeg").addEventListener("click", ()=>sichere([]));
+    w.querySelector("#pwZu").addEventListener("click", ()=>w.remove());
+  });
   $("projTage").addEventListener("change", e=>{ try{ localStorage.setItem("proj_tage", e.target.value); }catch(x){} zeigeProjektor(); });
   if($("projAlle")) $("projAlle").addEventListener("click", ()=>{ try{ localStorage.removeItem("proj_aus"); }catch(x){} zeigeProjektor(); });
-  box.querySelectorAll("td[data-aus]").forEach(td=>td.addEventListener("click", ()=>{
+  if(!KLASSE) box.querySelectorAll("td[data-aus]").forEach(td=>td.addEventListener("click", ()=>{
     if(!confirm(`„${td.dataset.aus}“ in dieser Übersicht ausblenden?\n\n(Die Daten bleiben erhalten. Oben kannst du alle wieder einblenden.)`)) return;
     aus.push(td.dataset.aus); try{ localStorage.setItem("proj_aus", JSON.stringify(aus)); }catch(x){} zeigeProjektor(); }));
   try{ if(box.requestFullscreen && !document.fullscreenElement) box.requestFullscreen().catch(()=>{}); }catch(e){}
@@ -829,6 +851,7 @@ function renderHA(){
 //// ===== Programme öffnen und sperren =====
 // Uhr: offen nur, wenn freigabe.uhr === true (so war es von Anfang an). Alle anderen: gesperrt, wenn freigabe.zu[app] === true.
 let UHR_FREI=false, ZU={};
+let KLASSE=null;       // Namen der eigenen Klasse für den Projektor (einstellungen/freigabe.klasse) – gilt auf jedem Gerät
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
                  ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["zahlen","🔢 Zahlen bis 1000"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
                  ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
@@ -1209,7 +1232,7 @@ async function entsperren(){
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
-                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; ZU=(d.data()||{}).zu||{}; zeigeFreigabe();
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld(); } });
       if(entsperrt) renderTiere();
