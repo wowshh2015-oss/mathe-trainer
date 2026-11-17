@@ -222,7 +222,7 @@
     gewichte:[["#menue > h3, #start h3", T.stufen]],
     schrift:[["#menue > h3, #start h3", T.stufen]],
     kalender:[["#menue > h3, #start h3", T.stufen]],
-    mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat zehn Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Test:</b> auf Zeit – das ist dein Wochen-Check."]],
+    mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat zehn Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Check:</b> auf Zeit. Der erste Check am Tag bringt <b>doppelte Sterne und doppelt Sprit</b> – schon ab 5 richtigen Aufgaben."]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],

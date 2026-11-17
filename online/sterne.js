@@ -51,7 +51,7 @@ window.Sterne=(function(){
     const H=heuteTag();
     let silber=0, gold=0, heute=0, goldHeute=0;
     const S=(n,d)=>{ silber+=n; if(d===H) heute+=n; }, G=(n,d)=>{ gold+=n; if(d===H) goldHeute+=n; };
-    const warDa={}, testDa={}, fest={}, proTag={}, tagDa={};
+    const warDa={}, testDa={}, fest={}, proTag={}, tagDa={}, checkTag={};
     rows.filter(e=>LERN.includes(e.app) || e.app==="einstufung").sort((a,b)=>ts(a).localeCompare(ts(b))).forEach(e=>{
       if(e.app==="einstufung"){                                                // Einstufung: gezeigte Stufen gelten als gefestigt
         const d=tag(e);
@@ -59,6 +59,10 @@ window.Sterne=(function(){
         S(W.runde, d); if(!tagDa[d]){ tagDa[d]=true; S(W.tag, d); }
         return;
       }
+      // Check (Bunte Mischung als Test): Der erste am Tag bringt DOPPELTE Sterne – schon ab 5 richtigen Aufgaben,
+      // damit auch die Kinder ihn machen, die noch viel üben müssen. Gerade ihre Ergebnisse braucht der Lernplan.
+      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && !checkTag[tag(e)];
+      if(check){ const d0=tag(e); checkTag[d0]=true; S(W.runde*2, d0); if(!tagDa[d0]){ tagDa[d0]=true; S(W.tag, d0); } }
       if(!zaehlt(e)) return;
       const d=tag(e), neu=!warDa[e.app]; warDa[e.app]=true;
       const bestanden = e.modus==="Test" && e.bestanden==="Ja";
@@ -68,7 +72,7 @@ window.Sterne=(function(){
         if(!fest[e.app]){ fest[e.app]=true; G(W.fest, d); }                    // Stufe des Lernwegs gefestigt
       }
       const k=d+e.app; proTag[k]=(proTag[k]||0)+1;
-      if(bestanden || proTag[k]<=PRO_TAG){
+      if(!check && (bestanden || proTag[k]<=PRO_TAG)){
         const basis = neu ? W.neu : String(e.reihe)==="mine" ? W.mine : W.runde;
         S(e.empfohlen ? Math.ceil(basis*BONUS_EMPFOHLEN) : basis, d);      // der Empfehlung gefolgt: die Hälfte mehr
       }

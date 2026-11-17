@@ -378,7 +378,7 @@ function tippHTML(ic, titel, text, datei, name){
   // Vorschläge für den Lernweg sind Empfehlungen: wer ihnen folgt, bekommt 50 % mehr Sterne (sterne.js)
   const app=Object.keys(SEITEN).find(a=>SEITEN[a].datei===datei), emp = app && app!=="marathon" && app!=="rallye";
   return `<a class="tipp"${emp?` data-emp="${app}"`:""} href="${datei}#name=${encodeURIComponent(name)}">
-    <span class="ic">${ic}</span><span class="tx"><b>${titel}${emp?' <span class="empPlus">⭐ +50 %</span>':""}</b>${text}</span><span class="pfeil">›</span></a>`;
+    <span class="ic">${ic}</span><span class="tx"><b>${titel}${app==="mix"?' <span class="empPlus" style="background:#f59e0b;color:#1c1917">⭐ ×2 doppelte Sterne</span>':emp?' <span class="empPlus">⭐ +50 %</span>':""}</b>${text}</span><span class="pfeil">›</span></a>`;
 }
 // ===== Rallye-Pokal (gleiche Stufen wie in rallye-trainer.html) =====
 const RALLYE_TITEL=[
@@ -541,9 +541,9 @@ function zeigeHallo(rows, name){
   }
   // 4b) einmal in der Woche ein Check über alle Themen – zeigt, was noch sitzt und was man vergisst
   const letzterCheck=rows.filter(e=>e.app==="mix" && e.modus==="Test").map(e=>tageHer(e.datum)).sort((x,y)=>x-y)[0];
-  if(!istZu("mix") && rows.length>=5 && (letzterCheck===undefined || letzterCheck>=7) && tipps.length<3)
-    tipps.push(tippHTML("📝", letzterCheck===undefined ? "Mach deinen ersten Check" : "Zeit für deinen Wochen-Check",
-      (letzterCheck===undefined ? "Zehn Aufgaben aus allen Themen" : `Dein letzter Check ist <b>${letzterCheck} Tage</b> her. Zehn Aufgaben aus allen Themen`)+" – danach siehst du, was sitzt und was du noch üben kannst. Tippe bei deiner Klasse auf <b>Test</b>.", SEITEN.mix.datei, name));
+  if(!istZu("mix") && rows.length>=5 && (letzterCheck===undefined || letzterCheck>=3) && tipps.length<3)
+    tipps.push(tippHTML("📝", letzterCheck===undefined ? "Mach deinen ersten Check" : "Zeit für einen neuen Check",
+      (letzterCheck===undefined ? "Zehn Aufgaben aus allen Themen" : `Dein letzter Check ist <b>${letzterCheck} Tage</b> her. Zehn Aufgaben aus allen Themen`)+" – danach siehst du, was sitzt und was du noch üben kannst. Der erste Check am Tag bringt <b>doppelte Sterne und doppelt Sprit</b>. Tippe bei deiner Klasse auf <b>Check</b>.", SEITEN.mix.datei, name));
   // 5) Marathon / Rallye weiterziehen
   if(tipps.length<3 && mEtage){
     const naechste=(Math.floor(mEtage/5)+1)*5;
@@ -591,7 +591,7 @@ const WUSSTEST=[
   {id:"pokal",  ic:"🏆", wenn:r=>!istZu("rallye"), x:"In der <b>Rechen-Rallye</b> gibt es Pokale: nach 50, 100 und 180 Runden. Danach öffnet die Profi-Garage."},
   {id:"hilfe",  ic:"❓", x:"Das <b>Fragezeichen</b> oben rechts erklärt alles im Mathe-Trainer. Zeig es auch deinen Eltern!"},
   {id:"eltern", ic:"👨‍👩‍👧", wenn:r=>!istZu("eltern"), x:"Ganz unten auf dieser Seite steht <b>„Für Eltern“</b>. Dort sehen deine Eltern, was du schon alles kannst."},
-  {id:"check",  ic:"📝", wenn:r=>!istZu("mix") && !r.some(e=>e.app==="mix"), app:"mix", x:"In der <b>Bunten Mischung</b> kannst du einen <b>Check</b> machen: zehn Aufgaben aus allen Themen. Danach siehst du, was schon sitzt und was du vergessen hast."},
+  {id:"check",  ic:"📝", wenn:r=>!istZu("mix") && !r.some(e=>e.app==="mix"), app:"mix", x:"In der <b>Bunten Mischung</b> kannst du einen <b>Check</b> machen: zehn Aufgaben aus allen Themen. Danach siehst du, was schon sitzt und was du vergessen hast. Der erste Check am Tag bringt <b>doppelte Sterne</b>."},
   {id:"tier",   ic:"🐾", x:"Dein <b>Geheimtier</b> ist dein Schlüssel. Verrate es niemandem – dann gehören deine Sterne nur dir."}
 ];
 function zeigeWusstest(rows, name, weiter){

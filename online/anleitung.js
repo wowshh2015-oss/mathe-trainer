@@ -74,6 +74,7 @@ window.Anleitung=(function(){
    ["sterne","⭐","Sterne, Gold und das Sticker-Album",`
      <ul><li><b>⭐ Sterne gibt es für Fleiß:</b> 3 für eine Übungsrunde (ab 8 richtigen Aufgaben), 5 für „Meine Aufgaben“ oder ein neues Thema, 2 extra für die erste Runde des Tages.</li>
      <li><b>🌟 Gold gibt es für sicheres Können:</b> für jeden zum ersten Mal bestandenen Test und für jede gefestigte Stufe des Lernwegs.</li>
+     <li><b>📝 Doppelte Sterne für den Check:</b> In der „Bunten Mischung“ gibt es einen Check über alle Themen. Der erste am Tag bringt doppelte Sterne und doppelt Sprit – schon ab 5 von 10 richtigen Aufgaben. So lohnt er sich für jedes Kind, und das Programm erfährt, wo noch geübt werden muss.</li>
      <li><b>📒 Sticker-Album:</b> Alle 10 Sterne öffnet sich ein neuer Sticker, für Gold gibt es Glitzer-Sticker.</li></ul>
      <p>Es gibt <b>keine Rangliste</b>: Jedes Kind sieht nur seine eigenen Sterne. Die Lehrkraft kann Sterne verschenken, etwa für gute Arbeit im Heft.</p>`],
    ["flammen","🔥","Lernflammen und die Farbe des Namens",`

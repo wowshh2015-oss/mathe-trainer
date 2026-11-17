@@ -42,9 +42,12 @@ window.Tank=(function(){
   // rows: alle Durchgänge des Kindes (alle Programme)
   function stand(rows){
     const lern=rows.filter(e=>LERN.includes(e.app)).sort((a,b)=>ts(a).localeCompare(ts(b)));
-    const warDa={}, testDa={}, proTag={};
+    const warDa={}, testDa={}, proTag={}, checkTag={};
     let verdient=0;
     lern.forEach(e=>{
+      // Check (Bunte Mischung als Test): der erste am Tag füllt doppelt – schon ab 5 richtigen Aufgaben
+      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && tag(e)>=STICHTAG && !checkTag[tag(e)];
+      if(check){ checkTag[tag(e)]=true; verdient+=W.training*2; }
       if(!zaehlt(e)) return;
       const neu=!warDa[e.app]; warDa[e.app]=true;
       const tk=e.app+"|"+(e.zr||"")+"|"+(e.stufe||"");
@@ -54,7 +57,7 @@ window.Tank=(function(){
       if(ersterTest){ verdient+=W.test; return; }               // jeder Test bringt die 30 nur beim ersten Bestehen
       const k=tag(e)+e.app; proTag[k]=(proTag[k]||0)+1;
       if(proTag[k]>PRO_TAG) return;                             // höchstens 3 Runden je Bereich und Tag
-      verdient += neu ? W.neu : String(e.reihe)==="mine" ? W.fehler : W.training;
+      if(!check) verdient += neu ? W.neu : String(e.reihe)==="mine" ? W.fehler : W.training;
     });
     const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG).reduce((s,e)=>s+(+e.runden||0),0);
     const etagen=rows.filter(e=>e.app==="marathon" && tag(e)>=STICHTAG).length;
