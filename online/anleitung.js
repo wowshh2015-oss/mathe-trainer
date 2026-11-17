@@ -17,6 +17,7 @@ window.Anleitung=(function(){
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen und Teilen"},
     sach2:           {ic:"📚", name:"Sachaufgaben in zwei Schritten", 2:"Was war am Anfang?", 3:"zwei Schritte: plus und minus · mal · teilen"},
+    zoo:             {ic:"🦁", name:"Mein Zoo", 1:"Zoo-Runde Klasse 1", 2:"Zoo-Runde Klasse 2", 3:"Zoo-Runde Klasse 3", 4:"Zoo-Runde Klasse 4"},
     mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt", 4:"Vorschau auf Klasse 4"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
     strahl:          {ic:"📍", name:"Zahlenstrahl", 2:"bis 100: Schritte zählen · Schritt finden", 3:"bis 1000: 10er, 20er, 25er, 50er", 4:"bis 1 Million"},
@@ -73,6 +74,7 @@ window.Anleitung=(function(){
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>
      <li><b>📐 Formen und Körper</b> – Flächen und Körper benennen, Ecken und Kanten zählen, Symmetrie, Umfang und Fläche.</li>
      <li><b>📊 Daten und Zufall</b> – Strichlisten und Diagramme lesen; sicher, möglich oder unmöglich?</li>
+     <li><b>🦁 Mein Zoo</b> – ein Spiel mit Aufgaben aus allen Themen: Eine Runde hat 10 Aufgaben. Bei 5 oder 6 richtigen zieht ein häufiges Tier ein, bei 7 bis 9 ein Tier mit Chance auf ein seltenes, bei 10 von 10 zwei Tiere. Es gibt häufige, seltene und legendäre Tiere. Der Zoo kostet keinen Sprit – und das Programm lernt dabei, wo Ihr Kind noch üben sollte.</li>
      <li><b>🏎️ Rechen-Rallye / 🏢 Rechen-Marathon</b> – Spiele zum Wiederholen. Sie verbrauchen „Sprit“ (siehe Tank).</li></ul>
      <p>Eine Kachel mit <b>🚧 „öffnet bald“</b> ist noch gesperrt: Die Lehrkraft öffnet sie, sobald das Thema im Unterricht erklärt wurde.</p>`],
    ["sterne","⭐","Sterne, Gold und das Sticker-Album",`

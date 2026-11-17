@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -17,8 +17,9 @@
     kalender:["📅","Kalender und Zeit","Wochentage, Monate, Stunden, Minuten und Sekunden."],
     mix:["🎲","Bunte Mischung","Aufgaben aus allen Themen – passend zu deiner Klasse."],
     sach2:["📚","Sachaufgaben in zwei Schritten","Erst überlegen, was zuerst gerechnet wird – dann der zweite Schritt."],
-    strahl:["📍","Zahlenstrahl","Erst den Schritt finden – dann die Zahl."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"] }[WAS];
+    strahl:["📍","Zahlenstrahl","Erst den Schritt finden – dann die Zahl."],
+    zoo:["🦁","Mein Zoo","Löse Aufgaben aus allen Themen – wer gut rechnet, bekommt neue Tiere."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"], zoo:["#a3e635","#1a2e05"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -95,7 +96,8 @@
       <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
       <label for="name">Name des Kindes</label><input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
       <div id="menue" class="hide" style="margin-top:18px">
-        <h3>Lernen und üben</h3><div id="stufen"></div>
+        <div id="zooFeld"></div>
+        <h3>${WAS==="zoo"?"Neue Tiere holen":"Lernen und üben"}</h3><div id="stufen"></div>
         <div class="stufe"><span class="nr">🧠</span><span class="tx"><b>Meine Aufgaben</b><span id="meineText">Aufgaben, die noch nicht sicher sitzen</span></span>
           <span class="kn"><button class="klein" id="meineBtn">Üben</button></span></div>
         <div class="status" id="status">Verbinde …</div>
@@ -268,7 +270,9 @@
     {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
       typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck","sd_ohne","sd_mit","sd_rest"]}
   ];
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL}[WAS];
+  // Mein Zoo: dieselben Aufgaben wie die Bunte Mischung, aber als Spiel – 10 Aufgaben, für je 5 richtige zieht ein Tier ein (zoo.js)
+  const ZOO=MIX.map((s,i)=>Object.assign({}, s, {name:"Zoo-Runde Klasse "+(i+1), kurz:"10 Aufgaben aus allen Themen · ab 5 richtigen ein Tier · 10 von 10 = zwei Tiere"}));
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -1031,10 +1035,13 @@
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
   function baueAufgabe(st, typ){ typ=typ||aus(st.typen); const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
-    const frei = !(typen && typen.length), anzahl = st.mix && frei ? 15 : PRO_RUNDE;
-    const quelle = !frei ? typen : st.mix ? mische(mische(st.kern||[]).slice(0,6).concat(mische(st.typen).slice(0,9))) : st.mischen ? mische(st.typen) : st.typen;
+    const frei = !(typen && typen.length), imZoo = WAS==="zoo" && st.mix && frei, anzahl = st.mix && frei && !imZoo ? 15 : PRO_RUNDE;
+    // Zoo: bis zu zwei Aufgabenarten, die dem Kind in früheren Zoo-Runden schwerfielen, kommen wieder – wer sie jetzt löst, hat bessere Chancen auf ein seltenes Tier
+    let schwer=[]; if(imZoo){ try{ schwer=mische(meineTypen().offen.map(k=>String(k).split("|")).filter(x=>+x[0]===st.id && BAU[x[1]]).map(x=>x[1])).slice(0,2); }catch(e){} }
+    const quelle = !frei ? typen : imZoo ? mische(schwer.concat(mische((st.kern||[]).filter(t=>!schwer.includes(t))).slice(0,4), mische(st.typen.filter(t=>!schwer.includes(t))).slice(0,6)).slice(0,10))
+                 : st.mix ? mische(mische(st.kern||[]).slice(0,6).concat(mische(st.typen).slice(0,9))) : st.mischen ? mische(st.typen) : st.typen;
     const liste=[];
-    for(let i=0;i<anzahl;i++) liste.push(baueAufgabe(st, quelle[i%quelle.length]));
+    for(let i=0;i<anzahl;i++){ const a=baueAufgabe(st, quelle[i%quelle.length]); if(schwer.includes(a.typ)) a.schwer=true; liste.push(a); }
     return mische(liste);
   }
 
@@ -1167,6 +1174,17 @@
       $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> richtig – ${esc(runde.st.name)}.`+(test?`<br>${bestanden?"Stark – das meiste sitzt!":`Bestanden ist der Check ab ${BESTANDEN} %.`}`:"")+
         `<div style="margin-top:12px;font-weight:800;color:var(--text)">So sieht es bei den Themen aus:</div>${zeilen}<div style="margin-top:8px;font-size:13px">Was noch nicht sitzt, schlägt dir der Mathe-Trainer auf der Startseite zum Üben vor.</div>`;
     }
+    if(WAS==="zoo" && window.Zoo){
+      // Wie viele Tiere? 10 von 10 = zwei (das erste mindestens selten) · 7 bis 9 = eines · 5 oder 6 = ein häufiges · darunter keines
+      const besitz=Zoo.zaehle(MEINE), nTiere = runde.richtig===n ? 2 : runde.richtig*2>=n ? 1 : 0, nurHaeufig = runde.richtig*10 < n*7, schwerGut=runde.aufgaben.filter((a,i)=>a.schwer && runde.verlauf[i]).length;
+      const bonus=Math.min(1, (runde.richtig===n?0.5:runde.richtig>=n-1?0.25:0)+schwerGut*0.25), tiere=[];
+      for(let i=0;i<nTiere;i++){ const id=Zoo.ziehe(besitz, nurHaeufig?0:bonus, i===0 && runde.richtig===n ? 2 : 0, nurHaeufig ? 1 : 0); tiere.push(id); besitz[id]=(besitz[id]||0)+1; }
+      runde.tiere=tiere;
+      $("ergTitel").textContent = tiere.length ? (tiere.length===1?"🎉 Ein neues Tier zieht ein!":"🎉 Zwei neue Tiere ziehen ein!") : "💪 Diesmal noch kein Tier";
+      $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> Aufgaben richtig.`+(tiere.length ? Zoo.neuHTML(tiere) : "<br>Ab <b>5 richtigen</b> Aufgaben zieht ein Tier in deinen Zoo ein. Gleich noch einmal?")+(tiere.length && nurHaeufig ? "<div>Mit <b>7 oder mehr</b> richtigen Aufgaben kann es beim nächsten Mal auch ein seltenes Tier sein.</div>" : "")+
+        (schwerGut ? `<div>💪 Du hast ${schwerGut===1?"eine Aufgabe":schwerGut+" Aufgaben"} gelöst, die dir früher schwerfiel${schwerGut===1?"":"en"} – das macht seltene Tiere wahrscheinlicher.</div>` : "")+
+        `<div style="margin-top:8px;font-size:13px">5 oder 6 richtige: ein häufiges Tier · 7 bis 9: ein Tier, vielleicht ein seltenes ⭐ · 10 von 10: <b>zwei</b> Tiere, eines davon selten.</div>`;
+    }
     letzte=runde;
     $("nochmalBtn").onclick=()=>starte(letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
     speichere(proz, bestanden);
@@ -1178,6 +1196,7 @@
       modus:r.modus==="Test"?"Test":"Training", reihe:mine?"mine":"s"+r.st.id, zr:r.st.id, stufe:r.modus==="Test"?"Mittel":(mine?"eigene Fehler":r.st.name), stufeName:mine?"Meine Aufgaben":r.st.name,
       richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz, bestanden:r.modus==="Test"?(bestanden?"Ja":"Nein"):"–", dauer:Math.round((Date.now()-r.start)/1000),
       gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
+    if(r.tiere) eintrag.tiere=r.tiere.slice();           // Mein Zoo: die in dieser Runde gewonnenen Tiere
     try{
       const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
       const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nachher=Sterne.stand(MEINE);
@@ -1209,6 +1228,13 @@
       (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab der Hälfte richtiger Aufgaben).</div>` : "");
     $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
     $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
+    if(WAS==="zoo" && window.Zoo){
+      $("stufen").querySelectorAll("[data-test]").forEach(b=>b.remove());
+      $("stufen").querySelectorAll("[data-ueben]").forEach(b=>{ b.textContent="Runde spielen ▶"; });
+      // der Zoo steht oben; ein Knopf springt gleich zu den Runden, damit niemand lange blättern muss
+      $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:14px">▶ Neue Tiere holen</button>`+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
+      $("zooLos").addEventListener("click", ()=>{ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){ $("stufen").scrollIntoView(); } });
+    }
     const z=meineTypen(), n=z.offen.length+z.faellig.length;
     $("meineText").textContent = n ? `${z.offen.length?z.offen.length+(z.offen.length===1?" Aufgabenart sitzt":" Aufgabenarten sitzen")+" noch nicht":""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`
                                    : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";

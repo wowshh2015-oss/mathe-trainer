@@ -149,6 +149,7 @@
     #blatt .st{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   }
   #projektor{position:fixed;inset:0;z-index:3000;background:#0b1220;color:#f1f5f9;padding:1.6vh 2vw;display:flex;flex-direction:column;overflow:auto}
+  #projektor .zooKlasse{columns:2;column-gap:1.6vw} #projektor .zooKlasse .zooKopf{column-span:all} #projektor .zooKlasse .zooGehege{break-inside:avoid;margin-bottom:1.2vh}
   #projektor .pKopf{display:flex;align-items:center;gap:2vw;margin-bottom:1.2vh;flex:none}
   #projektor .pKopf h2{margin:0;font-size:3.4vh;flex:1} #projektor .pKopf span{font-size:2vh;color:#94a3b8}
   #projektor .pKopf button{font-size:2vh;padding:.8vh 1.4vw}
@@ -180,6 +181,7 @@
       <button class="ghost" data-tage="30">Letzte 30 Tage</button>
       <button class="ghost" data-tage="-1">Alles</button>
       <span style="flex:1"></span>
+      <button id="zooBtn" class="ghost" title="Alle Tiere, die die Klasse gemeinsam gesammelt hat – für den Beamer">🦁 Klassen-Zoo</button>
       <button id="projBtn" title="Große Übersicht für den Beamer: wer hat diese Woche geübt, wer steht wo?">📽️ Projektor</button>
       <button class="ghost" id="wocheBtn" title="Die letzten 7 Tage auf einer Seite zum Ausdrucken">🗓️ Wochenblatt</button>
       <button class="ghost" id="druckBtn">🖨️ Drucken</button>
@@ -347,6 +349,7 @@
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
+<script src="zoo.js"></script>
 <script src="hausaufgabe.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
@@ -373,6 +376,7 @@ const APPS={
   schrift:      {label:"Schriftlich",   ic:"✍️"},
   kalender:     {label:"Kalender",      ic:"📅"},
   mix:          {label:"Mischung",      ic:"🎲"},
+  zoo:          {label:"Zoo",           ic:"🦁"},
   sach2:        {label:"Sach 2 Schritte", ic:"📚"},
   strahl:       {label:"Zahlenstrahl",  ic:"📍"},
   geo:          {label:"Geometrie",     ic:"📐"},
@@ -399,7 +403,7 @@ function uebungLabel(e){
   }
   if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
-  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
+  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -745,6 +749,17 @@ function zeigeProjektor(){
   try{ if(box.requestFullscreen && !document.fullscreenElement) box.requestFullscreen().catch(()=>{}); }catch(e){}
 }
 $("projBtn").addEventListener("click", zeigeProjektor);
+//// ===== Klassen-Zoo: alle Tiere der Klasse zusammen – ohne Namen, ohne Rangliste =====
+function zeigeKlassenZoo(){
+  const box=$("projektor"), rows=ALLE.filter(e=>e.app==="zoo" && e.name && !/^zz/i.test(e.name) && (!KLASSE || KLASSE.includes(e.name)));
+  const z=Zoo.zaehle(rows), n=Zoo.summe(z), a=Zoo.ausbau(n), kinder=new Set(rows.filter(e=>(e.tiere||[]).length).map(e=>e.name)).size;
+  box.innerHTML=`<div class="pKopf"><h2>🦁 Unser Klassen-Zoo</h2><span><b style="color:#fde047">${a.jetzt}</b>${a.ziel?` · noch ${a.fehlt} ${a.fehlt===1?"Tier":"Tiere"} bis „${a.ziel}“`:""} · ${kinder} ${kinder===1?"Kind hat":"Kinder haben"} mitgebaut</span><button id="projZu">✕ Schließen</button></div>
+    <div class="zooKlasse" style="font-size:clamp(12px,2.05vh,26px);flex:1">${n ? Zoo.feldHTML(z, "Gemeinsam gesammelt") : `<div style="padding:5vh;font-size:3vh">Noch ist der Zoo leer. Ab 5 von 10 richtigen Aufgaben in „Mein Zoo“ zieht ein Tier ein.</div>`}</div>`;
+  box.classList.remove("hide"); document.body.style.overflow="hidden";
+  $("projZu").addEventListener("click", ()=>{ box.classList.add("hide"); document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} });
+  try{ if(box.requestFullscreen && !document.fullscreenElement) box.requestFullscreen().catch(()=>{}); }catch(e){}
+}
+$("zooBtn").addEventListener("click", zeigeKlassenZoo);
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("projektor").classList.contains("hide")){ $("projektor").classList.add("hide"); document.body.style.overflow=""; } });
 //// ===== Wochenblatt: die letzten 7 Tage auf einer Seite =====
 function zeigeWoche(){
@@ -858,7 +873,7 @@ function renderHA(){
 let UHR_FREI=false, ZU={};
 let KLASSE=null;       // Namen der eigenen Klasse für den Projektor (einstellungen/freigabe.klasse) – gilt auf jedem Gerät
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["schrift","✍️ Schriftlich rechnen"],["kalender","📅 Kalender und Zeit"],["mix","🎲 Bunte Mischung (alle Themen gemischt)"],["sach2","📚 Sachaufgaben in zwei Schritten"],["zahlen","🔢 Zahlen bis 1000"],["strahl","📍 Zahlenstrahl"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
+                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["schrift","✍️ Schriftlich rechnen"],["kalender","📅 Kalender und Zeit"],["mix","🎲 Bunte Mischung (alle Themen gemischt)"],["zoo","🦁 Mein Zoo (Spiel)"],["sach2","📚 Sachaufgaben in zwei Schritten"],["zahlen","🔢 Zahlen bis 1000"],["strahl","📍 Zahlenstrahl"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["marathon","🏢 Rechen-Marathon"],["rallye","🏎️ Rechen-Rallye"],
                  ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){

@@ -66,6 +66,11 @@
     "Bis 1 Million: Nachbarn und Zahlenstrahl":"Vorgänger und Nachfolger bei großen Zahlen, Nachbartausender – und am Zahlenstrahl wieder zuerst den Schritt finden. <b>Klasse 4.</b>",
     "Bis 1 Million: vergleichen und runden":"Große Zahlen vergleichen und auf Tausender, Zehntausender oder Hunderttausender runden. <b>Klasse 4.</b>",
     "Bis 1 Million: rechnen mit großen Zahlen":"Mit Tausendern rechnet man wie mit kleinen Zahlen – und hängt die Nullen wieder an. <b>Klasse 4.</b>",
+    // Mein Zoo
+    "Zoo-Runde Klasse 1":"Zehn Aufgaben aus der 1. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
+    "Zoo-Runde Klasse 2":"Zehn Aufgaben aus der 2. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
+    "Zoo-Runde Klasse 3":"Zehn Aufgaben aus der 3. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei – eines davon selten.",
+    "Zoo-Runde Klasse 4":"Zehn Aufgaben für alle, die schon weiter sind. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
     // Bunte Mischung
     "Klasse 1 – bunt gemischt":"15 Aufgaben für die 1. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 20, Partnerzahlen) und neun aus den anderen Themen – Zehner und Einer, Formen, Münzen, Wochentage.",
     "Klasse 2 – bunt gemischt":"15 Aufgaben für die 2. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 100, Einmaleins, Teilen) und neun aus den anderen Themen – Zahlenstrahl, Uhr, Geld, Körper, Längen, Diagramme.",
@@ -148,6 +153,7 @@
     geld:"<b>Geld:</b> Münzen und Scheine zählen, passend bezahlen, Rückgeld ausrechnen. <b>Klasse 1 bis 3.</b>",
     schrift:"<b>Schriftlich rechnen:</b> große Zahlen untereinander schreiben und Stelle für Stelle rechnen – immer rechts bei den Einern anfangen. <b>Klasse 3:</b> Plus und Minus. <b>Klasse 4:</b> Malnehmen.",
     sach2:"<b>Sachaufgaben in zwei Schritten:</b> kurze Geschichten, bei denen man rückwärts rechnen muss („Wie viele waren es am Anfang?“) oder zwei Rechnungen hintereinander braucht. <b>Klasse 2 und 3.</b>",
+    zoo:"<b>Mein Zoo:</b> ein Spiel mit Aufgaben aus allen Themen. Ab 5 von 10 richtigen Aufgaben zieht ein Tier ein, bei 10 von 10 sogar zwei – es gibt häufige, seltene ⭐ und legendäre 🌟 Tiere. Der Zoo kostet keinen Sprit.",
     mix:"<b>Bunte Mischung:</b> 15 Aufgaben aus ganz verschiedenen Themen – Zahlen, Uhr, Geld, Formen, Gewichte … Du wählst deine Klasse. Gut zum Wiederholen.",
     kalender:"<b>Kalender und Zeit:</b> Wochentage und Monate, wie viele Tage ein Monat hat, und Stunden, Minuten, Sekunden umrechnen. <b>Klasse 1 bis 3.</b>",
     strahl:"<b>Zahlenstrahl:</b> Am Zahlenstrahl stehen nur der Anfang und das Ende. Du zählst die Schritte, rechnest aus, wie groß ein Schritt ist, und findest dann die Zahl. <b>Klasse 2 bis 4.</b>",
@@ -246,6 +252,8 @@
     schrift:[["#menue > h3, #start h3", T.stufen]],
     kalender:[["#menue > h3, #start h3", T.stufen]],
     sach2:[["#menue > h3, #start h3", T.stufen+" Bei diesen Aufgaben musst du <b>zweimal rechnen</b> oder <b>rückwärts</b> denken."]],
+    zoo:[["#menue > h3, #start h3", "<b>Neue Tiere holen:</b> Such dir deine Klasse aus und spiel eine Runde mit 10 Aufgaben. <b>5 oder 6 richtige:</b> ein häufiges Tier. <b>7 bis 9:</b> ein Tier – vielleicht ein seltenes ⭐. <b>10 von 10:</b> zwei Tiere, eines davon selten. Wer Aufgaben löst, die ihm früher schwerfielen, hat bessere Chancen auf seltene und legendäre 🌟 Tiere."],
+          [".zooKopf b", "<b>Dein Zoo:</b> Hier leben alle Tiere, die du schon gewonnen hast. Ein Fragezeichen heißt: Dieses Tier hast du noch nicht entdeckt. Blau umrandet = selten, golden = legendär."]],
     mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat 15 Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Check:</b> auf Zeit. Der erste Check am Tag bringt <b>doppelte Sterne und doppelt Sprit</b> – schon ab der Hälfte richtiger Aufgaben."]],
     strahl:[["#menue > h3, #start h3", T.stufen+" <b>So geht jeder Zahlenstrahl:</b> 1. Wie weit ist es vom Anfang bis zum Ende? 2. Schritte zählen. 3. Teilen – so groß ist ein Schritt."]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
