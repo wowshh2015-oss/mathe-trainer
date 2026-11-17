@@ -36,7 +36,7 @@ window.Anleitung=(function(){
      <li><b>⭐ Sterne, 🔥 Lernflammen und ⛽ Tank</b> – Belohnungen für regelmäßiges Üben.</li></ul>
      <p class="anlTipp"><b>Wenn Sie nur eines tun:</b> Lassen Sie Ihr Kind an vier Tagen pro Woche etwa 10 Minuten das üben, was bei „jetzt dran“ steht.</p>`],
    ["anmelden","🐾","Anmelden: Name und Geheimtier",`
-     <p>Ihr Kind tippt seinen <b>Vornamen</b> ein und danach auf sein <b>Geheimtier</b> (eines von 12 Bildern). Das Geheimtier schützt den Namen – ein Passwort gibt es nicht.</p>
+     <p>Ihr Kind tippt seinen <b>Vornamen</b> ein und danach auf sein <b>Geheimtier</b> (eines von 24 Bildern). Das Geheimtier schützt den Namen – ein Passwort gibt es nicht.</p>
      <ul><li>Dreimal falsch getippt: 5 Minuten Pause.</li><li><b>Tier vergessen?</b> Die Lehrkraft kann es zurücksetzen, danach sucht sich Ihr Kind ein neues aus.</li>
      <li>Der Name muss immer <b>gleich geschrieben</b> werden, sonst beginnt ein neuer, leerer Lernstand.</li></ul>`],
    ["lernweg","🧭","Der Lernweg und die Empfehlungen",`

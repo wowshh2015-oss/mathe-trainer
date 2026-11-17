@@ -1,5 +1,5 @@
 // ===== Anmeldung mit Geheimtier =====
-// Jedes Kind hat zu seinem Namen ein Geheimtier (eines von 12 Bildern). Kein PIN, nichts zu tippen.
+// Jedes Kind hat zu seinem Namen ein Geheimtier (eines von 24 Bildern). Kein PIN, nichts zu tippen.
 // Angemeldet wird nur auf der Startseite; die Trainer übernehmen den Namen und lassen ihn nicht mehr ändern.
 // Gespeichert wird das Tier in einstellungen/tier_<name>. Die Lehrkraft sieht es in der Klassenübersicht
 // und kann es dort zurücksetzen.
@@ -7,7 +7,11 @@
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const TIERE=[["hund","🐶","Hund"],["katze","🐱","Katze"],["hase","🐰","Hase"],["fuchs","🦊","Fuchs"],
                ["baer","🐻","Bär"],["panda","🐼","Panda"],["loewe","🦁","Löwe"],["frosch","🐸","Frosch"],
-               ["affe","🐵","Affe"],["pinguin","🐧","Pinguin"],["einhorn","🦄","Einhorn"],["schildkroete","🐢","Schildkröte"]];
+               ["affe","🐵","Affe"],["pinguin","🐧","Pinguin"],["einhorn","🦄","Einhorn"],["schildkroete","🐢","Schildkröte"],
+               // seit 17.11.2026 sind es 24 – bei 12 war das Tier zu leicht zu erraten. Die ersten zwölf bleiben an ihrem Platz.
+               ["tiger","🐯","Tiger"],["koala","🐨","Koala"],["elefant","🐘","Elefant"],["eule","🦉","Eule"],
+               ["delfin","🐬","Delfin"],["pferd","🐴","Pferd"],["maus","🐭","Maus"],["schwein","🐷","Schwein"],
+               ["schlange","🐍","Schlange"],["fisch","🐠","Fisch"],["tintenfisch","🐙","Tintenfisch"],["marienkaefer","🐞","Marienkäfer"]];
   const VERSUCHE=3, SPERRE_MIN=5;
   function cap(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
   function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -104,7 +108,7 @@
     .anmBox p{margin:0 0 16px;color:#cbd5e1;font-size:16px;line-height:1.5}
     .anmBox p b{color:#fbbf24}
     .anmTiere{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .anmTier{font-size:44px;line-height:1;padding:12px 0;border-radius:16px;background:#0b1220;border:2px solid #334155;cursor:pointer;transition:.12s;
+    .anmTier{font-size:40px;line-height:1;padding:9px 0;border-radius:16px;background:#0b1220;border:2px solid #334155;cursor:pointer;transition:.12s;
       font-family:inherit;color:inherit}
     .anmTier:hover,.anmTier:focus{border-color:#38bdf8;transform:scale(1.06);outline:none}
     .anmGross{font-size:96px;line-height:1.1;margin:4px 0 6px}
@@ -114,7 +118,7 @@
       background:linear-gradient(180deg,#38bdf8,#0284c7);color:#042433}
     .anmKn button.zweit{background:transparent;color:#f1f5f9;border:2px solid #334155}
     .anmLink{display:inline-block;margin-top:16px;color:#94a3b8;font-size:14px;text-decoration:underline;cursor:pointer}
-    @media (max-width:400px){ .anmTier{font-size:36px;padding:10px 0} }`;
+    @media (max-width:400px){ .anmTier{font-size:34px;padding:8px 0} .anmTiere{gap:8px} }`;
     document.head.appendChild(s);
   }
   function mitZeit(p,ms){ return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("zeit")),ms))]); }
