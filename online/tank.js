@@ -23,6 +23,7 @@ window.Tank=(function(){
     {app:"kalender",        ic:"📅", name:"Kalender und Zeit", datei:"kalender-trainer.html"},
     {app:"mix",             ic:"🎲", name:"Bunte Mischung", datei:"mix-trainer.html"},
     {app:"zoo",             ic:"🦁", name:"Mein Zoo", datei:"zoo-trainer.html"},
+    {app:"blitz",           ic:"⚡", name:"Blitzrechnen", datei:"blitz-trainer.html"},
     {app:"sach2",           ic:"📚", name:"Sachaufgaben in zwei Schritten", datei:"sach2-trainer.html"},
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
     {app:"strahl",          ic:"📍", name:"Zahlenstrahl", datei:"strahl-trainer.html"},
