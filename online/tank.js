@@ -22,6 +22,7 @@ window.Tank=(function(){
     {app:"schrift",         ic:"✍️", name:"Schriftlich rechnen", datei:"schrift-trainer.html"},
     {app:"kalender",        ic:"📅", name:"Kalender und Zeit", datei:"kalender-trainer.html"},
     {app:"mix",             ic:"🎲", name:"Bunte Mischung", datei:"mix-trainer.html"},
+    {app:"sach2",           ic:"📚", name:"Sachaufgaben in zwei Schritten", datei:"sach2-trainer.html"},
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
     {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
     {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
@@ -45,8 +46,8 @@ window.Tank=(function(){
     const warDa={}, testDa={}, proTag={}, checkTag={};
     let verdient=0;
     lern.forEach(e=>{
-      // Check (Bunte Mischung als Test): der erste am Tag füllt doppelt – schon ab 5 richtigen Aufgaben
-      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && tag(e)>=STICHTAG && !checkTag[tag(e)];
+      // Check (Bunte Mischung als Test): der erste am Tag füllt doppelt – schon ab der Hälfte richtiger Aufgaben
+      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && (+e.richtig||0)>=(+e.falsch||0) && tag(e)>=STICHTAG && !checkTag[tag(e)];
       if(check){ checkTag[tag(e)]=true; verdient+=W.training*2; }
       if(!zaehlt(e)) return;
       const neu=!warDa[e.app]; warDa[e.app]=true;

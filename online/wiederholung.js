@@ -85,6 +85,8 @@ window.Wdh=(function(){
     groesse_kleinerGroesser:"✍️ Schriftlich Minus: einfach die kleinere von der größeren Ziffer abgezogen",
     groesse_schriftMal:"✍️ Schriftlich Mal: verrechnet oder Übertrag vergessen",
     groesse_kalender: "📅 Wochentage, Monate oder Datum",
+    groesse_zweischritt:"📚 Sachaufgabe in zwei Schritten falsch gerechnet",
+    groesse_einSchritt:"📚 Sachaufgabe: nur den ersten Schritt gerechnet oder falsche Richtung",
     groesse_kopf:     "🧮 Rechenaufgabe im Check falsch (Plus, Minus, Mal, Geteilt)",
     groesse_ueberschlag:"💶 Überschlag: Reicht das Geld?",
     groesse_geldmal:  "💶 Malnehmen oder Teilen mit Geld",

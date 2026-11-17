@@ -5,7 +5,7 @@
 // Eine Rangliste gibt es für Kinder bewusst nicht; die Übersicht steht nur in der Klassenübersicht der Lehrkraft.
 window.Sterne=(function(){
   const STICHTAG_SPIEL="20261112";     // Spiele zählen ab hier; die Lernarbeit davor zählt komplett mit
-  const LERN=["zerlegen","halbschriftlich","plus","minus","einmaleins","einsdurcheins","uhr","sach","geld","laengen","platz","gewichte","zahlen","geo","daten","schrift","kalender","mix"];
+  const LERN=["zerlegen","halbschriftlich","plus","minus","einmaleins","einsdurcheins","uhr","sach","geld","laengen","platz","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2"];
   const W={runde:3, mine:5, neu:5, tag:2, proRunden:10, fest:2, proSicher:5}, PRO_TAG=3;
   // Spiele: je schwerer, desto mehr. Rallye je 10 Runden: Stadt/Landstraße 1, Bergpass/Rennstrecke 2, Formel 1 3 Sterne.
   const RALLYE_GEWICHT=[1,1,1,2,2,3];
@@ -59,9 +59,9 @@ window.Sterne=(function(){
         S(W.runde, d); if(!tagDa[d]){ tagDa[d]=true; S(W.tag, d); }
         return;
       }
-      // Check (Bunte Mischung als Test): Der erste am Tag bringt DOPPELTE Sterne – schon ab 5 richtigen Aufgaben,
+      // Check (Bunte Mischung als Test): Der erste am Tag bringt DOPPELTE Sterne – schon ab der Hälfte richtiger Aufgaben,
       // damit auch die Kinder ihn machen, die noch viel üben müssen. Gerade ihre Ergebnisse braucht der Lernplan.
-      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && !checkTag[tag(e)];
+      const check = e.app==="mix" && e.modus==="Test" && (+e.richtig||0)>=5 && (+e.richtig||0)>=(+e.falsch||0) && !checkTag[tag(e)];
       if(check){ const d0=tag(e); checkTag[d0]=true; S(W.runde*2, d0); if(!tagDa[d0]){ tagDa[d0]=true; S(W.tag, d0); } }
       if(!zaehlt(e)) return;
       const d=tag(e), neu=!warDa[e.app]; warDa[e.app]=true;

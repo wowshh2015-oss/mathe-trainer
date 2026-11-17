@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -15,8 +15,9 @@
     geo:["📐","Formen und Körper","Flächen und Körper erkennen, Symmetrie, Umfang und Fläche."], daten:["📊","Daten und Zufall","Strichlisten und Diagramme lesen – und was ist wahrscheinlich?"],
     schrift:["✍️","Schriftlich rechnen","Untereinander rechnen – Stelle für Stelle, von rechts nach links."],
     kalender:["📅","Kalender und Zeit","Wochentage, Monate, Stunden, Minuten und Sekunden."],
-    mix:["🎲","Bunte Mischung","Aufgaben aus allen Themen – passend zu deiner Klasse."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"] }[WAS];
+    mix:["🎲","Bunte Mischung","Aufgaben aus allen Themen – passend zu deiner Klasse."],
+    sach2:["📚","Sachaufgaben in zwei Schritten","Erst überlegen, was zuerst gerechnet wird – dann der zweite Schritt."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -146,7 +147,7 @@
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
-            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, gross:{e:"",f:1,max:9}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
             sek:{e:"s",f:1}, minS:{e:"min",f:60}, euK:{e:",",f:100}, ctK:{e:"€",f:1,zwei:true}, uhrH:{e:".",f:60}, uhrM:{e:"Uhr",f:1} };
   // Uhrzeit wie im Schulbuch: 13.50 Uhr (t = Minuten seit Mitternacht)
   const uhr=t=>`${Math.floor(t/60)}.${zz(t%60)} Uhr`;
@@ -190,7 +191,11 @@
     {id:6, name:"Hunderter, Zehner, Einer", kurz:"Zahlen bis 1000 · 3 H 5 E = 305", typen:["z_hze","z_stelle3","z_vorNach1000","z_strahl1000"]},
     {id:7, name:"Zahlenstrahl bis 1000", kurz:"Schritt finden: 10er, 20er, 25er, 50er, 100er", typen:["t_schritt","t_pfeil","t_pfeil","t_wo","t_schritt","t_pfeil"]},
     {id:8, name:"Runden", kurz:"auf Zehner und auf Hunderter", typen:["z_rundeZ","z_rundeH","z_rundeZ"]},
-    {id:9, name:"Teilen mit Rest", kurz:"17 ÷ 5 = 3 Rest 2", typen:["z_rest"]}
+    {id:9, name:"Teilen mit Rest", kurz:"17 ÷ 5 = 3 Rest 2", typen:["z_rest"]},
+    {id:10, name:"Bis 1 Million: Stellenwerte", kurz:"Klasse 4 · 347 582 · HT, ZT, T, H, Z, E", typen:["m_stelle","m_zerlegt","m_stellenwert","m_stelle","m_zerlegt"]},
+    {id:11, name:"Bis 1 Million: Nachbarn und Zahlenstrahl", kurz:"Klasse 4 · Vorgänger · Nachbartausender · Schritt finden", typen:["m_vorNach","m_nachbarT","m_strahl","m_vorNach","m_strahl"], sek:70},
+    {id:12, name:"Bis 1 Million: vergleichen und runden", kurz:"Klasse 4 · auf Tausender, Zehntausender, Hunderttausender", typen:["m_vergleich","m_runde","m_runde"]},
+    {id:13, name:"Bis 1 Million: rechnen mit großen Zahlen", kurz:"Klasse 4 · 300 000 + 450 000 · 6 × 4 000", typen:["m_plus","m_minus","m_mal","m_teil"]}
   ];
   const GEO=[
     {id:1, name:"Flächen erkennen", kurz:"Kreis · Dreieck · Quadrat · Rechteck", typen:["f_form","f_form","f_form2"]},
@@ -228,7 +233,14 @@
     {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100},
     {id:10, name:"Uhr: zwei Uhrzeiten, drei Schreibweisen", kurz:"3.10 Uhr und 15.10 Uhr · Viertel vor 8 = 7.45 Uhr = 19:45", typen:["u_beide","u_wortUhr","u_digitalWort","u_uhrPaar","u_nachm"], sek:60}
   ];
-  // Bunte Mischung: jede Runde zieht 10 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
+  const SACH2=[
+    {id:1, name:"Was war am Anfang?", kurz:"rückwärts rechnen: Jetzt sind es 30 – wie viele waren es vorher?", typen:["q_anfangPlus","q_anfangMinus","q_anfangMal","q_anfangPlus","q_anfangMinus"], sek:90},
+    {id:2, name:"Zwei Schritte: Plus und Minus", kurz:"erst weg, dann dazu – oder umgekehrt", typen:["q_plusMinus","q_bus"], sek:100},
+    {id:3, name:"Zwei Schritte: erst Mal, dann Plus oder Minus", kurz:"4 Hefte zu je 3 € und ein Stift · Rückgeld", typen:["q_malPlus","q_malRueck"], sek:110},
+    {id:4, name:"Zwei Schritte: zusammenzählen und teilen", kurz:"erst alles zusammen, dann gerecht verteilen", typen:["q_summeTeil","q_teilMinus"], sek:110},
+    {id:5, name:"Alles gemischt", kurz:"genau lesen: Was rechne ich zuerst?", typen:["q_anfangPlus","q_anfangMinus","q_anfangMal","q_plusMinus","q_bus","q_malPlus","q_malRueck","q_summeTeil","q_teilMinus"], sek:110, mischen:true}
+  ];
+  // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
     {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Plus und Minus bis 20 · Zahlen · Formen · Münzen · Wochentage", kern:["rp_20","rm_20","rz_10","rz_20","rp_20","rm_20"],
       typen:["z_ze","z_stelle2","z_vorNach","f_form","f_form2","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen"]},
@@ -238,11 +250,11 @@
     {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"Einmaleins und Teilen · bis 1000 · schriftlich · Kommazahlen · Zeit · Gewichte", kern:["rx_alle","rd_alle","rp_1000","rm_1000","rp_100","rm_100","rw_malZehner","rw_malZerlegen","rf_minus","rf_mal","rx_alle","rd_alle"],
       typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","z_rundeH","z_rest","sp_mit","sp_drei","sm_mit","sm_null","k_minAus2","k_hMinIn","k_bruchH","k_sekAus","zs_in","zs_vor","zs_dauer","zs_training","zs_los",
              "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
-             "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum"]},
+             "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum","q_anfangPlus","q_anfangMinus","q_plusMinus","q_bus","q_malPlus","q_malRueck","q_summeTeil"]},
     {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
-      typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal"]}
+      typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck"]}
   ];
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX}[WAS];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -362,27 +374,39 @@
     o=o||{}; const X=i=>16+i*(288/n), schritt=(bis-von)/n; let s=`<line x1="8" y1="46" x2="312" y2="46" stroke="#e2e8f0" stroke-width="2"/>`;
     for(let i=0;i<=n;i++){ const rand=i===0||i===n;
       s+=`<line x1="${X(i)}" y1="${rand?32:36}" x2="${X(i)}" y2="${rand?60:56}" stroke="#e2e8f0" stroke-width="${rand?2.4:1.4}"/>`;
-      if(rand || (o.alle && (n<=10 || i%2===0))) s+=`<text x="${X(i)}" y="76" text-anchor="middle" font-size="${rand?12:(n>10||bis>=1000?8.5:10)}" font-weight="${rand?800:600}" fill="${rand?"#fde68a":"#93c5fd"}">${von+i*schritt}</text>`;
+      const lang=bis>=10000;
+      if(rand || (o.alle && ((n<=10 && !lang) || i%2===0))) s+=`<text x="${rand&&lang?(i===0?X(i)-8:X(i)+8):X(i)}" y="${!rand&&lang&&i%4===2?70:76}" text-anchor="${rand&&lang?(i===0?"start":"end"):"middle"}" font-size="${rand?(lang?10:12):(lang?6.5:n>10||bis>=1000?8.5:10)}" font-weight="${rand?800:600}" fill="${rand?"#fde68a":"#93c5fd"}">${lang?fmt(von+i*schritt):von+i*schritt}</text>`;
       if(o.buchstaben && o.buchstaben[i]) s+=`<text x="${X(i)}" y="24" text-anchor="middle" font-size="15" font-weight="800" fill="#f87171">${o.buchstaben[i]}</text><line x1="${X(i)}" y1="27" x2="${X(i)}" y2="34" stroke="#f87171" stroke-width="2"/>`; }
     if(o.pfeil!==undefined) s+=`<path d="M${X(o.pfeil)} 33 l-6 -13 h12 z" fill="#f87171"/><line x1="${X(o.pfeil)}" y1="6" x2="${X(o.pfeil)}" y2="22" stroke="#f87171" stroke-width="3"/>`;
     if(o.bogen) for(let i=0;i<n;i++) s+=`<path d="M${X(i)} 30 Q${(X(i)+X(i+1))/2} ${14} ${X(i+1)} 30" fill="none" stroke="#34d399" stroke-width="1.6"/>`;
     return `<svg viewBox="0 0 320 82" role="img" aria-label="Zahlenstrahl von ${von} bis ${bis}" style="width:100%;height:auto;display:block">${s}</svg>`;
   }
   // [von, bis, Anzahl der Schritte]
+  const STRAHLMIO=[[0,1000000,10],[0,100000,10],[200000,300000,10],[0,500000,5],[400000,500000,4],[0,10000,10],[50000,60000,10],[0,1000000,20],[0,200000,8],[0,1000000,5],[700000,800000,5]];
+  // große Zahlen in Dreiergruppen: 347 582 (schmale Lücke, kein Punkt – so steht es im Schulbuch)
+  const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,"\u202f");
+  const MSTELLE=["Hunderttausender","Zehntausender","Tausender","Hunderter","Zehner","Einer"], MKURZ=["HT","ZT","T","H","Z","E"];
+  const QKIND=[["Mia","Sie","sie"],["Ben","Er","er"],["Lena","Sie","sie"],["Tom","Er","er"],["Emma","Sie","sie"],["Paul","Er","er"],["Sara","Sie","sie"],["Nico","Er","er"]];
+  const QDING=["Murmeln","Sticker","Karten","Bonbons","Kekse","Perlen","Stifte"];
+  // Sachaufgabe mit einer Zahl als Antwort. falle = Ergebnis, wenn nur der erste Schritt gerechnet wurde.
+  function sach(text, frage, soll, falle, schritte, antwort, probe){
+    return eingabe(`<span style="display:block;font-weight:500;font-size:19px;line-height:1.5;text-align:left">${text}</span><span class="ziel" style="display:block;margin-top:8px">${frage}</span>`, [F.zahl], soll,
+      {tag:"zweischritt", sollText:String(soll), falle:falle!==soll?falle:0, falleArt:"einSchritt", erkl:`<div style="text-align:left">${schritte.join("<br>")}</div><div style="margin-top:8px"><b>Antwort:</b> ${antwort}</div>${probe?`<div style="color:#94a3b8;font-size:14px">${probe}</div>`:""}`});
+  }
   const STRAHL100=[[0,100,10],[0,50,5],[0,20,10],[0,100,20],[0,50,10],[0,40,8],[0,30,6],[20,70,5],[0,10,5],[0,60,6],[50,100,10],[0,80,8],[0,100,5],[40,60,10],[0,20,4]];
   const STRAHL1000=[[0,1000,10],[0,500,5],[0,1000,20],[0,200,10],[200,300,10],[0,400,8],[500,1000,5],[0,100,4],[300,400,4],[100,200,5],[0,600,6],[400,500,5],[0,1000,5],[600,700,10],[0,300,6]];
   function strahlAufgabe(liste, art){
     const [von,bis,n]=aus(liste), d=bis-von, schritt=d/n, i=rnd(1,n-1), wert=von+i*schritt;
     const weg=`<b>1.</b> Von ${von} bis ${bis} sind es <b>${d}</b>.<br><b>2.</b> Zähle die <b>Schritte</b> (die Sprünge – den ersten Strich zählst du nicht mit): <b>${n}</b>.<br><b>3.</b> ${d} ÷ ${n} = <b>${schritt}</b>. Jeder Schritt ist <b>${schritt}</b> groß.`;
     const beschriftet=`<div style="margin-top:8px">Schreib jetzt an jeden Strich seine Zahl:</div>${leerStrahl(von,bis,n,{alle:true})}`;
-    if(art==="schritte") return eingabe(`Wie viele <span class="ziel">Schritte</span> sind es von ${von} bis ${bis}?`, [F.zahl], n, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(n),
+    if(art==="schritte") return eingabe(`Wie viele <span class="ziel">Schritte</span> sind es von ${von} bis ${bis}?`, [F.gross], n, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(n),
       erkl:`Zähle die <b>Sprünge</b> zwischen den Strichen, nicht die Striche selbst. Es sind ${n+1} Striche, aber nur <b>${n} Schritte</b>.${leerStrahl(von,bis,n,{bogen:true})}`});
-    if(art==="schritt") return eingabe(`Wie <span class="ziel">groß ist ein Schritt</span> auf diesem Zahlenstrahl?`, [F.zahl], schritt, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(schritt), erkl:weg+beschriftet});
+    if(art==="schritt") return eingabe(`Wie <span class="ziel">groß ist ein Schritt</span> auf diesem Zahlenstrahl?`, [F.gross], schritt, {bild:leerStrahl(von,bis,n), lineal:true, tag:"strahl", sollText:String(schritt), erkl:weg+beschriftet});
     if(art==="wo"){ const stellen=mische(Array.from({length:n-1},(_,k)=>k+1)).slice(0,3).sort((a,b)=>a-b), b={}; stellen.forEach((k,j)=>b[k]="ABC"[j]); const ziel=aus(stellen);
       return {art:"wahl", frage:`Bei welchem Buchstaben steht die <span class="ziel">${von+ziel*schritt}</span>?`, bild:leerStrahl(von,bis,n,{buchstaben:b}), lineal:true, optionen:stellen.map(k=>b[k]), ok:b[ziel], tag:"strahl", sollText:b[ziel],
         erkl:weg+`<br><b>4.</b> Zähle in ${schritt}er-Schritten, bis du bei ${von+ziel*schritt} bist: Dort steht <b>${b[ziel]}</b>.`+beschriftet}; }
     const kette=Array.from({length:i+1},(_,k)=>von+k*schritt);
-    return eingabe("Welche Zahl gehört zum Pfeil?", [F.zahl], wert, {bild:leerStrahl(von,bis,n,{pfeil:i}), lineal:true, tag:"strahl", sollText:String(wert),
+    return eingabe("Welche Zahl gehört zum Pfeil?", [F.gross], wert, {bild:leerStrahl(von,bis,n,{pfeil:i}), lineal:true, tag:"strahl", sollText:String(wert),
       erkl:weg+`<br><b>4.</b> Zähle in ${schritt}er-Schritten bis zum Pfeil: ${kette.length>7?kette.slice(0,3).join(", ")+" … "+kette.slice(-2).join(", "):kette.join(", ")} → <b>${wert}</b>.`+beschriftet});
   }
   const FORMFARBE=["#60a5fa","#f472b6","#34d399","#fbbf24","#a78bfa","#fb923c"];
@@ -448,7 +472,7 @@
       g:["geld","💶 Geld"],gs:["geld","💶 Geld"],f:["geo","📐 Formen und Körper"],w:["gewichte","⚖️ Gewichte und Liter"],l:["laengen","📏 Längen"],d:["daten","📊 Daten und Zufall"],
       sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"],
       rp:["plus","➕ Plus"],rm:["minus","➖ Minus"],rx:["einmaleins","✖️ Einmaleins"],rd:["einsdurcheins","➗ Einsdurcheins"],rz:["zerlegen","🧩 Zerlegen"],
-      rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"]})[p] || ["mix","🎲 Verschiedenes"]; }
+      rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"],m:["zahlen","🔢 Zahlen"],q:["sach2","📚 Sachaufgaben in zwei Schritten"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   // reine Rechenaufgabe: große Aufgabe, ein Zahlenfeld
   function rechen(text, soll, probe, erkl){ return eingabe(`<span class="ziel" style="font-size:34px">${text}</span>`, [F.zahl], soll, {tag:"kopf", sollText:String(soll), erkl, probe}); }
@@ -759,6 +783,68 @@
                   : rechen(`${a} − ☐ = ${c}`, b, [a,"-",b,c], `Die zweite Zahl fehlt: <b>erste Zahl minus Ergebnis</b>. ${a} − ${c} = <b>${b}</b>.`); },
     rf_mal(){ const a=rnd(3,9), b=rnd(3,9), vorn=Math.random()<0.5;
       return rechen(vorn?`☐ × ${b} = ${a*b}`:`${a*b} ÷ ☐ = ${b}`, a, vorn?[a,"*",b,a*b]:[a*b,"/",a,b], `Mal und Geteilt helfen sich gegenseitig: ${a*b} ÷ ${b} = <b>${a}</b>, denn ${a} × ${b} = ${a*b}.`); },
+    // ===== Zahlen bis 1 Million (Klasse 4) =====
+    m_stelle(){ let n; do{ n=rnd(123456,987654); }while(new Set(String(n)).size<6 || String(n).includes("0")); const i=rnd(0,5), r=+String(n)[i];
+      return eingabe(`Welche Ziffer steht an der <span class="ziel">${MSTELLE[i]}stelle</span> von <span class="ziel">${fmt(n)}</span>?`, [F.zahl], r, {tag:"stelle", sollText:String(r),
+        erkl:`Von rechts nach links: Einer, Zehner, Hunderter, Tausender, Zehntausender, Hunderttausender.<br>${String(n).split("").map((z,k)=>`${MKURZ[k]} <b>${z}</b>`).join(" · ")}`}); },
+    m_zerlegt(){ const d=[rnd(1,9)].concat(Array.from({length:5},()=>aus([0,0,rnd(1,9),rnd(1,9)]))), n=+d.join(""); if(d.filter(x=>x).length<3) return BAU.m_zerlegt();
+      return eingabe(`<span class="ziel">${d.map((z,k)=>z?fmt(z*Math.pow(10,5-k)):"").filter(x=>x).join(" + ")}</span> = ?`, [F.gross], n, {tag:"stelle", sollText:fmt(n),
+        erkl:`Jede Stelle bekommt ihre Ziffer – wo nichts steht, kommt eine <b>0</b> hin.<br>${d.map((z,k)=>`${MKURZ[k]} <b>${z}</b>`).join(" · ")} → <b>${fmt(n)}</b>`}); },
+    m_stellenwert(){ const d=[rnd(1,9)].concat(Array.from({length:5},()=>aus([0,rnd(1,9),rnd(1,9)]))), n=+d.join(""); if(d.filter(x=>x).length<3 || !d.includes(0)) return BAU.m_stellenwert();
+      return eingabe(`<span class="ziel">${d.map((z,k)=>z?`${z} ${MKURZ[k]}`:"").filter(x=>x).join(", ")}</span> – welche Zahl ist das?`, [F.gross], n, {tag:"stelle", sollText:fmt(n),
+        erkl:`HT = Hunderttausender, ZT = Zehntausender, T = Tausender, H, Z, E. Fehlt eine Stelle, steht dort eine <b>0</b>: <b>${fmt(n)}</b>.`}); },
+    m_vorNach(){ const n=aus([rnd(11,99)*1000,rnd(11,99)*1000+999,rnd(2,9)*100000,99999,rnd(2,9)*100000-1,rnd(100001,999998),rnd(11,99)*10000]), vor=Math.random()<0.5, r=vor?n-1:n+1;
+      return eingabe(`Welche Zahl kommt direkt <span class="ziel">${vor?"vor":"nach"} ${fmt(n)}</span>?`, [F.gross], r, {tag:"nachbar", sollText:fmt(r),
+        erkl:`${vor?"Der Vorgänger ist 1 kleiner":"Der Nachfolger ist 1 größer"}: ${fmt(n)} ${vor?"−":"+"} 1 = <b>${fmt(r)}</b>. Achte auf den Übergang: Aus lauter Neunen werden Nullen.`}); },
+    m_nachbarT(){ let n; do{ n=rnd(10100,989900); }while(n%1000===0); const a=Math.floor(n/1000)*1000, ok=`${fmt(a)} und ${fmt(a+1000)}`;
+      return {art:"wahl", frage:`Zwischen welchen <span class="ziel">Tausenderzahlen</span> liegt <span class="ziel">${fmt(n)}</span>?`, optionen:mische([ok,`${fmt(a-1000)} und ${fmt(a)}`,`${fmt(Math.floor(n/10000)*10000)} und ${fmt(Math.floor(n/10000)*10000+10000)}`,`${fmt(Math.floor(n/100)*100)} und ${fmt(Math.floor(n/100)*100+100)}`]), ok, tag:"nachbar", sollText:ok, spalten:1,
+        erkl:`Die Nachbartausender: Schau auf die letzten drei Ziffern und mach daraus 000 – das ist der Tausender davor. Der nächste ist 1000 größer: <b>${ok}</b>.`}; },
+    m_strahl(){ const a=strahlAufgabe(STRAHLMIO, aus(["pfeil","pfeil","schritt","wo"])), gross=s=>String(s).replace(/\d{5,}/g, m=>fmt(m));      // große Zahlen auch im Text in Dreiergruppen
+      a.frage=gross(a.frage); a.erkl=gross(a.erkl); a.sollText=gross(a.sollText); return a; },
+    m_vergleich(){ let a=rnd(102345,987654), b; const z=String(a).split(""), i=rnd(0,4), fall=rnd(0,3); if(fall===0){ b=a; } else if(fall===1){ [z[i],z[i+1]]=[z[i+1],z[i]]; b=+z.join(""); } else if(fall===2){ b=Math.floor(a/10); } else { b=a+aus([1000,-1000,10,-100]); }
+      const ok=a<b?"<":a>b?">":"=";
+      return {art:"wahl", frage:`Welches Zeichen passt?<br><span class="ziel">${fmt(a)} ☐ ${fmt(b)}</span>`, optionen:["<","=",">"], ok, tag:"zvergleich", sollText:`${fmt(a)} ${ok} ${fmt(b)}`,
+        erkl:`Erst zählen: Welche Zahl hat <b>mehr Stellen</b>? Die ist größer. Bei gleich vielen Stellen vergleichst du von links, Ziffer für Ziffer. <b>${fmt(a)} ${ok} ${fmt(b)}</b>`}; },
+    m_runde(){ const k=aus([[1000,"Tausender","Hunderter"],[10000,"Zehntausender","Tausender"],[100000,"Hunderttausender","Zehntausender"]]); let n; do{ n=rnd(k[0]+1,989999); }while(n%k[0]===0 || n<k[0]); const r=Math.round(n/k[0])*k[0], z=Math.floor(n/(k[0]/10))%10;
+      return eingabe(`Runde <span class="ziel">${fmt(n)}</span> auf <span class="ziel">${k[1]}</span>.`, [F.gross], r, {tag:"runden", sollText:fmt(r),
+        erkl:`Schau auf die Stelle rechts daneben, die <b>${k[2]}</b>: dort steht ${z}. Bei 0 bis 4 wird <b>ab</b>gerundet, bei 5 bis 9 <b>auf</b>gerundet. ${fmt(n)} ≈ <b>${fmt(r)}</b>.`}); },
+    m_plus(){ const f=aus([1000,10000]), a=rnd(12,58)*f, b=rnd(11,39)*f;
+      return eingabe(`<span class="ziel" style="font-size:28px">${fmt(a)} + ${fmt(b)}</span>`, [F.gross], a+b, {tag:"kopf", sollText:fmt(a+b), probe:[a,"+",b,a+b], erkl:`Rechne mit den ${f===1000?"Tausendern":"Zehntausendern"} wie mit kleinen Zahlen: ${a/f} + ${b/f} = ${(a+b)/f}. Dann die Nullen wieder dazu: <b>${fmt(a+b)}</b>.`}); },
+    m_minus(){ const f=aus([1000,10000]), a=rnd(52,95)*f, b=rnd(12,48)*f;
+      return eingabe(`<span class="ziel" style="font-size:28px">${fmt(a)} − ${fmt(b)}</span>`, [F.gross], a-b, {tag:"kopf", sollText:fmt(a-b), probe:[a,"-",b,a-b], erkl:`Rechne mit den ${f===1000?"Tausendern":"Zehntausendern"} wie mit kleinen Zahlen: ${a/f} − ${b/f} = ${(a-b)/f}. Dann die Nullen wieder dazu: <b>${fmt(a-b)}</b>.`}); },
+    m_mal(){ const a=rnd(2,9), f=aus([100,1000,10000]), b=rnd(2,9)*f;
+      return eingabe(`<span class="ziel" style="font-size:28px">${a} × ${fmt(b)}</span>`, [F.gross], a*b, {tag:"kopf", sollText:fmt(a*b), probe:[a,"*",b,a*b], erkl:`Erst die kleine Aufgabe: ${a} × ${b/f} = ${a*b/f}. Dann die ${String(f).length-1} Nullen wieder dazu: <b>${fmt(a*b)}</b>.`}); },
+    m_teil(){ const b=rnd(2,9), q=rnd(2,9), f=aus([100,1000,10000]);
+      return eingabe(`<span class="ziel" style="font-size:28px">${fmt(b*q*f)} ÷ ${b}</span>`, [F.gross], q*f, {tag:"kopf", sollText:fmt(q*f), probe:[b*q*f,"/",b,q*f], erkl:`Erst die kleine Aufgabe: ${b*q} ÷ ${b} = ${q}. Dann die ${String(f).length-1} Nullen wieder dazu: <b>${fmt(q*f)}</b>.`}); },
+    // ===== Sachaufgaben in zwei Schritten (und: Was war am Anfang?) =====
+    q_anfangPlus(){ const k=aus(QKIND), d=aus(QDING), b=rnd(4,25), a=rnd(6,40);
+      return sach(`${k[0]} hat einige ${d}. ${k[1]} bekommt noch <b>${b}</b> dazu. Jetzt hat ${k[2]} <b>${a+b}</b> ${d}.`, `Wie viele ${d} hatte ${k[0]} am Anfang?`, a, a+b+b,
+        [`Am Anfang waren es weniger – du musst <b>rückwärts</b> rechnen.`, `${a+b} − ${b} = <b>${a}</b>`], `${k[0]} hatte am Anfang ${a} ${d}.`, `Probe: ${a} + ${b} = ${a+b}.`); },
+    q_anfangMinus(){ const k=aus(QKIND), d=aus(QDING), b=rnd(4,20), c=rnd(6,35);
+      return sach(`${k[0]} hat einige ${d}. ${k[1]} verschenkt <b>${b}</b> davon. Jetzt hat ${k[2]} noch <b>${c}</b> ${d}.`, `Wie viele ${d} hatte ${k[0]} am Anfang?`, b+c, Math.abs(c-b),
+        [`Am Anfang waren es <b>mehr</b> – die verschenkten kommen wieder dazu.`, `${c} + ${b} = <b>${b+c}</b>`], `${k[0]} hatte am Anfang ${b+c} ${d}.`, `Probe: ${b+c} − ${b} = ${c}.`); },
+    q_anfangMal(){ const k=aus(QKIND), d=aus(QDING), b=rnd(3,9), n=rnd(3,9);
+      return sach(`${k[0]} packt ${d} in Tüten. In jede Tüte kommen <b>${b}</b>. Zusammen sind es <b>${b*n}</b> ${d}.`, `Wie viele Tüten hat ${k[0]} gepackt?`, n, b*n-b,
+        [`Wie oft passt ${b} in ${b*n}? Das ist eine <b>Geteilt</b>-Aufgabe.`, `${b*n} ÷ ${b} = <b>${n}</b>`], `${k[0]} hat ${n} Tüten gepackt.`, `Probe: ${n} × ${b} = ${b*n}.`); },
+    q_plusMinus(){ const k=aus(QKIND), a=rnd(25,60), b=rnd(6,19), c=rnd(5,25), zuerstWeg=Math.random()<0.5, r=a-b+c;
+      return sach(zuerstWeg ? `${k[0]} hat <b>${a} €</b> gespart. ${k[1]} kauft ein Buch für <b>${b} €</b>. Dann bekommt ${k[2]} von Oma <b>${c} €</b>.` : `${k[0]} hat <b>${a} €</b> gespart. Von Oma bekommt ${k[2]} <b>${c} €</b>. Dann kauft ${k[2]} ein Buch für <b>${b} €</b>.`,
+        `Wie viel Geld hat ${k[0]} jetzt?`, r, zuerstWeg?a-b:a+c,
+        zuerstWeg ? [`1. Schritt: ${a} € − ${b} € = ${a-b} €`, `2. Schritt: ${a-b} € + ${c} € = <b>${r} €</b>`] : [`1. Schritt: ${a} € + ${c} € = ${a+c} €`, `2. Schritt: ${a+c} € − ${b} € = <b>${r} €</b>`], `${k[0]} hat jetzt ${r} €.`); },
+    q_bus(){ const a=rnd(24,58), b=rnd(6,18), c=rnd(4,16), r=a-b+c;
+      return sach(`Im Bus sitzen <b>${a}</b> Fahrgäste. An der Haltestelle steigen <b>${b}</b> aus und <b>${c}</b> ein.`, `Wie viele Fahrgäste sind jetzt im Bus?`, r, a-b,
+        [`1. Schritt (aussteigen): ${a} − ${b} = ${a-b}`, `2. Schritt (einsteigen): ${a-b} + ${c} = <b>${r}</b>`], `Jetzt sind ${r} Fahrgäste im Bus.`); },
+    q_malPlus(){ const k=aus(QKIND), n=rnd(3,8), p=rnd(2,6), e=rnd(3,12), w=aus([["Hefte","einen Füller"],["Pinsel","einen Farbkasten"],["Brötchen","einen Kuchen"],["Kinokarten","eine Tüte Popcorn"]]);
+      return sach(`${k[0]} kauft <b>${n}</b> ${w[0]} für je <b>${p} €</b> und ${w[1]} für <b>${e} €</b>.`, `Wie viel muss ${k[0]} bezahlen?`, n*p+e, n*p,
+        [`1. Schritt (${w[0]}): ${n} × ${p} € = ${n*p} €`, `2. Schritt (alles zusammen): ${n*p} € + ${e} € = <b>${n*p+e} €</b>`], `${k[0]} muss ${n*p+e} € bezahlen.`); },
+    q_malRueck(){ const k=aus(QKIND), n=rnd(3,8), p=rnd(2,6), g=n*p<20?aus([20,50]):50, w=aus(["Hefte","Eintrittskarten","Eisbecher","Blumen"]);
+      return sach(`${k[0]} kauft <b>${n}</b> ${w} für je <b>${p} €</b>. ${k[1]} bezahlt mit einem <b>${g}-€-Schein</b>.`, `Wie viel Geld bekommt ${k[0]} zurück?`, g-n*p, n*p,
+        [`1. Schritt (Preis): ${n} × ${p} € = ${n*p} €`, `2. Schritt (Rückgeld): ${g} € − ${n*p} € = <b>${g-n*p} €</b>`], `${k[0]} bekommt ${g-n*p} € zurück.`); },
+    q_summeTeil(){ const t=rnd(2,6), ges=t*rnd(4,9), a=rnd(3,ges-3), w=aus([["rote","blaue","Perlen","Ketten","jede Kette"],["große","kleine","Kekse","Teller","jeden Teller"],["gelbe","grüne","Luftballons","Kinder","jedes Kind"]]);
+      return sach(`Es gibt <b>${a}</b> ${w[0]} und <b>${ges-a}</b> ${w[1]} ${w[2]}. Sie werden gerecht auf <b>${t}</b> ${w[3]} verteilt.`, `Wie viele ${w[2]} bekommt ${w[4]}?`, ges/t, ges,
+        [`1. Schritt (alle zusammen): ${a} + ${ges-a} = ${ges}`, `2. Schritt (verteilen): ${ges} ÷ ${t} = <b>${ges/t}</b>`], `${w[4][0].toUpperCase()+w[4].slice(1)} bekommt ${ges/t} ${w[2]}.`); },
+    q_teilMinus(){ const t=rnd(2,6), q=rnd(5,9), ab=rnd(1,q-2), d=aus(["Karten","Sticker","Murmeln"]);
+      return sach(`<b>${t}</b> Kinder teilen <b>${t*q}</b> ${d} gerecht. Danach verschenkt jedes Kind <b>${ab}</b> davon.`, `Wie viele ${d} hat jedes Kind noch?`, q-ab, q,
+        [`1. Schritt (teilen): ${t*q} ÷ ${t} = ${q}`, `2. Schritt (verschenken): ${q} − ${ab} = <b>${q-ab}</b>`], `Jedes Kind hat noch ${q-ab} ${d}.`); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },
@@ -909,8 +995,10 @@
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
   function baueAufgabe(st, typ){ typ=typ||aus(st.typen); const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
-    const liste=[], quelle = typen && typen.length ? typen : st.mix ? mische([...new Set(mische(st.kern||[]))].slice(0,4).concat(mische(st.typen).slice(0,6))) : st.typen;
-    for(let i=0;i<PRO_RUNDE;i++) liste.push(baueAufgabe(st, quelle[i%quelle.length]));
+    const frei = !(typen && typen.length), anzahl = st.mix && frei ? 15 : PRO_RUNDE;
+    const quelle = !frei ? typen : st.mix ? mische(mische(st.kern||[]).slice(0,6).concat(mische(st.typen).slice(0,9))) : st.mischen ? mische(st.typen) : st.typen;
+    const liste=[];
+    for(let i=0;i<anzahl;i++) liste.push(baueAufgabe(st, quelle[i%quelle.length]));
     return mische(liste);
   }
 
@@ -935,12 +1023,12 @@
     zeichneFortschritt();
     const bild = a.bild ? `<div class="bild${a.lineal?" lineal":""}">${a.bild}</div>` : "";
     if(a.art==="eingabe"){
-      $("buehne").innerHTML=bild+`<div class="eingabe">${a.felder.map((f,i)=>`<input type="text" id="feld${i}" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="?"><span>${f.e}</span>`).join("")}<button id="okBtn">OK</button></div>`;
+      $("buehne").innerHTML=bild+`<div class="eingabe">${a.felder.map((f,i)=>`<input type="text" id="feld${i}" inputmode="numeric" autocomplete="off" maxlength="${f.max||5}"${f.max?' style="width:190px"':""} placeholder="?"><span>${f.e}</span>`).join("")}<button id="okBtn">OK</button></div>`;
       const felder=a.felder.map((f,i)=>$("feld"+i));
       const pruef=()=>{
         if(wartet) return;
         if(felder.every(x=>x.value.trim()==="")) return;
-        const werte=felder.map(x=>x.value.trim()===""?0:parseInt(x.value,10)||0), summe=werte.reduce((s,w,i)=>s+w*a.felder[i].f,0);
+        const werte=felder.map(x=>x.value.trim()===""?0:parseInt(x.value.replace(/[\s.\u202f]/g,""),10)||0), summe=werte.reduce((s,w,i)=>s+w*a.felder[i].f,0);
         felder.forEach(x=>x.disabled=true); $("okBtn").disabled=true;
         const text=werte.map((w,i)=>`${w} ${a.felder[i].e}`).join(" ");
         // „streng": bei zwei Feldern muss richtig getauscht sein (nicht 0 € 345 ct)
@@ -1082,7 +1170,7 @@
       const info = z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
       return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span><span class="tx"><b>${s.name}</b><span>${info}</span></span>
         <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}"${WAS==="mix"?' style="border-color:#f59e0b;color:#fde68a"':""}>${WAS==="mix"?"Check ⭐×2":"Test"}</button></span></div>`; }).join("")+
-      (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab 5 richtigen Aufgaben).</div>` : "");
+      (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab der Hälfte richtiger Aufgaben).</div>` : "");
     $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
     $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
     const z=meineTypen(), n=z.offen.length+z.faellig.length;

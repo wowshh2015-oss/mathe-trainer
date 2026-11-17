@@ -16,9 +16,10 @@ window.Anleitung=(function(){
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
+    sach2:           {ic:"📚", name:"Sachaufgaben in zwei Schritten", 2:"Was war am Anfang?", 3:"zwei Schritte: plus und minus · mal · teilen"},
     mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
-    zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest"},
+    zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest", 4:"bis 1 Million"},
     geo:             {ic:"📐", name:"Formen und Körper", 1:"Flächen erkennen", 2:"Ecken und Seiten · Körper · Symmetrie", 3:"Ecken, Kanten, Flächen · Umfang und Fläche"},
     daten:           {ic:"📊", name:"Daten und Zufall", 2:"Strichlisten · Diagramme lesen", 3:"sicher, möglich, unmöglich · kombinieren"},
     gewichte:        {ic:"⚖️", name:"Gewichte",       3:"Gramm und Kilogramm · wiegen · rechnen · Liter und Milliliter", 4:"Tonnen"},
@@ -64,7 +65,8 @@ window.Anleitung=(function(){
      <li><b>📖 Sachaufgaben</b> – Geschichte lesen, Rechenart finden, rechnen, Antwortsatz.</li>
      <li><b>💶 Geld / 📏 Längen / ⚖️ Gewichte</b> – Münzen, bezahlen, Rückgeld; messen und umwandeln; wiegen, Gramm und Kilogramm.</li>
      <li><b>✍️ Schriftlich rechnen</b> – Plus, Minus und Mal untereinander, Stelle für Stelle von rechts nach links.</li>
-     <li><b>🎲 Bunte Mischung</b> – zehn Aufgaben quer durch alle Themen, passend zur Klasse. Der <b>Test</b> dort ist der Wochen-Check: Danach sieht Ihr Kind Thema für Thema, was sitzt und was es vergessen hat – und der Mathe-Trainer schlägt genau das zum Üben vor.</li>
+     <li><b>📚 Sachaufgaben in zwei Schritten</b> – „Was war am Anfang?“ und Aufgaben, bei denen man zweimal rechnen muss. Nach einem Fehler zeigt das Programm beide Schritte.</li>
+     <li><b>🎲 Bunte Mischung</b> – 15 Aufgaben quer durch alle Themen, passend zur Klasse. Der <b>Test</b> dort ist der Wochen-Check: Danach sieht Ihr Kind Thema für Thema, was sitzt und was es vergessen hat – und der Mathe-Trainer schlägt genau das zum Üben vor.</li>
      <li><b>📅 Kalender und Zeit</b> – Wochentage, Monate, Tage im Monat; Stunden, Minuten und Sekunden umrechnen.</li>
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>
      <li><b>📐 Formen und Körper</b> – Flächen und Körper benennen, Ecken und Kanten zählen, Symmetrie, Umfang und Fläche.</li>
@@ -74,7 +76,7 @@ window.Anleitung=(function(){
    ["sterne","⭐","Sterne, Gold und das Sticker-Album",`
      <ul><li><b>⭐ Sterne gibt es für Fleiß:</b> 3 für eine Übungsrunde (ab 8 richtigen Aufgaben), 5 für „Meine Aufgaben“ oder ein neues Thema, 2 extra für die erste Runde des Tages.</li>
      <li><b>🌟 Gold gibt es für sicheres Können:</b> für jeden zum ersten Mal bestandenen Test und für jede gefestigte Stufe des Lernwegs.</li>
-     <li><b>📝 Doppelte Sterne für den Check:</b> In der „Bunten Mischung“ gibt es einen Check über alle Themen. Der erste am Tag bringt doppelte Sterne und doppelt Sprit – schon ab 5 von 10 richtigen Aufgaben. So lohnt er sich für jedes Kind, und das Programm erfährt, wo noch geübt werden muss.</li>
+     <li><b>📝 Doppelte Sterne für den Check:</b> In der „Bunten Mischung“ gibt es einen Check über alle Themen. Der erste am Tag bringt doppelte Sterne und doppelt Sprit – schon ab der Hälfte richtiger Aufgaben. So lohnt er sich für jedes Kind, und das Programm erfährt, wo noch geübt werden muss.</li>
      <li><b>📒 Sticker-Album:</b> Alle 10 Sterne öffnet sich ein neuer Sticker, für Gold gibt es Glitzer-Sticker.</li></ul>
      <p>Es gibt <b>keine Rangliste</b>: Jedes Kind sieht nur seine eigenen Sterne. Die Lehrkraft kann Sterne verschenken, etwa für gute Arbeit im Heft.</p>`],
    ["flammen","🔥","Lernflammen und die Farbe des Namens",`
