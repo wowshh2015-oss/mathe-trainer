@@ -186,7 +186,7 @@
 
   <div class="klRow" id="klRow">
     <span class="lbl">Für welche Klasse?</span>
-    <button type="button" data-kl="0">Alle</button><button type="button" data-kl="1">Klasse 1</button><button type="button" data-kl="2">Klasse 2</button><button type="button" data-kl="3">Klasse 3</button>
+    <button type="button" data-kl="0">Alle</button><button type="button" data-kl="1">Klasse 1</button><button type="button" data-kl="2">Klasse 2</button><button type="button" data-kl="3">Klasse 3</button><button type="button" data-kl="4">Klasse 4</button>
     <button type="button" class="anl" id="anlBtn">❓ Anleitung für Eltern</button>
   </div>
   <div class="grid dis" id="grid">
@@ -202,6 +202,7 @@
     <a class="tile t3" data-page="sach-trainer.html"><div class="ic">📖</div><div class="t">Sach&shy;auf&shy;gaben</div><div class="d">Geschichten lesen · Rechenart finden</div></a>
     <a class="tile t5" data-page="sach2-trainer.html"><div class="ic">📚</div><div class="t">Sach&shy;auf&shy;gaben in zwei Schritten</div><div class="d">Was war am Anfang? · zweimal rechnen</div></a>
     <a class="tile t8" data-page="zahlen-trainer.html"><div class="ic">🔢</div><div class="t">Zahlen bis 1000</div><div class="d">Stellenwerte · Zahlenstrahl · runden</div></a>
+    <a class="tile t6" data-page="strahl-trainer.html"><div class="ic">📍</div><div class="t">Zahlen&shy;strahl</div><div class="d">erst den Schritt finden · dann die Zahl</div></a>
     <a class="tile t2" data-page="geo-trainer.html"><div class="ic">📐</div><div class="t">Formen und Körper</div><div class="d">Flächen · Körper · Symmetrie</div></a>
     <a class="tile t7" data-page="daten-trainer.html"><div class="ic">📊</div><div class="t">Daten und Zufall</div><div class="d">Strichlisten · Diagramme · sicher, möglich, unmöglich</div></a>
     <a class="tile t7" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde · 5 Strecken</div></a>
@@ -211,7 +212,7 @@
     <a class="tile t6" data-page="geld-trainer.html"><div class="ic">💶</div><div class="t">Geld</div><div class="d">Euro und Cent · bezahlen · Rückgeld</div></a>
     <a class="tile t1" data-page="laengen-trainer.html"><div class="ic">📏</div><div class="t">Längen</div><div class="d">messen · mm · cm · m</div></a>
     <a class="tile t4" data-page="gewichte-trainer.html"><div class="ic">⚖️</div><div class="t">Gewichte und Liter</div><div class="d">wiegen · Gramm · Kilogramm · Liter und Milliliter</div></a>
-    <a class="tile t8 breit" data-page="mix-trainer.html"><div class="ic">🎲</div><div class="t">Bunte Mischung</div><div class="d">alle Themen gemischt · nach Klasse</div></a>
+    <a class="tile t8" data-page="mix-trainer.html"><div class="ic">🎲</div><div class="t">Bunte Mischung</div><div class="d">alle Themen gemischt · nach Klasse</div></a>
   </div>
   <p class="hint" id="hint">Gib zuerst deinen Namen ein – dann wähle dein Training.</p>
   <p class="credit">Entwickelt von <strong>@P.Svyetnyenko</strong> · <a href="lehrer.html" style="color:var(--muted)">🔑 Klassenübersicht</a><span id="elternSpan" class="hide"> · <a id="elternLink" href="eltern.html" style="color:var(--muted)">👨‍👩‍👧 Für Eltern</a></span></p>
@@ -347,6 +348,7 @@ const SEITEN={
   kalender:       {datei:"kalender-trainer.html",        ic:"📅", name:"Kalender und Zeit"},
   mix:            {datei:"mix-trainer.html",             ic:"🎲", name:"Bunte Mischung"},
   sach2:          {datei:"sach2-trainer.html",           ic:"📚", name:"Sachaufgaben in zwei Schritten"},
+  strahl:         {datei:"strahl-trainer.html",          ic:"📍", name:"Zahlenstrahl"},
   geo:            {datei:"geo-trainer.html",             ic:"📐", name:"Formen und Körper"},
   daten:          {datei:"daten-trainer.html",           ic:"📊", name:"Daten und Zufall"},
   sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"},
@@ -634,6 +636,8 @@ const NEUES=[
   {d:"2026-11-15", ic:"🔍", t:"Fehlende Zahl",                 x:"Eine neue Kachel: Lerne, wie die Zahlen heißen (Summand, Summe …) und finde die verlorene Zahl.", app:"platz"},
   {d:"2026-11-17", ic:"✍️", t:"Schriftlich rechnen",           x:"Eine neue Kachel: große Zahlen untereinander rechnen – Stelle für Stelle.", app:"schrift"},
   {d:"2026-11-17", ic:"📚", t:"Sachaufgaben in zwei Schritten", x:"Eine neue Kachel: Was war am Anfang? Und Aufgaben, bei denen man zweimal rechnen muss.", app:"sach2"},
+  {d:"2026-11-18", ic:"📍", t:"Zahlenstrahl",                  x:"Eine eigene Kachel für den Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"strahl"},
+  {d:"2026-11-18", ic:"🎒", t:"Klassen-Marken",                x:"In allen Trainern steht jetzt dabei, für welche Klasse eine Übung ist: Kl. 1, Kl. 2, Kl. 3 oder Kl. 4."},
   {d:"2026-11-17", ic:"🎲", t:"Bunte Mischung",                x:"Eine neue Kachel: 15 Aufgaben aus allen Themen – such dir deine Klasse aus.", app:"mix"},
   {d:"2026-11-17", ic:"📅", t:"Kalender und Zeit",             x:"Eine neue Kachel: Wochentage, Monate, Stunden, Minuten und Sekunden.", app:"kalender"},
   {d:"2026-11-17", ic:"🔢", t:"Zahlen bis 1000",               x:"Eine neue Kachel: Zehner und Einer, vergleichen, runden – und der Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"zahlen"},

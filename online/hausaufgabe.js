@@ -21,6 +21,7 @@ window.HA=(function(){
     {app:"mix",             ic:"🎲", name:"Bunte Mischung", datei:"mix-trainer.html"},
     {app:"sach2",           ic:"📚", name:"Sachaufgaben in zwei Schritten", datei:"sach2-trainer.html"},
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
+    {app:"strahl",          ic:"📍", name:"Zahlenstrahl", datei:"strahl-trainer.html"},
     {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
     {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
   ];
@@ -36,6 +37,7 @@ window.HA=(function(){
     sach2:   {feld:"zr", liste:[["1","Was war am Anfang?"],["2","Zwei Schritte: Plus und Minus"],["3","Zwei Schritte: erst Mal, dann Plus oder Minus"],["4","Zwei Schritte: zusammenzählen und teilen"],["5","Alles gemischt"]]},
     mix:     {feld:"zr", liste:[["1","Klasse 1 – bunt gemischt"],["2","Klasse 2 – bunt gemischt"],["3","Klasse 3 – bunt gemischt"],["4","Vorschau auf Klasse 4"]]},
     kalender:{feld:"zr", liste:[["1","Wochentage und Monate"],["2","Wie lang ist ein Monat?"],["3","Stunden und Minuten"],["4","Sekunden, Stunden, Tage"],["5","Mit dem Datum rechnen"],["6","Umwandeln mit allen Zahlen"],["7","Wie spät ist es in …? Wie spät war es vor …?"],["8","Wie viel Zeit ist vergangen?"],["9","Zeit in Sachaufgaben"],["10","Uhr: zwei Uhrzeiten, drei Schreibweisen"]]},
+    strahl:  {feld:"zr", liste:[["1","Zahlenstrahl bis 100 ablesen"],["2","Wie viele Schritte sind es?"],["3","Wie groß ist ein Schritt?"],["4","Die Zahl am Pfeil finden"],["5","Zahlenstrahl bis 1000 ablesen"],["6","Schritt finden bis 1000"],["7","Zahlenstrahl bis 1 Million"]]},
     zahlen:  {feld:"zr", liste:[["1","Zehner und Einer"],["2","Nachbarzahlen und Zahlenstrahl"],["3","Zahlenstrahl: Wie groß ist ein Schritt?"],["4","Vergleichen"],["5","Verdoppeln, halbieren, gerade und ungerade"],["6","Hunderter, Zehner, Einer"],["7","Zahlenstrahl bis 1000"],["8","Runden"],["9","Teilen mit Rest"],["10","Bis 1 Million: Stellenwerte"],["11","Bis 1 Million: Nachbarn und Zahlenstrahl"],["12","Bis 1 Million: vergleichen und runden"],["13","Bis 1 Million: rechnen mit großen Zahlen"]]},
     geo:     {feld:"zr", liste:[["1","Flächen erkennen"],["2","Ecken und Seiten"],["3","Körper erkennen"],["4","Ecken, Kanten, Flächen"],["5","Symmetrie"],["6","Umfang und Fläche"]]},
     daten:   {feld:"zr", liste:[["1","Strichlisten"],["2","Diagramme lesen"],["3","Mit Diagrammen rechnen"],["4","Sicher, möglich, unmöglich"],["5","Kombinieren"]]},

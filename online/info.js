@@ -80,6 +80,14 @@
     "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
     "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
+    // Zahlenstrahl (eigene Kachel)
+    "Zahlenstrahl bis 100 ablesen":"Jeder Zehner ist beschriftet, die kleinen Striche sind Einer. Such den Zehner davor und zähl weiter. <b>Klasse 2.</b>",
+    "Wie viele Schritte sind es?":"Zähle die Sprünge von Strich zu Strich – nicht die Striche selbst. Den ersten Strich zählst du nicht mit. <b>Klasse 2.</b>",
+    "Wie groß ist ein Schritt?":"Nur Anfang und Ende sind beschriftet. Rechne: Ende minus Anfang, geteilt durch die Zahl der Schritte. <b>Klasse 2.</b>",
+    "Die Zahl am Pfeil finden":"Erst den Schritt ausrechnen, dann in diesen Schritten bis zum Pfeil zählen. <b>Klasse 2.</b>",
+    "Zahlenstrahl bis 1000 ablesen":"Jeder Hunderter ist beschriftet, jeder kleine Strich ist 10. <b>Klasse 3.</b>",
+    "Schritt finden bis 1000":"Ein Schritt kann 10, 20, 25, 50 oder 100 sein. Immer zuerst den Schritt ausrechnen! <b>Klasse 3.</b>",
+    "Zahlenstrahl bis 1 Million":"Dasselbe mit großen Zahlen: Ein Schritt kann 10 000 oder 100 000 sein. <b>Klasse 4.</b>",
     // Zahlen bis 1000
     "Zehner und Einer":"Jede Zahl bis 100 besteht aus Zehnern (vorn) und Einern (hinten): 37 = 3 Zehner und 7 Einer. <b>Klasse 1 und 2.</b>",
     "Nachbarzahlen und Zahlenstrahl":"Vorgänger (1 kleiner), Nachfolger (1 größer), Nachbarzehner – und Zahlen am Zahlenstrahl ablesen. <b>Klasse 2.</b>",
@@ -139,6 +147,7 @@
     sach2:"<b>Sachaufgaben in zwei Schritten:</b> kurze Geschichten, bei denen man rückwärts rechnen muss („Wie viele waren es am Anfang?“) oder zwei Rechnungen hintereinander braucht. <b>Klasse 2 und 3.</b>",
     mix:"<b>Bunte Mischung:</b> 15 Aufgaben aus ganz verschiedenen Themen – Zahlen, Uhr, Geld, Formen, Gewichte … Du wählst deine Klasse. Gut zum Wiederholen.",
     kalender:"<b>Kalender und Zeit:</b> Wochentage und Monate, wie viele Tage ein Monat hat, und Stunden, Minuten, Sekunden umrechnen. <b>Klasse 1 bis 3.</b>",
+    strahl:"<b>Zahlenstrahl:</b> Am Zahlenstrahl stehen nur der Anfang und das Ende. Du zählst die Schritte, rechnest aus, wie groß ein Schritt ist, und findest dann die Zahl. <b>Klasse 2 bis 4.</b>",
     zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
     geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
     daten:"<b>Daten und Zufall:</b> Strichlisten und Diagramme lesen – und überlegen, was sicher, möglich oder unmöglich ist. <b>Klasse 2 und 3.</b>",
@@ -235,6 +244,7 @@
     kalender:[["#menue > h3, #start h3", T.stufen]],
     sach2:[["#menue > h3, #start h3", T.stufen+" Bei diesen Aufgaben musst du <b>zweimal rechnen</b> oder <b>rückwärts</b> denken."]],
     mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat 15 Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Check:</b> auf Zeit. Der erste Check am Tag bringt <b>doppelte Sterne und doppelt Sprit</b> – schon ab der Hälfte richtiger Aufgaben."]],
+    strahl:[["#menue > h3, #start h3", T.stufen+" <b>So geht jeder Zahlenstrahl:</b> 1. Wie weit ist es vom Anfang bis zum Ende? 2. Schritte zählen. 3. Teilen – so groß ist ein Schritt."]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
       [".rundenzaehler .sub", "<b>Runden:</b> Eine Runde hat 5 Aufgaben (Hindernisse). Alle Runden werden zusammengezählt – dafür gibt es neue Fahrzeuge, Farben und Pokale."],
@@ -249,6 +259,34 @@
     ]
   };
 
+  // ---------- Klassen-Marken: bei jeder Übung steht, für welche Klasse sie gedacht ist ----------
+  // Stufen-Listen (alle neueren Trainer): die Klasse wird aus dem Erklärtext der Stufe gelesen („… Klasse 2 und 3.").
+  // Ältere Trainer: eigene Regeln je Seite. Hat das Kind auf der Startseite seine Klasse gewählt, leuchtet die passende Marke.
+  let MEINE_KL=0; try{ MEINE_KL=+localStorage.getItem("mathe_klasse")||0; }catch(e){}
+  function klAusText(s){ const m=String(s).replace(/<[^>]+>/g,"").match(/Klasse (\d)(?:\s*(?:und|bis)\s*(\d))?/); return !m ? "" : m[2] ? m[1]+"–"+m[2] : m[1]; }
+  const zrKl=z=>({10:"1",20:"1",100:"2",1000:"3"})[z]||"";
+  const KL_ALLE=[[".stufe .tx > b", el=>{ const n=eigenerText(el); return n==="Meine Aufgaben" ? "" : klAusText(n+" · "+(STUFE[n]||"")); }]];
+  const KL_REGELN={
+    plus:[[".zrhead", el=>zrKl((txt(el).match(/Bis (\d+)/)||[])[1])], ["#testSetup .level[data-zr] .name", el=>zrKl(el.parentElement.dataset.zr)]],
+    minus:[[".zrhead", el=>zrKl((txt(el).match(/Bis (\d+)/)||[])[1])], ["#testSetup .level[data-zr] .name", el=>zrKl(el.parentElement.dataset.zr)]],
+    zerlegen:[[".zrhead", el=>zrKl((txt(el).match(/Bis (\d+)/)||[])[1])], ["#testSetup .level[data-zr] .name", el=>zrKl(el.parentElement.dataset.zr)]],
+    einmaleins:[["#trainSetup > label", ()=>"2"], [".reihebtn.kern", ()=>"2"], ['.reihebtn[data-reihe="mix"]', ()=>"3"], ["#testSetup > label", ()=>"2–3"]],
+    einsdurcheins:[["#trainSetup > label", ()=>"2"], [".reihebtn.kern", ()=>"2"], ['.reihebtn[data-reihe="mix"]', ()=>"3"], ["#testSetup > label", ()=>"2–3"]],
+    halbschriftlich:[["#training h3", el=>{ const t=txt(el); return t.includes("Meine Aufgaben") ? "" : t.includes("Bis 20") ? "1" : t.includes("Malnehmen") ? "3" : "2"; }],
+                     ["#testVerfahren button", el=>{ const v=el.dataset.v||""; return /20$/.test(v) ? "1" : /^mal/.test(v) ? "3" : "2"; }]],
+    rallye:[[".strecke .tx b", el=>({1:"1",2:"2",3:"2",4:"2–3",5:"3"})[(el.closest(".strecke")||{dataset:{}}).dataset.s]||""]]
+  };
+  function klMarke(el, kl){
+    if(!kl || [...el.children].some(c=>c.classList && c.classList.contains("klM"))) return;
+    const s=document.createElement("i"), von=+kl[0], bis=+kl[kl.length-1];      // kein <span>: in den Stufen-Listen sind alle span Blockelemente
+    s.className="klM k"+(von===bis?von:"x")+(MEINE_KL && MEINE_KL>=von && MEINE_KL<=bis ? " mein" : ""); s.textContent="Kl. "+kl;
+    s.title = von===bis ? "für Klasse "+von : "für Klasse "+von+" bis "+bis;
+    const frage=[...el.children].find(c=>c.classList && c.classList.contains("fq"));
+    if(frage) el.insertBefore(s, frage); else el.appendChild(s);
+  }
+  function sucheKlassen(){
+    (KL_REGELN[seite]||[]).concat(KL_ALLE).forEach(([sel, fn])=>{ let l=[]; try{ l=document.querySelectorAll(sel); }catch(e){} l.forEach(el=>{ let k=""; try{ k=fn(el)||""; }catch(e){} klMarke(el, k); }); });
+  }
   // ---------- Aussehen ----------
   function stil(){
     if(document.getElementById("fqStil")) return;
@@ -261,6 +299,9 @@
     button.fq:hover,button.fq.an{background:#7dd3fc;color:#082f49}
     button.fq.ecke{position:absolute;top:6px;right:6px;margin:0;z-index:3}
     .fqEltern{position:relative}
+    .klM{display:inline-block;font-style:normal;margin-left:7px;font:normal 800 11px/1.55 "Segoe UI",system-ui,Arial,sans-serif;border-radius:999px;padding:0 7px;vertical-align:middle;white-space:nowrap;letter-spacing:0;text-transform:none;background:#334155;color:#e2e8f0}
+    .klM.k1{background:#166534;color:#dcfce7} .klM.k2{background:#1e40af;color:#dbeafe} .klM.k3{background:#9a3412;color:#ffedd5} .klM.k4{background:#6b21a8;color:#f3e8ff}
+    .klM.mein{box-shadow:0 0 0 2px #fde047}
     .fqBlase{position:fixed;z-index:2050;max-width:330px;width:calc(100vw - 24px);background:#f8fafc;color:#0f172a;border-radius:14px;padding:13px 14px 11px;
       box-shadow:0 12px 34px rgba(0,0,0,.55);font:500 15.5px/1.5 "Segoe UI",system-ui,Arial,sans-serif;text-align:left;border:2px solid #7dd3fc}
     .fqBlase b{font-weight:800} .fqBlase .fqFuss{display:flex;gap:8px;margin-top:10px}
@@ -315,7 +356,7 @@
   }
   let laeuft=false;
   function suche(){
-    laeuft=false;
+    laeuft=false; sucheKlassen();
     (REGELN[seite]||[]).concat(ALLE).forEach(([sel, text, art])=>{
       let liste=[]; try{ liste=document.querySelectorAll(sel); }catch(e){}
       liste.forEach(el=>{ if(!hat(el, art)) haenge(el, text, art); });
@@ -325,7 +366,7 @@
   function start(){
     stil(); suche();
     // Menüs werden oft erst später aufgebaut oder neu gezeichnet – dann kommen die Fragezeichen von selbst nach
-    try{ new MutationObserver(m=>{ if(m.some(x=>[...x.addedNodes].some(n=>n.nodeType===1 && !(n.classList && (n.classList.contains("fq")||n.classList.contains("fqBlase")))))) plane(); })
+    try{ new MutationObserver(m=>{ if(m.some(x=>[...x.addedNodes].some(n=>n.nodeType===1 && !(n.classList && (n.classList.contains("fq")||n.classList.contains("fqBlase")||n.classList.contains("klM")))))) plane(); })
            .observe(document.body, {childList:true, subtree:true}); }catch(e){ setInterval(suche, 1500); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();

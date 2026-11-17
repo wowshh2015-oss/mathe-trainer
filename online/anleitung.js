@@ -17,15 +17,16 @@ window.Anleitung=(function(){
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
     sach2:           {ic:"📚", name:"Sachaufgaben in zwei Schritten", 2:"Was war am Anfang?", 3:"zwei Schritte: plus und minus · mal · teilen"},
-    mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt"},
+    mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt", 4:"Vorschau auf Klasse 4"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
+    strahl:          {ic:"📍", name:"Zahlenstrahl", 2:"bis 100: Schritte zählen · Schritt finden", 3:"bis 1000: 10er, 20er, 25er, 50er", 4:"bis 1 Million"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest", 4:"bis 1 Million"},
     geo:             {ic:"📐", name:"Formen und Körper", 1:"Flächen erkennen", 2:"Ecken und Seiten · Körper · Symmetrie", 3:"Ecken, Kanten, Flächen · Umfang und Fläche"},
     daten:           {ic:"📊", name:"Daten und Zufall", 2:"Strichlisten · Diagramme lesen", 3:"sicher, möglich, unmöglich · kombinieren"},
     gewichte:        {ic:"⚖️", name:"Gewichte",       3:"Gramm und Kilogramm · wiegen · rechnen · Liter und Milliliter", 4:"Tonnen"},
     laengen:         {ic:"📏", name:"Längen",         2:"mit dem Lineal messen · Meter und Zentimeter", 3:"Millimeter · umwandeln · mit Längen rechnen"}
   };
-  function klassenVon(app){ const k=KLASSEN[app]; return k ? [1,2,3].filter(n=>k[n]) : []; }
+  function klassenVon(app){ const k=KLASSEN[app]; return k ? [1,2,3,4].filter(n=>k[n]) : []; }
   function klassenText(app){ const l=klassenVon(app); return !l.length ? "" : l.length===1 ? "Kl. "+l[0] : "Kl. "+l[0]+"–"+l[l.length-1]; }
 
   const TEILE=[
@@ -50,9 +51,9 @@ window.Anleitung=(function(){
      <li><b>🔁 Wiederholen</b> – was gelernt ist, kommt nach 2, 7 und 21 Tagen noch einmal. So bleibt es dauerhaft im Kopf.</li></ul>
      <p class="anlTipp">Bitte nicht vorsagen: Das Programm merkt sich Fehler und bringt die Aufgabe wieder. Hilfreicher ist die Frage „Wie hast du das gerechnet?“</p>`],
    ["klassen","🎒","Was passt zu welcher Klasse?",`
-     <p>Auf der Startseite gibt es über den Kacheln die Knöpfe <b>Klasse 1 · Klasse 2 · Klasse 3</b>. Sie zeigen auf jeder Kachel, was dort für diese Klasse geübt wird; Kacheln ohne passenden Inhalt werden blass. Gesperrt wird dadurch nichts.</p>
-     <div class="anlTab"><table><thead><tr><th>Thema</th><th>Klasse 1</th><th>Klasse 2</th><th>Klasse 3</th></tr></thead><tbody>`+
-     Object.keys(KLASSEN).map(a=>{ const k=KLASSEN[a]; return `<tr><td><b>${k.ic} ${k.name}</b></td><td>${k[1]||"–"}</td><td>${k[2]||"–"}</td><td>${k[3]||"–"}</td></tr>`; }).join("")+
+     <p>Auf der Startseite gibt es über den Kacheln die Knöpfe <b>Klasse 1 · Klasse 2 · Klasse 3 · Klasse 4</b>. Sie zeigen auf jeder Kachel, was dort für diese Klasse geübt wird; Kacheln ohne passenden Inhalt werden blass. Gesperrt wird dadurch nichts. Auch in jedem Trainer steht bei jeder Übung eine kleine Marke: <b>Kl. 1</b>, <b>Kl. 2</b>, <b>Kl. 3</b> oder <b>Kl. 4</b>.</p>
+     <div class="anlTab"><table><thead><tr><th>Thema</th><th>Klasse 1</th><th>Klasse 2</th><th>Klasse 3</th><th>Klasse 4</th></tr></thead><tbody>`+
+     Object.keys(KLASSEN).map(a=>{ const k=KLASSEN[a]; return `<tr><td><b>${k.ic} ${k.name}</b></td><td>${k[1]||"–"}</td><td>${k[2]||"–"}</td><td>${k[3]||"–"}</td><td>${k[4]||"–"}</td></tr>`; }).join("")+
      `</tbody></table></div>
      <p>Die beiden Spiele (Rallye, Marathon) mischen den Stoff und werden von Stufe zu Stufe schwerer. Die Zuordnung ist eine Orientierung – Kinder dürfen voraus- und zurückgehen.</p>`],
    ["programme","🧩","Die Kacheln im Überblick",`
@@ -68,6 +69,7 @@ window.Anleitung=(function(){
      <li><b>📚 Sachaufgaben in zwei Schritten</b> – „Was war am Anfang?“ und Aufgaben, bei denen man zweimal rechnen muss. Nach einem Fehler zeigt das Programm beide Schritte.</li>
      <li><b>🎲 Bunte Mischung</b> – 15 Aufgaben quer durch alle Themen, passend zur Klasse. Der <b>Test</b> dort ist der Wochen-Check: Danach sieht Ihr Kind Thema für Thema, was sitzt und was es vergessen hat – und der Mathe-Trainer schlägt genau das zum Üben vor.</li>
      <li><b>📅 Kalender und Zeit</b> – Wochentage, Monate, Tage im Monat; Stunden, Minuten und Sekunden umrechnen.</li>
+     <li><b>📍 Zahlenstrahl</b> – nur Anfang und Ende sind beschriftet: erst die Schritte zählen, dann ausrechnen, wie groß ein Schritt ist, dann die Zahl finden.</li>
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>
      <li><b>📐 Formen und Körper</b> – Flächen und Körper benennen, Ecken und Kanten zählen, Symmetrie, Umfang und Fläche.</li>
      <li><b>📊 Daten und Zufall</b> – Strichlisten und Diagramme lesen; sicher, möglich oder unmöglich?</li>
