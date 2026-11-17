@@ -34,8 +34,18 @@ window.Sterne=(function(){
     {id:"lecker",  ic:"🍓", name:"Leckeres",
      s:["🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🍒","🍑","🥭","🍍","🥝","🍅","🥕","🌽","🥨","🧀","🥞","🧇","🍕","🍔","🍟","🌭","🍿","🍩","🍪","🎂","🍦","🍫"]}
   ];
+  // Goldene Sterne füllen die Glitzer-Seiten nacheinander: Ist eine Seite voll, erscheint die nächste.
   const GLITZER={id:"glitzer", ic:"💎", name:"Glitzer",
      s:["🦄","🐲","👑","💎","🏆","🥇","🎖️","🔮","🎩","🧙","🧚","🧜‍♀️","🦸","🦹","🧝","🏰","🎠","🎡","🎢","🎆","🎇","🎊","🎁","🎈","🎉","🏅","🗝️","💰","💍","🌟"]};
+  const GOLD_SEITEN=[GLITZER,
+    {id:"welt",  ic:"🎸", name:"Welt & Musik",
+     s:["🗽","🗼","🏯","🕌","⛩️","🗿","🏺","⛲","🏝️","⛺","⛪","🏛️","🎪","🎼","🎶","🎐","🎏","🎎","🎭","🎨","🎬","🎤","🎧","🎻","🎺","🎷","🥁","🎸","🏮","🏹"]},
+    {id:"sport", ic:"⚽", name:"Sport",
+     s:["⚽","🏀","🏈","⚾","🎾","🏐","🏉","🎱","🏓","🏸","🥅","🏒","🏑","🏏","⛳","🎯","🎳","🥊","🥋","⛸️","🎿","🛷","🏂","🏄","🏊","🚴","🤸","🏋️","🤺","🥌"]}];
+  // Wie viele Sticker einer Gold-Seite sind offen? Seite k beginnt nach k vollen Seiten.
+  function goldOffen(k, gold){ const vor=GOLD_SEITEN.slice(0,k).reduce((s,x)=>s+x.s.length,0); return Math.max(0, Math.min(GOLD_SEITEN[k].s.length, gold-vor)); }
+  function goldSeiten(gold){ let n=1; while(n<GOLD_SEITEN.length && goldOffen(n-1,gold)>=GOLD_SEITEN[n-1].s.length) n++; return n; }      // sichtbar: alle angefangenen und die nächste leere
+  function goldPlatz(){ return GOLD_SEITEN.reduce((s,x)=>s+x.s.length,0); }
 
   function tag(e){ const p=String(e.datum||"").split("."); return (p[2]||"")+(p[1]||"")+(p[0]||""); }
   function ts(e){ return tag(e)+String(e.zeit||"").replace(":",""); }
@@ -228,22 +238,24 @@ window.Sterne=(function(){
     if(!letzter) return;
     stil();
     const s=letzter, alt=gesehenVor;
-    let aktiv=0; try{ aktiv=Math.min(ALBEN.length, +localStorage.getItem("sterne_album")||0); }catch(e){}
+    const nGold=goldSeiten(s.gold), TABS=ALBEN.concat(GOLD_SEITEN.slice(0,nGold));
+    let aktiv=0; try{ aktiv=Math.min(TABS.length-1, +localStorage.getItem("sterne_album")||0); }catch(e){}
     const ov=document.createElement("div"); ov.className="stOv"; document.body.appendChild(ov);
     function zeichne(){
-      const glitzer = aktiv===ALBEN.length, al = glitzer ? GLITZER : ALBEN[aktiv];
-      const offen = glitzer ? Math.min(al.s.length, s.gold) : offenIm(aktiv, s.sticker);
-      const altOffen = !alt ? offen : glitzer ? Math.min(al.s.length, +alt.gold||0) : offenIm(aktiv, +alt.sticker||0);
+      const glitzer = aktiv>=ALBEN.length, gk=aktiv-ALBEN.length, al = TABS[aktiv];
+      const offen = glitzer ? goldOffen(gk, s.gold) : offenIm(aktiv, s.sticker);
+      const altOffen = !alt ? offen : glitzer ? goldOffen(gk, +alt.gold||0) : offenIm(aktiv, +alt.sticker||0);
+      const extra = Math.max(0, s.gold-goldPlatz());
       ov.innerHTML=`<div class="stBox">
         <h3>📒 Mein Sticker-Album</h3>
         <p class="unter">⭐ <b style="color:#fff">${s.silber}</b> Sterne · 🌟 <b style="color:#fff">${s.gold}</b> Gold ·
           Alle ${PRO_STICKER} ⭐ gibt es einen neuen Sticker, für jeden goldenen Stern 🌟 einen Glitzer-Sticker.</p>
-        <div class="stTabs">${ALBEN.concat([GLITZER]).map((a,i)=>{
-            const n = i===ALBEN.length ? Math.min(a.s.length,s.gold) : offenIm(i,s.sticker);
+        <div class="stTabs">${TABS.map((a,i)=>{
+            const n = i>=ALBEN.length ? goldOffen(i-ALBEN.length, s.gold) : offenIm(i,s.sticker);
             return `<button class="stTab${i===aktiv?" an":""}" data-tab="${i}">${a.ic} ${a.name} ${n}/${a.s.length}</button>`; }).join("")}</div>
         <div class="stGitter${glitzer?" stGlitzer":""}">${al.s.map((x,i)=>
             `<div class="stSt ${i<offen?"da":"zu"}${i<offen && i>=altOffen?" neu":""}"><span>${x}</span></div>`).join("")}</div>
-        <p class="unter" style="margin:12px 0 0">${glitzer
+        <p class="unter" style="margin:12px 0 0">${glitzer && offen>=al.s.length && gk+1<nGold ? `🎉 <b style="color:#fde047">Diese Seite ist voll!</b> Deine nächsten goldenen Sterne kommen auf die Seite „${TABS[aktiv+1].ic} ${TABS[aktiv+1].name}“.<br>` : ""}${glitzer && extra && gk===GOLD_SEITEN.length-1 ? `👑 <b style="color:#fde047">Alle Gold-Seiten sind voll!</b> Dazu hast du schon ${extra} goldene ${extra===1?"Stern":"Sterne"} extra.<br>` : ""}${glitzer
             ? "Goldene Sterne bekommst du für bestandene Tests, für Aufgaben, die nach allen Wiederholungen sicher sitzen, für je 50 Runden auf den schweren Rallye-Strecken und für jede 25. Etage im Marathon."
             : "Silberne Sterne bekommst du für jede Übungsrunde – und zwei extra für die erste Runde am Tag."}</p>
         <button class="stZu">Schließen</button></div>`;

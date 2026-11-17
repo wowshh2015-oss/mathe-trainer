@@ -326,6 +326,22 @@
     <div class="status" id="mStatus">Alle Durchgänge des ausgewählten Namens werden übernommen – Statistik und Fehler-Analyse rechnen danach zusammen.</div>
   </div>
 
+  <div class="card noprint">
+    <h2>🗑️ Namen löschen <small>Tippfehler, Test-Namen, Kinder aus anderen Klassen</small></h2>
+    <div class="row" style="margin-bottom:10px;gap:8px">
+      <button class="ghost klein" id="dSortAlt">Am längsten nicht da zuerst</button>
+      <button class="ghost klein" id="dSortAbc">Nach Alphabet</button>
+      <button class="ghost klein hide" id="dFremd">Alle außer meiner Klasse markieren</button>
+      <button class="ghost klein" id="dKeine">Markierung aufheben</button>
+    </div>
+    <div class="chips" id="dNamen"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="dBtn" style="background:linear-gradient(180deg,#f87171,#dc2626);color:#fff" disabled>Markierte Namen löschen</button>
+      <label class="ghost klein" style="cursor:pointer;padding:9px 13px;border:1px solid var(--card2);border-radius:12px;font-size:14px">↩️ Gelöschtes zurückholen …<input type="file" id="dDatei" accept=".json,application/json" style="display:none"></label>
+    </div>
+    <div class="status" id="dStatus">Tippen Sie die Namen an, die weg sollen. Vor dem Löschen speichert der Browser eine Sicherungsdatei – damit lässt sich alles wieder zurückholen.</div>
+  </div>
+
   <div class="card">
     <h2>📋 Alle Durchgänge</h2>
     <div class="row noprint" style="margin-bottom:12px">
@@ -491,7 +507,7 @@ function render(){
   renderHochhaus();
   renderRallye();
   renderWege();
-  fuelleNamen();
+  fuelleNamen(); fuelleLoeschen();
 
   // Filter füllen
   const fK=$("fKind"), fA=$("fApp"), kSel=fK.value, aSel=fA.value;
@@ -1184,6 +1200,74 @@ async function umbenennen(von, nach){
 }
 $("mBtn").addEventListener("click", ()=>umbenennen($("mVon").value, $("mNach").value));
 $("mRename").addEventListener("click", ()=>umbenennen($("mVon").value, $("mNeu").value));
+
+//// ===== Namen löschen =====
+// Die Lehrkraft markiert Namen (Tippfehler, Test-Namen, fremde Kinder) und löscht alle ihre Durchgänge.
+// Vorher lädt der Browser eine Sicherungsdatei herunter; „Gelöschtes zurückholen" schreibt sie wieder in die Datenbank.
+const LOESCHEN=new Set(); let dSort="alt";
+function tsZahl(e){ const p=String(e.datum||"").split("."); return +((p[2]||"0")+(p[1]||"00")+(p[0]||"00")+String(e.zeit||"00:00").replace(":","")); }
+function fuelleLoeschen(){
+  const box=$("dNamen"); if(!box) return;
+  const pro={};
+  ALLE.concat(GESCHENKE).forEach(e=>{ if(!e.name) return; const k=pro[e.name]=pro[e.name]||{n:0,letzt:0,datum:""}; if(e.app!=="tankgeschenk" && e.app!=="sterngeschenk") k.n++; const t=tsZahl(e); if(t>k.letzt){ k.letzt=t; k.datum=e.datum||""; } });
+  const namen=Object.keys(pro).sort((a,b)=> dSort==="abc" ? a.localeCompare(b,"de") : pro[a].letzt-pro[b].letzt || a.localeCompare(b,"de"));
+  [...LOESCHEN].forEach(n=>{ if(!pro[n]) LOESCHEN.delete(n); });
+  box.innerHTML = namen.length ? namen.map(n=>{ const k=pro[n], meins=KLASSE && KLASSE.includes(n);
+      return `<span class="chip wahl${LOESCHEN.has(n)?" an":""}" data-n="${esc(n)}" style="${LOESCHEN.has(n)?"border-color:#f87171;background:rgba(239,68,68,.16);color:#fecaca":""}">${LOESCHEN.has(n)?"🗑️ ":""}<bdi>${esc(n)}</bdi> <small style="color:var(--muted);font-weight:600">· ${k.n} ${k.n===1?"Runde":"Runden"} · zuletzt ${esc(String(k.datum).slice(0,6))}${meins?" · 👥 Klasse":""}</small></span>`; }).join("")
+    : '<span style="color:var(--muted);font-size:13px">Noch keine Namen.</span>';
+  box.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ const n=c.dataset.n; LOESCHEN.has(n)?LOESCHEN.delete(n):LOESCHEN.add(n); fuelleLoeschen(); }));
+  const anz=[...LOESCHEN].reduce((s,n)=>s+(pro[n]?pro[n].n:0),0);
+  $("dBtn").disabled=!LOESCHEN.size;
+  $("dBtn").textContent = LOESCHEN.size ? `${LOESCHEN.size} ${LOESCHEN.size===1?"Namen":"Namen"} löschen (${anz} ${anz===1?"Runde":"Runden"})` : "Markierte Namen löschen";
+  $("dFremd").classList.toggle("hide", !KLASSE);
+  $("dSortAlt").classList.toggle("sel", dSort==="alt"); $("dSortAbc").classList.toggle("sel", dSort==="abc");
+}
+function sicherungLaden(dateiname, inhalt){
+  const blob=new Blob([JSON.stringify(inhalt,null,1)],{type:"application/json"}), a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=dateiname; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+async function namenLoeschen(){
+  const namen=[...LOESCHEN]; if(!namen.length) return;
+  const treffer=ALLE.concat(GESCHENKE).filter(e=>namen.includes(e.name) && e._id);
+  const inKlasse=KLASSE ? namen.filter(n=>KLASSE.includes(n)) : [];
+  const liste=namen.length<=12 ? namen.join(", ") : namen.slice(0,12).join(", ")+` und ${namen.length-12} weitere`;
+  if(!confirm(`${namen.length===1?"Diesen Namen":"Diese "+namen.length+" Namen"} mit allen ${treffer.length} Einträgen löschen?\n\n${liste}`+
+     (inKlasse.length?`\n\n⚠️ ${inKlasse.join(", ")} ${inKlasse.length===1?"gehört":"gehören"} zu „Meine Klasse“ im Projektor!`:"")+
+     `\n\nIhr Browser lädt vorher eine Sicherungsdatei herunter. Damit können Sie alles über „Gelöschtes zurückholen“ wiederherstellen.`)) return;
+  // Sicherung: jeder Eintrag mit seiner Kennung – genau so, wie er in der Datenbank steht
+  const jetzt=new Date(), p=x=>String(x).padStart(2,"0");
+  const sicherung={art:"mathe-trainer-sicherung", key:KEY, erstellt:jetzt.toISOString(), namen, eintraege:treffer.map(e=>{ const x=Object.assign({},e); const id=x._id; delete x._id; x.key=KEY; return {id, daten:x}; })};
+  sicherungLaden(`Sicherung_geloescht_${jetzt.getFullYear()}-${p(jetzt.getMonth()+1)}-${p(jetzt.getDate())}_${p(jetzt.getHours())}${p(jetzt.getMinutes())}.json`, sicherung);
+  $("dStatus").textContent="Wird gelöscht …";
+  try{
+    for(let i=0;i<treffer.length;i+=400){
+      const b=db.batch(); treffer.slice(i,i+400).forEach(e=>b.delete(db.collection("ergebnisse").doc(e._id))); await b.commit();
+    }
+    if(inKlasse.length){ const rest=KLASSE.filter(n=>!inKlasse.includes(n)); await db.collection("einstellungen").doc("freigabe").set({key:KEY, klasse:rest}, {merge:true}); }
+    LOESCHEN.clear();
+    $("dStatus").innerHTML=`✅ ${namen.length} ${namen.length===1?"Name":"Namen"} mit ${treffer.length} Einträgen gelöscht. Die Sicherungsdatei liegt in Ihrem Download-Ordner.`;
+  }catch(err){ $("dStatus").textContent="⚠️ Fehler beim Löschen: "+(err.code||err)+" – es wurde nichts oder nur ein Teil gelöscht; die Sicherungsdatei ist trotzdem gespeichert."; }
+}
+async function zurueckholen(datei){
+  let s; try{ s=JSON.parse(await datei.text()); }catch(e){ alert("Diese Datei kann ich nicht lesen."); return; }
+  if(!s || s.art!=="mathe-trainer-sicherung" || !Array.isArray(s.eintraege)){ alert("Das ist keine Sicherungsdatei des Mathe-Trainers."); return; }
+  if(s.key!==KEY){ alert("Diese Sicherung gehört zu einer anderen Klasse."); return; }
+  if(!confirm(`${(s.namen||[]).join(", ")}\n\n${s.eintraege.length} Einträge wiederherstellen?`)) return;
+  $("dStatus").textContent="Wird zurückgeholt …";
+  try{
+    for(let i=0;i<s.eintraege.length;i+=400){
+      const b=db.batch(); s.eintraege.slice(i,i+400).forEach(x=>{ if(x && x.id && x.daten) b.set(db.collection("ergebnisse").doc(String(x.id)), Object.assign({}, x.daten, {key:KEY})); }); await b.commit();
+    }
+    $("dStatus").textContent=`✅ ${s.eintraege.length} Einträge sind wieder da.`;
+  }catch(err){ $("dStatus").textContent="⚠️ Fehler: "+(err.code||err); }
+}
+$("dBtn").addEventListener("click", namenLoeschen);
+$("dDatei").addEventListener("change", e=>{ const f=e.target.files[0]; e.target.value=""; if(f) zurueckholen(f); });
+$("dSortAlt").addEventListener("click", ()=>{ dSort="alt"; fuelleLoeschen(); });
+$("dSortAbc").addEventListener("click", ()=>{ dSort="abc"; fuelleLoeschen(); });
+$("dKeine").addEventListener("click", ()=>{ LOESCHEN.clear(); fuelleLoeschen(); });
+$("dFremd").addEventListener("click", ()=>{ if(!KLASSE) return; [...new Set(ALLE.concat(GESCHENKE).map(e=>e.name))].forEach(n=>{ if(n && !KLASSE.includes(n)) LOESCHEN.add(n); }); fuelleLoeschen(); });
 
 //// ===== Bedienung =====
 $("zeitraum").addEventListener("click", e=>{
