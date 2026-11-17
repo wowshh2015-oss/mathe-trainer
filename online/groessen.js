@@ -148,7 +148,7 @@
   // ---------- Aufgaben ----------
   // feld: {e:Einheit, f:Faktor zur kleinsten Einheit}. soll: Gesamtwert in der kleinsten Einheit.
   const F={ eur:{e:"€",f:100}, ct:{e:"ct",f:1}, m:{e:"m",f:100}, cmM:{e:"cm",f:1}, cm:{e:"cm",f:10}, mm:{e:"mm",f:1},
-            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, gross:{e:"",f:1,max:9}, quot:{e:"Rest",f:100}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
+            kg:{e:"kg",f:1000}, g:{e:"g",f:1}, t:{e:"t",f:1000}, kgT:{e:"kg",f:1}, zahl:{e:"",f:1}, gross:{e:"",f:1,max:9}, quot:{e:"Rest",f:100}, quotG:{e:"Rest",f:100,max:5}, l:{e:"l",f:1000}, ml:{e:"ml",f:1}, std:{e:"h",f:60}, min:{e:"min",f:1},
             sek:{e:"s",f:1}, minS:{e:"min",f:60}, euK:{e:",",f:100}, ctK:{e:"€",f:1,zwei:true}, uhrH:{e:".",f:60}, uhrM:{e:"Uhr",f:1} };
   // Uhrzeit wie im Schulbuch: 13.50 Uhr (t = Minuten seit Mitternacht)
   const uhr=t=>`${Math.floor(t/60)}.${zz(t%60)} Uhr`;
@@ -220,7 +220,10 @@
     {id:4, name:"Minus ohne Entbündeln", kurz:"586 − 243", typen:["sm_ohne"], sek:90},
     {id:5, name:"Minus mit Entbündeln", kurz:"532 − 248 – wenn es oben nicht reicht", typen:["sm_mit"], sek:120},
     {id:6, name:"Minus über die Null", kurz:"503 − 247 · 700 − 386", typen:["sm_null","sm_null","sm_mit"], sek:130},
-    {id:7, name:"Malnehmen", kurz:"47 · 6 · 238 · 4 – für Klasse 4", typen:["sx_zwei","sx_drei","sx_zwei","sx_drei"], sek:120}
+    {id:7, name:"Malnehmen", kurz:"47 · 6 · 238 · 4 – für Klasse 4", typen:["sx_zwei","sx_drei","sx_zwei","sx_drei"], sek:120},
+    {id:8, name:"Teilen: jede Stelle geht auf", kurz:"848 : 4 – Stelle für Stelle von links", typen:["sd_ohne"], sek:100},
+    {id:9, name:"Teilen mit Herunterholen", kurz:"936 : 4 – der Rest wandert zur nächsten Ziffer", typen:["sd_mit","sd_mit","sd_gross"], sek:150},
+    {id:10, name:"Teilen mit Rest", kurz:"938 : 4 = 234 Rest 2", typen:["sd_rest"], sek:150}
   ];
   const KALENDER=[
     {id:1, name:"Wochentage und Monate", kurz:"Was kommt nach Mittwoch? Was kommt vor März?", typen:["k_tag","k_monat","k_tag","k_monatNr"]},
@@ -263,7 +266,7 @@
              "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
              "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum","q_anfangPlus","q_anfangMinus","q_plusMinus","q_bus","q_malPlus","q_malRueck","q_summeTeil"]},
     {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
-      typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck"]}
+      typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck","sd_ohne","sd_mit","sd_rest"]}
   ];
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
@@ -339,6 +342,23 @@
     if(c) schritte.push(`Die gemerkte <b>${c}</b> kommt ganz nach vorn.`);
     return {art:"schrift", zeichen:"·", zeilen:[], soll, breite:W, uebertrag:ueb, tag:"schriftMal", sollText:String(soll),
       frage:`Rechne schriftlich – fang bei den Einern an:<br><span class="ziel" style="font-size:30px">${a} · ${m}</span>`, schritte};
+  }
+  // ---------- Schriftlich teilen: Stelle für Stelle von links, mit dem Rechenweg wie im Heft ----------
+  function schriftGeteilt(a, b){
+    const q=Math.floor(a/b), r=a%b, d=String(a).split("").map(Number), zeilen=[], worte=[]; let cur=0, begonnen=false;
+    const rechts=(s,i)=>" ".repeat(Math.max(0,i+2-String(s).length))+s;      // rechtsbündig unter die Stelle i (eine Spalte Platz für das Minus)
+    d.forEach((z,i)=>{ cur=cur*10+z;
+      if(!begonnen && cur<b && i<d.length-1){ worte.push(`${cur} ist kleiner als ${b} – nimm die nächste Ziffer dazu.`); return; }
+      const qd=Math.floor(cur/b), ab=qd*b;
+      if(begonnen) zeilen.push(rechts(String(cur).padStart(2," "),i));
+      zeilen.push(rechts("−"+ab,i)); zeilen.push(rechts("─".repeat(Math.max(2,String(cur).length)),i));
+      worte.push(`<b>${cur} : ${b} = ${qd}</b>${cur-ab?`, Rest ${cur-ab}`:""}${i<d.length-1?` → die ${d[i+1]} herunterholen`:""}`);
+      cur-=ab; begonnen=true; });
+    zeilen.push(rechts(String(cur),d.length-1));
+    const kopf=` ${a} : ${b} = ${q}${r?" Rest "+r:""}`;
+    return {art:"eingabe", felder:r?[F.quotG,F.zahl]:[F.gross], soll:r?q*100+r:q, tag:"schriftD", sollText:r?`${q} Rest ${r}`:String(q), probeD:[a,b,q,r],
+      frage:`Rechne schriftlich – fang <b>links</b> an:<br><span class="ziel" style="font-size:32px">${a} : ${b}</span>`,
+      erkl:`<div style="text-align:left;font-size:15px;line-height:1.6">${worte.join("<br>")}</div><pre style="display:inline-block;text-align:left;font:800 19px/1.25 Consolas,Menlo,monospace;color:#fff;margin:10px 0 2px">${kopf}\n${zeilen.join("\n")}</pre><div style="color:#94a3b8;font-size:14px">Probe: ${q} · ${b}${r?` + ${r}`:""} = ${a}</div>`};
   }
   const mitErkl=a=>{ a.erkl=`<div style="text-align:left;font-size:15px;line-height:1.6">${a.schritte.join("<br>")}</div>${schriftGitter(a,true)}`; return a; };
   const ohneUebertrag=(x,y)=>{ const W=Math.max(String(x).length,String(y).length), a=ziffern(x,W), b=ziffern(y,W); return a.every((v,i)=>v+b[i]<=9); };
@@ -481,7 +501,7 @@
   function THEMA(typ){ const p=String(typ).split("_")[0];
     return ({z:["zahlen","🔢 Zahlen"],s:["zahlen","🔢 Zahlen"],t:["zahlen","🔢 Zahlen"],k:["kalender","📅 Kalender und Zeit"],zs:["kalender","📅 Kalender und Zeit"],u:["kalender","📅 Kalender und Zeit"],
       g:["geld","💶 Geld"],gs:["geld","💶 Geld"],f:["geo","📐 Formen und Körper"],w:["gewichte","⚖️ Gewichte und Liter"],l:["laengen","📏 Längen"],d:["daten","📊 Daten und Zufall"],
-      sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"],
+      sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"],sd:["schrift","✍️ Schriftlich rechnen"],
       rp:["plus","➕ Plus"],rm:["minus","➖ Minus"],rx:["einmaleins","✖️ Einmaleins"],rd:["einsdurcheins","➗ Einsdurcheins"],rz:["zerlegen","🧩 Zerlegen"],
       rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"],m:["zahlen","🔢 Zahlen"],q:["sach2","📚 Sachaufgaben in zwei Schritten"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
@@ -856,6 +876,11 @@
     q_teilMinus(){ const t=rnd(2,6), q=rnd(5,9), ab=rnd(1,q-2), d=aus(["Karten","Sticker","Murmeln"]);
       return sach(`<b>${t}</b> Kinder teilen <b>${t*q}</b> ${d} gerecht. Danach verschenkt jedes Kind <b>${ab}</b> davon.`, `Wie viele ${d} hat jedes Kind noch?`, q-ab, q,
         [`1. Schritt (teilen): ${t*q} ÷ ${t} = ${q}`, `2. Schritt (verschenken): ${q} − ${ab} = <b>${q-ab}</b>`], `Jedes Kind hat noch ${q-ab} ${d}.`); },
+    // ===== Schriftlich teilen (Klasse 4) =====
+    sd_ohne(){ const b=rnd(2,4), q=[rnd(1,Math.floor(9/b)),rnd(0,Math.floor(9/b)),rnd(1,Math.floor(9/b))]; return schriftGeteilt(+q.join("")*b, b); },      // jede Stelle geht einzeln auf: 848 : 4
+    sd_mit(){ let a,b; do{ b=rnd(2,9); a=b*rnd(Math.ceil(100/b),Math.floor(999/b)); }while(String(a).split("").every(z=>z%b===0)); return schriftGeteilt(a, b); },
+    sd_rest(){ let a,b; do{ b=rnd(2,9); a=rnd(113,989); }while(a%b===0); return schriftGeteilt(a, b); },
+    sd_gross(){ let a,b; do{ b=rnd(2,9); a=b*rnd(Math.ceil(1000/b),Math.floor(9999/b)); }while(a<1000); return schriftGeteilt(a, b); },
     // ===== Formen und Körper =====
     f_form(){ const p=["Kreis","Dreieck","Quadrat","Rechteck"], ok=aus(p);
       return {art:"wahl", frage:"Wie heißt diese Form?", bild:formBild(ok), optionen:mische(p), ok, tag:"form", sollText:ok, erkl:FORMINFO[ok]}; },

@@ -513,7 +513,7 @@ function zeigeHallo(rows, name){
       (wdh ? ` 🔁 ${wdh===1?"Eine davon ist":wdh+" davon sind"} heute zum Wiederholen dran – damit sie für immer sitzen.` : ` Mit ihnen hattest du zuletzt Mühe.`), s.datei, name));
   }
   // 1b) Check (Bunte Mischung): Themen, bei denen in den letzten drei Wochen mehrere Aufgaben danebengingen, zum Üben vorschlagen
-  const CHECK_THEMA={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u:"kalender",g:"geld",gs:"geld",f:"geo",w:"gewichte",l:"laengen",d:"daten",sp:"schrift",sm:"schrift",sx:"schrift",rp:"plus",rm:"minus",rx:"einmaleins",rd:"einsdurcheins",rz:"zerlegen",rw:"halbschriftlich",rf:"platz",m:"zahlen",q:"sach2"};
+  const CHECK_THEMA={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u:"kalender",g:"geld",gs:"geld",f:"geo",w:"gewichte",l:"laengen",d:"daten",sp:"schrift",sm:"schrift",sx:"schrift",sd:"schrift",rp:"plus",rm:"minus",rx:"einmaleins",rd:"einsdurcheins",rz:"zerlegen",rw:"halbschriftlich",rf:"platz",m:"zahlen",q:"sach2"};
   const checks=rows.filter(e=>e.app==="mix" && tageHer(e.datum)<=21), schwach={};
   checks.forEach(e=>{ (e.gestellt||[]).forEach(k=>{ const a=CHECK_THEMA[String(k).split("|")[1].split("_")[0]]; if(a){ (schwach[a]=schwach[a]||{n:0,f:0}).n++; } });
                       (e.fehler||[]).forEach(k=>{ const a=CHECK_THEMA[String(k).split("|")[1].split("_")[0]]; if(a && schwach[a]) schwach[a].f++; }); });

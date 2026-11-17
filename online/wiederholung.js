@@ -83,6 +83,7 @@ window.Wdh=(function(){
     groesse_uebertrag:"✍️ Schriftlich Plus: Übertrag (die gemerkte Zahl) vergessen",
     groesse_schriftM: "✍️ Schriftlich Minus: verrechnet oder falsch entbündelt",
     groesse_kleinerGroesser:"✍️ Schriftlich Minus: einfach die kleinere von der größeren Ziffer abgezogen",
+    groesse_schriftD: "✍️ Schriftlich Teilen: verrechnet oder Rest falsch",
     groesse_schriftMal:"✍️ Schriftlich Mal: verrechnet oder Übertrag vergessen",
     groesse_kalender: "📅 Wochentage, Monate oder Datum",
     groesse_zweischritt:"📚 Sachaufgabe in zwei Schritten falsch gerechnet",

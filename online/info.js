@@ -52,6 +52,9 @@
     "Minus ohne Entbündeln":"Oben steht in jeder Stelle genug: einfach Stelle für Stelle abziehen. <b>Klasse 3.</b>",
     "Minus mit Entbündeln":"Reicht es oben nicht, holst du dir einen von links: Ein Zehner wird zu 10 Einern. <b>Klasse 3.</b>",
     "Minus über die Null":"Steht links eine 0, musst du dir erst noch einen Stellenwert weiter links holen: 503 − 247. <b>Klasse 3 und 4.</b>",
+    "Teilen: jede Stelle geht auf":"Beim Teilen fängst du <b>links</b> an – bei der größten Stelle. Hier geht jede Ziffer einzeln auf: 848 : 4 = 212. <b>Klasse 4.</b>",
+    "Teilen mit Herunterholen":"Bleibt bei einer Stelle ein Rest, holst du die nächste Ziffer herunter und teilst weiter: 936 : 4. <b>Klasse 4.</b>",
+    "Teilen mit Rest":"Am Ende bleibt etwas übrig: 938 : 4 = 234 Rest 2. Du schreibst das Ergebnis und den Rest in zwei Felder. <b>Klasse 4.</b>",
     "Malnehmen":"Du nimmst jede Stelle einzeln mal, von rechts nach links, und merkst dir die Zehner. <b>Klasse 4.</b>",
     // Sachaufgaben in zwei Schritten
     "Was war am Anfang?":"Du weißt, wie viele es jetzt sind – und sollst herausfinden, wie viele es vorher waren. Dafür rechnest du rückwärts. <b>Klasse 2 und 3.</b>",

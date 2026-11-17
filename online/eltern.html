@@ -54,7 +54,7 @@ const STATIONEN=[["zerlegen","🧩","Zerlegen","Zahlen zerlegen und ergänzen �
                  ["minus","➖","Minus","Subtrahieren bis 20, 100 und 1000"],
                  ["einmaleins","✖️","Einmaleins","Malaufgaben auswendig können"],
                  ["einsdurcheins","➗","Einsdurcheins","Geteiltaufgaben bis 100"]];
-const THEMEN=[["platz","🔍","Fachwörter und fehlende Zahl",6],["uhr","🕒","Uhr mit Zeigern",8],["sach","📖","Sachaufgaben",5],["geld","💶","Geld",10],["laengen","📏","Längen",5],["gewichte","⚖️","Gewichte und Liter",6],["zahlen","🔢","Zahlen (bis 1000 und bis 1 Million)",13],["geo","📐","Formen und Körper",6],["daten","📊","Daten und Zufall",5],["schrift","✍️","Schriftlich rechnen",7],["kalender","📅","Kalender und Zeit",10],["mix","🎲","Bunte Mischung",4],["sach2","📚","Sachaufgaben in zwei Schritten",5],["strahl","📍","Zahlenstrahl",7]];
+const THEMEN=[["platz","🔍","Fachwörter und fehlende Zahl",6],["uhr","🕒","Uhr mit Zeigern",8],["sach","📖","Sachaufgaben",5],["geld","💶","Geld",10],["laengen","📏","Längen",5],["gewichte","⚖️","Gewichte und Liter",6],["zahlen","🔢","Zahlen (bis 1000 und bis 1 Million)",13],["geo","📐","Formen und Körper",6],["daten","📊","Daten und Zufall",5],["schrift","✍️","Schriftlich rechnen",10],["kalender","📅","Kalender und Zeit",10],["mix","🎲","Bunte Mischung",4],["sach2","📚","Sachaufgaben in zwei Schritten",5],["strahl","📍","Zahlenstrahl",7]];
 // Aufgaben, die noch nicht dreimal hintereinander richtig waren (rows: neueste zuerst)
 function offeneFehler(rows){
   const facts=new Set(); rows.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));

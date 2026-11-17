@@ -15,7 +15,7 @@ window.Anleitung=(function(){
     uhr:             {ic:"🕒", name:"Uhr-Trainer",    1:"volle und halbe Stunden", 2:"Viertel · 5 Minuten · Minuten · 13 bis 24 Uhr", 3:"Zeitspannen · „fünf vor halb“"},
     sach:            {ic:"📖", name:"Sachaufgaben",   1:"Plus und Minus bis 20", 2:"bis 100 · Mal und Geteilt", 3:"alle Rechenarten · unnötige Angaben"},
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
-    schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen"},
+    schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen und Teilen"},
     sach2:           {ic:"📚", name:"Sachaufgaben in zwei Schritten", 2:"Was war am Anfang?", 3:"zwei Schritte: plus und minus · mal · teilen"},
     mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt", 4:"Vorschau auf Klasse 4"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
