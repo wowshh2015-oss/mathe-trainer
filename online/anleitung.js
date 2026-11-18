@@ -17,7 +17,7 @@ window.Anleitung=(function(){
     geld:            {ic:"💶", name:"Geld",           1:"Münzen und Scheine zählen", 2:"passend bezahlen · einkaufen", 3:"Kommazahlen · rechnen · malnehmen und teilen · schriftlich mit Komma"},
     schrift:         {ic:"✍️", name:"Schriftlich rechnen", 3:"Plus und Minus untereinander · Übertrag · Entbündeln", 4:"Malnehmen und Teilen"},
     sach2:           {ic:"📚", name:"Sachaufgaben in zwei Schritten", 2:"Was war am Anfang?", 3:"zwei Schritte: plus und minus · mal · teilen"},
-    blitz:           {ic:"⚡", name:"Blitzrechnen", 2:"Zählen in Schritten · ergänzen · verdoppeln · Kernaufgaben", 3:"Einmaleins · ergänzen bis 1000 · Zehner-Einmaleins · mal 10", 4:"bis 1 Million · Stufenzahlen · Stellen-Einmaleins"},
+    blitz:           {ic:"⚡", name:"Blitzrechnen", 1:"Zwanzigerfeld · Immer 10 und 20 · Nachbarzahlen · verdoppeln", 2:"Zählen in Schritten · ergänzen · verdoppeln · Kernaufgaben", 3:"Einmaleins · ergänzen bis 1000 · Zehner-Einmaleins · mal 10", 4:"bis 1 Million · Stufenzahlen · Stellen-Einmaleins"},
     zoo:             {ic:"🦁", name:"Mein Zoo", 1:"Zoo-Runde Klasse 1", 2:"Zoo-Runde Klasse 2", 3:"Zoo-Runde Klasse 3", 4:"Zoo-Runde Klasse 4"},
     mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"alle Themen der Klasse 2 gemischt", 3:"alle Themen der Klasse 3 gemischt", 4:"Vorschau auf Klasse 4"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},

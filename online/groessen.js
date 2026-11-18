@@ -64,6 +64,7 @@
   .frage{text-align:center;font-size:21px;font-weight:800;margin:6px 0 12px;line-height:1.4} .frage .ziel{color:#fde68a}
   .bild{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:70px}
   .bild svg{display:block}
+  .blitzKl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
   .lineal{padding:10px 6px} .lineal svg{width:100%;height:auto}
   .eingabe{display:flex;align-items:center;justify-content:center;gap:8px;font-size:26px;font-weight:800;flex-wrap:wrap;margin-top:14px}
   .eingabe input{width:104px;font-size:28px;text-align:center;padding:10px 6px;border:2px solid var(--accent);font-weight:800}
@@ -277,26 +278,47 @@
   // Üben = 10 Aufgaben mit Erklärung. Blitz = eine Minute, so viele Aufgaben wie möglich; Ziel geschafft (ziel richtige, höchstens 2 Fehler) zählt wie ein bestandener Test.
   const BLITZ_SEK=60;
   const BLITZ=[
-    {id:1,  name:"Zählen in Schritten bis 100", kurz:"35, 40, 45, … · vorwärts und rückwärts", typen:["b_schritt100"], ziel:15},
-    {id:2,  name:"Ergänzen zum Zehner und bis 100", kurz:"47 + ☐ = 50 · 64 + ☐ = 100", typen:["b_ergZehner","b_erg100"], ziel:15},
-    {id:3,  name:"Verdoppeln und halbieren bis 100", kurz:"das Doppelte von 35 · die Hälfte von 70", typen:["b_dh100"], ziel:15},
-    {id:4,  name:"Einfache Plus- und Minusaufgaben bis 100", kurz:"40 + 30 · 54 + 20 · 68 − 5", typen:["b_pm100"], ziel:15},
-    {id:5,  name:"Kernaufgaben: mal 1, 2, 5 und 10", kurz:"5 · 7 · 10 · 4 · 2 · 9", typen:["b_kern"], ziel:15},
-    {id:6,  name:"Blitz-Einmaleins", kurz:"alle Reihen durcheinander", typen:["b_1x1"], ziel:15},
-    {id:7,  name:"Einmaleins – auch umgekehrt", kurz:"6 · 7 = 42, also 42 : 7 = ☐", typen:["b_1x1um"], ziel:15},
-    {id:8,  name:"Zählen in Schritten bis 1000", kurz:"in 2er-, 10er- und 100er-Schritten", typen:["b_schritt1000"], ziel:12},
-    {id:9,  name:"Ergänzen bis 1000", kurz:"370 + ☐ = 1000", typen:["b_erg1000"], ziel:12},
-    {id:10, name:"Verdoppeln und halbieren bis 1000", kurz:"das Doppelte von 340 · die Hälfte von 760", typen:["b_dh1000"], ziel:12},
-    {id:11, name:"Einfache Plus- und Minusaufgaben bis 1000", kurz:"456 + 30 · 735 − 200", typen:["b_pm1000"], ziel:12},
-    {id:12, name:"Zehner-Einmaleins – auch umgekehrt", kurz:"4 · 70 · 280 : 7 · 280 : 70", typen:["b_zehner"], ziel:12},
-    {id:13, name:"Mal 10 und durch 10", kurz:"34 · 10 · 560 : 10", typen:["b_mal10"], ziel:15},
-    {id:14, name:"Zählen in Schritten bis 1 Million", kurz:"25 000, 50 000, 75 000, …", typen:["b_schrittMio"], ziel:10},
-    {id:15, name:"Verdoppeln und halbieren bis 1 Million", kurz:"das Doppelte von 230 000 · die Hälfte von 640 000", typen:["b_dhMio"], ziel:10},
-    {id:16, name:"Stufenzahlen teilen", kurz:"10 000 : 4 · 1 000 000 : 5", typen:["b_stufenTeil"], ziel:10},
-    {id:17, name:"Stellen-Einmaleins – auch umgekehrt", kurz:"3 · 4000 · 12 000 : 3", typen:["b_stellen"], ziel:10},
-    {id:18, name:"Ergänzen bis 1 Million", kurz:"730 000 + ☐ = 1 000 000", typen:["b_ergMio"], ziel:10},
-    {id:19, name:"Plus und Minus mit großen Zahlen", kurz:"560 000 + 30 000 · 47 000 − 5 000", typen:["b_pmMio"], ziel:10}
+    {id:20, kl:1, name:"Wie viele? Das Zwanzigerfeld", kurz:"Punkte auf einen Blick – in Fünfern sehen", typen:["b_feld20"], ziel:15},
+    {id:21, kl:1, name:"Immer 10", kurz:"7 + ☐ = 10", typen:["b_immer10"], ziel:15},
+    {id:22, kl:1, name:"Immer 20", kurz:"14 + ☐ = 20", typen:["b_immer20"], ziel:15},
+    {id:23, kl:1, name:"Nachbarzahlen bis 20", kurz:"Welche Zahl kommt vor 13? Welche danach?", typen:["b_nachbar20"], ziel:15},
+    {id:24, kl:1, name:"Verdoppeln und halbieren bis 20", kurz:"das Doppelte von 6 · die Hälfte von 14", typen:["b_dh20"], ziel:15},
+    {id:25, kl:1, name:"Einfache Plus- und Minusaufgaben bis 20", kurz:"3 + 4 · 13 + 4 · 17 − 5", typen:["b_pm20"], ziel:15},
+    {id:26, kl:1, name:"Zählen in Schritten bis 20", kurz:"in 2er- und 5er-Schritten", typen:["b_schritt20"], ziel:15},
+    {id:34, kl:1, mixKl:1, name:"Blitz-Mix Klasse 1", kurz:"alle Blitze der Klasse 1 durcheinander", typen:[], ziel:12, mischen:true},
+    {id:27, kl:2, name:"Wie viele? Zehner und Einer", kurz:"Stangen und Punkte bis 100", typen:["b_bloecke100"], ziel:15},
+    {id:1, kl:2, name:"Zählen in Schritten bis 100", kurz:"35, 40, 45, … · vorwärts und rückwärts", typen:["b_schritt100"], ziel:15},
+    {id:2, kl:2, name:"Ergänzen zum Zehner und bis 100", kurz:"47 + ☐ = 50 · 64 + ☐ = 100", typen:["b_ergZehner", "b_erg100"], ziel:15},
+    {id:3, kl:2, name:"Verdoppeln und halbieren bis 100", kurz:"das Doppelte von 35 · die Hälfte von 70", typen:["b_dh100"], ziel:15},
+    {id:4, kl:2, name:"Einfache Plus- und Minusaufgaben bis 100", kurz:"40 + 30 · 54 + 20 · 68 − 5", typen:["b_pm100"], ziel:15},
+    {id:5, kl:2, name:"Kernaufgaben: mal 1, 2, 5 und 10", kurz:"5 · 7 · 10 · 4 · 2 · 9", typen:["b_kern"], ziel:15},
+    {id:35, kl:2, mixKl:2, name:"Blitz-Mix Klasse 2", kurz:"alle Blitze der Klasse 2 durcheinander", typen:[], ziel:12, mischen:true},
+    {id:6, kl:3, name:"Blitz-Einmaleins", kurz:"alle Reihen durcheinander", typen:["b_1x1"], ziel:15},
+    {id:7, kl:3, name:"Einmaleins – auch umgekehrt", kurz:"6 · 7 = 42, also 42 : 7 = ☐", typen:["b_1x1um"], ziel:15},
+    {id:28, kl:3, name:"Wie viele? Hunderter, Zehner, Einer", kurz:"Platten, Stangen und Punkte bis 1000", typen:["b_bloecke1000"], ziel:12},
+    {id:29, kl:3, name:"Welche Zahl? Die Stellentafel", kurz:"Plättchen in der Stellentafel bis 1000", typen:["b_tafel1000"], ziel:15},
+    {id:8, kl:3, name:"Zählen in Schritten bis 1000", kurz:"in 2er-, 10er- und 100er-Schritten", typen:["b_schritt1000"], ziel:12},
+    {id:9, kl:3, name:"Ergänzen bis 1000", kurz:"370 + ☐ = 1000", typen:["b_erg1000"], ziel:12},
+    {id:30, kl:3, name:"1000 teilen", kurz:"1000 : 4 · 1000 : 25", typen:["b_1000teilen"], ziel:12},
+    {id:10, kl:3, name:"Verdoppeln und halbieren bis 1000", kurz:"das Doppelte von 340 · die Hälfte von 760", typen:["b_dh1000"], ziel:12},
+    {id:11, kl:3, name:"Einfache Plus- und Minusaufgaben bis 1000", kurz:"456 + 30 · 735 − 200", typen:["b_pm1000"], ziel:12},
+    {id:12, kl:3, name:"Zehner-Einmaleins – auch umgekehrt", kurz:"4 · 70 · 280 : 7 · 280 : 70", typen:["b_zehner"], ziel:12},
+    {id:13, kl:3, name:"Mal 10 und durch 10", kurz:"34 · 10 · 560 : 10", typen:["b_mal10"], ziel:15},
+    {id:36, kl:3, mixKl:3, name:"Blitz-Mix Klasse 3", kurz:"alle Blitze der Klasse 3 durcheinander", typen:[], ziel:12, mischen:true},
+    {id:31, kl:4, name:"Zahlen lesen und schreiben", kurz:"dreihunderttausendvierzig = ☐", typen:["b_zahlwort"], ziel:8},
+    {id:32, kl:4, name:"Die Stellentafel bis 1 Million", kurz:"Plättchen von HT bis E", typen:["b_tafelMio"], ziel:10},
+    {id:14, kl:4, name:"Zählen in Schritten bis 1 Million", kurz:"25 000, 50 000, 75 000, …", typen:["b_schrittMio"], ziel:10},
+    {id:33, kl:4, name:"Stufenzahlen subtrahieren", kurz:"10 000 − 100 · 1 000 000 − 3 000", typen:["b_stufenMinus"], ziel:10},
+    {id:15, kl:4, name:"Verdoppeln und halbieren bis 1 Million", kurz:"das Doppelte von 230 000 · die Hälfte von 640 000", typen:["b_dhMio"], ziel:10},
+    {id:16, kl:4, name:"Stufenzahlen teilen", kurz:"10 000 : 4 · 1 000 000 : 5", typen:["b_stufenTeil"], ziel:10},
+    {id:17, kl:4, name:"Stellen-Einmaleins – auch umgekehrt", kurz:"3 · 4000 · 12 000 : 3", typen:["b_stellen"], ziel:10},
+    {id:18, kl:4, name:"Ergänzen bis 1 Million", kurz:"730 000 + ☐ = 1 000 000", typen:["b_ergMio"], ziel:10},
+    {id:19, kl:4, name:"Plus und Minus mit großen Zahlen", kurz:"560 000 + 30 000 · 47 000 − 5 000", typen:["b_pmMio"], ziel:10},
+    {id:37, kl:4, mixKl:4, name:"Blitz-Mix Klasse 4", kurz:"alle Blitze der Klasse 4 durcheinander", typen:[], ziel:10, mischen:true}
   ];
+  // Blitz-Mix: alle Aufgabenarten der Klasse
+  BLITZ.filter(s=>s.mixKl).forEach(m=>{ m.typen=[...new Set(BLITZ.filter(s=>s.kl===m.mixKl && !s.mixKl).flatMap(s=>s.typen))]; });
+  let BLITZ_KL=0; try{ BLITZ_KL=+(localStorage.getItem("blitz_klasse") || localStorage.getItem("mathe_klasse") || 0) || 0; }catch(e){}
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
@@ -534,6 +556,33 @@
       rp:["plus","➕ Plus"],rm:["minus","➖ Minus"],rx:["einmaleins","✖️ Einmaleins"],rd:["einsdurcheins","➗ Einsdurcheins"],rz:["zerlegen","🧩 Zerlegen"],
       rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"],b:["blitz","⚡ Blitzrechnen"],m:["zahlen","🔢 Zahlen"],q:["sach2","📚 Sachaufgaben in zwei Schritten"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
+  // ---------- Blitzrechnen: Bilder ----------
+  // Zwanzigerfeld: zwei Reihen à 10, nach 5 eine Lücke (Kraft der Fünf)
+  function feld20(n){ let s=""; for(let i=0;i<20;i++){ const r=Math.floor(i/10), c=i%10, x=14+c*24+(c>=5?10:0), y=16+r*26, an=i<n;
+      s+=`<circle class="${an?"an":"leer"}" cx="${x}" cy="${y}" r="9.5" fill="${an?"#ef4444":"#1e293b"}" stroke="${an?"#991b1b":"#475569"}" stroke-width="1.5"/>`; }
+    return `<svg viewBox="0 0 262 58" width="262" height="58" role="img" aria-label="Zwanzigerfeld">${s}</svg>`; }
+  // Hunderterplatten, Zehnerstangen, Einerpunkte
+  function bloecke(n){ const h=Math.floor(n/100), z=Math.floor(n%100/10), e=n%10; let s="", x=4;
+    for(let i=0;i<h;i++){ s+=`<g class="h"><rect x="${x}" y="4" width="30" height="30" fill="#f59e0b" stroke="#78350f" stroke-width="1.2"/>`; for(let k=1;k<10;k++) s+=`<path d="M${x+k*3} 4 V34 M${x} ${4+k*3} H${x+30}" stroke="#78350f" stroke-width=".35"/>`; s+=`</g>`; x+=34; }
+    const y0 = h ? 40 : 4; x=4;
+    for(let i=0;i<z;i++){ s+=`<g class="z"><rect x="${x}" y="${y0}" width="6" height="30" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1"/>`; for(let k=1;k<10;k++) s+=`<path d="M${x} ${y0+k*3} H${x+6}" stroke="#1e3a8a" stroke-width=".35"/>`; s+=`</g>`; x+=9; }
+    x+= z ? 8 : 0;
+    for(let i=0;i<e;i++){ const c=i%5, r=Math.floor(i/5); s+=`<rect class="e" x="${x+c*9}" y="${y0+8+r*9}" width="6" height="6" fill="#22c55e" stroke="#14532d" stroke-width="1"/>`; }
+    const w=Math.max(4+h*34, x+50), hh=y0+34;
+    return `<svg viewBox="0 0 ${w} ${hh}" width="${Math.min(300,w)}" style="max-width:100%;height:auto" role="img" aria-label="Hunderter, Zehner und Einer">${s}</svg>`; }
+  // Stellentafel mit Plättchen (höchstens 9 je Stelle, im 3×3-Muster)
+  function tafel(n, stellen){ const sp=String(n).padStart(stellen.length,"0").split("").map(Number), B=44; let s="";
+    stellen.forEach((k,i)=>{ const x=i*B; s+=`<rect x="${x}" y="0" width="${B}" height="22" fill="#1e293b" stroke="#64748b"/><text x="${x+B/2}" y="15.5" font-size="12" font-weight="800" text-anchor="middle" fill="#e2e8f0" font-family="Arial,sans-serif">${k}</text>`;
+      s+=`<rect x="${x}" y="22" width="${B}" height="44" fill="#0b1220" stroke="#64748b"/>`;
+      for(let p=0;p<sp[i];p++){ s+=`<circle class="p s${i}" cx="${x+10+(p%3)*12}" cy="${32+Math.floor(p/3)*12}" r="4.6" fill="#facc15" stroke="#a16207" stroke-width="1"/>`; } });
+    return `<svg viewBox="-1 -1 ${stellen.length*B+2} 68" width="${Math.min(300,stellen.length*B+2)}" style="max-width:100%;height:auto" role="img" aria-label="Stellentafel">${s}</svg>`; }
+  // Zahlwort: 345 210 → dreihundertfünfundvierzigtausendzweihundertzehn
+  const WORT_E=["","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"],
+        WORT_Z=["","","zwanzig","dreißig","vierzig","fünfzig","sechzig","siebzig","achtzig","neunzig"];
+  function wort99(n, ende){ if(n<20) return n===1 ? (ende?"eins":"ein") : WORT_E[n]; const e=n%10; return (e?(e===1?"ein":WORT_E[e])+"und":"")+WORT_Z[Math.floor(n/10)]; }
+  function wort999(n, ende){ const h=Math.floor(n/100), r=n%100; return (h?(h===1?"ein":WORT_E[h])+"hundert\u00ad":"")+(r?wort99(r,ende):""); }
+  function zahlwort(n){ if(n===0) return "null"; if(n===1000000) return "eine Million"; const t=Math.floor(n/1000), r=n%1000;
+    return (t?(t===1?"ein":wort999(t,false))+"tausend\u00ad":"")+(r?wort999(r,true):""); }
   // Blitzrechnen: eine große Aufgabe, ein Zahlenfeld
   function blitzA(text, soll, erkl, gross, px){ return eingabe(`<span class="ziel" style="font-size:${px||34}px">${text}</span>`, [gross?F.gross:F.zahl], soll, {tag:"kopf", sollText:gross?fmt(soll):String(soll), erkl}); }
   // Zählen in Schritten: drei Zahlen stehen da, die vierte wird geschrieben (Startzahl nicht immer rund)
@@ -549,6 +598,38 @@
   function rechen(text, soll, probe, erkl){ return eingabe(`<span class="ziel" style="font-size:34px">${text}</span>`, [F.zahl], soll, {tag:"kopf", sollText:String(soll), erkl, probe}); }
   const BAU={
     // ---------- Blitzrechnen ----------
+    // ---------- Blitzrechnen: Klasse 1 ----------
+    b_feld20(){ const n=rnd(1,20), o=Math.min(n,10), u=Math.max(0,n-10);
+      return eingabe(`Wie viele Punkte?`, [F.zahl], n, {bild:feld20(n), tag:"kopf", sollText:String(n),
+        erkl: u ? `Oben ${o===10?"eine volle Reihe: 10":o}, unten ${u}${u>5?" (5 und "+(u-5)+")":""}. Zusammen <b>${n}</b>.` : `${o>5?"5 und "+(o-5):o} – das sind <b>${n}</b>.`}); },
+    b_immer10(){ const n=rnd(0,10); return blitzA(`${n} + ☐ = 10`, 10-n, `${n} und <b>${10-n}</b> sind zusammen 10.`); },
+    b_immer20(){ const n=rnd(1,19); return blitzA(`${n} + ☐ = 20`, 20-n, n<10 ? `Erst bis 10: ${10-n}. Dann noch 10. Zusammen <b>${20-n}</b>.` : `Von ${n} bis 20 fehlen <b>${20-n}</b>.`); },
+    b_nachbar20(){ const vor=Math.random()<0.5, n=vor?rnd(2,20):rnd(1,19);
+      return eingabe(`Welche Zahl kommt <span class="ziel">${vor?"vor":"nach"} ${n}</span>?`, [F.zahl], vor?n-1:n+1, {tag:"kopf", sollText:String(vor?n-1:n+1),
+        erkl: vor ? `Einen Schritt zurück: ${n} − 1 = <b>${n-1}</b>.` : `Einen Schritt weiter: ${n} + 1 = <b>${n+1}</b>.`}); },
+    b_dh20(){ if(Math.random()<0.5){ const n=rnd(1,10); return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
+      const n=rnd(1,10)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
+    b_pm20(){ const plus=Math.random()<0.5, gross=Math.random()<0.5; let a,b;
+      if(plus){ if(gross){ a=rnd(11,18); b=rnd(1,19-a); } else { a=rnd(1,9); b=rnd(1,10-a); } }
+      else { if(gross){ a=rnd(12,19); b=rnd(1,a-10); } else { a=rnd(2,10); b=rnd(1,a); } }
+      const s=plus?a+b:a-b; return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, `${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); },
+    b_schritt20(){ return schrittA(aus([2,5,2]), 20); },
+    // ---------- Blitzrechnen: Bilder und neue Übungen ----------
+    b_bloecke100(){ const n=rnd(11,99); return eingabe(`Welche Zahl ist das?`, [F.zahl], n, {bild:bloecke(n), tag:"kopf", sollText:String(n),
+        erkl:`${Math.floor(n/10)} Zehnerstangen und ${n%10} Einer: <b>${n}</b>.`}); },
+    b_bloecke1000(){ const n=rnd(101,999); return eingabe(`Welche Zahl ist das?`, [F.zahl], n, {bild:bloecke(n), tag:"kopf", sollText:String(n),
+        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner und ${n%10} Einer: <b>${n}</b>.`}); },
+    b_tafel1000(){ let n; do{ n=rnd(100,999); }while(Math.random()<0.4 && !String(n).includes("0")); return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.zahl], n, {bild:tafel(n,["H","Z","E"]), tag:"kopf", sollText:String(n),
+        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner, ${n%10} Einer: <b>${n}</b>. Eine leere Spalte schreibst du als 0.`}); },
+    b_tafelMio(){ let n; do{ n=rnd(100000,999999); }while(Math.random()<0.6 && !/0/.test(String(n))); return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.gross], n, {bild:tafel(n,["HT","ZT","T","H","Z","E"]), tag:"kopf", sollText:fmt(n),
+        erkl:`Lies von links nach rechts: ${String(n).split("").join(" · ")} – das ist <b>${fmt(n)}</b>. Eine leere Spalte schreibst du als 0.`}); },
+    b_1000teilen(){ const d=aus([2,4,5,10,20,25,50,100,200,250,500]); return blitzA(`1000 : ${d}`, 1000/d, `${d} · ${1000/d} = 1000, also 1000 : ${d} = <b>${1000/d}</b>.`); },
+    b_stufenMinus(){ const a=rnd(3,6), S=Math.pow(10,a); let T; if(Math.random()<0.5) T=Math.pow(10,rnd(0,a-1)); else T=rnd(2,9)*Math.pow(10,rnd(Math.max(0,a-3),a-1));
+      return blitzA(`${fmt(S)} − ${fmt(T)}`, S-T, `${fmt(S-T)} + ${fmt(T)} = ${fmt(S)}, also <b>${fmt(S-T)}</b>.`, true, 28); },
+    b_zahlwort(){ let n; const art=rnd(0,2);
+      if(art===0) n=rnd(1001,99999); else if(art===1) n=rnd(100,999)*1000+aus([0,0,rnd(1,999)]); else n=rnd(1,9)*100000+aus([rnd(1,9)*1000,rnd(1,99)*10,rnd(1,999)]);
+      return eingabe(`Schreibe als Zahl:<br><span class="ziel" style="font-size:22px;word-break:normal;overflow-wrap:anywhere">${zahlwort(n)}</span>`, [F.gross], n, {tag:"kopf", sollText:fmt(n),
+        erkl:`Erst kommt der Teil vor „tausend“: <b>${fmt(Math.floor(n/1000))}</b> Tausender. Dann der Rest: <b>${n%1000}</b>. Zusammen <b>${fmt(n)}</b>.`}); },
     b_schritt100(){ return schrittA(aus([2,5,10]), 100); },
     b_schritt1000(){ return schrittA(aus([2,10,100,2,10,100,5,50]), 1000); },
     b_schrittMio(){ return schrittA(aus([1000,2000,2500,5000,10000,20000,25000,50000,100000,250000]), 1000000); },
@@ -1338,10 +1419,13 @@
     const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
     $("stufen").innerHTML=STUFEN.map(s=>{ const z=stufenStand(s.id);
       const info = WAS==="blitz" ? (rekord(s.id) ? `Rekord ⚡ ${rekord(s.id)} · Ziel ${s.ziel}${z.bestanden?" ✓ geschafft":""}` : `${s.kurz} · Ziel ${s.ziel}`) : z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
+      if(WAS==="blitz" && BLITZ_KL && s.kl!==BLITZ_KL) return "";
       return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span><span class="tx"><b>${s.name}</b><span>${info}</span></span>
         <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}"${WAS==="mix"?' style="border-color:#f59e0b;color:#fde68a"':""}>${WAS==="mix"?"Check ⭐×2":WAS==="blitz"?"⚡ Blitz":"Test"}</button></span></div>`; }).join("")+
 
       (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab der Hälfte richtiger Aufgaben).</div>` : "");
+    if(WAS==="blitz") $("stufen").insertAdjacentHTML("afterbegin", `<div class="blitzKl">${[0,1,2,3,4].map(k=>`<button class="klein${k===BLITZ_KL?"":" ghost"}" data-bkl="${k}">${k?"Klasse "+k:"Alle"}</button>`).join("")}</div>`);
+    if(WAS==="blitz") $("stufen").querySelectorAll("[data-bkl]").forEach(b=>b.addEventListener("click",()=>{ BLITZ_KL=+b.dataset.bkl; try{ localStorage.setItem("blitz_klasse",String(BLITZ_KL)); }catch(e){} zeigeMenue(); }));
     if(WAS==="blitz") $("stufen").insertAdjacentHTML("afterbegin", `<div class="info" style="margin-bottom:10px;border:1px solid rgba(251,191,36,.5)">⚡ <b>So geht der Blitz:</b> Du hast <b>eine Minute</b>. Rechne so viele Aufgaben, wie du schaffst – Antwort tippen, Enter drücken, schon kommt die nächste. Schaffst du das <b>Ziel</b> mit höchstens 2 Fehlern, gibt es Gold. Am besten jeden Tag ein, zwei Blitze!</div>`);
     $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
     $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
