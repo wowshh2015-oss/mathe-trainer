@@ -9,6 +9,7 @@
 <title>Rechen-Rallye</title>
 <script src="anmeldung.js"></script>
 <script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
 <script src="sterne.js"></script>
 <script src="hilfe.js"></script>
 <style>
@@ -187,6 +188,14 @@
   .ding .nm{font-size:12px;font-weight:700;line-height:1.25}
   .ding .ab{font-size:11px;color:var(--muted);margin-top:2px}
   .farben{display:flex;flex-wrap:wrap;gap:9px;margin-top:6px}
+  .tuning{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin-top:8px}
+  .teil{background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:9px 10px;cursor:pointer;display:flex;align-items:center;gap:9px}
+  .teil .ti{font-size:26px;line-height:1;flex:none} .teil b{display:block;font-size:14px} .teil small{display:block;font-size:12px;color:var(--muted)}
+  .teil.an{border-color:#fbbf24;background:rgba(251,191,36,.12)} .teil.an small{color:#fde68a}
+  .teil.zu{cursor:default;opacity:.55} .teil.zu .ti{filter:grayscale(1)}
+  .tuneVorschau{display:flex;justify-content:center;align-items:center;height:96px;margin:8px 0 4px;background:linear-gradient(180deg,#14233f,#28446b);border-radius:14px}
+  .tuneVorschau svg{width:130px;height:74px;overflow:visible}
+  .fahrzeug svg{overflow:visible} .ding .bild svg{overflow:visible}
   .farbe{width:40px;height:40px;border-radius:50%;cursor:pointer;border:3px solid transparent;position:relative}
   .farbe.an{border-color:#fff}
   .farbe.zu{opacity:.35;cursor:not-allowed}
@@ -859,6 +868,43 @@ function svgRakete(id,c){
       <circle cx="26" cy="22" r="2" fill="#fff"/><circle cx="36" cy="14" r="1.4" fill="#fcd34d"/><circle cx="36" cy="30" r="1.4" fill="#fcd34d"/>`);
   }
 }
+//// ===== Tuning: Extras für jedes Fahrzeug – freigeschaltet mit goldenen Sternen 🌟 =====
+// Goldene Sterne gibt es fürs Lernen (Tests, Blitz-Ziele, sicher gelernte Aufgaben …) – so lohnt sich Lernen auch in der Rallye.
+const TUNING=[
+  {id:"neon",    ic:"💡", name:"Neon-Licht",      gold:3,  text:"leuchtet unter dem Fahrzeug"},
+  {id:"glitzer", ic:"✨", name:"Glitzer",         gold:6,  text:"funkelnde Sterne rundherum"},
+  {id:"nummer",  ic:"🏁", name:"Rennnummer",      gold:10, text:"deine eigene Startnummer"},
+  {id:"feuer",   ic:"🔥", name:"Feuerspur",       gold:15, text:"Flammen hinter dir", schweif:true},
+  {id:"blitze",  ic:"⚡", name:"Blitze",          gold:20, text:"knisternde Blitze"},
+  {id:"regenbogen",ic:"🌈",name:"Regenbogen-Spur", gold:25, text:"ein Regenbogen hinter dir", schweif:true},
+  {id:"krone",   ic:"👑", name:"Krone",           gold:30, text:"für echte Champions"},
+  {id:"aura",    ic:"🌟", name:"Gold-Aura",       gold:40, text:"goldenes Leuchten"}
+];
+// gemerkt je Kind (auf einem gemeinsamen Schul-iPad hat jedes Kind sein eigenes Tuning)
+let TUNE={}, tuneFuer=null;
+function tuneKey(){ return "rallye_tuning_"+String(playerName||"").toLowerCase(); }
+function tune(){ if(tuneFuer!==playerName){ tuneFuer=playerName; try{ TUNE=JSON.parse(localStorage.getItem(tuneKey())||"{}")||{}; }catch(e){ TUNE={}; } } return TUNE; }
+function meinGold(){ try{ return Sterne.stand(tankRows()).gold; }catch(e){ return 0; } }
+function tuneOffen(x, gold){ return gold>=x.gold; }
+// legt die eingeschalteten Extras um ein Fahrzeugbild (alle Fahrzeuge schauen nach rechts)
+function mitTuning(svg, id, tune, gold){
+  const an=TUNING.filter(x=>tune && tune[x.id] && tuneOffen(x, gold)).map(x=>x.id); if(!an.length) return svg;
+  const w=id[0], H = w==="p" ? 50 : w==="r" ? 44 : 40, my = w==="p" ? 26 : w==="r" ? 22 : 24, cx=38;
+  let hinten="", vorn="";
+  if(an.includes("aura")) hinten+=`<ellipse cx="${cx}" cy="${H/2}" rx="44" ry="${H*0.62}" fill="#fde047" opacity=".16"/><ellipse cx="${cx}" cy="${H/2}" rx="40" ry="${H*0.56}" fill="none" stroke="#fbbf24" stroke-width="1.6" opacity=".55" stroke-dasharray="3 3"/>`;
+  if(an.includes("neon")) hinten+=`<ellipse cx="${cx}" cy="${H+1}" rx="36" ry="4.4" fill="#22d3ee" opacity=".28"/><ellipse cx="${cx}" cy="${H+0.5}" rx="28" ry="2.2" fill="#67e8f9" opacity=".85"/>`;
+  if(an.includes("regenbogen")) hinten+=["#ef4444","#f97316","#facc15","#22c55e","#3b82f6","#a855f7"].map((f,i)=>`<path d="M4 ${my-5+i*2} Q-8 ${my-8+i*2} -24 ${my-4+i*2}" stroke="${f}" stroke-width="2.1" fill="none" stroke-linecap="round"/>`).join("");
+  else if(an.includes("feuer")) hinten+=`<path d="M4 ${my-6} Q-6 ${my-10} -18 ${my-2} Q-10 ${my} -20 ${my+5} Q-6 ${my+9} 4 ${my+6} Z" fill="#f97316"/><path d="M4 ${my-3} Q-4 ${my-5} -11 ${my} Q-4 ${my+5} 4 ${my+3} Z" fill="#fde047"/>`;
+  const stern=(x,y,s,f)=>`<path d="M${x} ${y-s} L${x+s*.28} ${y-s*.28} L${x+s} ${y} L${x+s*.28} ${y+s*.28} L${x} ${y+s} L${x-s*.28} ${y+s*.28} L${x-s} ${y} L${x-s*.28} ${y-s*.28} Z" fill="${f}"/>`;
+  if(an.includes("glitzer")) vorn+=stern(6,4,4,"#fde68a")+stern(72,6,3.4,"#fff")+stern(76,H-10,2.6,"#fde68a")+stern(22,-2,2.4,"#fff");
+  if(an.includes("blitze")) vorn+=`<path d="M64 -6 L59 3 L62.5 3 L58 12 L66 0.5 L62.5 0.5 L66 -6 Z" fill="#facc15" stroke="#a16207" stroke-width=".6"/><path d="M14 -4 L11 2 L13.4 2 L10.5 8 L15.8 0.6 L13.4 0.6 L15.8 -4 Z" fill="#facc15" stroke="#a16207" stroke-width=".6"/>`;
+  if(an.includes("nummer")){ const nr=Math.max(1,Math.min(99,+tune.nr||7)), x = w==="p" ? 31 : w==="r" ? 30 : 40, y = w==="p" ? 25 : w==="r" ? 22 : 25;
+    vorn+=`<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="#111" stroke-width=".8"/><text x="${x}" y="${y+2.4}" font-size="${nr>9?6:7}" font-weight="900" text-anchor="middle" fill="#111" font-family="Arial,sans-serif">${nr}</text>`; }
+  if(an.includes("krone")){ const x = w==="p" ? 58.8 : 38, y = w==="p" ? 1 : w==="r" ? 7 : 8;
+    vorn+=`<path d="M${x-6} ${y} L${x-5.5} ${y-6.5} L${x-2.6} ${y-3.2} L${x} ${y-8} L${x+2.6} ${y-3.2} L${x+5.5} ${y-6.5} L${x+6} ${y} Z" fill="#fbbf24" stroke="#b45309" stroke-width=".7" stroke-linejoin="round"/><circle cx="${x}" cy="${y-1.8}" r="1" fill="#ef4444"/>`; }
+  const i=svg.indexOf(">")+1, e=svg.lastIndexOf("</svg>");
+  return svg.slice(0,i)+hinten+svg.slice(i,e)+vorn+svg.slice(e);
+}
 function fahrzeugSVG(id,c){
   if(id[0]==="a") return svgAuto(id,c);
   if(id[0]==="p") return svgPferd(id,c);
@@ -981,7 +1027,7 @@ function bahnHTML(){
     : `<span>${d}</span>`).join("");
   return `<div class="deko"><div class="dekoreihe">${deko}</div></div>
     <div class="strasse"><div class="mittellinie"></div></div>
-    <div class="fahrzeug fz" style="left:6%">${fahrzeugSVG(fahrzeugId,farbe)}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
+    <div class="fahrzeug fz" style="left:6%">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, tune(), meinGold())}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
     <div class="hindernis hide hind"></div>
     <div class="ziel zielflagge">🏁</div>`;
 }
@@ -1160,9 +1206,17 @@ function zeigeGarage(){
           <div class="p3">${ja?"✓ geschafft":x.ziel}</div></div>`;
   });
   h+=`</div>`;
+  tune(); const gold=meinGold(), naechstesTeil=TUNING.find(x=>!tuneOffen(x,gold));
   h+=`<h3>🔧 Tuning</h3><div class="info">${ boost()
       ? "✅ <b>Boost</b> ist freigeschaltet – zwischen den Hindernissen bist du jetzt deutlich schneller unterwegs."
-      : `🔒 <b>Boost</b> ab ${BOOST_AB} Runden – dann flitzt du zwischen den Hindernissen.` }</div>`;
+      : `🔒 <b>Boost</b> ab ${BOOST_AB} Runden – dann flitzt du zwischen den Hindernissen.` }</div>
+    <div class="profiinfo" style="margin-top:10px">🌟 <b>Tuning gibt es für goldene Sterne.</b> Du hast <b>${gold}</b> 🌟.
+      ${naechstesTeil ? `Noch <b>${naechstesTeil.gold-gold}</b> 🌟 bis <b>${naechstesTeil.ic} ${naechstesTeil.name}</b>.` : "Du hast alle Tuning-Teile!"}
+      <br>Goldene Sterne bekommst du fürs Lernen: bestandene Tests, Blitz-Ziele und Aufgaben, die richtig sicher sitzen.</div>
+    <div class="tuneVorschau">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, TUNE, gold)}</div>
+    <div class="tuning">${TUNING.map(x=>{ const offen=tuneOffen(x,gold), an=offen && TUNE[x.id];
+      return `<div class="teil${an?" an":""}${offen?"":" zu"}" data-t="${x.id}"><span class="ti">${x.ic}</span><span><b>${x.name}</b><small>${!offen?`🔒 ab ${x.gold} 🌟`:an?"✓ an":x.text}</small></span></div>`; }).join("")}</div>
+    ${tuneOffen(TUNING[2],gold) ? `<div class="row" style="margin-top:10px;display:flex;align-items:center;gap:10px;justify-content:center">🏁 Deine Nummer: <button class="ghost klein" id="nrMinus">−</button><b id="nrZahl" style="font-size:20px;min-width:30px;text-align:center">${Math.max(1,Math.min(99,+TUNE.nr||7))}</b><button class="ghost klein" id="nrPlus">+</button></div>` : ""}`;
   $("garageInhalt").innerHTML=h;
   $("garageInhalt").querySelectorAll(".ding").forEach(el=>el.addEventListener("click",()=>{
     if(el.classList.contains("zu")) return;
@@ -1172,6 +1226,15 @@ function zeigeGarage(){
     if(el.classList.contains("zu")) return;
     farbe=el.dataset.c; merken(); zeigeGarage();
   }));
+  const tuneMerken=()=>{ try{ localStorage.setItem(tuneKey(), JSON.stringify(TUNE)); }catch(e){} const y=scrollY; zeigeGarage(); scrollTo(0,y); };
+  $("garageInhalt").querySelectorAll(".teil").forEach(el=>el.addEventListener("click",()=>{
+    if(el.classList.contains("zu")) return;
+    const x=TUNING.find(z=>z.id===el.dataset.t), neu=!TUNE[x.id];
+    if(neu && x.schweif) TUNING.filter(z=>z.schweif).forEach(z=>{ TUNE[z.id]=false; });      // nur eine Spur auf einmal
+    TUNE[x.id]=neu; tuneMerken();
+  }));
+  const nr=d=>{ TUNE.nr=Math.max(1,Math.min(99,(+TUNE.nr||7)+d)); tuneMerken(); };
+  if($("nrMinus")){ $("nrMinus").addEventListener("click",()=>nr(-1)); $("nrPlus").addEventListener("click",()=>nr(1)); }
 }
 $("garageBtn").addEventListener("click", ()=>{ zeige("garage"); zeigeGarage(); });
 $("garageZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
