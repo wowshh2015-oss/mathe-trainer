@@ -65,6 +65,13 @@
   .bild{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:70px}
   .bild svg{display:block}
   .blitzKl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .luecke{display:inline-block;min-width:2.2em;padding:0 .18em;margin:0 .06em;border-bottom:5px solid #38bdf8;border-radius:6px;background:rgba(56,189,248,.12);color:#7dd3fc;text-align:center;cursor:text;line-height:1.15}
+  .luecke.ok{border-color:#22c55e;background:rgba(34,197,94,.16);color:#86efac;animation:lkPop .3s}
+  .luecke.nein{border-color:#ef4444;background:rgba(239,68,68,.16);color:#fca5a5}
+  .luecke.nochmal{animation:lkWackel .4s}
+  @keyframes lkPop{50%{transform:scale(1.15)}} @keyframes lkWackel{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+  #buehne.mitLuecke .eingabe input{position:absolute;opacity:0;width:2px;height:2px;padding:0;border:0;pointer-events:none}
+  #buehne.mitLuecke .eingabe > span{display:none}
   .bild{position:relative} .bild.weg svg{visibility:hidden}
   .blickDeckel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#fde68a;font-size:17px;background:#0b1220;border-radius:16px}
   .lineal{padding:10px 6px} .lineal svg{width:100%;height:auto}
@@ -300,12 +307,16 @@
     {id:28, kl:3, name:"Wie viele? Hunderter, Zehner, Einer", kurz:"Platten, Stangen und Punkte bis 1000", typen:["b_bloecke1000"], ziel:12},
     {id:29, kl:3, name:"Welche Zahl? Die Stellentafel", kurz:"Plättchen in der Stellentafel bis 1000", typen:["b_tafel1000"], ziel:15},
     {id:8, kl:3, name:"Zählen in Schritten bis 1000", kurz:"in 2er-, 10er- und 100er-Schritten", typen:["b_schritt1000"], ziel:12},
-    {id:9, kl:3, name:"Ergänzen bis 1000", kurz:"370 + ☐ = 1000", typen:["b_erg1000"], ziel:12},
+    {id:9, kl:3, name:"Ergänzen bis 1000", kurz:"370 + ☐ = 1000 · 347 + ☐ = 400", typen:["b_erg1000","b_ergHunderter"], ziel:12},
     {id:30, kl:3, name:"1000 teilen", kurz:"1000 : 4 · 1000 : 25", typen:["b_1000teilen"], ziel:12},
     {id:10, kl:3, name:"Verdoppeln und halbieren bis 1000", kurz:"das Doppelte von 340 · die Hälfte von 760", typen:["b_dh1000"], ziel:12},
     {id:11, kl:3, name:"Einfache Plus- und Minusaufgaben bis 1000", kurz:"456 + 30 · 735 − 200", typen:["b_pm1000"], ziel:12},
     {id:12, kl:3, name:"Zehner-Einmaleins – auch umgekehrt", kurz:"4 · 70 · 280 : 7 · 280 : 70", typen:["b_zehner"], ziel:12},
     {id:13, kl:3, name:"Mal 10 und durch 10", kurz:"34 · 10 · 560 : 10", typen:["b_mal10"], ziel:15},
+    {id:38, kl:3, name:"Nachbarzehner und Nachbarhunderter", kurz:"☐ < 347 < 350 · 300 < 347 < ☐", typen:["b_nachbarZH"], ziel:12},
+    {id:39, kl:3, name:"Bündeln: H, Z und E", kurz:"3 H + 12 Z + 15 E = ☐", typen:["b_buendeln"], ziel:10},
+    {id:40, kl:3, name:"Plus und Minus mit Übergang bis 1000", kurz:"458 + 7 · 632 − 50", typen:["b_pmUebergang"], ziel:10},
+    {id:41, kl:3, name:"Zählen in Schritten – für Profis", kurz:"in 25er-, 75er-, 99er- und 101er-Schritten", typen:["b_schrittProfi"], ziel:10},
     {id:36, kl:3, mixKl:3, name:"Blitz-Mix Klasse 3", kurz:"alle Blitze der Klasse 3 durcheinander", typen:[], ziel:12, mischen:true},
     {id:31, kl:4, name:"Zahlen lesen und schreiben", kurz:"dreihunderttausendvierzig = ☐", typen:["b_zahlwort"], ziel:8},
     {id:32, kl:4, name:"Die Stellentafel bis 1 Million", kurz:"Plättchen von HT bis E", typen:["b_tafelMio"], ziel:10},
@@ -586,7 +597,15 @@
   function zahlwort(n){ if(n===0) return "null"; if(n===1000000) return "eine Million"; const t=Math.floor(n/1000), r=n%1000;
     return (t?(t===1?"ein":wort999(t,false))+"tausend\u00ad":"")+(r?wort999(r,true):""); }
   // Blitzrechnen: eine große Aufgabe, ein Zahlenfeld
-  function blitzA(text, soll, erkl, gross, px){ return eingabe(`<span class="ziel" style="font-size:${px||34}px">${text}</span>`, [gross?F.gross:F.zahl], soll, {tag:"kopf", sollText:gross?fmt(soll):String(soll), erkl}); }
+  function blitzA(text, soll, erkl, gross, px){ return eingabe(`<span class="ziel" style="font-size:${px||34}px">${text}</span>`, [gross?F.gross:F.zahl], soll, {tag:"kopf", sollText:gross?fmt(soll):String(soll), erkl,
+    luecke: text.includes("☐") ? "" : /^(Das|Die) /.test(text) ? " ist " : " = "}); }
+  // Blitzrechnen: Die Antwort erscheint direkt in der Lücke der Aufgabe (370 + [__] = 1000)
+  function mitLuecke(a){
+    const L='<span class="luecke" id="luecke">\u00a0</span>';
+    if(a.frage.includes("☐")) return a.frage.replace("☐", L);
+    if(a.luecke) return a.frage.replace(/<\/span>$/, a.luecke+L+"</span>");
+    return a.frage+`<div style="margin-top:10px">${L}</div>`;
+  }
   // Zählen in Schritten: drei Zahlen stehen da, die vierte wird geschrieben (Startzahl nicht immer rund)
   function schrittA(w, bis){
     const gross=bis>1000, f=x=>gross?fmt(x):String(x), ab=Math.random()<0.4;
@@ -616,6 +635,21 @@
       else { if(gross){ a=rnd(12,19); b=rnd(1,a-10); } else { a=rnd(2,10); b=rnd(1,a); } }
       const s=plus?a+b:a-b; return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, `${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); },
     b_schritt20(){ return schrittA(aus([2,5,2]), 20); },
+    // ---------- Blitzrechnen: Ideen aus „Rechenflitzer 3“ ----------
+    b_nachbarZH(){ const p=aus([10,100]); let n; do{ n=rnd(101,999); }while(n%p===0); const lo=Math.floor(n/p)*p, hi=lo+p, w=p===10?"Nachbarzehner":"Nachbarhunderter", links=Math.random()<0.5;
+      return eingabe(`<span style="display:block;font-size:17px;color:#94a3b8;font-weight:700;margin-bottom:4px">${w}</span><span class="ziel" style="font-size:32px">${links?`☐ &lt; ${n} &lt; ${hi}`:`${lo} &lt; ${n} &lt; ☐`}</span>`, [F.zahl], links?lo:hi,
+        {tag:"kopf", sollText:String(links?lo:hi), erkl:`${n} liegt zwischen <b>${lo}</b> und <b>${hi}</b> – das sind die ${w}.`}); },
+    b_buendeln(){ let h=rnd(1,7), z=rnd(0,15), e=rnd(0,15); if(z<10 && e<10){ if(Math.random()<0.5) z+=10; else e+=10; } const n=h*100+z*10+e;
+      return blitzA(`${h} H + ${z} Z + ${e} E`, n, `Bündeln: ${z>=10?`${z} Z = ${Math.floor(z/10)} H ${z%10} Z. `:""}${e>=10?`${e} E = ${Math.floor(e/10)} Z ${e%10} E. `:""}Zusammen ${h*100} + ${z*10} + ${e} = <b>${n}</b>.`, false, 30); },
+    b_ergHunderter(){ const H=rnd(1,10)*100, n=H-rnd(1,99); return blitzA(`${n} + ☐ = ${H}`, H-n, `Von ${n} bis zum nächsten Hunderter ${H} fehlen <b>${H-n}</b>.`); },
+    b_pmUebergang(){ for(;;){ const n=rnd(100,999), u=aus([1,10,10]), plus=Math.random()<0.5, d=Math.floor(n/u)%10; let k;
+        if(plus){ if(d===0) continue; k=rnd(10-d,9); } else { if(d===9) continue; k=rnd(d+1,9); }
+        const v=k*u, s=plus?n+v:n-v; if(s<0 || s>1000) continue;
+        return blitzA(`${n} ${plus?"+":"−"} ${v}`, s, `Über den ${u===1?"Zehner":"Hunderter"}: ${n} ${plus?"+":"−"} ${v} = <b>${s}</b>.`); } },
+    b_schrittProfi(){ const w=aus([15,25,30,75,125,150,250,9,11,99,101]), ab=Math.random()<0.5; let st, l;
+      do{ st=rnd(0,1000); l=[0,1,2,3].map(i=>st+(ab?-1:1)*i*w); }while(Math.min(...l)<0 || Math.max(...l)>1000);
+      return eingabe(`Zähle ${ab?"rückwärts":"weiter"} – immer ${w} ${ab?"weniger":"mehr"}:<br><span class="ziel" style="font-size:32px">${l.slice(0,3).join(", ")}, ☐</span>`, [F.zahl], l[3],
+        {tag:"kopf", sollText:String(l[3]), erkl:`${l[2]} ${ab?"−":"+"} ${w} = <b>${l[3]}</b>.${w===99||w===101?` Tipp: ${ab?"−":"+"} ${w} ist ${ab?"−":"+"} 100 ${w===99?(ab?"+ 1":"− 1"):(ab?"− 1":"+ 1")}.`:""}`}); },
     // ---------- Blitzrechnen: Bilder und neue Übungen ----------
     b_bloecke100(){ const n=rnd(11,99); return eingabe(`Welche Zahl ist das?`, [F.zahl], n, {bild:bloecke(n), tag:"kopf", sollText:String(n),
         erkl:`${Math.floor(n/10)} Zehnerstangen und ${n%10} Einer: <b>${n}</b>.`}); },
@@ -1248,12 +1282,16 @@
     const a=runde.aufgaben[runde.i];
     runde.gestellt.push(a.key);
     $("rueck").textContent=""; $("erkl").innerHTML="";
-    $("frage").innerHTML=a.frage;
+    const luecke = WAS==="blitz" && a.art==="eingabe" && a.felder.length===1;
+    $("frage").innerHTML = luecke ? mitLuecke(a) : a.frage;
+    $("buehne").classList.toggle("mitLuecke", luecke);
     zeichneFortschritt();
     const bild = a.bild ? `<div class="bild${a.lineal?" lineal":""}">${a.bild}</div>` : "";
     if(a.art==="eingabe"){
       $("buehne").innerHTML=bild+`<div class="eingabe">${a.felder.map((f,i)=>`<input type="text" id="feld${i}" inputmode="numeric" autocomplete="off" maxlength="${f.max||5}"${f.max?' style="width:190px"':""} placeholder="?"><span>${f.e}</span>`).join("")}<button id="okBtn">OK</button></div>`;
       const felder=a.felder.map((f,i)=>$("feld"+i));
+      if(luecke){ const l=$("luecke"), zeig=()=>{ l.textContent = felder[0].value ? felder[0].value : "\u00a0"; l.classList.remove("ok","nein","nochmal"); };
+        felder[0].addEventListener("input", zeig); l.addEventListener("click", ()=>{ try{ felder[0].focus({preventScroll:true}); }catch(e){} }); }
       const pruef=()=>{
         if(wartet) return;
         if(felder.every(x=>x.value.trim()==="")) return;
@@ -1322,6 +1360,18 @@
   function auswerten(a, ok, gegebenText, summe, nichtGetauscht){
     stoppZeit(); wartet=true;
     const zu=document.querySelector("#buehne .bild.weg"); if(zu){ zu.classList.remove("weg"); const d=zu.querySelector(".blickDeckel"); if(d) d.remove(); }
+    const lk=$("luecke");
+    // Blitzrechnen üben: Beim ersten Fehler darf man es noch einmal probieren – erst beim zweiten kommt die Erklärung
+    if(!ok && WAS==="blitz" && runde.modus==="Training" && a.art==="eingabe" && !a.zweiter){
+      a.zweiter=true; wartet=false;
+      if(lk){ lk.classList.remove("nochmal"); void lk.offsetWidth; lk.classList.add("nochmal"); lk.textContent="\u00a0"; }
+      $("buehne").querySelectorAll("input").forEach(x=>{ x.disabled=false; x.value=""; });
+      if($("okBtn")) $("okBtn").disabled=false;
+      $("rueck").style.color="#fb923c"; $("rueck").textContent="Fast! Probier es noch einmal.";
+      try{ $("feld0").focus({preventScroll:true}); }catch(e){}
+      return;
+    }
+    if(lk){ lk.classList.add(ok?"ok":"nein"); if(!ok) lk.textContent=a.sollText; }
     runde.verlauf[runde.i]=ok; zeichneFortschritt(); runde.i++;
     const r=$("rueck");
     if(ok){

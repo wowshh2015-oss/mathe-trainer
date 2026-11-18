@@ -67,6 +67,10 @@
     "Bis 1 Million: vergleichen und runden":"Große Zahlen vergleichen und auf Tausender, Zehntausender oder Hunderttausender runden. <b>Klasse 4.</b>",
     "Bis 1 Million: rechnen mit großen Zahlen":"Mit Tausendern rechnet man wie mit kleinen Zahlen – und hängt die Nullen wieder an. <b>Klasse 4.</b>",
     // Blitzrechnen
+    "Nachbarzehner und Nachbarhunderter":"Klasse 3. Zwischen welchen Zehnern oder Hundertern liegt die Zahl?",
+    "Bündeln: H, Z und E":"Klasse 3. 12 Zehner sind 1 Hunderter und 2 Zehner – erst bündeln, dann die Zahl schreiben.",
+    "Plus und Minus mit Übergang bis 1000":"Klasse 3. Einer oder Zehner dazu oder weg – diesmal über den Zehner oder Hunderter.",
+    "Zählen in Schritten – für Profis":"Klasse 3. Schwierige Schritte: 25, 75, 125, 99, 101 …",
     "Wie viele? Das Zwanzigerfeld":"Klasse 1. Wie viele Punkte? Im Zwanzigerfeld in Fünfern sehen.",
     "Immer 10":"Klasse 1. Ergänzen bis 10.",
     "Immer 20":"Klasse 1. Ergänzen bis 20.",
