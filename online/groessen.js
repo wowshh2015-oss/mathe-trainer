@@ -65,6 +65,10 @@
   .bild{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:70px}
   .bild svg{display:block}
   .blitzKl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .lvW{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .stufe button.lvC{font-size:12.5px;line-height:1.2;padding:5px 9px;border-radius:999px;background:#0b1220;border:1px solid #334155;color:#cbd5e1;font-weight:800;box-shadow:none;min-height:0;width:auto}
+  .stufe button.lvC.an{border-color:#fbbf24;background:rgba(251,191,36,.16);color:#fde68a}
+  .stufe button.lvC i{font-style:normal;color:#fbbf24;letter-spacing:-1px}
   .luecke{display:inline-block;min-width:2.2em;padding:0 .18em;margin:0 .06em;border-bottom:5px solid #38bdf8;border-radius:6px;background:rgba(56,189,248,.12);color:#7dd3fc;text-align:center;cursor:text;line-height:1.15}
   .luecke.ok{border-color:#22c55e;background:rgba(34,197,94,.16);color:#86efac;animation:lkPop .3s}
   .luecke.nein{border-color:#ef4444;background:rgba(239,68,68,.16);color:#fca5a5}
@@ -331,6 +335,9 @@
   ];
   // Blitz-Mix: alle Aufgabenarten der Klasse
   BLITZ.filter(s=>s.mixKl).forEach(m=>{ m.typen=[...new Set(BLITZ.filter(s=>s.kl===m.mixKl && !s.mixKl).flatMap(s=>s.typen))]; });
+  // Stufen je Blitz: 1 Anfänger · 2 Fortgeschritten · 3 Profi. BL ist die gerade gewählte Stufe (die Aufgaben lesen sie).
+  let BL=2; const BL_WAHL={}, LVN=["","Anfänger","Fortgeschritten","Profi"];
+  function zielFuer(st, lv){ return lv===1 ? st.ziel+3 : lv===3 ? Math.max(6, st.ziel-3) : st.ziel; }
   let BLITZ_KL=0; try{ BLITZ_KL=+(localStorage.getItem("blitz_klasse") || localStorage.getItem("mathe_klasse") || 0) || 0; }catch(e){}
   const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
@@ -606,9 +613,14 @@
     if(a.luecke) return a.frage.replace(/<\/span>$/, a.luecke+L+"</span>");
     return a.frage+`<div style="margin-top:10px">${L}</div>`;
   }
+  // Plus/Minus über den Zehner (u=1) oder Hunderter (u=10) bis 1000
+  function uebergang(us){ for(;;){ const n=rnd(100,999), u=aus(us), plus=Math.random()<0.5, d=Math.floor(n/u)%10; let k;
+      if(plus){ if(d===0) continue; k=rnd(10-d,9); } else { if(d===9) continue; k=rnd(d+1,9); }
+      const v=k*u, s=plus?n+v:n-v; if(s<0 || s>1000) continue;
+      return blitzA(`${n} ${plus?"+":"−"} ${v}`, s, `Über den ${u===1?"Zehner":"Hunderter"}: ${n} ${plus?"+":"−"} ${v} = <b>${s}</b>.`); } }
   // Zählen in Schritten: drei Zahlen stehen da, die vierte wird geschrieben (Startzahl nicht immer rund)
   function schrittA(w, bis){
-    const gross=bis>1000, f=x=>gross?fmt(x):String(x), ab=Math.random()<0.4;
+    const gross=bis>1000, f=x=>gross?fmt(x):String(x), ab=BL!==1 && Math.random()<0.4;
     const off = gross ? 0 : w>=100 ? rnd(0,9)*10 : rnd(0,w-1), m=rnd(0, Math.floor((bis-off)/w)-3);
     const l=[0,1,2,3].map(i=>off+(m+i)*w); if(ab) l.reverse();
     return eingabe(`Zähle ${ab?"rückwärts":"weiter"} – immer ${f(w)} ${ab?"weniger":"mehr"}:<br><span class="ziel" style="font-size:${gross?26:32}px">${l.slice(0,3).map(f).join(", ")}, ☐</span>`, [gross?F.gross:F.zahl], l[3],
@@ -619,102 +631,149 @@
   function rechen(text, soll, probe, erkl){ return eingabe(`<span class="ziel" style="font-size:34px">${text}</span>`, [F.zahl], soll, {tag:"kopf", sollText:String(soll), erkl, probe}); }
   const BAU={
     // ---------- Blitzrechnen ----------
-    // ---------- Blitzrechnen: Klasse 1 ----------
-    b_feld20(){ const n=rnd(1,20), o=Math.min(n,10), u=Math.max(0,n-10);
-      return eingabe(`Wie viele Punkte? <small style="display:block;font-size:14px;color:#94a3b8;font-weight:600">Schau genau – nach 2 Sekunden verschwinden sie.</small>`, [F.zahl], n, {bild:feld20(n), blick:true, tag:"kopf", sollText:String(n),
+    // BL = gewählte Stufe: 1 Anfänger (kleinere Zahlen, einfacher) · 2 Fortgeschritten (wie im Buch) · 3 Profi (Übergänge, Lücke vorn, kürzer sehen …)
+    // ----- Klasse 1 -----
+    b_feld20(){ const n = BL===1 ? rnd(1,10) : BL===2 ? rnd(1,20) : rnd(6,20), o=Math.min(n,10), u=Math.max(0,n-10);
+      return eingabe(`Wie viele Punkte? <small style="display:block;font-size:14px;color:#94a3b8;font-weight:600">Schau genau – nach ${BL===3?"einer Sekunde":"2 Sekunden"} verschwinden sie.</small>`, [F.zahl], n, {bild:feld20(n), blick:true, blickMs: BL===3 ? 1200 : 2000, tag:"kopf", sollText:String(n),
         erkl: u ? `Oben ${o===10?"eine volle Reihe: 10":o}, unten ${u}${u>5?" (5 und "+(u-5)+")":""}. Zusammen <b>${n}</b>.` : `${o>5?"5 und "+(o-5):o} – das sind <b>${n}</b>.`}); },
-    b_immer10(){ const n=rnd(0,10); return blitzA(`${n} + ☐ = 10`, 10-n, `${n} und <b>${10-n}</b> sind zusammen 10.`); },
-    b_immer20(){ const n=rnd(1,19); return blitzA(`${n} + ☐ = 20`, 20-n, n<10 ? `Erst bis 10: ${10-n}. Dann noch 10. Zusammen <b>${20-n}</b>.` : `Von ${n} bis 20 fehlen <b>${20-n}</b>.`); },
-    b_nachbar20(){ const vor=Math.random()<0.5, n=vor?rnd(2,20):rnd(1,19);
+    b_immer10(){ const n = BL===1 ? rnd(4,10) : rnd(0,10);
+      if(BL===3 && Math.random()<0.5) return blitzA(`☐ + ${n} = 10`, 10-n, `<b>${10-n}</b> und ${n} sind zusammen 10.`);
+      if(BL===3) return blitzA(`10 − ${n}`, 10-n, `10 − ${n} = <b>${10-n}</b>, denn ${n} + ${10-n} = 10.`);
+      return blitzA(`${n} + ☐ = 10`, 10-n, `${n} und <b>${10-n}</b> sind zusammen 10.`); },
+    b_immer20(){ const n = BL===1 ? rnd(10,19) : rnd(1,19), erkl = n<10 ? `Erst bis 10: ${10-n}. Dann noch 10. Zusammen <b>${20-n}</b>.` : `Von ${n} bis 20 fehlen <b>${20-n}</b>.`;
+      return blitzA(BL===3 && Math.random()<0.5 ? `☐ + ${n} = 20` : `${n} + ☐ = 20`, 20-n, erkl); },
+    b_nachbar20(){ if(BL===3 && Math.random()<0.5){ const n=rnd(1,19);
+        return eingabe(`Welche Zahl liegt <span class="ziel">zwischen ${n-1} und ${n+1}</span>?`, [F.zahl], n, {tag:"kopf", sollText:String(n), erkl:`${n-1}, <b>${n}</b>, ${n+1}.`}); }
+      const vor = BL===1 ? false : Math.random()<0.5, n=vor?rnd(2,20):rnd(1,19);
       return eingabe(`Welche Zahl kommt <span class="ziel">${vor?"vor":"nach"} ${n}</span>?`, [F.zahl], vor?n-1:n+1, {tag:"kopf", sollText:String(vor?n-1:n+1),
         erkl: vor ? `Einen Schritt zurück: ${n} − 1 = <b>${n-1}</b>.` : `Einen Schritt weiter: ${n} + 1 = <b>${n+1}</b>.`}); },
-    b_dh20(){ if(Math.random()<0.5){ const n=rnd(1,10); return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
-      const n=rnd(1,10)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
-    b_pm20(){ const plus=Math.random()<0.5, gross=Math.random()<0.5; let a,b;
-      if(plus){ if(gross){ a=rnd(11,18); b=rnd(1,19-a); } else { a=rnd(1,9); b=rnd(1,10-a); } }
-      else { if(gross){ a=rnd(12,19); b=rnd(1,a-10); } else { a=rnd(2,10); b=rnd(1,a); } }
-      const s=plus?a+b:a-b; return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, `${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); },
-    b_schritt20(){ return schrittA(aus([2,5,2]), 20); },
-    // ---------- Blitzrechnen: Ideen aus „Rechenflitzer 3“ ----------
-    b_nachbarZH(){ const p=aus([10,100]); let n; do{ n=rnd(101,999); }while(n%p===0); const lo=Math.floor(n/p)*p, hi=lo+p, w=p===10?"Nachbarzehner":"Nachbarhunderter", links=Math.random()<0.5;
-      return eingabe(`<span style="display:block;font-size:17px;color:#94a3b8;font-weight:700;margin-bottom:4px">${w}</span><span class="ziel" style="font-size:32px">${links?`☐ &lt; ${n} &lt; ${hi}`:`${lo} &lt; ${n} &lt; ☐`}</span>`, [F.zahl], links?lo:hi,
-        {tag:"kopf", sollText:String(links?lo:hi), erkl:`${n} liegt zwischen <b>${lo}</b> und <b>${hi}</b> – das sind die ${w}.`}); },
-    b_buendeln(){ let h=rnd(1,7), z=rnd(0,15), e=rnd(0,15); if(z<10 && e<10){ if(Math.random()<0.5) z+=10; else e+=10; } const n=h*100+z*10+e;
-      return blitzA(`${h} H + ${z} Z + ${e} E`, n, `Bündeln: ${z>=10?`${z} Z = ${Math.floor(z/10)} H ${z%10} Z. `:""}${e>=10?`${e} E = ${Math.floor(e/10)} Z ${e%10} E. `:""}Zusammen ${h*100} + ${z*10} + ${e} = <b>${n}</b>.`, false, 30); },
-    b_ergHunderter(){ const H=rnd(1,10)*100, n=H-rnd(1,99); return blitzA(`${n} + ☐ = ${H}`, H-n, `Von ${n} bis zum nächsten Hunderter ${H} fehlen <b>${H-n}</b>.`); },
-    b_pmUebergang(){ for(;;){ const n=rnd(100,999), u=aus([1,10,10]), plus=Math.random()<0.5, d=Math.floor(n/u)%10; let k;
-        if(plus){ if(d===0) continue; k=rnd(10-d,9); } else { if(d===9) continue; k=rnd(d+1,9); }
-        const v=k*u, s=plus?n+v:n-v; if(s<0 || s>1000) continue;
-        return blitzA(`${n} ${plus?"+":"−"} ${v}`, s, `Über den ${u===1?"Zehner":"Hunderter"}: ${n} ${plus?"+":"−"} ${v} = <b>${s}</b>.`); } },
-    b_schrittProfi(){ const w=aus([15,25,30,75,125,150,250,9,11,99,101]), ab=Math.random()<0.5; let st, l;
-      do{ st=rnd(0,1000); l=[0,1,2,3].map(i=>st+(ab?-1:1)*i*w); }while(Math.min(...l)<0 || Math.max(...l)>1000);
-      return eingabe(`Zähle ${ab?"rückwärts":"weiter"} – immer ${w} ${ab?"weniger":"mehr"}:<br><span class="ziel" style="font-size:32px">${l.slice(0,3).join(", ")}, ☐</span>`, [F.zahl], l[3],
-        {tag:"kopf", sollText:String(l[3]), erkl:`${l[2]} ${ab?"−":"+"} ${w} = <b>${l[3]}</b>.${w===99||w===101?` Tipp: ${ab?"−":"+"} ${w} ist ${ab?"−":"+"} 100 ${w===99?(ab?"+ 1":"− 1"):(ab?"− 1":"+ 1")}.`:""}`}); },
-    // ---------- Blitzrechnen: Bilder und neue Übungen ----------
-    b_bloecke100(){ const n=rnd(11,99); return eingabe(`Welche Zahl ist das?`, [F.zahl], n, {bild:bloecke(n), tag:"kopf", sollText:String(n),
+    b_dh20(){ const [v,b] = BL===1 ? [1,5] : BL===2 ? [1,10] : [6,10];
+      if(Math.random()<0.5){ const n=rnd(v,b); return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
+      const n=rnd(v,b)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
+    b_pm20(){ const plus=Math.random()<0.5; let a,b, ueber=false;
+      if(BL===1){ if(plus){ a=rnd(1,9); b=rnd(1,10-a); } else { a=rnd(2,10); b=rnd(1,a); } }
+      else if(BL===2){ const gross=Math.random()<0.5;
+        if(plus){ if(gross){ a=rnd(11,18); b=rnd(1,19-a); } else { a=rnd(1,9); b=rnd(1,10-a); } }
+        else { if(gross){ a=rnd(12,19); b=rnd(1,a-10); } else { a=rnd(2,10); b=rnd(1,a); } } }
+      else { ueber=true; if(plus){ a=rnd(2,9); b=rnd(11-a,9); } else { a=rnd(11,18); b=rnd(a-9,9); } }
+      const s=plus?a+b:a-b;
+      return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, ueber ? (plus ? `Erst bis 10: ${a} + ${10-a} = 10. Dann noch ${b-(10-a)}: <b>${s}</b>.` : `Erst bis 10: ${a} − ${a-10} = 10. Dann noch ${b-(a-10)} weg: <b>${s}</b>.`) : `${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); },
+    b_schritt20(){ return schrittA(BL===1 ? 2 : BL===2 ? aus([2,5,2]) : aus([3,4]), 20); },
+    // ----- Klasse 2 -----
+    b_bloecke100(){ const n = BL===1 ? rnd(11,50) : rnd(11,99);
+      return eingabe(`Welche Zahl ist das?${BL===3?' <small style="display:block;font-size:14px;color:#94a3b8;font-weight:600">Das Bild verschwindet nach 3 Sekunden.</small>':""}`, [F.zahl], n, {bild:bloecke(n), blick:BL===3, blickMs:3000, tag:"kopf", sollText:String(n),
         erkl:`${Math.floor(n/10)} Zehnerstangen und ${n%10} Einer: <b>${n}</b>.`}); },
-    b_bloecke1000(){ const n=rnd(101,999); return eingabe(`Welche Zahl ist das?`, [F.zahl], n, {bild:bloecke(n), tag:"kopf", sollText:String(n),
-        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner und ${n%10} Einer: <b>${n}</b>.`}); },
-    b_tafel1000(){ let n; do{ n=rnd(100,999); }while(Math.random()<0.4 && !String(n).includes("0")); return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.zahl], n, {bild:tafel(n,["H","Z","E"]), tag:"kopf", sollText:String(n),
-        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner, ${n%10} Einer: <b>${n}</b>. Eine leere Spalte schreibst du als 0.`}); },
-    b_tafelMio(){ let n; do{ n=rnd(100000,999999); }while(Math.random()<0.6 && !/0/.test(String(n))); return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.gross], n, {bild:tafel(n,["HT","ZT","T","H","Z","E"]), tag:"kopf", sollText:fmt(n),
-        erkl:`Lies von links nach rechts: ${String(n).split("").join(" · ")} – das ist <b>${fmt(n)}</b>. Eine leere Spalte schreibst du als 0.`}); },
-    b_1000teilen(){ const d=aus([2,4,5,10,20,25,50,100,200,250,500]); return blitzA(`1000 : ${d}`, 1000/d, `${d} · ${1000/d} = 1000, also 1000 : ${d} = <b>${1000/d}</b>.`); },
-    b_stufenMinus(){ const a=rnd(3,6), S=Math.pow(10,a); let T; if(Math.random()<0.5) T=Math.pow(10,rnd(0,a-1)); else T=rnd(2,9)*Math.pow(10,rnd(Math.max(0,a-3),a-1));
-      return blitzA(`${fmt(S)} − ${fmt(T)}`, S-T, `${fmt(S-T)} + ${fmt(T)} = ${fmt(S)}, also <b>${fmt(S-T)}</b>.`, true, 28); },
-    b_zahlwort(){ let n; const art=rnd(0,2);
-      if(art===0) n=rnd(1001,99999); else if(art===1) n=rnd(100,999)*1000+aus([0,0,rnd(1,999)]); else n=rnd(1,9)*100000+aus([rnd(1,9)*1000,rnd(1,99)*10,rnd(1,999)]);
-      return eingabe(`Schreibe als Zahl:<br><span class="ziel" style="font-size:22px;word-break:normal;overflow-wrap:anywhere">${zahlwort(n)}</span>`, [F.gross], n, {tag:"kopf", sollText:fmt(n),
-        erkl:`Erst kommt der Teil vor „tausend“: <b>${fmt(Math.floor(n/1000))}</b> Tausender. Dann der Rest: <b>${n%1000}</b>. Zusammen <b>${fmt(n)}</b>.`}); },
-    b_schritt100(){ return schrittA(aus([2,5,10]), 100); },
-    b_schritt1000(){ return schrittA(aus([2,10,100,2,10,100,5,50]), 1000); },
-    b_schrittMio(){ return schrittA(aus([1000,2000,2500,5000,10000,20000,25000,50000,100000,250000]), 1000000); },
+    b_schritt100(){ return schrittA(BL===1 ? aus([10,5]) : BL===2 ? aus([2,5,10]) : aus([3,4,20,25]), 100); },
     b_ergZehner(){ let n; do{ n=rnd(11,98); }while(n%10===0); const z=Math.ceil(n/10)*10;
-      return blitzA(`${n} + ☐ = ${z}`, z-n, `Von ${n} bis zum nächsten Zehner ${z} fehlen <b>${z-n}</b>.`); },
-    b_erg100(){ const n=rnd(3,97), z=Math.ceil(n/10)*10;
-      return blitzA(`${n} + ☐ = 100`, 100-n, z===n ? `${n} + <b>${100-n}</b> = 100.` : `Erst bis ${z}: ${z-n}. Dann bis 100: ${100-z}. Zusammen <b>${100-n}</b>.`); },
-    b_dh100(){ if(Math.random()<0.5){ const n=rnd(1,10)*5; return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
-      const n=rnd(1,10)*10; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
-    b_pm100(){ const art=rnd(0,5); let a,b,plus=art<3;
-      if(art===0){ a=rnd(1,8)*10; b=rnd(1,10-a/10)*10; }                         // Z + Z
-      else if(art===1){ do{ a=rnd(11,89); }while(a%10===0); b=rnd(1,Math.floor((99-a)/10))*10; }   // ZE + Z
-      else if(art===2){ do{ a=rnd(11,88); }while(a%10===0 || a%10===9); b=rnd(1,9-a%10); }         // ZE + E ohne Zehnerübergang
-      else if(art===3){ a=rnd(2,10)*10; b=rnd(1,a/10-1)*10; }                    // Z − Z
-      else if(art===4){ do{ a=rnd(21,99); }while(a%10===0); b=rnd(1,Math.floor(a/10)-1)*10; }      // ZE − Z
-      else { do{ a=rnd(12,99); }while(a%10<2); b=rnd(1,a%10); }                 // ZE − E ohne Zehnerübergang
+      return blitzA(BL===3 && Math.random()<0.5 ? `☐ + ${n} = ${z}` : `${n} + ☐ = ${z}`, z-n, `Von ${n} bis zum nächsten Zehner ${z} fehlen <b>${z-n}</b>.`); },
+    b_erg100(){ let n = BL===1 ? rnd(1,9)*10 : rnd(3,97); if(BL===3) while(n%10===0) n=rnd(3,97); const z=Math.ceil(n/10)*10;
+      return blitzA(BL===3 && Math.random()<0.4 ? `☐ + ${n} = 100` : `${n} + ☐ = 100`, 100-n, z===n ? `${n} + <b>${100-n}</b> = 100.` : `Erst bis ${z}: ${z-n}. Dann bis 100: ${100-z}. Zusammen <b>${100-n}</b>.`); },
+    b_dh100(){ const d=Math.random()<0.5;
+      if(BL===1){ if(d){ const n=rnd(1,5)*10; return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); } const n=rnd(1,5)*20; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); }
+      if(BL===2){ if(d){ const n=rnd(1,10)*5; return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); } const n=rnd(1,10)*10; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); }
+      if(d){ const n=rnd(11,49); return blitzA(`Das Doppelte von ${n}`, 2*n, `Zehner und Einer einzeln: ${Math.floor(n/10)*10} + ${Math.floor(n/10)*10} = ${Math.floor(n/10)*20}, ${n%10} + ${n%10} = ${2*(n%10)}. Zusammen <b>${2*n}</b>.`, false, 28); }
+      const n=rnd(6,50)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
+    b_pm100(){ let a,b,plus;
+      if(BL===3){ plus=Math.random()<0.5;
+        if(plus){ do{ a=rnd(12,89); }while(a%10<2); b=rnd(10-a%10,9); } else { do{ a=rnd(20,98); }while(a%10>7); b=rnd(a%10+1,9); }
+        const s=plus?a+b:a-b, z=plus?Math.ceil(a/10)*10:Math.floor(a/10)*10;
+        return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, `Über den Zehner: erst bis ${z}, dann weiter. ${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); }
+      const art = BL===1 ? aus([0,3]) : rnd(0,5); plus=art<3;
+      if(art===0){ a=rnd(1,8)*10; b=rnd(1,10-a/10)*10; }
+      else if(art===1){ do{ a=rnd(11,89); }while(a%10===0); b=rnd(1,Math.floor((99-a)/10))*10; }
+      else if(art===2){ do{ a=rnd(11,88); }while(a%10===0 || a%10===9); b=rnd(1,9-a%10); }
+      else if(art===3){ a=rnd(2,10)*10; b=rnd(1,a/10-1)*10; }
+      else if(art===4){ do{ a=rnd(21,99); }while(a%10===0); b=rnd(1,Math.floor(a/10)-1)*10; }
+      else { do{ a=rnd(12,99); }while(a%10<2); b=rnd(1,a%10); }
       const s=plus?a+b:a-b; return blitzA(`${a} ${plus?"+":"−"} ${b}`, s, `${a} ${plus?"+":"−"} ${b} = <b>${s}</b>.`); },
-    b_kern(){ const k=aus([1,2,5,10]), x=rnd(1,10), l=Math.random()<0.5; return blitzA(l?`${k} · ${x}`:`${x} · ${k}`, k*x, `${x} · ${k} = <b>${k*x}</b>.`); },
-    b_1x1(){ const a=rnd(2,10), b=rnd(2,10); return blitzA(`${a} · ${b}`, a*b, `${a} · ${b} = <b>${a*b}</b>.`); },
-    b_1x1um(){ const a=rnd(2,10), b=rnd(2,10), c=a*b, d=aus([a,b]);
+    b_kern(){ const x=rnd(1,10);
+      if(BL===3 && Math.random()<0.5){ const k=aus([2,5,10]); return blitzA(`${k*x} : ${k}`, x, `${x} · ${k} = ${k*x}, also ${k*x} : ${k} = <b>${x}</b>.`); }
+      const k=aus(BL===1?[1,2,10]:[1,2,5,10]), l=Math.random()<0.5; return blitzA(l?`${k} · ${x}`:`${x} · ${k}`, k*x, `${x} · ${k} = <b>${k*x}</b>.`); },
+    // ----- Klasse 3 -----
+    b_1x1(){ const a = BL===1 ? aus([2,3,4,5,10]) : BL===2 ? rnd(2,10) : rnd(6,9), b = BL===1 ? rnd(1,10) : BL===2 ? rnd(2,10) : rnd(6,9);
+      return Math.random()<0.5 ? blitzA(`${a} · ${b}`, a*b, `${a} · ${b} = <b>${a*b}</b>.`) : blitzA(`${b} · ${a}`, a*b, `${b} · ${a} = <b>${a*b}</b>.`); },
+    b_1x1um(){ const a = BL===1 ? aus([2,5,10]) : rnd(2,10), b=rnd(2,10), c=a*b, d=aus([a,b]);
+      if(BL===3) return blitzA(`${c} : ${d}`, c/d, `${d} · ${c/d} = ${c}, also ${c} : ${d} = <b>${c/d}</b>.`);
       return eingabe(`<span style="font-size:22px;color:#94a3b8">${a} · ${b} = ${c}</span><br><span class="ziel" style="font-size:34px">${c} : ${d} = ☐</span>`, [F.zahl], c/d,
         {tag:"kopf", sollText:String(c/d), erkl:`Die Malaufgabe hilft: ${a} · ${b} = ${c}. Also ist ${c} : ${d} = <b>${c/d}</b>.`}); },
-    b_erg1000(){ let n; do{ n=rnd(1,99)*10; }while(n%100===0 && Math.random()<0.7); const h=Math.ceil(n/100)*100;
-      return blitzA(`${n} + ☐ = 1000`, 1000-n, h===n ? `${n} + <b>${1000-n}</b> = 1000.` : `Erst bis ${h}: ${h-n}. Dann bis 1000: ${1000-h}. Zusammen <b>${1000-n}</b>.`); },
-    b_dh1000(){ const art=rnd(0,3); let n;
-      if(art===0){ n=rnd(11,50); return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
-      if(art===1){ n=rnd(2,50)*10; return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
-      if(art===2){ n=rnd(6,50)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); }
-      n=rnd(2,100)*10; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
-    b_pm1000(){ let x,u,d,k,plus,s; do{ x=rnd(100,999); u=aus([1,10,100]); d=Math.floor(x/u)%10; plus=Math.random()<0.5;
+    b_bloecke1000(){ const n = BL===1 ? rnd(101,500) : rnd(101,999);
+      return eingabe(`Welche Zahl ist das?${BL===3?' <small style="display:block;font-size:14px;color:#94a3b8;font-weight:600">Das Bild verschwindet nach 3 Sekunden.</small>':""}`, [F.zahl], n, {bild:bloecke(n), blick:BL===3, blickMs:3000, tag:"kopf", sollText:String(n),
+        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner und ${n%10} Einer: <b>${n}</b>.`}); },
+    b_tafel1000(){ let n; do{ n=rnd(100,999); }while(BL===1 ? /0/.test(String(n)) : BL===3 ? !/0/.test(String(n)) : (Math.random()<0.4 && !String(n).includes("0")));
+      return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.zahl], n, {bild:tafel(n,["H","Z","E"]), tag:"kopf", sollText:String(n),
+        erkl:`${Math.floor(n/100)} Hunderter, ${Math.floor(n%100/10)} Zehner, ${n%10} Einer: <b>${n}</b>. Eine leere Spalte schreibst du als 0.`}); },
+    b_schritt1000(){ return schrittA(BL===1 ? aus([10,100]) : BL===2 ? aus([2,10,100,2,10,100,5,50]) : aus([20,25,50,200,250]), 1000); },
+    b_erg1000(){ let n;
+      if(BL===1) n=rnd(1,9)*100; else if(BL===2){ do{ n=rnd(1,99)*10; }while(n%100===0 && Math.random()<0.7); } else { do{ n=rnd(101,989); }while(n%10===0); }
+      const z=Math.ceil(n/10)*10, h=Math.ceil(n/100)*100, teile=[]; if(z>n) teile.push(`bis ${z}: ${z-n}`); if(h>z) teile.push(`bis ${h}: ${h-z}`); if(1000>h) teile.push(`bis 1000: ${1000-h}`);
+      return blitzA(`${n} + ☐ = 1000`, 1000-n, teile.length>1 ? `In Schritten – ${teile.join(", ")}. Zusammen <b>${1000-n}</b>.` : `${n} + <b>${1000-n}</b> = 1000.`); },
+    b_ergHunderter(){ const H=rnd(1,10)*100, n = BL===1 ? H-rnd(1,9)*10 : H-rnd(1,99);
+      return blitzA(BL===3 && Math.random()<0.5 ? `☐ + ${n} = ${H}` : `${n} + ☐ = ${H}`, H-n, `Von ${n} bis zum nächsten Hunderter ${H} fehlen <b>${H-n}</b>.`); },
+    b_1000teilen(){ const d=aus(BL===1 ? [2,4,5,10] : BL===2 ? [2,4,5,10,20,25,50,100,200,250,500] : [8,20,25,40,125,200,250,500]);
+      return blitzA(`1000 : ${d}`, 1000/d, `${d} · ${1000/d} = 1000, also 1000 : ${d} = <b>${1000/d}</b>.`); },
+    b_dh1000(){ const d=Math.random()<0.5; let n;
+      if(BL===1){ if(d){ n=rnd(11,50); return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); } n=rnd(6,50)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); }
+      if(BL===2){ if(d){ n=rnd(2,50)*10; return blitzA(`Das Doppelte von ${n}`, 2*n, `${n} + ${n} = <b>${2*n}</b>.`, false, 28); } n=rnd(2,100)*10; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); }
+      if(d){ n=rnd(101,500); return blitzA(`Das Doppelte von ${n}`, 2*n, `Stelle für Stelle: ${n} + ${n} = <b>${2*n}</b>.`, false, 28); }
+      n=rnd(51,500)*2; return blitzA(`Die Hälfte von ${n}`, n/2, `${n/2} + ${n/2} = ${n}. Die Hälfte ist <b>${n/2}</b>.`, false, 28); },
+    b_pm1000(){ if(BL===3) return uebergang([1,10,10]);
+      let x,u,d,k,plus,s; do{ x = BL===1 ? rnd(10,99)*10 : rnd(100,999); u=aus(BL===1?[10,100]:[1,10,100]); d=Math.floor(x/u)%10; plus=Math.random()<0.5;
         k = plus ? (d<9 ? rnd(1,9-d) : 0) : (d>(u===100?1:0) ? rnd(1,d-(u===100?1:0)) : 0); }while(!k);
       s=plus?x+k*u:x-k*u; return blitzA(`${x} ${plus?"+":"−"} ${k*u}`, s, `Nur die ${u===1?"Einer":u===10?"Zehner":"Hunderter"} ändern sich: ${x} ${plus?"+":"−"} ${k*u} = <b>${s}</b>.`); },
-    b_zehner(){ const a=rnd(2,9), z=rnd(1,9)*10, p=a*z, art=rnd(0,2);
+    b_zehner(){ const a = BL===3 ? rnd(6,9) : rnd(2,9), z = BL===3 ? rnd(5,9)*10 : rnd(1,9)*10, p=a*z, art = BL===1 ? 0 : rnd(0,2);
       if(art===0) return blitzA(`${a} · ${z}`, p, `${a} · ${z/10} = ${a*z/10}, also ${a} · ${z} = <b>${p}</b>.`);
       if(art===1) return blitzA(`${p} : ${a}`, z, `${a} · ${z} = ${p}, also ${p} : ${a} = <b>${z}</b>.`);
       return blitzA(`${p} : ${z}`, a, `${a} · ${z} = ${p}, also ${p} : ${z} = <b>${a}</b>.`); },
-    b_mal10(){ if(Math.random()<0.5){ const n=rnd(2,99); return blitzA(`${n} · 10`, n*10, `Mal 10: Jede Ziffer rückt eine Stelle nach links, hinten kommt eine 0 dazu. <b>${n*10}</b>.`); }
+    b_mal10(){ if(BL===3 && Math.random()<0.5){ if(Math.random()<0.5){ const n=rnd(2,9); return blitzA(`${n} · 100`, n*100, `Mal 100: zwei Nullen dazu. <b>${n*100}</b>.`); }
+        const n=rnd(2,9)*100; return blitzA(`${n} : 100`, n/100, `Durch 100: zwei Nullen weg. <b>${n/100}</b>.`); }
+      if(BL===1 || Math.random()<0.5){ const n = BL===1 ? rnd(2,20) : rnd(2,99); return blitzA(`${n} · 10`, n*10, `Mal 10: Jede Ziffer rückt eine Stelle nach links, hinten kommt eine 0 dazu. <b>${n*10}</b>.`); }
       const n=rnd(2,99)*10; return blitzA(`${n} : 10`, n/10, `Durch 10: Jede Ziffer rückt eine Stelle nach rechts, die 0 am Ende fällt weg. <b>${n/10}</b>.`); },
-    b_dhMio(){ if(Math.random()<0.5){ const n=Math.random()<0.6 ? (rnd(1,4)*10+rnd(1,9))*10000 : rnd(11,49)*1000;
-        return blitzA(`Das Doppelte von ${fmt(n)}`, 2*n, `${fmt(n)} + ${fmt(n)} = <b>${fmt(2*n)}</b>.`, true, 26); }
-      const n=Math.random()<0.6 ? rnd(2,99)*10000 : rnd(2,99)*1000; return blitzA(`Die Hälfte von ${fmt(n)}`, n/2, `${fmt(n/2)} + ${fmt(n/2)} = ${fmt(n)}. Die Hälfte ist <b>${fmt(n/2)}</b>.`, true, 26); },
-    b_stufenTeil(){ let s,d; do{ s=aus([100,1000,10000,100000,1000000]); d=aus([2,4,5,10,100,1000]); }while(d>=s || s%d);
+    b_nachbarZH(){ const p = BL===1 ? 10 : BL===2 ? aus([10,100]) : 100; let n; do{ n=rnd(101,999); }while(n%p===0); const lo=Math.floor(n/p)*p, hi=lo+p, w=p===10?"Nachbarzehner":"Nachbarhunderter", links=Math.random()<0.5;
+      return eingabe(`<span style="display:block;font-size:17px;color:#94a3b8;font-weight:700;margin-bottom:4px">${w}</span><span class="ziel" style="font-size:32px">${links?`☐ &lt; ${n} &lt; ${hi}`:`${lo} &lt; ${n} &lt; ☐`}</span>`, [F.zahl], links?lo:hi,
+        {tag:"kopf", sollText:String(links?lo:hi), erkl:`${n} liegt zwischen <b>${lo}</b> und <b>${hi}</b> – das sind die ${w}.`}); },
+    b_buendeln(){ let h,z,e;
+      if(BL===1){ h=rnd(1,5); z=rnd(10,15); e=rnd(0,9); }
+      else if(BL===2){ h=rnd(1,7); z=rnd(0,15); e=rnd(0,15); if(z<10 && e<10){ if(Math.random()<0.5) z+=10; else e+=10; } }
+      else { do{ h=rnd(1,8); z=rnd(10,19); e=rnd(10,19); }while(h*100+z*10+e>999); }
+      const n=h*100+z*10+e;
+      return blitzA(`${h} H + ${z} Z + ${e} E`, n, `Bündeln: ${z>=10?`${z} Z = ${Math.floor(z/10)} H ${z%10} Z. `:""}${e>=10?`${e} E = ${Math.floor(e/10)} Z ${e%10} E. `:""}Zusammen ${h*100} + ${z*10} + ${e} = <b>${n}</b>.`, false, 30); },
+    b_pmUebergang(){ return uebergang(BL===1 ? [1] : BL===2 ? [1,10,10] : [10]); },
+    b_schrittProfi(){ const w=aus(BL===1 ? [25,50,150,250] : BL===2 ? [15,30,75,125] : [9,11,99,101]), ab=Math.random()<0.5; let st, l;
+      do{ st=rnd(0,1000); l=[0,1,2,3].map(i=>st+(ab?-1:1)*i*w); }while(Math.min(...l)<0 || Math.max(...l)>1000);
+      return eingabe(`Zähle ${ab?"rückwärts":"weiter"} – immer ${w} ${ab?"weniger":"mehr"}:<br><span class="ziel" style="font-size:32px">${l.slice(0,3).join(", ")}, ☐</span>`, [F.zahl], l[3],
+        {tag:"kopf", sollText:String(l[3]), erkl:`${l[2]} ${ab?"−":"+"} ${w} = <b>${l[3]}</b>.${w===99||w===101?` Tipp: ${ab?"−":"+"} ${w} ist ${ab?"−":"+"} 100 ${w===99?(ab?"+ 1":"− 1"):(ab?"− 1":"+ 1")}.`:""}`}); },
+    // ----- Klasse 4 -----
+    b_zahlwort(){ let n;
+      if(BL===1) n=rnd(1001,9999); else if(BL===2) n = Math.random()<0.5 ? rnd(10000,99999) : rnd(10,99)*1000+aus([0,rnd(1,999)]);
+      else n = Math.random()<0.5 ? rnd(100000,999999) : rnd(1,9)*100000+aus([rnd(1,9)*1000,rnd(1,99)*10,rnd(1,999)]);
+      return eingabe(`Schreibe als Zahl:<br><span class="ziel" style="font-size:22px;word-break:normal;overflow-wrap:anywhere">${zahlwort(n)}</span>`, [F.gross], n, {tag:"kopf", sollText:fmt(n),
+        erkl:`Erst kommt der Teil vor „tausend“: <b>${fmt(Math.floor(n/1000))}</b> Tausender. Dann der Rest: <b>${n%1000}</b>. Zusammen <b>${fmt(n)}</b>.`}); },
+    b_tafelMio(){ let n; const z=s=>(String(s).match(/0/g)||[]).length;
+      do{ n = BL===1 ? rnd(1000,99999) : rnd(100000,999999); }while(BL===2 ? (Math.random()<0.6 && !z(n)) : BL===3 ? z(n)<2 : false);
+      return eingabe(`Welche Zahl zeigt die Stellentafel?`, [F.gross], n, {bild:tafel(n,["HT","ZT","T","H","Z","E"]), tag:"kopf", sollText:fmt(n),
+        erkl:`Lies von links nach rechts: ${String(n).padStart(6,"0").split("").join(" · ")} – das ist <b>${fmt(n)}</b>. Eine leere Spalte schreibst du als 0.`}); },
+    b_schrittMio(){ return schrittA(aus(BL===1 ? [1000,10000,100000] : BL===2 ? [1000,2000,2500,5000,10000,20000,25000,50000,100000,250000] : [2500,25000,250000,20000,50000,125000]), 1000000); },
+    b_stufenMinus(){ const a=rnd(3,6), S=Math.pow(10,a); let T;
+      if(BL===1 || (BL===2 && Math.random()<0.5)) T=Math.pow(10,rnd(0,a-1)); else T=rnd(2,9)*Math.pow(10,rnd(Math.max(0,a-3),a-1));
+      return blitzA(`${fmt(S)} − ${fmt(T)}`, S-T, `${fmt(S-T)} + ${fmt(T)} = ${fmt(S)}, also <b>${fmt(S-T)}</b>.`, true, 28); },
+    b_dhMio(){ const d=Math.random()<0.5; let n;
+      if(BL===1) n = d ? rnd(1,4)*100000+rnd(0,1)*50000 : rnd(1,9)*100000;
+      else if(BL===2) n = d ? (Math.random()<0.6 ? (rnd(1,4)*10+rnd(1,9))*10000 : rnd(11,49)*1000) : (Math.random()<0.6 ? rnd(2,99)*10000 : rnd(2,99)*1000);
+      else n = d ? rnd(101,499)*1000 : rnd(101,999)*1000;
+      return d ? blitzA(`Das Doppelte von ${fmt(n)}`, 2*n, `${fmt(n)} + ${fmt(n)} = <b>${fmt(2*n)}</b>.`, true, 26)
+               : blitzA(`Die Hälfte von ${fmt(n)}`, n/2, `${fmt(n/2)} + ${fmt(n/2)} = ${fmt(n)}. Die Hälfte ist <b>${fmt(n/2)}</b>.`, true, 26); },
+    b_stufenTeil(){ let s,d; do{ s=aus([100,1000,10000,100000,1000000]); d=aus(BL===1 ? [2,10] : BL===2 ? [2,4,5,10,100,1000] : [4,5,8,20,25,50]); }while(d>=s || s%d || (BL===3 && s<1000));
       return blitzA(`${fmt(s)} : ${fmt(d)}`, s/d, `${fmt(d)} · ${fmt(s/d)} = ${fmt(s)}, also ${fmt(s)} : ${fmt(d)} = <b>${fmt(s/d)}</b>.`, true); },
-    b_stellen(){ let a,b,k,p; do{ a=rnd(2,9); b=rnd(2,9); k=Math.pow(10,rnd(2,5)); p=a*b*k; }while(p>1000000);
+    b_stellen(){ let a,b,k,p; do{ a=rnd(2,9); b=rnd(2,9); k=Math.pow(10, BL===1 ? rnd(1,2) : BL===2 ? rnd(2,5) : rnd(4,5)); p=a*b*k; }while(p>1000000);
       if(Math.random()<0.5) return blitzA(`${a} · ${fmt(b*k)}`, p, `${a} · ${b} = ${a*b}, dazu die Nullen: <b>${fmt(p)}</b>.`, true);
       return blitzA(`${fmt(p)} : ${a}`, b*k, `${a} · ${fmt(b*k)} = ${fmt(p)}, also ${fmt(p)} : ${a} = <b>${fmt(b*k)}</b>.`, true); },
-    b_ergMio(){ let n; do{ n=(rnd(1,9)*10+rnd(0,9))*10000; }while(n%100000===0 && Math.random()<0.7); const h=Math.ceil(n/100000)*100000;
+    b_ergMio(){ let n;
+      if(BL===1) n=rnd(1,9)*100000; else if(BL===2){ do{ n=(rnd(1,9)*10+rnd(0,9))*10000; }while(n%100000===0 && Math.random()<0.7); } else { do{ n=rnd(101,999)*1000; }while(n%10000===0); }
+      const h=Math.ceil(n/100000)*100000;
       return blitzA(`${fmt(n)} + ☐ = 1 000 000`, 1000000-n, h===n ? `${fmt(n)} + <b>${fmt(1000000-n)}</b> = 1 000 000.` : `Erst bis ${fmt(h)}: ${fmt(h-n)}. Dann bis 1 000 000: ${fmt(1000000-h)}. Zusammen <b>${fmt(1000000-n)}</b>.`, true, 26); },
-    b_pmMio(){ const e=aus([1000,10000,10000]); let a,b,plus,s; do{ a=rnd(10,99)*e; b=rnd(1,9)*e; plus=Math.random()<0.5; s=plus?a+b:a-b; }while(s<=0 || s>1000000);
+    b_pmMio(){ let a,b,plus,s,e;
+      do{ if(BL===3){ e=1000; a=rnd(100,999)*1000; b=rnd(11,99)*1000; } else { e = BL===1 ? 10000 : aus([1000,10000,10000]); a=rnd(10,99)*e; b=rnd(1,9)*e; }
+        plus=Math.random()<0.5; s=plus?a+b:a-b; }while(s<=0 || s>1000000);
       return blitzA(`${fmt(a)} ${plus?"+":"−"} ${fmt(b)}`, s, `Rechne mit ${e===1000?"Tausendern":"Zehntausendern"}: ${a/e} ${plus?"+":"−"} ${b/e} = ${s/e}. Also <b>${fmt(s)}</b>.`, true); },
     g_cent(){ let l,sum; do{ l=[]; const n=rnd(2,5); for(let i=0;i<n;i++) l.push(aus([1,2,5,10,10,20,20,50])); sum=l.reduce((a,b)=>a+b,0); }while(sum>=100 || l.filter(x=>x===50).length>1);
       l.sort((a,b)=>b-a);
@@ -1257,9 +1316,10 @@
     $("fortschritt").innerHTML=runde.aufgaben.map((a,i)=>`<i class="${runde.verlauf[i]===true?"ok":runde.verlauf[i]===false?"nein":""}"></i>`).join(""); }
   function starte(st, modus, typen){
     lauf++;
+    if(WAS==="blitz") BL = modus==="mine" ? 2 : stufeWahl(st.id);
     const blitz = WAS==="blitz" && modus==="Test";
-    runde={st, modus, aufgaben:blitz ? blitzAufgaben(st) : baueRunde(st, typen), i:0, richtig:0, gestellt:[], fehler:[], antworten:[], verlauf:[], start:Date.now(), fehlerTexte:[], blitz};
-    $("spielTitel").textContent=(blitz?"⚡ Blitz":modus==="Test"?"Test":modus==="mine"?"Meine Aufgaben":"Üben")+" · "+st.name;
+    runde={st, modus, aufgaben:blitz ? blitzAufgaben(st) : baueRunde(st, typen), i:0, richtig:0, gestellt:[], fehler:[], antworten:[], verlauf:[], start:Date.now(), fehlerTexte:[], blitz, lv:BL, ziel:WAS==="blitz"?zielFuer(st,BL):0, sofort:0};
+    $("spielTitel").textContent=(blitz?"⚡ Blitz":modus==="Test"?"Test":modus==="mine"?"Meine Aufgaben":"Üben")+" · "+st.name+(WAS==="blitz" && modus!=="mine" ? " · "+LVN[BL] : "");
     zeige("spiel"); if(blitz) starteBlitz(); naechste();
   }
   // Blitz: genug Aufgaben für eine Minute (niemand schafft 80), nie zweimal dieselbe hintereinander
@@ -1355,7 +1415,7 @@
       b.insertAdjacentHTML("beforeend", `<div class="blickDeckel">👀 Wie viele waren es?${runde.modus==="Training"?'<button type="button" class="ghost klein" id="nochmalZeigen">Noch einmal zeigen</button>':""}</div>`);
       const n=$("nochmalZeigen"); if(n) n.addEventListener("click", ()=>{ b.classList.remove("weg"); const d=b.querySelector(".blickDeckel"); if(d) d.remove(); blickZudecken(a); });
       try{ const f=$("feld0"); if(f && !f.disabled) f.focus({preventScroll:true}); }catch(e){}
-    }, 2000);
+    }, a.blickMs||2000);
   }
   function auswerten(a, ok, gegebenText, summe, nichtGetauscht){
     stoppZeit(); wartet=true;
@@ -1376,6 +1436,7 @@
     const r=$("rueck");
     if(ok){
       runde.richtig++; r.style.color="var(--good)";
+      if(a.zweiter) runde.fehler.push(a.key); else runde.sofort++;      // im zweiten Versuch richtig: zählt, kommt aber zum Wiederholen
       r.textContent = nichtGetauscht ? `Richtig! Man schreibt es so: ${a.sollText}` : "Richtig! 👍";
       wartet=false; spaeter(runde.blitz?220:nichtGetauscht?2200:950); return;
     }
@@ -1410,7 +1471,7 @@
   function fertig(){
     stoppZeit();
     const n=runde.aufgaben.length, proz=n?Math.round(runde.richtig/n*100):0, test=runde.modus==="Test", blitz=!!runde.blitz,
-          bestanden=test && (blitz ? runde.richtig>=runde.st.ziel && n-runde.richtig<=2 : proz>=BESTANDEN), alterRekord=blitz?rekord(runde.st.id):0;
+          bestanden=test && (blitz ? runde.richtig>=runde.ziel && n-runde.richtig<=2 : proz>=BESTANDEN), alterRekord=blitz?rekord(runde.st.id, runde.lv):0;
     zeige("ergebnis");
     $("ergProzent").textContent=proz+" %";
     $("ergTitel").textContent = test ? (bestanden?"✅ Test bestanden!":"💪 Noch nicht ganz") : proz===100?"🌟 Perfekt!":proz>=90?"🎉 Super!":proz>=70?"👍 Gut gemacht!":"💪 Weiter üben";
@@ -1444,8 +1505,17 @@
       $("ergTitel").textContent = bestanden ? (neu?"✅ Blitz-Ziel geschafft – neuer Rekord!":"✅ Blitz-Ziel geschafft!") : neu ? "🎉 Neuer Rekord!" : "💪 Gut gekämpft!";
       $("ergText").innerHTML=`<b>${runde.richtig}</b> richtig in einer Minute${f?` · ${f} falsch`:" – ohne Fehler"}.<br>`+
         (neu ? `Dein alter Rekord war ${alterRekord}.` : alterRekord ? `Dein Rekord: <b>${Math.max(alterRekord, runde.richtig)}</b>.` : `Das ist dein erster Blitz bei dieser Übung.`)+
-        `<br>Blitz-Ziel: <b>${runde.st.ziel} richtig</b> und höchstens <b>2 Fehler</b>.${bestanden?"":" Morgen wieder – jeden Tag wird es schneller!"}`+
+        `<br>Blitz-Ziel (${LVN[runde.lv]}): <b>${runde.ziel} richtig</b> und höchstens <b>2 Fehler</b>.${bestanden?"":" Morgen wieder – jeden Tag wird es schneller!"}`+
         (fl.length?`<br><br><b>Das üben wir noch:</b> ${fl.slice(0,8).map(esc).join(" · ")}`:"");
+    }
+    if(WAS==="blitz" && !test && runde.modus!=="mine"){
+      const st=sterneVon(runde.sofort, n), vorher=sterneLv(runde.st.id, runde.lv);
+      $("ergProzent").innerHTML=`<span style="color:#fbbf24;letter-spacing:4px">${"★".repeat(st)}<span style="color:#475569">${"★".repeat(3-st)}</span></span>`;
+      $("ergText").innerHTML=`<b>${runde.sofort}</b> von <b>${n}</b> beim ersten Versuch richtig – ${esc(runde.st.name)}, Stufe <b>${LVN[runde.lv]}</b>.`+
+        (st===3 ? (runde.lv<3 ? `<br>🎉 Drei Sterne! Probier jetzt die Stufe <b>${LVN[runde.lv+1]}</b>.` : `<br>🎉 Drei Sterne auf der Profi-Stufe – stark!`) : `<br>Für drei Sterne: alle beim ersten Versuch richtig.`)+
+        (st>vorher ? `<br>⭐ Neue Bestleistung auf dieser Stufe!` : "")+
+        ([...new Set(runde.fehlerTexte)].length ? `<br><br><b>Das üben wir noch:</b> ${[...new Set(runde.fehlerTexte)].slice(0,8).map(esc).join(" · ")}` : "");
+      if(st===3 && runde.lv<3) BL_WAHL[runde.st.id]=runde.lv+1;
     }
     letzte=runde;
     $("nochmalBtn").onclick=()=>starte(letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
@@ -1455,11 +1525,12 @@
   function speichere(proz, bestanden){
     const d=new Date(), p=x=>String(x).padStart(2,"0"), r=runde, mine=r.modus==="mine";
     const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`,
-      modus:r.modus==="Test"?"Test":"Training", reihe:mine?"mine":"s"+r.st.id, zr:r.st.id, stufe:r.modus==="Test"?"Mittel":(mine?"eigene Fehler":r.st.name), stufeName:mine?"Meine Aufgaben":r.st.name,
+      modus:r.modus==="Test"?"Test":"Training", reihe:mine?"mine":"s"+r.st.id, zr:r.st.id, stufe:r.modus==="Test"?(WAS==="blitz"?["Leicht","Mittel","Schwer"][r.lv-1]:"Mittel"):(mine?"eigene Fehler":r.st.name), stufeName:mine?"Meine Aufgaben":r.st.name,
       richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz, bestanden:r.modus==="Test"?(bestanden?"Ja":"Nein"):"–", dauer:Math.round((Date.now()-r.start)/1000),
       gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
     if(r.tiere) eintrag.tiere=r.tiere.slice();           // Mein Zoo: die in dieser Runde gewonnenen Tiere
-    if(r.blitz){ eintrag.blitz=BLITZ_SEK; eintrag.stufeName=`${r.st.name} · ⚡ ${r.richtig} richtig in 1 Minute`; }
+    if(WAS==="blitz" && !mine){ eintrag.lv=r.lv; eintrag.sofort=r.sofort; eintrag.stufeName=`${r.st.name} · ${LVN[r.lv]}`; }
+    if(r.blitz){ eintrag.blitz=BLITZ_SEK; eintrag.stufeName=`${r.st.name} · ${LVN[r.lv]} · ⚡ ${r.richtig} richtig in 1 Minute`; }
     try{
       const emp=Sterne.empfohlen(APP); if(emp) eintrag.empfohlen=true;
       const vor=Sterne.stand(MEINE); MEINE.unshift(eintrag); const nachher=Sterne.stand(MEINE);
@@ -1476,7 +1547,14 @@
     return { geuebt:r.filter(e=>e.modus==="Training").length, tests:r.filter(e=>e.modus==="Test").length, bestanden:r.some(e=>e.modus==="Test" && e.bestanden==="Ja"),
              besterTest:r.filter(e=>e.modus==="Test").reduce((m,e)=>Math.max(m,+e.prozent||0),0) };
   }
-  function rekord(id){ return MEINE.filter(e=>+e.zr===id && e.modus==="Test" && e.reihe!=="mine").reduce((m,e)=>Math.max(m,+e.richtig||0),0); }
+  function rekord(id, lv){ return MEINE.filter(e=>+e.zr===id && e.modus==="Test" && e.reihe!=="mine" && (!lv || (+e.lv||2)===lv)).reduce((m,e)=>Math.max(m,+e.richtig||0),0); }
+  // Sterne einer Stufe: bestes Üben – 100 % beim ersten Versuch = 3, ab 80 % = 2, ab 60 % = 1
+  function sterneVon(sofort, n){ const p=n?sofort/n:0; return p>=1?3:p>=0.8?2:p>=0.6?1:0; }
+  function sterneLv(id, lv){ return MEINE.filter(e=>+e.zr===id && e.modus==="Training" && e.reihe!=="mine" && (+e.lv||2)===lv)
+      .reduce((m,e)=>Math.max(m, sterneVon(e.sofort!=null ? +e.sofort : +e.richtig||0, (+e.richtig||0)+(+e.falsch||0))),0); }
+  function stufeWahl(id){ if(BL_WAHL[id]) return BL_WAHL[id]; for(let l=1;l<=3;l++) if(sterneLv(id,l)<3) return l; return 3; }
+  function lvKnoepfe(s){ const w=stufeWahl(s.id);
+    return `<span class="lvW">${[1,2,3].map(l=>{ const n=sterneLv(s.id,l); return `<button type="button" class="lvC${l===w?" an":""}" data-lvst="${s.id}" data-lv="${l}" title="${LVN[l]}">${LVN[l]} <i>${"★".repeat(n)}${"☆".repeat(3-n)}</i></button>`; }).join("")}</span>`; }
   function meineTypen(){
     const facts=new Set(); MEINE.forEach(e=>(e.fehler||[]).forEach(f=>facts.add(f)));
     const offen=[], faellig=[];
@@ -1486,15 +1564,17 @@
   function zeigeMenue(){
     const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
     $("stufen").innerHTML=STUFEN.map(s=>{ const z=stufenStand(s.id);
-      const info = WAS==="blitz" ? (rekord(s.id) ? `Rekord ⚡ ${rekord(s.id)} · Ziel ${s.ziel}${z.bestanden?" ✓ geschafft":""}` : `${s.kurz} · Ziel ${s.ziel}`) : z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
+      const lv = WAS==="blitz" ? stufeWahl(s.id) : 0, rk = WAS==="blitz" ? rekord(s.id, lv) : 0;
+      const info = WAS==="blitz" ? `${s.kurz} · ${rk ? `Rekord ⚡ ${rk} · ` : ""}Ziel ${zielFuer(s,lv)}` : z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
       if(WAS==="blitz" && BLITZ_KL && s.kl!==BLITZ_KL) return "";
-      return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span><span class="tx"><b>${s.name}</b><span>${info}</span></span>
+      return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span><span class="tx"><b>${s.name}</b><span>${info}</span>${WAS==="blitz"?lvKnoepfe(s):""}</span>
         <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}"${WAS==="mix"?' style="border-color:#f59e0b;color:#fde68a"':""}>${WAS==="mix"?"Check ⭐×2":WAS==="blitz"?"⚡ Blitz":"Test"}</button></span></div>`; }).join("")+
 
       (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab der Hälfte richtiger Aufgaben).</div>` : "");
     if(WAS==="blitz") $("stufen").insertAdjacentHTML("afterbegin", `<div class="blitzKl">${[0,1,2,3,4].map(k=>`<button class="klein${k===BLITZ_KL?"":" ghost"}" data-bkl="${k}">${k?"Klasse "+k:"Alle"}</button>`).join("")}</div>`);
     if(WAS==="blitz") $("stufen").querySelectorAll("[data-bkl]").forEach(b=>b.addEventListener("click",()=>{ BLITZ_KL=+b.dataset.bkl; try{ localStorage.setItem("blitz_klasse",String(BLITZ_KL)); }catch(e){} zeigeMenue(); }));
     if(WAS==="blitz") $("stufen").insertAdjacentHTML("afterbegin", `<div class="info" style="margin-bottom:10px;border:1px solid rgba(251,191,36,.5)">⚡ <b>So geht der Blitz:</b> Du hast <b>eine Minute</b>. Rechne so viele Aufgaben, wie du schaffst – Antwort tippen, Enter drücken, schon kommt die nächste. Schaffst du das <b>Ziel</b> mit höchstens 2 Fehlern, gibt es Gold. Am besten jeden Tag ein, zwei Blitze!</div>`);
+    $("stufen").querySelectorAll("[data-lvst]").forEach(b=>b.addEventListener("click",()=>{ BL_WAHL[+b.dataset.lvst]=+b.dataset.lv; zeigeMenue(); }));
     $("stufen").querySelectorAll("[data-ueben]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.ueben),"Training")));
     $("stufen").querySelectorAll("[data-test]").forEach(b=>b.addEventListener("click",()=>starte(stufe(+b.dataset.test),"Test")));
     if(WAS==="zoo" && window.Zoo){
@@ -1545,6 +1625,6 @@
   if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
   addEventListener("pagehide", stoppZeit);
   // für die automatischen Tests
-  window.Groessen={ STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
+  window.Groessen={ blitzStufe(v){ BL=v; }, get BL(){ return BL; }, sterneLv, stufeWahl, STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
                     komma, euroCent, zerlege, linealBild, geldBild, gewText, tText, ziffern, THEMA };
 })();
