@@ -65,6 +65,8 @@
   .bild{background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:70px}
   .bild svg{display:block}
   .blitzKl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .bild{position:relative} .bild.weg svg{visibility:hidden}
+  .blickDeckel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#fde68a;font-size:17px;background:#0b1220;border-radius:16px}
   .lineal{padding:10px 6px} .lineal svg{width:100%;height:auto}
   .eingabe{display:flex;align-items:center;justify-content:center;gap:8px;font-size:26px;font-weight:800;flex-wrap:wrap;margin-top:14px}
   .eingabe input{width:104px;font-size:28px;text-align:center;padding:10px 6px;border:2px solid var(--accent);font-weight:800}
@@ -600,7 +602,7 @@
     // ---------- Blitzrechnen ----------
     // ---------- Blitzrechnen: Klasse 1 ----------
     b_feld20(){ const n=rnd(1,20), o=Math.min(n,10), u=Math.max(0,n-10);
-      return eingabe(`Wie viele Punkte?`, [F.zahl], n, {bild:feld20(n), tag:"kopf", sollText:String(n),
+      return eingabe(`Wie viele Punkte? <small style="display:block;font-size:14px;color:#94a3b8;font-weight:600">Schau genau – nach 2 Sekunden verschwinden sie.</small>`, [F.zahl], n, {bild:feld20(n), blick:true, tag:"kopf", sollText:String(n),
         erkl: u ? `Oben ${o===10?"eine volle Reihe: 10":o}, unten ${u}${u>5?" (5 und "+(u-5)+")":""}. Zusammen <b>${n}</b>.` : `${o>5?"5 und "+(o-5):o} – das sind <b>${n}</b>.`}); },
     b_immer10(){ const n=rnd(0,10); return blitzA(`${n} + ☐ = 10`, 10-n, `${n} und <b>${10-n}</b> sind zusammen 10.`); },
     b_immer20(){ const n=rnd(1,19); return blitzA(`${n} + ☐ = 20`, 20-n, n<10 ? `Erst bis 10: ${10-n}. Dann noch 10. Zusammen <b>${20-n}</b>.` : `Von ${n} bis 20 fehlen <b>${20-n}</b>.`); },
@@ -1227,7 +1229,8 @@
     zeige("spiel"); if(blitz) starteBlitz(); naechste();
   }
   // Blitz: genug Aufgaben für eine Minute (niemand schafft 80), nie zweimal dieselbe hintereinander
-  function blitzAufgaben(st){ const l=[]; while(l.length<80){ const a=baueAufgabe(st); if(!l.length || l[l.length-1].frage!==a.frage) l.push(a); } return l; }
+  function blitzAufgaben(st){ const l=[], k=a=>a.frage+"|"+(a.bild||""); let versuche=0;      // Bilder-Aufgaben haben denselben Fragetext – deshalb mit Bild vergleichen
+    while(l.length<80 && versuche++<2000){ const a=baueAufgabe(st); if(!l.length || k(l[l.length-1])!==k(a) || versuche>1500) l.push(a); } return l; }
   let blitzUhr=null;
   function starteBlitz(){
     const meiner=lauf, ende=Date.now()+BLITZ_SEK*1000;
@@ -1300,10 +1303,25 @@
       $("leerBtn").addEventListener("click",()=>{ if(!wartet){ haufen=[]; mal(); } });
       $("okBtn").addEventListener("click",()=>{ if(wartet || !haufen.length) return; const s=haufen.reduce((x,y)=>x+y,0); $("okBtn").disabled=true; auswerten(a, s===a.soll, komma(s), s, false); });
     }
+    if(a.blick) blickZudecken(a);
     starteZeit();
+  }
+  // „Auf einen Blick“: Das Bild ist 2 Sekunden zu sehen, dann wird es zugedeckt – das trainiert das schnelle Erfassen.
+  // Im Üben darf man es noch einmal ansehen, im Blitz nicht. Nach der Antwort ist es wieder zu sehen.
+  function blickZudecken(a){
+    const meinI=runde.i, meinL=lauf;
+    setTimeout(()=>{
+      if(lauf!==meinL || !runde || runde.i!==meinI || wartet) return;
+      const b=document.querySelector("#buehne .bild"); if(!b) return;
+      b.classList.add("weg");
+      b.insertAdjacentHTML("beforeend", `<div class="blickDeckel">👀 Wie viele waren es?${runde.modus==="Training"?'<button type="button" class="ghost klein" id="nochmalZeigen">Noch einmal zeigen</button>':""}</div>`);
+      const n=$("nochmalZeigen"); if(n) n.addEventListener("click", ()=>{ b.classList.remove("weg"); const d=b.querySelector(".blickDeckel"); if(d) d.remove(); blickZudecken(a); });
+      try{ const f=$("feld0"); if(f && !f.disabled) f.focus({preventScroll:true}); }catch(e){}
+    }, 2000);
   }
   function auswerten(a, ok, gegebenText, summe, nichtGetauscht){
     stoppZeit(); wartet=true;
+    const zu=document.querySelector("#buehne .bild.weg"); if(zu){ zu.classList.remove("weg"); const d=zu.querySelector(".blickDeckel"); if(d) d.remove(); }
     runde.verlauf[runde.i]=ok; zeichneFortschritt(); runde.i++;
     const r=$("rueck");
     if(ok){
