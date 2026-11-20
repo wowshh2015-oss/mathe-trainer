@@ -216,7 +216,7 @@
     <a class="tile t8" data-page="mix-trainer.html"><div class="ic">🎲</div><div class="t">Bunte Mischung</div><div class="d">alle Themen gemischt · nach Klasse</div></a>
     <!-- Spiele und Blitzrechnen: immer zum Schluss; Zoo und Blitz jeweils über die ganze Breite -->
     <a class="tile t7" data-page="rallye-trainer.html"><div class="ic">🏎️</div><div class="t">Rechen-Rallye</div><div class="d">Runde für Runde · 5 Strecken</div></a>
-    <a class="tile t6" data-page="marathon-trainer.html"><div class="ic">🏢</div><div class="t">Rechen-Mara&shy;thon</div><div class="d">Etage für Etage nach oben</div></a>
+    <a class="tile t6" data-page="turm-trainer.html"><div class="ic">🏙️</div><div class="t">Mein Wolken&shy;kratzer</div><div class="d">bauen · Zimmer sammeln · um die Welt reisen</div></a>
     <a class="tile t3 breit" data-page="zoo-trainer.html"><div class="ic">🦁</div><div class="t">Mein Zoo</div><div class="d">Aufgaben aus allen Themen · wer gut rechnet, bekommt neue Tiere · kostet keinen Sprit</div></a>
     <a class="tile t6 breit" data-page="blitz-trainer.html"><div class="ic">⚡</div><div class="t">Blitzrechnen</div><div class="d">Kopfrechnen blitzschnell · eine Minute · jeden Tag ein, zwei Blitze</div></a>
   </div>
@@ -344,6 +344,7 @@ const SEITEN={
   zerlegen:       {datei:"zerlegen-trainer.html",        ic:"🧩", name:"Zerlegen"},
   halbschriftlich:{datei:"halbschriftlich-trainer.html", ic:"🪜", name:"Rechenwege"},
   marathon:       {datei:"marathon-trainer.html",        ic:"🏢", name:"Rechen-Marathon"},
+  turm:           {datei:"turm-trainer.html",            ic:"🏙️", name:"Mein Wolkenkratzer"},
   rallye:         {datei:"rallye-trainer.html",          ic:"🏎️", name:"Rechen-Rallye"},
   uhr:            {datei:"uhr-trainer.html",             ic:"🕒", name:"Uhr-Trainer"},
   geld:           {datei:"geld-trainer.html",            ic:"💶", name:"Geld"},
@@ -388,7 +389,7 @@ function offeneFehler(rows){
 }
 function tippHTML(ic, titel, text, datei, name){
   // Vorschläge für den Lernweg sind Empfehlungen: wer ihnen folgt, bekommt 50 % mehr Sterne (sterne.js)
-  const app=Object.keys(SEITEN).find(a=>SEITEN[a].datei===datei), emp = app && app!=="marathon" && app!=="rallye";
+  const app=Object.keys(SEITEN).find(a=>SEITEN[a].datei===datei), emp = app && app!=="marathon" && app!=="rallye" && app!=="turm";
   return `<a class="tipp"${emp?` data-emp="${app}"`:""} href="${datei}#name=${encodeURIComponent(name)}">
     <span class="ic">${ic}</span><span class="tx"><b>${titel}${app==="mix"?' <span class="empPlus" style="background:#f59e0b;color:#1c1917">⭐ ×2 doppelte Sterne</span>':emp?' <span class="empPlus">⭐ +50 %</span>':""}</b>${text}</span><span class="pfeil">›</span></a>`;
 }
@@ -481,8 +482,8 @@ function zeigeHallo(rows, name){
   const erfolge=[];
   const tests=rows.filter(e=>e.modus==="Test"), bestanden=tests.filter(e=>e.bestanden==="Ja");
   if(bestanden.length) erfolge.push(`🏅 ${bestanden.length}× Test bestanden`);
-  const mEtage=rows.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
-  if(mEtage) erfolge.push(`🏢 Etage ${mEtage}${Math.floor(mEtage/5)?` · ${Math.floor(mEtage/5)}× 🏅`:""}`);
+  const mEtage=rows.filter(e=>e.app==="turm"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  if(mEtage) erfolge.push(`🏙️ ${mEtage} ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(15,Math.floor(mEtage/5)+1)} Städte`);
   const runden=rows.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   if(runden) erfolge.push(`🏎️ ${runden} Runden gefahren`);
   const zooTiere=rows.filter(e=>e.app==="zoo").reduce((s,e)=>s+((e.tiere||[]).length),0);
@@ -513,7 +514,7 @@ function zeigeHallo(rows, name){
   }
   // 1) offene Fehleraufgaben
   const mitFehlern=Object.entries(proApp)
-    .filter(([a])=>SEITEN[a] && a!=="marathon" && a!=="rallye")
+    .filter(([a])=>SEITEN[a] && a!=="marathon" && a!=="rallye" && a!=="turm")
     .map(([a,r])=>[a, offeneFehler(r)+Wdh.zaehle(r).faellig, Wdh.zaehle(r).faellig])
     .filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
   if(mitFehlern.length){
@@ -561,9 +562,9 @@ function zeigeHallo(rows, name){
   // 5) Marathon / Rallye weiterziehen
   if(tipps.length<3 && mEtage){
     const naechste=(Math.floor(mEtage/5)+1)*5;
-    tipps.push(tippHTML("🏢", `Weiter im Rechen-Marathon`,
-      `Du stehst auf <b>Etage ${mEtage}</b>. Bis zur nächsten Prüfungsetage mit Medaille sind es noch <b>${naechste-mEtage}</b>.`,
-      SEITEN.marathon.datei, name));
+    tipps.push(tippHTML("🏙️", `Weiter am Wolkenkratzer`,
+      `Dein Hochhaus hat <b>${mEtage} ${mEtage===1?"Etage":"Etagen"}</b>. Noch <b>${naechste-mEtage}</b> bis zur nächsten Reise ✈️.`,
+      SEITEN.turm.datei, name));
   }
   if(tipps.length<3 && runden){
     const naechste=(Math.floor(runden/20)+1)*20;
@@ -594,7 +595,7 @@ const WUSSTEST=[
   {id:"meine",  ic:"🧠", wenn:r=>!r.some(e=>String(e.reihe)==="mine"), x:"In jedem Trainer gibt es <b>„Meine Aufgaben“</b>. Dort warten genau die Aufgaben, die dir noch schwerfallen – und du bekommst dafür <b>5 Sterne statt 3</b>."},
   {id:"test",   ic:"🏅", wenn:r=>!r.some(e=>e.modus==="Test"), x:"Hast du schon einen <b>Test</b> probiert? Ab 90 % gibt es eine Urkunde und einen <b>Gold-Stern</b>. Trau dich!"},
   {id:"wege",   ic:"🪜", wenn:r=>!istZu("halbschriftlich") && !r.some(e=>e.app==="halbschriftlich"), app:"halbschriftlich", x:"Warst du schon bei den <b>Rechenwegen</b>? Dort rechnest du Schritt für Schritt wie im Unterricht – auch Malaufgaben wie 6 × 15."},
-  {id:"tank",   ic:"⛽", wenn:r=>r.some(e=>e.app==="rallye"||e.app==="marathon"), x:"Tank leer? Ein <b>bestandener Test</b> bringt 30 Runden Sprit, ein <b>neues Thema</b> 20 und „Meine Aufgaben“ 15."},
+  {id:"tank",   ic:"⛽", wenn:r=>r.some(e=>e.app==="rallye"||e.app==="marathon"||e.app==="turm"), x:"Tank leer? Ein <b>bestandener Test</b> bringt 30 Runden Sprit, ein <b>neues Thema</b> 20 und „Meine Aufgaben“ 15."},
   {id:"emp",    ic:"⭐", x:"Wenn du das übst, was im Lernweg bei <b>„👉 jetzt dran“</b> steht, bekommst du die <b>Hälfte mehr Sterne</b>."},
   {id:"flamme", ic:"🔥", x:"Eine kurze Runde am Tag genügt – und deine <b>Lernflammen</b> wachsen. Bei 10 Flammen leuchtet dein Name in <b>Bronze</b>, bei 20 in Silber, bei 30 in Gold."},
   {id:"album",  ic:"📒", x:"Alle 10 Sterne öffnet sich ein <b>neuer Sticker</b>. Tippe oben auf <b>„Mein Album“</b> und schau, welche du schon hast."},
@@ -648,6 +649,7 @@ const NEUES=[
   {d:"2026-11-15", ic:"🔍", t:"Fehlende Zahl",                 x:"Eine neue Kachel: Lerne, wie die Zahlen heißen (Summand, Summe …) und finde die verlorene Zahl.", app:"platz"},
   {d:"2026-11-17", ic:"✍️", t:"Schriftlich rechnen",           x:"Eine neue Kachel: große Zahlen untereinander rechnen – Stelle für Stelle.", app:"schrift"},
   {d:"2026-11-17", ic:"📚", t:"Sachaufgaben in zwei Schritten", x:"Eine neue Kachel: Was war am Anfang? Und Aufgaben, bei denen man zweimal rechnen muss.", app:"sach2"},
+  {d:"2026-11-20", ic:"🏙️", t:"Mein Wolkenkratzer",            x:"Der Rechen-Marathon wird umgebaut! Neu: Bau dein eigenes Hochhaus, such dir für jede Etage ein Zimmer aus – und reise dabei um die Welt.", app:"turm"},
   {d:"2026-11-19", ic:"⚡", t:"Blitzrechnen",                  x:"Eine Minute – wie viele Aufgaben schaffst du? Zählen in Schritten, ergänzen, verdoppeln, Einmaleins. Jeden Tag ein Blitz, und du wirst immer schneller!", app:"blitz"},
   {d:"2026-11-18", ic:"🦁", t:"Mein Zoo – ein neues Spiel",   x:"Löse Aufgaben und sammle Tiere für deinen eigenen Zoo. Es gibt häufige, seltene und legendäre Tiere!", app:"zoo"},
   {d:"2026-11-18", ic:"📍", t:"Zahlenstrahl",                  x:"Eine eigene Kachel für den Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"strahl"},
@@ -794,11 +796,11 @@ function zeigeLernweg(){
   });
 
   // ===== Spiele =====
-  const mEtage=LW_ROWS.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
-  const mMal=LW_ROWS.filter(e=>e.app==="marathon").length;
+  const mEtage=LW_ROWS.filter(e=>e.app==="turm"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const mMal=LW_ROWS.filter(e=>e.app==="turm").length;
   const runden=LW_ROWS.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   const spiele=`<div class="lwSpiele">
-     <div class="lwSpiel">🏢 <b>Rechen-Marathon</b><br>${mMal ? `Etage <b>${mEtage}</b>${Math.floor(mEtage/5)?` · ${Math.floor(mEtage/5)}× 🏅`:""}` : "noch nicht gespielt"}</div>
+     <div class="lwSpiel">🏙️ <b>Mein Wolkenkratzer</b><br>${mMal ? `<b>${mEtage}</b> ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(15,Math.floor(mEtage/5)+1)} Städte` : "noch nicht gebaut"}</div>
      <div class="lwSpiel">🏎️ <b>Rechen-Rallye</b><br>${runden ? `<b>${runden}</b> Runde${runden===1?"":"n"} gefahren` : "noch nicht gespielt"}</div>
    </div>`;
   const vielGespielt = (mMal+runden)>=5;

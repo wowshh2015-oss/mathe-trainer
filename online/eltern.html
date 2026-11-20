@@ -106,9 +106,9 @@ function zeige(name, alle){
     const b=new Set(x.filter(e=>e.modus==="Test" && e.bestanden==="Ja").map(e=>+e.zr)).size;
     return `<tr><td><b>${ic} ${label}</b></td><td>${x.length}× geübt</td><td><b>${b}</b> von ${max} Stufen mit Test bestanden</td></tr>`; }).join("");
 
-  const etage=r.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const etage=r.filter(e=>e.app==="turm"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
   const runden=r.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
-  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye").length, lern=r.length-spiel;
+  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye"||e.app==="turm").length, lern=r.length-spiel;
 
   let tipp;
   if(!cur) tipp=`${esc(name)} hat alle sechs Stufen des Lernwegs gefestigt – herzlichen Glückwunsch! Zum Wachhalten eignen sich jetzt „Meine Aufgaben“ und die beiden Spiele.`;

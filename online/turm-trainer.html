@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mein Wolkenkratzer">
+<title>Mein Wolkenkratzer</title>
+<script src="anmeldung.js"></script>
+<script src="komfort.js"></script>
+<script src="wiederholung.js"></script>
+<script src="sterne.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#0284c7; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#123a5a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px}
+  .app{width:100%;max-width:680px}
+  h1{font-size:28px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:18px;font-weight:700;padding:15px 20px;color:#042433;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
+  button:hover{filter:brightness(1.08)} button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%} button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button.klein{font-size:15px;padding:10px 14px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px} .chips .lbl{color:var(--muted);font-size:12px;width:100%}
+  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .etagenbadge{font-size:30px;font-weight:800;line-height:1.05}
+  .etagenbadge small{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-top:3px}
+  .pill{display:inline-block;background:rgba(56,189,248,.14);color:#7dd3fc;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .pill.gold{background:rgba(251,191,36,.15);color:#fde68a}
+  /* Turm */
+  .turmBox{border-radius:16px;overflow:auto;max-height:520px;border:1px solid #23304a;background:#7dd3fc;-webkit-overflow-scrolling:touch}
+  .turmBox svg{display:block;width:100%;height:auto}
+  .reihe{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px} .reihe button{flex:1}
+  .herzen{font-size:26px;letter-spacing:3px} .herzen .weg{opacity:.25;filter:grayscale(1)}
+  .fortschritt{display:flex;gap:5px;margin:0 0 18px} .fortschritt i{flex:1;height:8px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.ok{background:var(--good);border-color:var(--good)}
+  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px} .frage.lang{font-size:30px;letter-spacing:0}
+  .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
+  .antwortzeile{display:flex;gap:12px} .antwortzeile input{flex:1;font-size:30px;text-align:center}
+  .rueck{min-height:28px;text-align:center;font-size:18px;font-weight:700;margin-top:14px}
+  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.5}
+  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px} .credit a{color:var(--muted)}
+  /* Zimmer wählen */
+  .wahl3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+  .zk{background:#0b1220;border:2px solid #334155;border-radius:16px;padding:12px 6px;text-align:center;cursor:pointer;color:var(--text);font-weight:700;font-size:14px}
+  .zk .b{font-size:42px;line-height:1.15;display:block} .zk .w{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:3px}
+  .zk.s2{border-color:#38bdf8} .zk.s3{border-color:#fde047;box-shadow:0 0 14px rgba(253,224,71,.4)}
+  .zk:hover{transform:translateY(-2px)}
+  /* Reise */
+  .flug{position:relative;height:120px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#38bdf8,#bae6fd);margin:8px 0 12px}
+  .flug .flz{position:absolute;top:34px;left:-60px;font-size:44px;animation:flieg 2.6s ease-in-out forwards}
+  @keyframes flieg{ to{ left:calc(100% - 70px); transform:translateY(-14px)} }
+  .flug .ziel{position:absolute;right:14px;bottom:8px;font-size:52px;opacity:0;animation:auftauchen .6s 2.3s forwards}
+  .flug .wolk{position:absolute;color:#fff;font-size:30px;opacity:.85}
+  @keyframes auftauchen{ to{opacity:1} }
+  .stempel{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:120px;height:120px;border-radius:50%;border:5px double #e11d48;color:#fecdd3;
+    transform:rotate(-12deg) scale(.2);opacity:0;animation:stempeln .5s 2.6s cubic-bezier(.2,1.6,.4,1) forwards;font-weight:800;text-align:center;font-size:15px;line-height:1.15}
+  .stempel b{font-size:38px;display:block}
+  @keyframes stempeln{ to{ transform:rotate(-12deg) scale(1); opacity:1 } }
+  /* Reisepass */
+  .pass{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:10px}
+  .pst{border-radius:14px;padding:10px 4px;text-align:center;background:#0b1220;border:2px dashed #334155;color:#64748b;font-size:13px;font-weight:700;cursor:default}
+  .pst .b{font-size:34px;display:block;line-height:1.2;filter:grayscale(1);opacity:.35}
+  .pst.da{border:2px solid var(--c);color:#f1f5f9;cursor:pointer} .pst.da .b{filter:none;opacity:1}
+  .fakt{margin-top:10px}
+  .daecher{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
+  .dk{background:#0b1220;border:2px solid #334155;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--text)}
+  .dk svg{width:100%;height:70px;display:block} .dk.an{border-color:#fbbf24}
+  .dk.zu{opacity:.4;cursor:default}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🏙️ Mein Wolkenkratzer</h1>
+  <p class="sub">Bau dein eigenes Hochhaus – und reise dabei einmal um die Welt.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <label for="name">Name des Kindes</label>
+    <input type="text" id="name" placeholder="z. B. Anna" autocomplete="off">
+    <div class="chips" id="nameChips"></div>
+    <div id="turmBox" class="hide" style="margin-top:18px">
+      <div class="kopf">
+        <div class="etagenbadge" id="etageGross">1. Stock<small id="etageStufe"></small></div>
+        <div style="text-align:right" id="kopfRechts"></div>
+      </div>
+      <div class="turmBox" id="turm"></div>
+      <div id="tankZeile" style="margin-top:14px"></div>
+      <button class="full" id="startBtn" style="margin-top:14px">Etage starten ▶</button>
+      <div class="reihe">
+        <button class="ghost klein" id="passBtn">🛂 Mein Reisepass</button>
+        <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
+      </div>
+      <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Aufgaben</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
+        ✈️ Jede <b>5. Etage</b> ist eine <b>Reise-Etage</b>: Du fliegst in eine neue Stadt, bekommst einen Stempel in deinen Reisepass – und baust die nächsten Etagen im Stil dieser Stadt.<br>
+        🏗️ Jede <b>25. Etage</b> bringt ein neues Dach.</div>
+      <div class="status" id="status">Verbinde …</div>
+    </div>
+  </div>
+
+  <!-- ===== PASS / DACH ===== -->
+  <div id="extra" class="card hide">
+    <div class="gross" id="extraTitel"></div>
+    <div id="extraInhalt"></div>
+    <button class="ghost full" id="extraZu" style="margin-top:16px">← Zurück zum Turm</button>
+  </div>
+
+  <!-- ===== SPIEL ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf"><div><span class="pill" id="spielEtage">Etage 1</span></div><div class="herzen" id="herzen"></div></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="frage" id="frage">7 + 8</div>
+    <div class="antwortzeile"><input type="text" id="antwort" inputmode="numeric" autocomplete="off" placeholder="?"><button id="okBtn">OK</button></div>
+    <div class="rueck" id="rueck"></div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="ergebnis" class="card hide">
+    <div class="gross" id="ergTitel"></div>
+    <div id="ergOben"></div>
+    <div class="turmBox" id="turm2" style="max-height:340px"></div>
+    <div class="info" id="ergText" style="margin-top:14px"></div>
+    <div class="reihe"><button id="weiterBtn"></button><button class="ghost" id="endeBtn">🏠 Turm</button></div>
+  </div>
+
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="tank.js"></script>
+<script src="turm.js"></script>
+<script>
+//// ===== Verbindung =====
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="turm", PRO_ETAGE=8, HERZEN=3, REISE=5, DACH=25;
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false, ANDERE=[], tankBereit=false;
+let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], startZeit=0, letzteId=null;
+
+//// ===== Die Weltreise =====
+// Jede 5. Etage fliegt man weiter. Die nächsten Etagen werden im Stil der neuen Stadt gebaut.
+// Neue Städte (Wunsch eines Kindes) einfach hinten anfügen.
+const STAEDTE=TurmDaten.STAEDTE;
+// Stadt, in deren Stil Etage e gebaut wird (Etage 1–5: Hamburg, 6–10: Stadt 2 …). Nach der Weltreise geht es wieder von vorn.
+function stadtNr(e){ return Math.floor((e-1)/REISE) % STAEDTE.length; }
+function stilVon(e){ return STAEDTE[stadtNr(e)]; }
+function istReise(e){ return e%REISE===0; }
+function zielStadt(e){ return STAEDTE[(e/REISE) % STAEDTE.length]; }          // wohin man nach der Reise-Etage e fliegt
+function runde(e){ return Math.floor((e-1)/(REISE*STAEDTE.length))+1; }
+
+//// ===== Zimmer =====  1 = häufig, 2 = selten ⭐, 3 = legendär 🌟
+const ZIMMER=TurmDaten.ZIMMER;
+const ZN={}; ZIMMER.forEach(z=>ZN[z[0]]=z);
+const SW=["","","⭐ selten","🌟 legendär"];
+function dreiZimmer(besitz){
+  const l=[], nimm=s=>{ const pool=ZIMMER.filter(z=>z[3]===s && !l.includes(z)), neu=pool.filter(z=>!besitz[z[0]]); const w=(neu.length && Math.random()<0.75)?neu:pool; return w[Math.floor(Math.random()*w.length)]; };
+  for(let i=0;i<3;i++){ const r=Math.random(); l.push(nimm(r<0.08?3:r<0.33?2:1)); }
+  return l;
+}
+//// ===== Dächer (jede 25. Etage eines mehr) =====
+const DAECHER=TurmDaten.DAECHER;
+
+//// ===== Etagen-Plan (wie im Rechen-Marathon) =====
+const PLAN=[
+  {bis:3,   typen:["plus20ohne","minus20ohne"],                          label:"Plus & Minus bis 20"},
+  {bis:6,   typen:["plus20","minus20","zerlegen20"],                     label:"bis 20 mit Übergang & Zerlegen"},
+  {bis:10,  typen:["plus100","minus100"],                                label:"Plus & Minus bis 100"},
+  {bis:15,  typen:["plus100","minus100","zerlegen100","zehnerschritt"],  label:"bis 100 gemischt"},
+  {bis:20,  typen:["mal"],                                               label:"Einmaleins"},
+  {bis:25,  typen:["mal","geteilt"],                                     label:"Einmaleins & Einsdurcheins"},
+  {bis:30,  typen:["plus100","minus100","mal","geteilt","einerschritt"], label:"alles gemischt"},
+  {bis:60,  typen:["plus1000","minus1000","mal","geteilt","zerlegen100","zehnerschritt","einerschritt"], label:"alles bis 1000"},
+  {bis:120, typen:["malZehner","geteiltZehner","plus1000","minus1000"],  label:"Mal & Geteilt mit Zehnerzahlen"},
+  {bis:200, typen:["platzMal","platzGeteilt","mal","geteilt"],           label:"Umkehraufgaben – finde die Lücke"},
+  {bis:300, typen:["grossMal","verdoppeln","halbieren","malZehner"],     label:"Großes Einmaleins"},
+  {bis:9999,typen:["grossMal","malZehner","geteiltZehner","platzMal","platzGeteilt","verdoppeln","halbieren","plus1000","minus1000"], label:"Meister-Etagen"}
+];
+function planFuer(e){ return PLAN.find(p=>e<=p.bis) || PLAN[PLAN.length-1]; }
+function typenFuer(e){ if(!istReise(e)) return planFuer(e).typen; const i=PLAN.indexOf(planFuer(e)), s=new Set(); PLAN.slice(0,i+1).forEach(p=>p.typen.forEach(t=>s.add(t))); return [...s]; }
+function stufenText(e){ return istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : planFuer(e).label; }
+
+//// ===== Aufgaben =====
+function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+function carries(a,b){ while(a>0||b>0){ if(a%10+b%10>=10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+function borrows(a,b){ while(b>0){ if(a%10<b%10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+const BOX='<span class="blank">?</span>';
+function mkPlus(zr,ueb){ for(let i=0;i<500;i++){ const a=rnd(1,zr-1), b=rnd(1,zr-1); if(a+b>zr) continue; const c=carries(a,b); if(ueb==="ohne"&&c) continue; if(ueb==="mit"&&!c) continue;
+    return {html:`${a} + ${b}`, text:`${a} + ${b}`, antwort:a+b, key:Math.min(a,b)+"+"+Math.max(a,b)}; } return {html:"1 + 1", text:"1 + 1", antwort:2, key:"1+1"}; }
+function mkMinus(zr,ueb){ for(let i=0;i<500;i++){ const a=rnd(2,zr), b=rnd(1,a-1), c=borrows(a,b); if(ueb==="ohne"&&c) continue; if(ueb==="mit"&&!c) continue;
+    return {html:`${a} − ${b}`, text:`${a} − ${b}`, antwort:a-b, key:a+"−"+b}; } return {html:"2 − 1", text:"2 − 1", antwort:1, key:"2−1"}; }
+function mkMal(){ const a=rnd(1,10), b=rnd(1,10); return {html:`${a} · ${b}`, text:`${a} · ${b}`, antwort:a*b, key:Math.min(a,b)+"·"+Math.max(a,b)}; }
+function mkGeteilt(){ const a=rnd(1,10), b=rnd(1,10); return {html:`${a*b} : ${b}`, text:`${a*b} : ${b}`, antwort:a, key:(a*b)+":"+b}; }
+function mkZerlegen(zr){
+  if(zr===20){ const z=rnd(11,20), t=rnd(Math.max(1,z-10), Math.min(10,z-1)), f=Math.random()<0.5;
+    return {html: f?`${t} + ${BOX} = ${z}`:`${z} = ${t} + ${BOX}`, text:`${z} = ${t} + ?`, antwort:z-t, key:z+"="+t}; }
+  for(let i=0;i<60;i++){ const a=rnd(11,99); if(a%10===0) continue; const z=Math.random()<0.3?100:Math.ceil(a/10)*10;
+    return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a}; }
+  return {html:`67 + ${BOX} = 70`, text:"67 + ? = 70", antwort:3, key:"70=67"};
+}
+function mkZehnerschritt(){ if(Math.random()<0.5){ const a=rnd(11,79), z=rnd(1,Math.max(1,Math.floor((100-a)/10)))*10; return {html:`${a} + ${z}`, text:`${a} + ${z}`, antwort:a+z, key:Math.min(a,z)+"+"+Math.max(a,z)}; }
+  const a=rnd(21,99), z=rnd(1,Math.floor(a/10))*10; return {html:`${a} − ${z}`, text:`${a} − ${z}`, antwort:a-z, key:a+"−"+z}; }
+function mkEinerschritt(){
+  if(Math.random()<0.5){ for(let i=0;i<300;i++){ const a=rnd(11,94), e=rnd(2,9); if(a%10===0 || a%10+e<10 || a+e>100) continue; return {html:`${a} + ${e}`, text:`${a} + ${e}`, antwort:a+e, key:Math.min(a,e)+"+"+Math.max(a,e)}; } return {html:"67 + 5", text:"67 + 5", antwort:72, key:"5+67"}; }
+  for(let i=0;i<300;i++){ const a=rnd(11,99), e=rnd(2,9); if(a%10===0 || a%10>=e) continue; return {html:`${a} − ${e}`, text:`${a} − ${e}`, antwort:a-e, key:a+"−"+e}; }
+  return {html:"52 − 5", text:"52 − 5", antwort:47, key:"52−5"};
+}
+function mkMalZehner(){ const a=rnd(2,9), z=rnd(2,9)*10, f=Math.random()<0.5; return {html: f?`${a} · ${z}`:`${z} · ${a}`, text: f?`${a} · ${z}`:`${z} · ${a}`, antwort:a*z, key:a+"·"+z}; }
+function mkGeteiltZehner(){ const a=rnd(2,9), b=rnd(2,9), p=a*b*10;
+  return Math.random()<0.5 ? {html:`${p} : ${b*10}`, text:`${p} : ${b*10}`, antwort:a, key:p+":"+(b*10)} : {html:`${p} : ${b}`, text:`${p} : ${b}`, antwort:a*10, key:p+":"+b}; }
+function mkPlatzMal(){ const a=rnd(2,10), b=rnd(2,10), k=Math.min(a,b)+"·"+Math.max(a,b);
+  return Math.random()<0.5 ? {html:`${a} · ${BOX} = ${a*b}`, text:`${a} · ? = ${a*b}`, antwort:b, key:k} : {html:`${BOX} · ${b} = ${a*b}`, text:`? · ${b} = ${a*b}`, antwort:a, key:k}; }
+function mkPlatzGeteilt(){ const a=rnd(2,10), b=rnd(2,10), p=a*b; return {html:`${p} : ${BOX} = ${a}`, text:`${p} : ? = ${a}`, antwort:b, key:p+":"+b}; }
+function mkGrossMal(){ const a=rnd(11,20), b=rnd(2,9); return {html:`${a} · ${b}`, text:`${a} · ${b}`, antwort:a*b, key:a+"·"+b}; }
+function mkVerdoppeln(){ const n=rnd(11,250); return {html:`Das Doppelte von ${n}`, text:`Doppelte von ${n}`, antwort:n*2, key:"D"+n}; }
+function mkHalbieren(){ const n=rnd(6,150)*2; return {html:`Die Hälfte von ${n}`, text:`Hälfte von ${n}`, antwort:n/2, key:"H"+n}; }
+function mkTyp(t){ switch(t){
+  case "plus20ohne": return mkPlus(20,"ohne"); case "minus20ohne": return mkMinus(20,"ohne"); case "plus20": return mkPlus(20,"mit"); case "minus20": return mkMinus(20,"mit");
+  case "plus100": return mkPlus(100,"egal"); case "minus100": return mkMinus(100,"egal"); case "plus1000": return mkPlus(1000,"egal"); case "minus1000": return mkMinus(1000,"egal");
+  case "mal": return mkMal(); case "geteilt": return mkGeteilt(); case "zerlegen20": return mkZerlegen(20); case "zerlegen100": return mkZerlegen(100);
+  case "malZehner": return mkMalZehner(); case "geteiltZehner": return mkGeteiltZehner(); case "platzMal": return mkPlatzMal(); case "platzGeteilt": return mkPlatzGeteilt();
+  case "grossMal": return mkGrossMal(); case "verdoppeln": return mkVerdoppeln(); case "halbieren": return mkHalbieren(); case "zehnerschritt": return mkZehnerschritt(); case "einerschritt": return mkEinerschritt(); }
+  return mkPlus(20,"ohne"); }
+function baueAufgaben(e){ const typen=typenFuer(e), q=[], seen=new Set(); let g=0;
+  while(q.length<PRO_ETAGE+6 && g++<800){ const t=mkTyp(typen[Math.floor(Math.random()*typen.length)]); if(seen.has(t.key)) continue; seen.add(t.key); q.push(t); }
+  while(q.length<PRO_ETAGE+6) q.push(mkTyp(typen[0])); return q; }
+
+//// ===== Stand aus den gespeicherten Etagen =====
+function geschafft(){ return MEINE.filter(e=>e.bestanden==="Ja" && +e.etage>0); }
+function hoechste(){ return geschafft().reduce((m,e)=>Math.max(m,+e.etage),0); }
+function zimmerVon(){ const z={}; geschafft().sort((a,b)=>(a._t||0)-(b._t||0)).forEach(e=>{ if(e.zimmer) z[+e.etage]=e.zimmer; }); return z; }
+function besitz(){ const b={}; Object.values(zimmerVon()).forEach(id=>b[id]=(b[id]||0)+1); return b; }
+function dachKey(){ return "turm_dach_"+String(playerName).toLowerCase(); }
+function daecherOffen(h){ return Math.min(DAECHER.length, 1+Math.floor(h/DACH)); }
+function aktDach(h){ let d=null; try{ d=localStorage.getItem(dachKey()); }catch(e){} const n=daecherOffen(h); const i=DAECHER.findIndex(x=>x[0]===d); return i>=0 && i<n ? DAECHER[i][0] : DAECHER[n-1][0]; }
+
+//// ===== Der Turm (SVG) =====
+const W=300, TX=50, TW=200, EH=46, LOBBY=34;
+function himmelFarbe(e){ const st=[[0,"#7dd3fc"],[20,"#93c5fd"],[45,"#fbcfe8"],[70,"#fb923c"],[95,"#7c3aed"],[125,"#1e1b4b"],[160,"#020617"]];
+  let a=st[0], b=st[st.length-1]; for(let i=0;i<st.length-1;i++) if(e>=st[i][0] && e<=st[i+1][0]){ a=st[i]; b=st[i+1]; break; }
+  if(e>st[st.length-1][0]) return b[1]; const t=(e-a[0])/((b[0]-a[0])||1), h=x=>parseInt(x,16), c1=a[1], c2=b[1];
+  const m=k=>Math.round(h(c1.substr(k,2))*(1-t)+h(c2.substr(k,2))*t).toString(16).padStart(2,"0"); return "#"+m(1)+m(3)+m(5); }
+function fensterForm(st,x,y,w,h,an){ const f=an?"#fde68a":"#1e293b", r=st.rahmen;
+  switch(st.fenster){
+    case "bogen": return `<path d="M${x} ${y+h} V${y+w/2} A${w/2} ${w/2} 0 0 1 ${x+w} ${y+w/2} V${y+h} Z" fill="${f}" stroke="${r}" stroke-width="2"/>`;
+    case "spitz": return `<path d="M${x} ${y+h} V${y+w*0.6} Q${x} ${y+2} ${x+w/2} ${y} Q${x+w} ${y+2} ${x+w} ${y+w*0.6} V${y+h} Z" fill="${f}" stroke="${r}" stroke-width="2"/>`;
+    case "klein": return `<rect x="${x+w*0.2}" y="${y+h*0.25}" width="${w*0.6}" height="${h*0.5}" fill="${f}" stroke="${r}" stroke-width="2"/>`;
+    case "hoch":  return `<rect x="${x+w*0.15}" y="${y-2}" width="${w*0.7}" height="${h+4}" rx="2" fill="${f}" stroke="${r}" stroke-width="2"/>`;
+    case "papier":return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${an?"#fff7ed":"#44403c"}" stroke="${r}" stroke-width="2"/><path d="M${x+w/2} ${y} V${y+h} M${x} ${y+h/2} H${x+w}" stroke="#7f1d1d" stroke-width="1.5"/>`;
+    case "glas":  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${an?"#bae6fd":"#0c4a6e"}" stroke="${r}" stroke-width="2"/><path d="M${x+3} ${y+h-3} L${x+w-3} ${y+3}" stroke="#fff" stroke-width="1.2" opacity=".7"/>`;
+    default:      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${f}" stroke="${r}" stroke-width="2"/><path d="M${x+w/2} ${y} V${y+h} M${x} ${y+h/2} H${x+w}" stroke="${r}" stroke-width="1.2" opacity=".8"/>`;
+  } }
+function deko(st,y,e,oben){ const d=st.deko; let s="";
+  if(d==="ziegel") for(let r=0;r<3;r++) for(let k=0;k<10;k++){ const yy=y+6+r*14, xx=TX+(k*20)+(r%2?10:0); if(xx<TX+TW-4) s+=`<rect x="${xx}" y="${yy}" width="${Math.min(18,TX+TW-xx)}" height="2" fill="#7f2a1d" opacity=".55"/>`; }
+  if(d==="kacheln") for(let k=0;k<12;k++){ const xx=TX+8+k*16; s+=`<path d="M${xx} ${y+EH-6} l5 -5 l5 5 l-5 5 z" fill="${st.kante}" opacity=".85"/>`; }
+  if(d==="kente") ["#dc2626","#facc15","#16a34a","#0f172a"].forEach((c,i)=>{ s+=`<rect x="${TX}" y="${y+EH-10+i*2.2}" width="${TW}" height="2.2" fill="${c}"/>`; });
+  if(d==="streifen") for(let r=0;r<EH;r+=8) s+=`<rect x="${TX}" y="${y+r}" width="${TW}" height="4" fill="#a8a29e" opacity=".55"/>`;
+  if(d==="gold") s+=`<rect x="${TX}" y="${y+EH-5}" width="${TW}" height="3" fill="${st.kante}"/>`;
+  if(d==="laden") [TX+18,TX+TW-48].forEach(x=>{ s+=`<rect x="${x-9}" y="${y+9}" width="7" height="26" fill="#166534"/><rect x="${x+32}" y="${y+9}" width="7" height="26" fill="#166534"/>`; });
+  if(d==="zacken") for(let k=0;k<10;k++){ const xx=TX+k*20; s+=`<path d="M${xx} ${y+EH-3} l10 -7 l10 7 z" fill="${st.kante}" opacity=".9"/>`; }
+  if(d==="balkon") [TX+18,TX+TW-48].forEach(x=>{ s+=`<path d="M${x-4} ${y+34} H${x+34} M${x-4} ${y+40} H${x+34} ${[0,6,12,18,24,30].map(o=>`M${x-2+o} ${y+34} V${y+40}`).join(" ")}" stroke="#0f172a" stroke-width="1.6"/>`; });
+  if(d==="saeulen") [TX+6,TX+TW-12].forEach(x=>{ s+=`<rect x="${x}" y="${y+2}" width="6" height="${EH-4}" fill="${st.kante}"/>`; });
+  if(d==="wellen") s+=`<path d="M${TX} ${y+EH-6} ${Array.from({length:10},(_,k)=>`q5 -5 10 0 q5 5 10 0`).join(" ")}" stroke="${st.kante}" stroke-width="2.4" fill="none"/>`;
+  if(d==="artdeco") [TX+4,TX+TW-8,TX+TW/2-2].forEach(x=>{ s+=`<rect x="${x}" y="${y}" width="4" height="${EH}" fill="${st.kante}" opacity=".8"/>`; });
+  if(d==="segel") s+=`<path d="M${TX} ${y+EH} L${TX+30} ${y} L${TX+30} ${y+EH} Z" fill="#e0f2fe" opacity=".7"/>`;
+  if(d==="zinnen" && oben) for(let k=0;k<10;k++) s+=`<rect x="${TX+k*20+2}" y="${y-8}" width="12" height="9" fill="${st.wand}"/>`;
+  if(d==="pagode" && oben) s+=`<path d="M${TX-16} ${y+2} Q${TX+TW/2} ${y-10} ${TX+TW+16} ${y+2} L${TX+TW} ${y+6} L${TX} ${y+6} Z" fill="${st.kante}"/>`;
+  return s; }
+function etageSVG(e,y,z){ const st=stilVon(e), oben = e%REISE===0;
+  let s=`<rect x="${TX}" y="${y}" width="${TW}" height="${EH}" fill="${st.wand}"/>`+deko(st,y,e,oben);
+  s+=`<rect x="${TX}" y="${y+EH-2}" width="${TW}" height="2" fill="${st.kante}" opacity=".9"/>`;
+  if(istReise(e)){
+    const ziel=zielStadt(e);
+    s+=`<rect x="${TX+14}" y="${y+6}" width="${TW-28}" height="${EH-12}" rx="6" fill="#0b1220" stroke="${ziel.c}" stroke-width="2.5"/>`+
+       `<text x="${TX+34}" y="${y+EH/2+8}" font-size="22" text-anchor="middle">✈️</text><text x="${TX+TW-34}" y="${y+EH/2+9}" font-size="24" text-anchor="middle">${ziel.b}</text>`+
+       `<text x="${TX+TW/2}" y="${y+EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="#f1f5f9" font-family="Segoe UI,Arial">${esc(ziel.name)}</text>`;
+  }else{
+    s+=fensterForm(st,TX+18,y+9,30,26,true)+fensterForm(st,TX+TW-48,y+9,30,26,true);
+    s+=`<rect x="${TX+TW/2-24}" y="${y+5}" width="48" height="34" rx="4" fill="#fef9c3" stroke="${st.rahmen}" stroke-width="2.5"/>`;
+    const zi=ZN[z]; s+= zi ? `<text x="${TX+TW/2}" y="${y+31}" font-size="24" text-anchor="middle">${zi[1]}</text>` : `<text x="${TX+TW/2}" y="${y+29}" font-size="14" text-anchor="middle" fill="#94a3b8" font-family="Arial">?</text>`;
+  }
+  s+=`<text x="${TX-6}" y="${y+EH/2+4}" font-size="11" font-weight="800" text-anchor="end" fill="${e>=85?"#e2e8f0":"#0f172a"}" opacity="${e>=85?.8:.55}" font-family="Segoe UI,Arial">${e}</text>`;
+  return s; }
+function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
+  switch(id){
+    case "spitze": return `<path d="M${TX+20} ${y} L${m} ${y-90} L${TX+TW-20} ${y} Z" fill="#475569"/><path d="M${m} ${y-90} V${y-120}" stroke="#fbbf24" stroke-width="3"/><circle cx="${m}" cy="${y-122}" r="4" fill="#fbbf24"/>`;
+    case "kuppel": return `<rect x="${TX+30}" y="${y-14}" width="${TW-60}" height="14" fill="#e2e8f0"/><path d="M${TX+40} ${y-14} A${TW/2-40} ${TW/2-40} 0 0 1 ${TX+TW-40} ${y-14} Z" fill="#fbbf24" stroke="#b45309" stroke-width="2"/><path d="M${m} ${y-14-(TW/2-40)} V${y-30-(TW/2-40)}" stroke="#b45309" stroke-width="3"/>`;
+    case "garten": return `<rect x="${TX}" y="${y-8}" width="${TW}" height="8" fill="#15803d"/>`+[30,70,120,165].map((x,i)=>`<rect x="${TX+x-2}" y="${y-30}" width="4" height="22" fill="#78350f"/><circle cx="${TX+x}" cy="${y-34}" r="${12+i%2*4}" fill="${i%2?"#16a34a":"#22c55e"}"/>`).join("")+`<text x="${m}" y="${y-12}" font-size="14" text-anchor="middle">🌷🌼</text>`;
+    case "heli": return `<rect x="${TX+10}" y="${y-8}" width="${TW-20}" height="8" fill="#334155"/><ellipse cx="${m}" cy="${y-8}" rx="56" ry="10" fill="#475569"/><text x="${m}" y="${y-3}" font-size="14" font-weight="900" text-anchor="middle" fill="#fde047" font-family="Arial">H</text><text x="${m+40}" y="${y-22}" font-size="30" text-anchor="middle">🚁</text>`;
+    case "stern": return `<rect x="${TX+50}" y="${y-22}" width="${TW-100}" height="22" fill="#cbd5e1"/><path d="M${TX+50} ${y-22} A${TW/2-50} ${TW/2-50} 0 0 1 ${TX+TW-50} ${y-22} Z" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/><path d="M${m} ${y-50} L${m+40} ${y-80}" stroke="#334155" stroke-width="8" stroke-linecap="round"/><text x="${m+56}" y="${y-84}" font-size="16">✨</text>`;
+    case "fahne": return `<rect x="${TX+70}" y="${y-30}" width="${TW-140}" height="30" fill="#94a3b8"/><path d="M${m} ${y-30} V${y-100}" stroke="#334155" stroke-width="3"/><path d="M${m} ${y-100} q20 -6 40 4 q-20 10 -40 4 Z" fill="${c}"/>`;
+    case "rad": return `<rect x="${TX}" y="${y-6}" width="${TW}" height="6" fill="#334155"/><circle cx="${m}" cy="${y-52}" r="44" fill="none" stroke="#f472b6" stroke-width="4"/>`+Array.from({length:8},(_,k)=>{ const a=k*Math.PI/4; return `<path d="M${m} ${y-52} L${(m+44*Math.cos(a)).toFixed(1)} ${(y-52+44*Math.sin(a)).toFixed(1)}" stroke="#f9a8d4" stroke-width="2"/><circle cx="${(m+44*Math.cos(a)).toFixed(1)}" cy="${(y-52+44*Math.sin(a)).toFixed(1)}" r="6" fill="${["#38bdf8","#fbbf24","#22c55e","#a78bfa"][k%4]}"/>`; }).join("")+`<path d="M${m-30} ${y-6} L${m} ${y-52} L${m+30} ${y-6}" stroke="#334155" stroke-width="4" fill="none"/>`;
+    case "burg": return [TX+10,m-18,TX+TW-46].map(x=>`<rect x="${x}" y="${y-56}" width="36" height="56" fill="#a8a29e" stroke="#57534e"/>`+[0,1,2].map(k=>`<rect x="${x+k*13}" y="${y-64}" width="10" height="9" fill="#a8a29e" stroke="#57534e"/>`).join("")+`<path d="M${x+18} ${y-64} V${y-86}" stroke="#57534e" stroke-width="2"/><path d="M${x+18} ${y-86} l14 5 l-14 5 z" fill="${c}"/>`).join("");
+    case "krone": return `<path d="M${TX+20} ${y} L${TX+20} ${y-50} L${TX+60} ${y-22} L${m} ${y-70} L${TX+TW-60} ${y-22} L${TX+TW-20} ${y-50} L${TX+TW-20} ${y} Z" fill="#fbbf24" stroke="#b45309" stroke-width="3"/>`+[TX+20,m,TX+TW-20].map((x,i)=>`<circle cx="${x}" cy="${y-(i===1?72:52)}" r="7" fill="${["#ef4444","#3b82f6","#22c55e"][i]}"/>`).join("");
+    default: return `<rect x="${TX-6}" y="${y-8}" width="${TW+12}" height="8" fill="#334155"/><path d="M${TX+TW-40} ${y-8} V${y-56}" stroke="#475569" stroke-width="3"/><path d="M${TX+TW-52} ${y-44} H${TX+TW-28} M${TX+TW-48} ${y-34} H${TX+TW-32}" stroke="#475569" stroke-width="2.5"/><circle cx="${TX+TW-40}" cy="${y-58}" r="3.5" fill="#ef4444"/>`;
+  } }
+// Ganzer Turm: gebaute Etagen, darüber das Dach und (gestrichelt) die nächste Etage mit Kran
+function turmSVG(h, z, dach, neu){
+  const oben=150, unten=70+LOBBY, H=oben+(h+1)*EH+unten; let s="";
+  for(let e=0;e<=h+4;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
+  s+=`<rect x="0" y="0" width="${W}" height="${oben}" fill="${himmelFarbe(h+4)}"/>`;
+  for(let e=1;e<=h+4;e++){ const y=H-unten-e*EH; if(e>110 && e%2===0) s+=`<circle cx="${(e*53)%280+10}" cy="${y+12}" r="1.6" fill="#fff"/><circle cx="${(e*97)%280+10}" cy="${y+30}" r="1.1" fill="#fff"/>`;
+    else if(e>4 && e<100 && e%6===0) s+=`<g fill="#fff" opacity=".85"><ellipse cx="${(e*41)%220+20}" cy="${y+20}" rx="26" ry="9"/><ellipse cx="${(e*41)%220+38}" cy="${y+14}" rx="16" ry="9"/></g>`; }
+  const gr=H-70;      // Höhe des Bodens
+  s+=`<rect x="0" y="${gr}" width="${W}" height="70" fill="#4ade80"/><rect x="0" y="${gr+24}" width="${W}" height="46" fill="#475569"/><path d="M0 ${gr+46} H${W}" stroke="#facc15" stroke-width="2.5" stroke-dasharray="14 10"/>`;
+  s+=`<text x="22" y="${gr+20}" font-size="20">🌳</text><text x="258" y="${gr+20}" font-size="20">🌳</text>`;
+  // Erdgeschoss: Eingangshalle mit Glastür und Schild
+  s+=`<rect x="${TX-6}" y="${gr-LOBBY}" width="${TW+12}" height="${LOBBY}" fill="#334155"/><rect x="${TX-10}" y="${gr-LOBBY-5}" width="${TW+20}" height="6" rx="2" fill="#0f172a"/>`+
+     `<rect x="${TX+TW/2-22}" y="${gr-LOBBY+8}" width="44" height="${LOBBY-8}" fill="#bae6fd" stroke="#e2e8f0" stroke-width="2"/><path d="M${TX+TW/2} ${gr-LOBBY+8} V${gr}" stroke="#e2e8f0" stroke-width="2"/>`+
+     `<rect x="${TX+10}" y="${gr-LOBBY+10}" width="44" height="16" rx="3" fill="#7dd3fc" opacity=".55"/><rect x="${TX+TW-54}" y="${gr-LOBBY+10}" width="44" height="16" rx="3" fill="#7dd3fc" opacity=".55"/>`;
+  for(let e=1;e<=h;e++){ const y=H-unten-e*EH; s+=`<g${neu===e?' class="neuEtage"':""}>${etageSVG(e,y,z[e])}</g>`; }
+  const yTop=H-unten-h*EH, hell = h+1>=85 ? "#e2e8f0" : "#0f172a";
+  s+=`<rect x="${TX}" y="${yTop-EH}" width="${TW}" height="${EH}" fill="none" stroke="${hell}" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/><text x="${TX+TW/2}" y="${yTop-EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="${hell}" opacity=".75" font-family="Segoe UI,Arial">Etage ${h+1}</text>`;
+  s+=`<path d="M${TX+TW+22} ${yTop+10} V${yTop-EH-40} H${TX+TW/2}" stroke="#f59e0b" stroke-width="5" fill="none"/><path d="M${TX+TW/2+10} ${yTop-EH-40} V${yTop-EH-8}" stroke="#334155" stroke-width="1.5"/><rect x="${TX+TW/2+2}" y="${yTop-EH-8}" width="16" height="10" fill="#f59e0b"/>`;
+  s+=dachSVG(dach, yTop-EH-2, stilVon(h+1).c);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mein Wolkenkratzer mit ${h} Etagen">${s}</svg>`;
+}
+function zeichneTurm(box, h, neu){ box.innerHTML=turmSVG(h, zimmerVon(), aktDach(h), neu); box.scrollTop=0;
+  if(neu){ const g=box.querySelector(".neuEtage"); if(g){ g.style.transformOrigin="center"; g.animate([{opacity:0,transform:"translateY(-30px)"},{opacity:1,transform:"none"}],{duration:700,easing:"cubic-bezier(.2,1.4,.4,1)"}); } } }
+
+//// ===== Kraft (Sprit) =====
+function tankRows(){ return ANDERE.concat(MEINE); }
+function tankRest(){ return (db && cloudOk && tankBereit) ? Tank.stand(tankRows()).rest : Infinity; }
+function tankLeer(){ return tankRest()<Tank.KOSTEN_TURM; }
+function zeigeTank(){ $("tankZeile").innerHTML = tankRest()===Infinity ? "" : Tank.boxHTML(tankRows(), playerName, {ic:"⚡", wort:"Deine Kraft", einheit:["Etage","Etagen"], kosten:Tank.KOSTEN_TURM}); }
+let unsubGabe=null;
+function hoereGeschenke(){ if(!db || !playerName) return; if(unsubGabe){ try{ unsubGabe(); }catch(e){} unsubGabe=null; }
+  unsubGabe=db.collection("ergebnisse").where("key","==",KEY).where("app","==","tankgeschenk").where("name","==",playerName).onSnapshot(snap=>{
+    ANDERE=ANDERE.filter(e=>e.app!=="tankgeschenk"); snap.forEach(d=>ANDERE.push(d.data()));
+    if(tankBereit && !$("start").classList.contains("hide")) zeigeStart(); }, ()=>{}); }
+function ladeAndere(){ if(!db || !playerName) return;
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{ ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); }); tankBereit=true;
+    if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart(); }).catch(()=>{}); }
+addEventListener("pageshow", e=>{ if(e.persisted) ladeAndere(); });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && $("spiel").classList.contains("hide")) ladeAndere(); });
+
+//// ===== Startseite des Turms =====
+function zeigeStart(){
+  const h=hoechste(); etage=h+1; const st=stilVon(etage);
+  $("etageGross").innerHTML=`${etage}. Stock<small>${esc(stufenText(etage))}</small>`;
+  const staedte=Math.min(STAEDTE.length, Math.floor(h/REISE)+1);
+  $("kopfRechts").innerHTML=`<div class="pill">${st.b} Du baust gerade in ${esc(st.name)}</div><div class="pill gold" style="margin-top:6px">🛂 ${staedte} von ${STAEDTE.length} Städten</div>`;
+  zeigeTank();
+  $("startBtn").textContent = tankLeer() ? "⚡ Erst Kraft tanken – dann geht es weiter" : istReise(etage) ? `✈️ Reise-Etage ${etage} starten` : `Etage ${etage} bauen ▶`;
+  zeichneTurm($("turm"), h);
+  $("turmBox").classList.remove("hide");
+}
+function zeige(id){ ["start","spiel","ergebnis","extra"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
+
+//// ===== Spiel =====
+$("startBtn").addEventListener("click", ()=>{
+  if(tankLeer()){ zeige("start"); zeigeStart(); const b=$("tkBox"); if(b) b.scrollIntoView({behavior:"smooth", block:"center"}); return; }
+  aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN; fehlerListe=[]; gestellt=[]; falsch=[]; startZeit=Date.now();
+  $("spielEtage").textContent=`Etage ${etage} · ${stufenText(etage)}`;
+  zeige("spiel"); naechsteAufgabe();
+});
+function zeichneHerzen(){ let h=""; for(let i=0;i<HERZEN;i++) h+=`<span class="${i<herzen?"":"weg"}">❤️</span>`; $("herzen").innerHTML=h; }
+function zeichneFortschritt(){ let h=""; for(let i=0;i<PRO_ETAGE;i++) h+=`<i class="${i<richtig?"ok":""}"></i>`; $("fortschritt").innerHTML=h; }
+function naechsteAufgabe(){
+  if(richtig>=PRO_ETAGE){ fertig(true); return; } if(herzen<=0){ fertig(false); return; }
+  const a=aufgaben[idx % aufgaben.length]; $("frage").innerHTML=a.html; $("frage").classList.toggle("lang", a.text.length>14);
+  zeichneHerzen(); zeichneFortschritt(); $("rueck").textContent=""; $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
+  try{ $("antwort").focus({preventScroll:true}); }catch(e){}
+}
+$("okBtn").addEventListener("click", pruefe);
+$("antwort").addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
+function pruefe(){
+  if($("antwort").disabled || $("antwort").value.trim()==="") return;
+  const a=aufgaben[idx % aufgaben.length], ok=parseInt($("antwort").value,10)===a.antwort;
+  $("antwort").disabled=true; $("okBtn").disabled=true; gestellt.push(a.key); const r=$("rueck");
+  if(ok){ richtig++; r.style.color="var(--good)"; r.textContent="Richtig! 👍"; }
+  else { herzen--; falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`); r.style.color="var(--bad)"; r.textContent=`Falsch! ${a.text} = ${a.antwort}`; }
+  zeichneHerzen(); zeichneFortschritt(); idx++; setTimeout(naechsteAufgabe, ok?650:1500);
+}
+
+//// ===== Etage fertig =====
+function fertig(ok){
+  const dauer=Math.round((Date.now()-startZeit)/1000), e=etage;
+  let sternVor=null; try{ sternVor=Sterne.stand(tankRows()); }catch(x){}
+  const reise=ok && istReise(e), dachNeu = ok && e%DACH===0, angebot = ok && !reise ? dreiZimmer(besitz()) : null;
+  speichere(ok, dauer, angebot ? angebot[0][0] : null);       // erst einmal das erste Zimmer – die Wahl wird gleich nachgetragen
+  try{ if(sternVor) Sterne.zeigeUnterschied(sternVor, Sterne.stand(tankRows()), playerName, true); }catch(x){}
+  zeige("ergebnis"); $("ergOben").innerHTML=""; $("turm2").classList.add("hide");
+  $("weiterBtn").classList.remove("hide");
+  if(!ok){
+    $("ergTitel").innerHTML=`💪 Fast geschafft – ${richtig} von ${PRO_ETAGE}`;
+    $("ergText").innerHTML=`Alle Herzen weg – Etage <b>${e}</b> bauen wir gleich noch einmal. Deine fertigen Etagen bleiben stehen!`+(fehlerListe.length?`<br><br><b>Diese Aufgaben üben:</b><br>${fehlerListe.map(esc).join(" &nbsp;·&nbsp; ")}`:"");
+    $("weiterBtn").textContent=`Etage ${e} nochmal ▶`; $("weiterBtn").onclick=()=>$("startBtn").click();
+    $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), hoechste()); return;
+  }
+  etage=e+1;
+  const weiter=()=>{ $("weiterBtn").textContent = istReise(etage) ? `✈️ Reise-Etage ${etage} starten` : `Etage ${etage} bauen ▶`; $("weiterBtn").onclick=()=>$("startBtn").click(); };
+  if(reise){
+    const z=zielStadt(e), rnd2=runde(e+1);
+    $("ergTitel").innerHTML=`✈️ Auf nach ${esc(z.name)}!`;
+    $("ergOben").innerHTML=`<div class="flug"><span class="wolk" style="left:20%;top:12px">☁</span><span class="wolk" style="left:62%;top:58px">☁</span><span class="flz">✈️</span><span class="ziel">${z.b}</span></div>
+      <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
+    $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten 5 Etagen baust du im Stil von <b>${esc(z.name)}</b>.`+
+      (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
+    setTimeout(()=>{ $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti(); }, 3100);
+    weiter(); if(dachNeu) setTimeout(()=>konfetti(), 3400); return;
+  }
+  $("ergTitel").innerHTML=`🎉 Etage ${e} steht! Was soll hinein?`;
+  $("ergText").innerHTML=`Such dir ein Zimmer für deine neue Etage aus.`;
+  $("weiterBtn").classList.add("hide");
+  $("ergOben").innerHTML=`<div class="wahl3">${angebot.map(z=>`<div class="zk s${z[3]}" data-z="${z[0]}"><span class="b">${z[1]}</span>${esc(z[2])}<span class="w">${z[3]>1?SW[z[3]]:(besitz()[z[0]]?"hast du schon":"neu")}</span></div>`).join("")}</div>`;
+  $("ergOben").querySelectorAll(".zk").forEach(k=>k.addEventListener("click",()=>{
+    const id=k.dataset.z, z=ZN[id]; waehleZimmer(e, id);
+    $("ergOben").innerHTML=""; $("ergTitel").innerHTML=`${z[1]} ${esc(z[2])} zieht ein!`;
+    $("ergText").innerHTML = (z[3]===3?"🌟 Ein <b>legendäres</b> Zimmer – stark!<br>":z[3]===2?"⭐ Ein <b>seltenes</b> Zimmer!<br>":"")+
+      (istReise(etage) ? `Die nächste Etage ist eine <b>Reise-Etage</b> – danach fliegst du nach <b>${esc(zielStadt(etage).name)}</b>! ✈️` : `Noch <b>${REISE-(e%REISE)-1}</b> ${REISE-(e%REISE)-1===1?"Etage":"Etagen"} bis zur nächsten Reise.`);
+    $("weiterBtn").classList.remove("hide"); weiter();
+    $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti();
+  }));
+}
+$("endeBtn").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
+
+//// ===== Speichern =====
+function speichere(ok, dauer, zimmer){
+  const n=new Date(), p=x=>String(x).padStart(2,"0");
+  const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
+    modus:"Turm", etage:etage, stufe: istReise(etage) ? "Reise-Etage" : planFuer(etage).label, richtig, falsch:falsch.length,
+    prozent: gestellt.length ? Math.round(richtig/gestellt.length*100) : 0, bestanden: ok?"Ja":"Nein", dauer, gestellt:gestellt.slice(), fehler:falsch.slice(), _t:Date.now() };
+  if(ok && zimmer) eintrag.zimmer=zimmer;
+  if(ok && istReise(etage)) eintrag.stadt=zielStadt(etage).id;
+  MEINE.push(eintrag);
+  letzteId=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${etage}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  if(!db) return;
+  db.collection("ergebnisse").doc(letzteId).set(eintrag).catch(err=>{ $("status").textContent="⚠️ Nicht gespeichert: "+(err.code||err); });
+}
+function waehleZimmer(e, id){
+  const x=MEINE.filter(r=>+r.etage===e && r.bestanden==="Ja").pop(); if(x) x.zimmer=id;
+  if(db && letzteId) db.collection("ergebnisse").doc(letzteId).update({zimmer:id}).catch(()=>{});
+}
+
+//// ===== Reisepass und Dächer =====
+$("passBtn").addEventListener("click", ()=>{
+  const h=hoechste(), da=Math.min(STAEDTE.length, Math.floor(h/REISE)+1), wr=Math.floor(h/(REISE*STAEDTE.length));
+  $("extraTitel").innerHTML="🛂 Mein Reisepass";
+  $("extraInhalt").innerHTML=`<div class="info">Jede 5. Etage fliegst du in eine neue Stadt. Tippe auf einen Stempel!${wr?`<br>🌍 Du warst schon <b>${wr}×</b> einmal um die ganze Welt!`:""}</div>
+    <div class="pass">${STAEDTE.map((s,i)=>`<div class="pst${i<da?" da":""}" style="--c:${s.c}" data-i="${i}"><span class="b">${s.b}</span>${i<da?esc(s.name):`ab Etage ${i*REISE}`}</div>`).join("")}</div><div class="info fakt" id="fakt">Hamburg ist dein Start.</div>`;
+  $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.addEventListener("click",()=>{ const s=STAEDTE[+p.dataset.i]; $("fakt").innerHTML=`<b>${s.b} ${esc(s.name)} (${esc(s.land)})</b><br>${esc(s.fakt)}`; }));
+  zeige("extra");
+});
+$("dachBtn").addEventListener("click", ()=>{
+  const h=hoechste(), n=daecherOffen(h), akt=aktDach(h);
+  $("extraTitel").innerHTML="🏗️ Dach wählen";
+  $("extraInhalt").innerHTML=`<div class="info">Jede <b>25. Etage</b> schaltet ein neues Dach frei. Tippe auf ein Dach, das du schon hast.</div>
+    <div class="daecher">${DAECHER.map((d,i)=>`<div class="dk${i<n?"":" zu"}${d[0]===akt?" an":""}" data-d="${d[0]}"><svg viewBox="${TX-10} -140 ${TW+20} 150">${dachSVG(d[0],0,"#ef4444")}</svg>${i<n?esc(d[1]):`🔒 ab Etage ${i*DACH}`}</div>`).join("")}</div>`;
+  $("extraInhalt").querySelectorAll(".dk:not(.zu)").forEach(k=>k.addEventListener("click",()=>{ try{ localStorage.setItem(dachKey(), k.dataset.d); }catch(e){} $("dachBtn").click(); }));
+  zeige("extra");
+});
+$("extraZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
+
+//// ===== Namen und Verbindung =====
+$("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
+$("name").addEventListener("change", ()=>{ $("name").value=capName($("name").value); playerName=$("name").value; try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){} verbindeKind(); });
+function verbindeKind(){
+  if(!db || !playerName) return; if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+  ladeAndere(); hoereGeschenke();
+  unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).onSnapshot(snap=>{
+    MEINE=[]; snap.forEach(d=>MEINE.push(d.data())); cloudOk=true;
+    $("status").textContent=`☁️ Verbunden · ${hoechste()} Etagen gebaut`;
+    if(!$("spiel").classList.contains("hide") || !$("ergebnis").classList.contains("hide") || !$("extra").classList.contains("hide")) return;
+    zeigeStart();
+  }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeStart(); });
+}
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }   // kein Offline-Cache (Safari)
+  const m=location.hash.match(/name=([^&]+)/); let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  if(n){ $("name").value=capName(n); playerName=capName(n); $("menuLink").href="index.html#name="+encodeURIComponent(playerName); setTimeout(verbindeKind, 400); } else $("name").focus();
+  setTimeout(()=>{ if(playerName && $("turmBox").classList.contains("hide"))
+    $("nameChips").insertAdjacentHTML("afterend",'<div class="info" style="margin-top:14px">⚠️ Die Verbindung zum Klassen-Archiv dauert ungewöhnlich lange. Bitte die Seite neu laden.</div>'); }, 9000);
+})();
+function konfetti(){
+  const c=document.createElement("canvas"); c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999"; document.body.appendChild(c);
+  const x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight; const col=["#38bdf8","#22c55e","#fbbf24","#ef4444","#a855f7","#f472b6"], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height,r:6+Math.random()*8,c:col[(Math.random()*col.length)|0],vy:2+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*Math.PI,vr:-.2+Math.random()*.4});
+  const end=Date.now()+2800; (function f(){ x.clearRect(0,0,c.width,c.height); ps.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr; x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore(); });
+    if(Date.now()<end) requestAnimationFrame(f); else c.remove(); })();
+}
+// für die automatischen Tests
+window.Turm={ turmSVG, zimmerVon, hoechste, stilVon, zielStadt, istReise, baueAufgaben, typenFuer, mkTyp, PLAN, STAEDTE, ZIMMER, DAECHER, dachSVG, dreiZimmer,
+  get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; }, setEtage(v){ etage=v; } };
+</script>
+</body>
+</html>

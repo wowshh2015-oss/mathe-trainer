@@ -44,7 +44,7 @@
     // eingegeben hat, bleibt alles offen – so kann sie die Programme am Beamer zeigen.
     const APP = seite.replace("-trainer.html","").replace(".html","");
     const NAMEN={plus:"Plus-Trainer",minus:"Minus-Trainer",einmaleins:"Einmaleins-Trainer",einsdurcheins:"Einsdurcheins-Trainer",zerlegen:"Zerlegen-Trainer",
-                 halbschriftlich:"Rechenwege",marathon:"Rechen-Marathon",rallye:"Rechen-Rallye",sach:"Sachaufgaben",geld:"Geld",laengen:"Längen",einstufung:"Einstufung",eltern:"Elternseite",platz:"Fehlende Zahl",gewichte:"Gewichte",zahlen:"Zahlen bis 1000",geo:"Formen und Körper",daten:"Daten und Zufall",schrift:"Schriftlich rechnen",kalender:"Kalender und Zeit",mix:"Bunte Mischung",sach2:"Sachaufgaben in zwei Schritten",strahl:"Zahlenstrahl",zoo:"Mein Zoo",blitz:"Blitzrechnen"};
+                 halbschriftlich:"Rechenwege",marathon:"Rechen-Marathon",turm:"Mein Wolkenkratzer",rallye:"Rechen-Rallye",sach:"Sachaufgaben",geld:"Geld",laengen:"Längen",einstufung:"Einstufung",eltern:"Elternseite",platz:"Fehlende Zahl",gewichte:"Gewichte",zahlen:"Zahlen bis 1000",geo:"Formen und Körper",daten:"Daten und Zufall",schrift:"Schriftlich rechnen",kalender:"Kalender und Zeit",mix:"Bunte Mischung",sach2:"Sachaufgaben in zwei Schritten",strahl:"Zahlenstrahl",zoo:"Mein Zoo",blitz:"Blitzrechnen"};
     if(NAMEN[APP]){
       const lehrerGeraet=()=>{ try{ return localStorage.getItem("uhr_test_frei")==="1"; }catch(e){ return false; } };
       const zuListe=()=>{ try{ return JSON.parse(localStorage.getItem("mathe_zu")||"[]"); }catch(e){ return []; } };

@@ -1150,7 +1150,7 @@ function ladeAndere(){
   db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
     ANDERE=[]; let m=0;
     s.forEach(d=>{ const x=d.data(); if(x.app===APP) return; ANDERE.push(x);
-      if(x.app==="marathon" && x.bestanden==="Ja") m=Math.max(m,+x.etage||0); });
+      if((x.app==="marathon" || x.app==="turm") && x.bestanden==="Ja") m=Math.max(m,+x.etage||0); });
     marathonEtage=m; tankBereit=true;
     if(!$("start").classList.contains("hide")) zeigeStart();
   }).catch(()=>{});

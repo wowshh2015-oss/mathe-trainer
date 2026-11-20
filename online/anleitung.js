@@ -57,7 +57,7 @@ window.Anleitung=(function(){
      <div class="anlTab"><table><thead><tr><th>Thema</th><th>Klasse 1</th><th>Klasse 2</th><th>Klasse 3</th><th>Klasse 4</th></tr></thead><tbody>`+
      Object.keys(KLASSEN).map(a=>{ const k=KLASSEN[a]; return `<tr><td><b>${k.ic} ${k.name}</b></td><td>${k[1]||"–"}</td><td>${k[2]||"–"}</td><td>${k[3]||"–"}</td><td>${k[4]||"–"}</td></tr>`; }).join("")+
      `</tbody></table></div>
-     <p>Die beiden Spiele (Rallye, Marathon) mischen den Stoff und werden von Stufe zu Stufe schwerer. Die Zuordnung ist eine Orientierung – Kinder dürfen voraus- und zurückgehen.</p>`],
+     <p>Die Spiele (Rallye, Wolkenkratzer) mischen den Stoff und werden von Stufe zu Stufe schwerer. Die Zuordnung ist eine Orientierung – Kinder dürfen voraus- und zurückgehen.</p>`],
    ["programme","🧩","Die Kacheln im Überblick",`
      <ul><li><b>🧩 Zerlegen</b> – Zahlen zerlegen und ergänzen (8 + ? = 10). Die Grundlage für alles Weitere.</li>
      <li><b>🪜 Rechenwege</b> – Aufgaben Schritt für Schritt lösen, so wie im Unterricht (z. B. 47 + 25 oder 6 × 15).</li>
@@ -77,7 +77,7 @@ window.Anleitung=(function(){
      <li><b>📊 Daten und Zufall</b> – Strichlisten und Diagramme lesen; sicher, möglich oder unmöglich?</li>
      <li><b>⚡ Blitzrechnen</b> – kurze Kopfrechen-Übungen wie der Blitzrechenkurs im Zahlenbuch (zählen in Schritten, ergänzen, verdoppeln, Einmaleins …). Im „Blitz“ hat Ihr Kind eine Minute Zeit und rechnet so viele Aufgaben wie möglich; das Programm merkt sich den Rekord. Am wirksamsten sind ein, zwei Blitze an jedem Tag.</li>
      <li><b>🦁 Mein Zoo</b> – ein Spiel mit Aufgaben aus allen Themen: Eine Runde hat 10 Aufgaben. Bei 5 oder 6 richtigen zieht ein häufiges Tier ein, bei 7 bis 9 ein Tier mit Chance auf ein seltenes, bei 10 von 10 zwei Tiere. Es gibt häufige, seltene und legendäre Tiere. Der Zoo kostet keinen Sprit – und das Programm lernt dabei, wo Ihr Kind noch üben sollte.</li>
-     <li><b>🏎️ Rechen-Rallye / 🏢 Rechen-Marathon</b> – Spiele zum Wiederholen. Sie verbrauchen „Sprit“ (siehe Tank).</li></ul>
+     <li><b>🏎️ Rechen-Rallye / 🏙️ Mein Wolkenkratzer</b> – Spiele zum Wiederholen. Im Wolkenkratzer baut Ihr Kind Etage für Etage ein eigenes Hochhaus, wählt für jede Etage ein Zimmer und reist jede 5. Etage in eine neue Stadt der Welt. Sie verbrauchen „Sprit“ (siehe Tank).</li></ul>
      <p>Eine Kachel mit <b>🚧 „öffnet bald“</b> ist noch gesperrt: Die Lehrkraft öffnet sie, sobald das Thema im Unterricht erklärt wurde.</p>`],
    ["sterne","⭐","Sterne, Gold und das Sticker-Album",`
      <ul><li><b>⭐ Sterne gibt es für Fleiß:</b> 3 für eine Übungsrunde (ab 8 richtigen Aufgaben), 5 für „Meine Aufgaben“ oder ein neues Thema, 2 extra für die erste Runde des Tages.</li>
@@ -90,7 +90,7 @@ window.Anleitung=(function(){
      <p>10 Flammen = 🥉 Bronze · 20 = 🥈 Silber · 30 = 🥇 Gold · 40 = 💎 Diamant · 50 = 👑 Krone. Mit jeder Stufe leuchtet der Name auf der Startseite in einer neuen Farbe.</p>
      <p class="anlTipp">Die Flammen belohnen Regelmäßigkeit, nicht die Dauer: Eine kurze Runde am Tag genügt.</p>`],
    ["tank","⛽","Der Tank: Sprit für die Spiele",`
-     <p>Rallye und Marathon kosten Sprit: <b>eine Rallye-Runde = 1</b>, <b>eine Marathon-Etage = 2</b>. Ist der Tank leer, zeigt das Programm, wo es neuen Sprit gibt.</p>
+     <p>Rallye und Wolkenkratzer kosten Sprit: <b>eine Rallye-Runde = 1</b>, <b>eine Etage im Wolkenkratzer = 1</b>. Ist der Tank leer, zeigt das Programm, wo es neuen Sprit gibt.</p>
      <ul><li>Übungsrunde (ab 8 richtigen Aufgaben): <b>+10</b></li><li>„Meine Aufgaben“: <b>+15</b></li><li>ein neues Thema ausprobieren: <b>+20</b></li><li>ein zum ersten Mal bestandener Test: <b>+30</b></li></ul>
      <p>So wird erst gelernt und dann gespielt. Pro Thema zählen höchstens drei Runden am Tag.</p>`],
    ["hausaufgabe","📌","Hausaufgaben und Nachrichten der Lehrkraft",`
@@ -104,7 +104,7 @@ window.Anleitung=(function(){
      <p>Ebenfalls erst nach Freigabe: die <b>🧪 Einstufung</b> im Lernweg. Dort zeigt Ihr Kind in kurzen Teilen, was es schon sicher kann – diese Stufen muss es dann nicht von vorn üben.</p>
      <p><b>Datenschutz:</b> Gespeichert werden nur der Vorname und die Übungsergebnisse. Die Lehrkraft sieht den Lernstand der Klasse; andere Kinder und Eltern sehen ihn nicht.</p>`]
   ];
-  const ZU_SEITE={ "rallye":"tank", "marathon":"tank", "eltern":"eltern", "einstufung":"eltern" };
+  const ZU_SEITE={ "rallye":"tank", "marathon":"tank", "turm":"tank", "eltern":"eltern", "einstufung":"eltern" };
 
   function stil(){
     if(document.getElementById("anlStil")) return;

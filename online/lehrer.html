@@ -229,7 +229,7 @@
   </div>
 
   <div class="card" id="hochhausCard">
-    <h2>🏢 Hochhaus der Klasse <small>Rechen-Marathon · wer steht wo?</small>
+    <h2>🏙️ Skyline der Klasse <small>Mein Wolkenkratzer · wer hat wie hoch gebaut?</small>
       <span style="flex:1"></span>
       <button class="ghost noprint" id="beamerBtn">🔍 Vollbild für den Beamer</button>
     </h2>
@@ -294,13 +294,13 @@
   </div>
 
   <div class="card noprint" id="tankCard">
-    <h2>⛽ Tank auffüllen <small>Sprit für Rallye und Marathon verschenken – z. B. für gute Arbeit im Heft</small></h2>
+    <h2>⛽ Tank auffüllen <small>Sprit für Rallye und Wolkenkratzer verschenken – z. B. für gute Arbeit im Heft</small></h2>
     <div class="row" style="margin-bottom:12px">
       <label style="color:var(--muted);font-size:14px">Wofür? (sieht das Kind)</label>
       <input type="text" id="gGrund" placeholder="z. B. 5 Aufgaben im Heft ohne Fehler" autocomplete="off" style="flex:1;min-width:220px" maxlength="60">
     </div>
     <div class="scroll"><div id="tankListe"></div></div>
-    <div class="status">1 Punkt = 1 Rallye-Runde · 2 Punkte = 1 Marathon-Etage. Wer viel Tank hat, muss nicht tanken – so lassen sich starke Kinder ganz freistellen.</div>
+    <div class="status">1 Punkt = 1 Rallye-Runde oder 1 Etage im Wolkenkratzer. Wer viel Tank hat, muss nicht tanken – so lassen sich starke Kinder ganz freistellen.</div>
     <div id="gabenListe" style="margin-top:14px"></div>
   </div>
 
@@ -366,6 +366,7 @@
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
 <script src="zoo.js"></script>
+<script src="turm.js"></script>
 <script src="hausaufgabe.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
@@ -377,6 +378,7 @@ const APPS={
   halbschriftlich:{label:"Rechenwege", ic:"🪜"},
   rallye:       {label:"Rallye",        ic:"🏎️"},
   marathon:     {label:"Marathon",      ic:"🏢"},
+  turm:         {label:"Wolkenkratzer", ic:"🏙️"},
   einmaleins:   {label:"Einmaleins",    ic:"✖️"},
   einsdurcheins:{label:"Einsdurcheins", ic:"➗"},
   plus:         {label:"Plus",          ic:"➕"},
@@ -418,7 +420,7 @@ function uebungLabel(e){
     const r=+e.runden||0;
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
   }
-  if(e.modus==="Marathon") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
+  if(e.modus==="Marathon" || e.modus==="Turm") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
   if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
@@ -569,9 +571,9 @@ function kindStand(name){
   const her = r.length ? tageSeit(r[0].datum) : null;
   const tage=new Set(r.map(e=>e.datum)).size;
   const tage14=new Set(r.filter(e=>tageSeit(e.datum)<14).map(e=>e.datum)).size;
-  const etage=r.filter(e=>e.app==="marathon"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
+  const etage=r.filter(e=>e.app==="turm"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
   const runden=r.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
-  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye").length, lern=r.length-spiel;
+  const spiel=r.filter(e=>e.app==="marathon"||e.app==="rallye"||e.app==="turm").length, lern=r.length-spiel;
   // Uhr-Trainer: wie viele der 7 Stufen sind mit Test bestanden?
   const ur=r.filter(e=>e.app==="uhr");
   const ub=new Set(ur.filter(e=>e.modus==="Test" && e.bestanden==="Ja").map(e=>+e.zr)).size;
@@ -607,7 +609,7 @@ function renderSchwer(rows){
   $("schwerLabel").textContent="· "+zeitLabel()+" · bei wie vielen Kindern ging die Aufgabe schief?";
   const m={};
   rows.forEach(e=>(e.fehler||[]).forEach(f=>{
-    const k=(e.app==="marathon"||e.app==="rallye"?"":e.app+"|")+f;
+    const k=(e.app==="marathon"||e.app==="rallye"||e.app==="turm"?"":e.app+"|")+f;
     if(!m[k]) m[k]={f, app:e.app, kinder:new Set(), n:0};
     m[k].kinder.add(e.name); m[k].n++;
   }));
@@ -653,7 +655,7 @@ function zeigeBlatt(name){
     <table><thead><tr><th>Stufe</th><th>Stand</th><th>Einzelheiten</th></tr></thead><tbody>${zeilen}</tbody></table>
     <div class="klein" style="margin-top:6px">„Gefestigt“ heißt: Test auf Zeit mit mindestens 90 % richtigen Antworten bestanden – oder in der Einstufung als sicher gezeigt.</div>
     <h4>Spiele zum Wiederholen</h4>
-    <div>🏢 Rechen-Marathon: ${k.etage?`Etage <b>${k.etage}</b>`:"noch nicht gespielt"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
+    <div>🏙️ Wolkenkratzer: ${k.etage?`<b>${k.etage}</b> Etagen`:"noch nicht gebaut"} · 🏎️ Rechen-Rallye: ${k.runden?`<b>${k.runden}</b> Runden`:"noch nicht gespielt"}</div>
     ${k.uhr.n?`<h4>Uhr mit Zeigern</h4><div>🕒 Uhr-Trainer: <b>${k.uhr.bestanden}</b> von 8 Stufen mit Test bestanden · ${k.uhr.n}× geübt</div>`:""}
     ${k.serie.tage>=2?`<div class="klein" style="margin-top:8px">🔥 ${esc(name)} hat <b>${k.serie.tage} Lernflammen</b>: Jeder Übungstag bringt eine dazu, ein verpasster Schultag nimmt eine weg.</div>`:""}
     <h4>Was jetzt am meisten hilft</h4>
@@ -796,7 +798,7 @@ function zeigeWoche(){
   const bestanden=aktiv.filter(n=>pro[n].tests.length).map(n=>`<b>${esc(n)}</b>: ${pro[n].tests.map(esc).join(", ")}`);
   const schwach=aktiv.filter(n=>pro[n].mitP>=2 && pro[n].sum/pro[n].mitP<65).map(n=>`${esc(n)} (${Math.round(pro[n].sum/pro[n].mitP)} %)`);
   // schwierige Aufgaben und Fehlerarten der Woche
-  const m={}; woche.forEach(e=>(e.fehler||[]).forEach(f=>{ const k=(e.app==="marathon"||e.app==="rallye"?"":e.app+"|")+f; (m[k]=m[k]||{f,app:e.app,kinder:new Set(),n:0}).kinder.add(e.name); m[k].n++; }));
+  const m={}; woche.forEach(e=>(e.fehler||[]).forEach(f=>{ const k=(e.app==="marathon"||e.app==="rallye"||e.app==="turm"?"":e.app+"|")+f; (m[k]=m[k]||{f,app:e.app,kinder:new Set(),n:0}).kinder.add(e.name); m[k].n++; }));
   const schwer=Object.values(m).filter(x=>x.kinder.size>=2).sort((a,b)=>b.kinder.size-a.kinder.size||b.n-a.n).slice(0,8);
   const arten=Wdh.fehlerarten(woche).filter(x=>x.art!=="sonst"&&x.art!=="zeit"&&x.art!=="leer").slice(0,4);
   const sf={}; woche.filter(e=>e.app==="halbschriftlich").forEach(e=>Object.entries(e.schrittfehler||{}).forEach(([s,c])=>{ sf[s]=(sf[s]||0)+(+c||0); }));
@@ -1117,37 +1119,23 @@ function renderRallye(){
   box.innerHTML=html;
 }
 
-//// ===== Hochhaus der Klasse (Rechen-Marathon) =====
-function figurSVG(){
-  return `<svg viewBox="0 0 34 40" aria-hidden="true">
-    <circle cx="17" cy="9" r="6" fill="#4ade80"/>
-    <path d="M17 15 L17 30" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
-    <path d="M17 18 L8 9 M17 18 L26 9" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
-    <path d="M17 29 L11 39 M17 29 L23 39" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/></svg>`;
-}
+//// ===== Skyline der Klasse (Mein Wolkenkratzer) =====
 function renderHochhaus(){
-  const m=ALLE.filter(e=>e.app==="marathon" && e.bestanden==="Ja");
-  const box=$("hochhaus");
-  if(!m.length){ box.innerHTML='<div class="hhLeer">Noch niemand hat den Rechen-Marathon gespielt.</div>'; return; }
-  const stand={};
-  m.forEach(e=>{ const n=e.name, et=+e.etage||0; if(!stand[n]||et>stand[n]) stand[n]=et; });
-  const kinder=Object.entries(stand);                       // [name, etage]
-  const max=Math.max(...kinder.map(k=>k[1]));
-  const oben=Math.max(max, 5);
-  let etagen='';
-  for(let e=oben;e>=1;e--){
-    const hier=kinder.filter(k=>k[1]===e).sort((a,b)=>a[0].localeCompare(b[0],"de"));
-    etagen+=`<div class="hhEtage${hier.length?" done":""}${e%5===0?" safe":""}"><span class="nr">${e}</span>
-      <div class="hhKinder">${hier.map(k=>{
-        const med=Math.floor(k[1]/5);
-        return `<span class="kind">${figurSVG()}${esc(k[0])}${med?` <span style="opacity:.9">🏅${med>1?"×"+med:""}</span>`:""}</span>`;
-      }).join("")}</div></div>`;
-  }
-  let html=`<div class="hh"><div class="hhMond"></div><div class="hhSchorn"></div><div class="hhDach"></div>
-    <div class="hhWand">${etagen}</div><div class="hhErde"><div class="hhTuer"></div></div></div>`;
-  const summe=kinder.length;
-  html+=`<div class="status">${summe} Kind${summe===1?"":"er"} im Marathon · höchste Etage: <b>${max}</b> · 🏅 jede 5. Etage ist eine Prüfungsetage mit Medaille</div>`;
-  box.innerHTML=html;
+  const box=$("hochhaus"), m=ALLE.filter(e=>e.app==="turm" && e.bestanden==="Ja" && e.name && !/^zz/i.test(e.name) && (!KLASSE || KLASSE.includes(e.name)));
+  if(!m.length){ box.innerHTML='<div class="hhLeer">Noch hat niemand am Wolkenkratzer gebaut.</div>'; return; }
+  const st={}; m.forEach(e=>{ const n=e.name, et=+e.etage||0; if(!st[n]||et>st[n]) st[n]=et; });
+  const kinder=Object.entries(st).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"de")), max=Math.max(...kinder.map(k=>k[1]));
+  const S=TurmDaten.STAEDTE, R=TurmDaten.REISE, B=46, G=12, eh=Math.max(2.5, Math.min(9, 300/Math.max(max,1))), H=Math.round(max*eh)+120, W=kinder.length*(B+G)+G;
+  let s=`<rect width="${W}" height="${H}" fill="#7dd3fc"/><rect y="${H-38}" width="${W}" height="38" fill="#4ade80"/><rect y="${H-22}" width="${W}" height="22" fill="#475569"/>`;
+  kinder.forEach(([name,h],i)=>{ const x=G+i*(B+G), boden=H-38;
+    for(let e=1;e<=h;e++){ const c=S[Math.floor((e-1)/R)%S.length], y=boden-e*eh; s+=`<rect x="${x}" y="${y.toFixed(1)}" width="${B}" height="${(eh+.4).toFixed(1)}" fill="${c.wand}"/>`;
+      if(eh>=5) s+=`<rect x="${x+8}" y="${(y+eh*.25).toFixed(1)}" width="8" height="${(eh*.5).toFixed(1)}" fill="#fde68a"/><rect x="${x+B-16}" y="${(y+eh*.25).toFixed(1)}" width="8" height="${(eh*.5).toFixed(1)}" fill="#fde68a"/>`; }
+    const top=boden-h*eh, akt=S[Math.floor(h/R)%S.length];
+    s+=`<path d="M${x-2} ${top.toFixed(1)} L${x+B/2} ${(top-16).toFixed(1)} L${x+B+2} ${top.toFixed(1)} Z" fill="#334155"/>`;
+    s+=`<text x="${x+B/2}" y="${(top-22).toFixed(1)}" font-size="13" font-weight="800" text-anchor="middle" fill="#0f172a">${h}</text><text x="${x+B/2}" y="${(top-38).toFixed(1)}" font-size="16" text-anchor="middle">${akt.b}</text>`;
+    s+=`<text x="${x+B/2}" y="${H-7}" font-size="11" font-weight="700" text-anchor="middle" fill="#f1f5f9">${esc(name.split(" ")[0].slice(0,9))}</text>`; });
+  box.innerHTML=`<div style="overflow-x:auto;border-radius:14px"><svg viewBox="0 0 ${W} ${H}" style="display:block;margin:0 auto;min-width:${Math.min(W,900)}px;width:min(100%,${Math.round(W*1.4)}px);height:auto" role="img" aria-label="Skyline der Klasse">${s}</svg></div>`+
+    `<div class="status">${kinder.length} Kind${kinder.length===1?"":"er"} bauen mit · höchstes Haus: <b>${max}</b> Etagen · die Farbe zeigt die Stadt der Weltreise, oben das Symbol der Stadt, in der gerade gebaut wird${KLASSE?" · nur Kinder aus „Meine Klasse“":""}</div>`;
 }
 $("beamerBtn").addEventListener("click", ()=>{
   document.body.classList.toggle("beamer");

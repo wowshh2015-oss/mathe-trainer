@@ -92,16 +92,16 @@ window.Sterne=(function(){
     const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG_SPIEL)
         .reduce((s,e)=>s+(+e.runden||0)*(RALLYE_GEWICHT[+e.strecke]||1),0);
     silber+=Math.floor(runden/W.proRunden);
-    rows.filter(e=>e.app==="marathon" && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL)
-        .forEach(e=>S(etagenSterne(+e.etage||1), tag(e)));
+    rows.filter(e=>(e.app==="marathon" || e.app==="turm") && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL)
+        .forEach(e=>S(etagenSterne(+e.etage||1), tag(e)));      // Wolkenkratzer wie Marathon: je Etage 1–3, jede 5. (Reise) +2
     // Gold in den Spielen – auch dort wird viel gerechnet:
     //   Rallye: je 50 Runden auf Bergpass, Rennstrecke oder Formel 1 ein goldener Stern
     //   Marathon: jede 25. Etage (25, 50, 75 …) ein goldener Stern, je Etage nur einmal
     const profi=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG_SPIEL && (+e.strecke||0)>=3).reduce((s,e)=>s+(+e.runden||0),0);
     gold+=Math.floor(profi/GOLD_RUNDEN);
     const goldEtagen=new Set();
-    rows.filter(e=>e.app==="marathon" && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL && (+e.etage||0)%GOLD_ETAGE===0)
-        .forEach(e=>{ if(!goldEtagen.has(+e.etage)){ goldEtagen.add(+e.etage); G(1, tag(e)); } });
+    rows.filter(e=>(e.app==="marathon" || e.app==="turm") && e.bestanden==="Ja" && tag(e)>=STICHTAG_SPIEL && (+e.etage||0)%GOLD_ETAGE===0)
+        .forEach(e=>{ const k=e.app+"|"+e.etage; if(!goldEtagen.has(k)){ goldEtagen.add(k); G(1, tag(e)); } });
     // Aufgaben, die alle Wiederholungen (2, 7, 21 Tage) geschafft haben
     let sicher=0;
     if(window.Wdh) LERN.forEach(a=>{ const r=rows.filter(e=>e.app===a); if(r.length) sicher+=Wdh.zaehle(r).sicher; });

@@ -5,7 +5,7 @@
 window.Tank=(function(){
   const STICHTAG="20261112";        // ab diesem Tag wird gerechnet (JJJJMMTT)
   const START=20;                   // Startguthaben für alle
-  const KOSTEN_ETAGE=2;
+  const KOSTEN_ETAGE=2, KOSTEN_TURM=1;      // Marathon-Etage 2 · Etage im Wolkenkratzer 1
   const STATIONEN=[
     {app:"zerlegen",        ic:"🧩", name:"Zerlegen",      datei:"zerlegen-trainer.html"},
     {app:"halbschriftlich", ic:"🪜", name:"Rechenwege",    datei:"halbschriftlich-trainer.html"},
@@ -65,7 +65,8 @@ window.Tank=(function(){
     });
     const runden=rows.filter(e=>e.app==="rallye" && tag(e)>=STICHTAG).reduce((s,e)=>s+(+e.runden||0),0);
     const etagen=rows.filter(e=>e.app==="marathon" && tag(e)>=STICHTAG).length;
-    const verbraucht=runden+etagen*KOSTEN_ETAGE;
+    const turm=rows.filter(e=>e.app==="turm" && tag(e)>=STICHTAG).length;
+    const verbraucht=runden+etagen*KOSTEN_ETAGE+turm*KOSTEN_TURM;
     // Geschenke der Lehrkraft (Klassenübersicht → „Tank auffüllen"), z. B. für gute Arbeit im Heft
     const gaben=rows.filter(e=>e.app==="tankgeschenk").sort((a,b)=>ts(b).localeCompare(ts(a)));
     const geschenkt=gaben.reduce((s,e)=>s+(+e.menge||0),0);
@@ -152,5 +153,5 @@ window.Tank=(function(){
         +`<div class="tkKlein">Eine Runde zählt, wenn du mindestens 8 Aufgaben richtig hast. Der Tank gilt für Rallye und Marathon zusammen.</div>`:""}
     </div>`;
   }
-  return {stand, angebote, boxHTML, STICHTAG, START, KOSTEN_ETAGE};
+  return {stand, angebote, boxHTML, STICHTAG, START, KOSTEN_ETAGE, KOSTEN_TURM};
 })();

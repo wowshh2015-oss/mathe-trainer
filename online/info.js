@@ -13,7 +13,7 @@
     meine:"<b>Meine Aufgaben:</b> Das Programm merkt sich, was dir schwerfällt. Hier kommen genau diese Aufgaben wieder – so lange, bis du sie dreimal hintereinander richtig hast. Dafür gibt es 5 Sterne statt 3.",
     schwierig:"<b>Leicht, Mittel, Schwer:</b> Die Aufgaben sind gleich – nur die Zeit ist kürzer. Leicht bringt 1 Gold-Stern, Mittel 2, Schwer 3. Fang mit Leicht an.",
     stufen:"<b>Die Stufen</b> gehen vom Leichten zum Schweren. <b>Üben:</b> ohne Zeit, mit Erklärung nach einem Fehler. <b>Test:</b> auf Zeit – ab 90 % ist die Stufe geschafft und bekommt einen grünen Haken. Die gelb umrandete Stufe ist als Nächstes dran.",
-    tank:"<b>Der Tank:</b> Rallye und Marathon brauchen Sprit. Eine Rallye-Runde kostet 1, eine Marathon-Etage 2. Sprit bekommst du fürs Lernen: Übungsrunde +10, „Meine Aufgaben“ +15, ein neues Thema +20, ein bestandener Test +30."
+    tank:"<b>Der Tank:</b> Rallye und Wolkenkratzer brauchen Sprit. Eine Rallye-Runde kostet 1, eine Etage im Wolkenkratzer auch 1. Sprit bekommst du fürs Lernen: Übungsrunde +10, „Meine Aufgaben“ +15, ein neues Thema +20, ein bestandener Test +30."
   };
   // ---------- Stufen der Trainer mit Stufen-Liste (Auswahl über den Namen der Stufe) ----------
   const STUFE={
@@ -189,6 +189,7 @@
     einsdurcheins:"<b>Einsdurcheins:</b> Teilen bis 100 – die Umkehrung vom Einmaleins. Innen: einzelne Reihen, Kernaufgaben, gemischt und der Test. <b>Klasse 2 und 3.</b>",
     platz:"<b>Fehlende Zahl:</b> Du lernst, wie die Zahlen heißen (Summand, Summe, Minuend …), und findest die verlorene Zahl: ☐ + 5 = 13. <b>Klasse 2 und 3.</b>",
     rallye:"<b>Rechen-Rallye:</b> ein Spiel zum Wiederholen. Jede Runde hat 5 Aufgaben. Für viele Runden gibt es neue Fahrzeuge und Pokale. Jede Runde kostet 1 Sprit aus dem Tank.",
+    turm:"<b>Mein Wolkenkratzer:</b> Bau dein eigenes Hochhaus! Für jede Etage brauchst du 8 richtige Aufgaben, dann suchst du dir ein Zimmer aus. Jede 5. Etage fliegst du in eine neue Stadt und bekommst einen Stempel in deinen Reisepass. Eine Etage kostet 1 Sprit.",
     marathon:"<b>Rechen-Marathon:</b> ein Spiel zum Wiederholen. Du kletterst ein Hochhaus hinauf: 10 richtige Aufgaben pro Etage. Jede 5. Etage ist eine Prüfung mit Medaille. Eine Etage kostet 2 Sprit.",
     uhr:"<b>Uhr-Trainer:</b> die Uhr mit Zeigern lesen und stellen – von vollen Stunden bis zu Zeitspannen. <b>Klasse 1 bis 3.</b>",
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
@@ -307,6 +308,11 @@
          ? "<b>Fünf Strecken</b>, von leicht nach schwer: <b>Stadt</b> – Plus und Minus bis 20 (Klasse 1). <b>Landstraße</b> – bis 100 ohne Übergang (Klasse 2). <b>Bergpass</b> – bis 100 mit Übergang (Klasse 2). <b>Rennstrecke</b> – Einmaleins (Klasse 2 und 3). <b>Formel 1</b> – alles auf Zeit (Klasse 3); sie öffnet nach 20 Runden auf Bergpass oder Rennstrecke."
          : "<b>Womit möchtest du fahren?</b> Das ist nur fürs Auge: Auto, Rakete, Schiff … Die Aufgaben bleiben gleich."],
       ["#garageBtn", "<b>Garage:</b> Hier siehst du alle Fahrzeuge und Farben, die du schon freigefahren hast – und was als Nächstes kommt.", "nach"]
+    ],
+    turm:[
+      ["#etageGross", "<b>Deine nächste Etage:</b> 8 richtige Aufgaben, 3 Herzen. Je höher, desto schwerer: erst bis 20, dann bis 100, später Einmaleins und Teilen. Fertige Etagen bleiben immer stehen."],
+      ["#passBtn", "<b>Reisepass:</b> Jede 5. Etage ist eine Reise-Etage mit Aufgaben aus allem, was du bisher gelernt hast. Danach fliegst du in eine neue Stadt – und baust die nächsten Etagen in ihrem Stil.", "nach"],
+      ["#dachBtn", "<b>Dächer:</b> Jede 25. Etage schaltet ein neues Dach frei: Turmspitze, goldene Kuppel, Dachgarten, Riesenrad …", "nach"]
     ],
     marathon:[
       ["#etageGross", "<b>Etagen:</b> Pro Etage brauchst du 10 richtige Aufgaben. Je höher du kommst, desto schwerer wird es: erst bis 20, dann bis 100, später Einmaleins und Teilen. Geschaffte Etagen verlierst du nie."],
