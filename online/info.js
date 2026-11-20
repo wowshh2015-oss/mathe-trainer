@@ -189,7 +189,7 @@
     einsdurcheins:"<b>Einsdurcheins:</b> Teilen bis 100 – die Umkehrung vom Einmaleins. Innen: einzelne Reihen, Kernaufgaben, gemischt und der Test. <b>Klasse 2 und 3.</b>",
     platz:"<b>Fehlende Zahl:</b> Du lernst, wie die Zahlen heißen (Summand, Summe, Minuend …), und findest die verlorene Zahl: ☐ + 5 = 13. <b>Klasse 2 und 3.</b>",
     rallye:"<b>Rechen-Rallye:</b> ein Spiel zum Wiederholen. Jede Runde hat 5 Aufgaben. Für viele Runden gibt es neue Fahrzeuge und Pokale. Jede Runde kostet 1 Sprit aus dem Tank.",
-    turm:"<b>Mein Wolkenkratzer:</b> Bau dein eigenes Hochhaus! Für jede Etage brauchst du 8 richtige Aufgaben, dann suchst du dir ein Zimmer aus. Jede 5. Etage fliegst du in eine neue Stadt und bekommst einen Stempel in deinen Reisepass. Eine Etage kostet 1 Sprit.",
+    turm:"<b>Mein Wolkenkratzer:</b> Bau dein eigenes Hochhaus! Hier übst du Wissen: Wochentage, Monate, Uhr, Geld, Längen und Formen. Für jede Etage brauchst du 8 richtige Antworten, dann suchst du dir ein Zimmer aus. Jede 10. Etage fliegst du in eine neue Stadt und bekommst einen Stempel in deinen Reisepass. Eine Etage kostet 1 Sprit.",
     marathon:"<b>Rechen-Marathon:</b> ein Spiel zum Wiederholen. Du kletterst ein Hochhaus hinauf: 10 richtige Aufgaben pro Etage. Jede 5. Etage ist eine Prüfung mit Medaille. Eine Etage kostet 2 Sprit.",
     uhr:"<b>Uhr-Trainer:</b> die Uhr mit Zeigern lesen und stellen – von vollen Stunden bis zu Zeitspannen. <b>Klasse 1 bis 3.</b>",
     sach:"<b>Sachaufgaben:</b> eine kurze Geschichte lesen, die passende Rechenart finden, rechnen und den Antwortsatz lesen. <b>Klasse 1 bis 3.</b>",
@@ -310,9 +310,8 @@
       ["#garageBtn", "<b>Garage:</b> Hier siehst du alle Fahrzeuge und Farben, die du schon freigefahren hast – und was als Nächstes kommt.", "nach"]
     ],
     turm:[
-      ["#etageGross", "<b>Deine nächste Etage:</b> 8 richtige Aufgaben, 3 Herzen. Je höher, desto schwerer: erst bis 20, dann bis 100, später Einmaleins und Teilen. Fertige Etagen bleiben immer stehen."],
-      ["#passBtn", "<b>Reisepass:</b> Jede 5. Etage ist eine Reise-Etage mit Aufgaben aus allem, was du bisher gelernt hast. Danach fliegst du in eine neue Stadt – und baust die nächsten Etagen in ihrem Stil.", "nach"],
-      ["#dachBtn", "<b>Dächer:</b> Jede 25. Etage schaltet ein neues Dach frei: Turmspitze, goldene Kuppel, Dachgarten, Riesenrad …", "nach"]
+      ["#etageGross", "<b>Deine nächste Etage:</b> 8 richtige Antworten, 3 Herzen. Erst Grundwissen (Wochentage, Monate, Geld, Formen), ab Etage 21 mehr Wissen, ab Etage 61 Umrechnen. Fertige Etagen bleiben immer stehen. Jede 10. Etage ist eine Reise-Etage: danach fliegst du in eine neue Stadt und baust in ihrem Stil weiter."],
+      ["#dachBtn", "<b>Dächer:</b> Jede 20. Etage schaltet ein neues Dach frei: Turmspitze, goldene Kuppel, Dachgarten, Riesenrad …", "nach"]
     ],
     marathon:[
       ["#etageGross", "<b>Etagen:</b> Pro Etage brauchst du 10 richtige Aufgaben. Je höher du kommst, desto schwerer wird es: erst bis 20, dann bis 100, später Einmaleins und Teilen. Geschaffte Etagen verlierst du nie."],

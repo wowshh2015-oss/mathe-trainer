@@ -49,7 +49,7 @@
   .turmBox{border-radius:16px;overflow:auto;max-height:560px;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#8fcbef,#d7eef9)}
   .buehne .turmBox{background:transparent;border-radius:0}
   .turmBox svg{display:block;width:100%;height:auto}
-  .seite{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+  .seite{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:10px}
   .pk{background:rgba(255,250,240,.95);border:3px solid var(--rahmen);border-radius:16px;padding:9px 9px 11px;text-align:center;box-shadow:0 4px 10px rgba(80,50,10,.2)}
   .pk h4{margin:0 0 6px;font:800 16px/1.2 Georgia,serif;color:var(--blau)}
   .pk .karte{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);display:block}
@@ -64,7 +64,7 @@
   .marke span{display:block;font:700 11px Georgia,serif;color:#7c2d12;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media (max-width:759px){ .buehne{background:none;border:none;overflow:visible;border-radius:0}
     .buehne .turmBox{background-image:var(--hg,none),linear-gradient(180deg,#8fcbef,#e3f3fb);background-size:cover;background-position:center bottom;border:3px solid var(--rahmen);border-radius:18px}
-    .seite{padding:10px 0 0} .pk h4{font-size:14px} .bauen .auf{font-size:12.5px} }
+    .kopfband{margin-top:46px} .seite{padding:10px 0 0} .pk h4{font-size:14px} .bauen .auf{font-size:12.5px} }
   @media (min-width:760px){ .app{max-width:1000px} .buehne{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:16px;padding:16px;align-items:start}
     .buehne .turmBox{max-height:740px;border-radius:12px} .seite{display:flex;flex-direction:column;gap:14px;padding:0} }
   .bauen{display:flex;gap:10px;align-items:stretch;margin-top:14px} .bauen button{flex:1;font-size:21px}
@@ -73,9 +73,13 @@
   .herzen{font-size:26px;letter-spacing:3px} .herzen .weg{opacity:.25;filter:grayscale(1)}
   .fortschritt{display:flex;gap:5px;margin:0 0 18px} .fortschritt i{flex:1;height:9px;border-radius:999px;background:#f1e4c6;border:1px solid var(--card2)}
   .fortschritt i.ok{background:var(--good);border-color:var(--good)}
-  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px;color:var(--blau)} .frage.lang{font-size:30px;letter-spacing:0}
+  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px;color:var(--blau)} .frage.lang{font-size:27px;letter-spacing:0;line-height:1.35}
   .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
   .antwortzeile{display:flex;gap:12px} .antwortzeile input{flex:1;font-size:30px;text-align:center}
+  .optionen{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .optionen button{background:#fff8e7;color:var(--text);border:3px solid var(--card2);box-shadow:0 4px 0 #e5cf9f;text-shadow:none;font-size:21px;padding:16px 10px}
+  .optionen button.richtig{background:#d3f9d8;border-color:#2f9e44} .optionen button.falsch{background:#ffe3e3;border-color:#e03131}
+  .frage small{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-top:6px} .frage b{color:#b45309}
   .rueck{min-height:28px;text-align:center;font-size:18px;font-weight:800;margin-top:14px}
   .info{background:#fdf2dc;border:1px solid #f0dcae;border-radius:12px;padding:12px 14px;font-size:14px;color:#6b4f2c;line-height:1.5}
   .gross{font:900 25px/1.2 Georgia,serif;text-align:center;margin:4px 0 10px;color:var(--blau)}
@@ -137,15 +141,16 @@
         <div class="seite"><div class="pk" id="naechster"></div><div class="pk" id="passKlein"></div></div>
       </div>
       <div id="tankZeile" style="margin-top:14px"></div>
-      <div class="bauen"><div class="auf">📋 8 Aufgaben<br>⚡ 1 Sprit</div><button id="startBtn">🔨 Weiterbauen</button></div>
+      <div class="bauen"><div class="auf">🧠 8 Fragen<br>⚡ 1 Sprit</div><button id="startBtn">🔨 Weiterbauen</button></div>
       <div class="reihe">
         <button class="ghost klein" id="ganzBtn">🏙️ Mein ganzer Turm</button>
         <button class="ghost klein hide" id="passBtn">🛂 Mein Reisepass</button>
         <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
       </div>
-      <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Aufgaben</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
-        ✈️ Jede <b>5. Etage</b> ist eine <b>Reise-Etage</b>: Du fliegst in eine neue Stadt, bekommst einen Stempel in deinen Reisepass – und baust die nächsten Etagen im Stil dieser Stadt.<br>
-        🏗️ Jede <b>25. Etage</b> bringt ein neues Dach.</div>
+      <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Antworten</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
+        ✈️ Jede <b>10. Etage</b> ist eine <b>Reise-Etage</b>: Du fliegst in eine neue Stadt, bekommst einen Stempel in deinen Reisepass – und baust die nächsten Etagen im Stil dieser Stadt.<br>
+        🏗️ Jede <b>20. Etage</b> bringt ein neues Dach.<br>
+        🧠 Hier übst du <b>Wissen</b>: Wochentage, Monate, Uhr, Geld, Längen, Gewichte und Formen.</div>
       <div class="status" id="status">Verbinde …</div>
     </div>
   </div>
@@ -162,7 +167,8 @@
     <div class="kopf"><div><span class="pill" id="spielEtage">Etage 1</span></div><div class="herzen" id="herzen"></div></div>
     <div class="fortschritt" id="fortschritt"></div>
     <div class="frage" id="frage">7 + 8</div>
-    <div class="antwortzeile"><input type="text" id="antwort" inputmode="numeric" autocomplete="off" placeholder="?"><button id="okBtn">OK</button></div>
+    <div class="antwortzeile" id="zahlZeile"><input type="text" id="antwort" inputmode="numeric" autocomplete="off" placeholder="?"><button id="okBtn">OK</button></div>
+    <div class="optionen hide" id="optionen"></div>
     <div class="rueck" id="rueck"></div>
   </div>
 
@@ -187,7 +193,7 @@
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
              projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
-const APP="turm", PRO_ETAGE=8, HERZEN=3, REISE=5, DACH=25;
+const APP="turm", PRO_ETAGE=8, HERZEN=3, REISE=TurmDaten.REISE, DACH=TurmDaten.DACH;      // neue Stadt jede 10. Etage, neues Dach jede 20.
 const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
@@ -195,7 +201,7 @@ let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false, ANDERE=[], tank
 let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], startZeit=0, letzteId=null;
 
 //// ===== Die Weltreise =====
-// Jede 5. Etage fliegt man weiter. Die nächsten Etagen werden im Stil der neuen Stadt gebaut.
+// Jede 10. Etage fliegt man weiter. Die nächsten Etagen werden im Stil der neuen Stadt gebaut.
 // Neue Städte (Wunsch eines Kindes) einfach hinten anfügen.
 const STAEDTE=TurmDaten.STAEDTE;
 // Stadt, in deren Stil Etage e gebaut wird (Etage 1–5: Hamburg, 6–10: Stadt 2 …). Nach der Weltreise geht es wieder von vorn.
@@ -214,72 +220,94 @@ function dreiZimmer(besitz){
   for(let i=0;i<3;i++){ const r=Math.random(); l.push(nimm(r<0.08?3:r<0.33?2:1)); }
   return l;
 }
-//// ===== Dächer (jede 25. Etage eines mehr) =====
+//// ===== Dächer (jede 20. Etage eines mehr) =====
 const DAECHER=TurmDaten.DAECHER;
 
-//// ===== Etagen-Plan (wie im Rechen-Marathon) =====
-const PLAN=[
-  {bis:3,   typen:["plus20ohne","minus20ohne"],                          label:"Plus & Minus bis 20"},
-  {bis:6,   typen:["plus20","minus20","zerlegen20"],                     label:"bis 20 mit Übergang & Zerlegen"},
-  {bis:10,  typen:["plus100","minus100"],                                label:"Plus & Minus bis 100"},
-  {bis:15,  typen:["plus100","minus100","zerlegen100","zehnerschritt"],  label:"bis 100 gemischt"},
-  {bis:20,  typen:["mal"],                                               label:"Einmaleins"},
-  {bis:25,  typen:["mal","geteilt"],                                     label:"Einmaleins & Einsdurcheins"},
-  {bis:30,  typen:["plus100","minus100","mal","geteilt","einerschritt"], label:"alles gemischt"},
-  {bis:60,  typen:["plus1000","minus1000","mal","geteilt","zerlegen100","zehnerschritt","einerschritt"], label:"alles bis 1000"},
-  {bis:120, typen:["malZehner","geteiltZehner","plus1000","minus1000"],  label:"Mal & Geteilt mit Zehnerzahlen"},
-  {bis:200, typen:["platzMal","platzGeteilt","mal","geteilt"],           label:"Umkehraufgaben – finde die Lücke"},
-  {bis:300, typen:["grossMal","verdoppeln","halbieren","malZehner"],     label:"Großes Einmaleins"},
-  {bis:9999,typen:["grossMal","malZehner","geteiltZehner","platzMal","platzGeteilt","verdoppeln","halbieren","plus1000","minus1000"], label:"Meister-Etagen"}
-];
-function planFuer(e){ return PLAN.find(p=>e<=p.bis) || PLAN[PLAN.length-1]; }
-function typenFuer(e){ if(!istReise(e)) return planFuer(e).typen; const i=PLAN.indexOf(planFuer(e)), s=new Set(); PLAN.slice(0,i+1).forEach(p=>p.typen.forEach(t=>s.add(t))); return [...s]; }
-function stufenText(e){ return istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : planFuer(e).label; }
-
-//// ===== Aufgaben =====
+//// ===== Aufgaben: Wissen, das man einfach kennen muss =====
+// Im Wolkenkratzer wird nicht gerechnet wie in der Rallye, sondern Sachwissen geübt: Wochentage, Monate, Jahreszeiten,
+// Euro-Münzen und -Scheine, Uhrzeit, Längen, Gewichte, Liter, Formen und Körper.
+// Stufe nach Etage: 1–20 Grundwissen · 21–60 mehr Wissen · ab 61 Umrechnen. Reise-Etagen mischen alles bis zur aktuellen Stufe.
+const TAGE=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const MTAGE=[31,28,31,30,31,30,31,31,30,31,30,31];
 function rnd(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
-function carries(a,b){ while(a>0||b>0){ if(a%10+b%10>=10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
-function borrows(a,b){ while(b>0){ if(a%10<b%10) return true; a=Math.floor(a/10); b=Math.floor(b/10);} return false; }
+function aus(l){ return l[Math.floor(Math.random()*l.length)]; }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const BOX='<span class="blank">?</span>';
-function mkPlus(zr,ueb){ for(let i=0;i<500;i++){ const a=rnd(1,zr-1), b=rnd(1,zr-1); if(a+b>zr) continue; const c=carries(a,b); if(ueb==="ohne"&&c) continue; if(ueb==="mit"&&!c) continue;
-    return {html:`${a} + ${b}`, text:`${a} + ${b}`, antwort:a+b, key:Math.min(a,b)+"+"+Math.max(a,b)}; } return {html:"1 + 1", text:"1 + 1", antwort:2, key:"1+1"}; }
-function mkMinus(zr,ueb){ for(let i=0;i<500;i++){ const a=rnd(2,zr), b=rnd(1,a-1), c=borrows(a,b); if(ueb==="ohne"&&c) continue; if(ueb==="mit"&&!c) continue;
-    return {html:`${a} − ${b}`, text:`${a} − ${b}`, antwort:a-b, key:a+"−"+b}; } return {html:"2 − 1", text:"2 − 1", antwort:1, key:"2−1"}; }
-function mkMal(){ const a=rnd(1,10), b=rnd(1,10); return {html:`${a} · ${b}`, text:`${a} · ${b}`, antwort:a*b, key:Math.min(a,b)+"·"+Math.max(a,b)}; }
-function mkGeteilt(){ const a=rnd(1,10), b=rnd(1,10); return {html:`${a*b} : ${b}`, text:`${a*b} : ${b}`, antwort:a, key:(a*b)+":"+b}; }
-function mkZerlegen(zr){
-  if(zr===20){ const z=rnd(11,20), t=rnd(Math.max(1,z-10), Math.min(10,z-1)), f=Math.random()<0.5;
-    return {html: f?`${t} + ${BOX} = ${z}`:`${z} = ${t} + ${BOX}`, text:`${z} = ${t} + ?`, antwort:z-t, key:z+"="+t}; }
-  for(let i=0;i<60;i++){ const a=rnd(11,99); if(a%10===0) continue; const z=Math.random()<0.3?100:Math.ceil(a/10)*10;
-    return {html:`${a} + ${BOX} = ${z}`, text:`${a} + ? = ${z}`, antwort:z-a, key:z+"="+a}; }
-  return {html:`67 + ${BOX} = 70`, text:"67 + ? = 70", antwort:3, key:"70=67"};
-}
-function mkZehnerschritt(){ if(Math.random()<0.5){ const a=rnd(11,79), z=rnd(1,Math.max(1,Math.floor((100-a)/10)))*10; return {html:`${a} + ${z}`, text:`${a} + ${z}`, antwort:a+z, key:Math.min(a,z)+"+"+Math.max(a,z)}; }
-  const a=rnd(21,99), z=rnd(1,Math.floor(a/10))*10; return {html:`${a} − ${z}`, text:`${a} − ${z}`, antwort:a-z, key:a+"−"+z}; }
-function mkEinerschritt(){
-  if(Math.random()<0.5){ for(let i=0;i<300;i++){ const a=rnd(11,94), e=rnd(2,9); if(a%10===0 || a%10+e<10 || a+e>100) continue; return {html:`${a} + ${e}`, text:`${a} + ${e}`, antwort:a+e, key:Math.min(a,e)+"+"+Math.max(a,e)}; } return {html:"67 + 5", text:"67 + 5", antwort:72, key:"5+67"}; }
-  for(let i=0;i<300;i++){ const a=rnd(11,99), e=rnd(2,9); if(a%10===0 || a%10>=e) continue; return {html:`${a} − ${e}`, text:`${a} − ${e}`, antwort:a-e, key:a+"−"+e}; }
-  return {html:"52 − 5", text:"52 − 5", antwort:47, key:"52−5"};
-}
-function mkMalZehner(){ const a=rnd(2,9), z=rnd(2,9)*10, f=Math.random()<0.5; return {html: f?`${a} · ${z}`:`${z} · ${a}`, text: f?`${a} · ${z}`:`${z} · ${a}`, antwort:a*z, key:a+"·"+z}; }
-function mkGeteiltZehner(){ const a=rnd(2,9), b=rnd(2,9), p=a*b*10;
-  return Math.random()<0.5 ? {html:`${p} : ${b*10}`, text:`${p} : ${b*10}`, antwort:a, key:p+":"+(b*10)} : {html:`${p} : ${b}`, text:`${p} : ${b}`, antwort:a*10, key:p+":"+b}; }
-function mkPlatzMal(){ const a=rnd(2,10), b=rnd(2,10), k=Math.min(a,b)+"·"+Math.max(a,b);
-  return Math.random()<0.5 ? {html:`${a} · ${BOX} = ${a*b}`, text:`${a} · ? = ${a*b}`, antwort:b, key:k} : {html:`${BOX} · ${b} = ${a*b}`, text:`? · ${b} = ${a*b}`, antwort:a, key:k}; }
-function mkPlatzGeteilt(){ const a=rnd(2,10), b=rnd(2,10), p=a*b; return {html:`${p} : ${BOX} = ${a}`, text:`${p} : ? = ${a}`, antwort:b, key:p+":"+b}; }
-function mkGrossMal(){ const a=rnd(11,20), b=rnd(2,9); return {html:`${a} · ${b}`, text:`${a} · ${b}`, antwort:a*b, key:a+"·"+b}; }
-function mkVerdoppeln(){ const n=rnd(11,250); return {html:`Das Doppelte von ${n}`, text:`Doppelte von ${n}`, antwort:n*2, key:"D"+n}; }
-function mkHalbieren(){ const n=rnd(6,150)*2; return {html:`Die Hälfte von ${n}`, text:`Hälfte von ${n}`, antwort:n/2, key:"H"+n}; }
-function mkTyp(t){ switch(t){
-  case "plus20ohne": return mkPlus(20,"ohne"); case "minus20ohne": return mkMinus(20,"ohne"); case "plus20": return mkPlus(20,"mit"); case "minus20": return mkMinus(20,"mit");
-  case "plus100": return mkPlus(100,"egal"); case "minus100": return mkMinus(100,"egal"); case "plus1000": return mkPlus(1000,"egal"); case "minus1000": return mkMinus(1000,"egal");
-  case "mal": return mkMal(); case "geteilt": return mkGeteilt(); case "zerlegen20": return mkZerlegen(20); case "zerlegen100": return mkZerlegen(100);
-  case "malZehner": return mkMalZehner(); case "geteiltZehner": return mkGeteiltZehner(); case "platzMal": return mkPlatzMal(); case "platzGeteilt": return mkPlatzGeteilt();
-  case "grossMal": return mkGrossMal(); case "verdoppeln": return mkVerdoppeln(); case "halbieren": return mkHalbieren(); case "zehnerschritt": return mkZehnerschritt(); case "einerschritt": return mkEinerschritt(); }
-  return mkPlus(20,"ohne"); }
+// Zahl-Aufgabe und Auswahl-Aufgabe
+function zahl(html, antwort, key, erkl){ return {html, text:html.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim(), antwort, key, erkl}; }
+function wahl(html, ok, falsch, key, erkl){ const optionen=mische([ok].concat(mische(falsch.filter(x=>x!==ok)).slice(0,3)));
+  return {html, text:html.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim(), ok, optionen, key, erkl}; }
+const WISSEN={
+  // ---- Stufe 1 ----
+  tagNach(){ const i=rnd(0,6), ok=TAGE[(i+1)%7]; return wahl(`Welcher Tag kommt nach <b>${TAGE[i]}</b>?`, ok, TAGE.filter(t=>t!==TAGE[i]), "tagNach"+i, `Nach ${TAGE[i]} kommt ${ok}.`); },
+  tagVor(){ const i=rnd(0,6), ok=TAGE[(i+6)%7]; return wahl(`Welcher Tag kommt vor <b>${TAGE[i]}</b>?`, ok, TAGE.filter(t=>t!==TAGE[i]), "tagVor"+i, `Vor ${TAGE[i]} kommt ${ok}.`); },
+  monatNach(){ const i=rnd(0,11), ok=MONATE[(i+1)%12]; return wahl(`Welcher Monat kommt nach <b>${MONATE[i]}</b>?`, ok, MONATE.filter(m=>m!==MONATE[i]), "monNach"+i, `Nach ${MONATE[i]} kommt ${ok}.`); },
+  jahreszeit(){ const z={0:"Winter",1:"Winter",3:"Frühling",4:"Frühling",6:"Sommer",7:"Sommer",9:"Herbst",10:"Herbst"}, i=+aus(Object.keys(z));
+    return wahl(`In welcher Jahreszeit liegt der <b>${MONATE[i]}</b>?`, z[i], ["Frühling","Sommer","Herbst","Winter"], "jz"+i, `Der ${MONATE[i]} gehört zum ${z[i]}.`); },
+  schein(){ const ok=aus(["15 €","25 €","30 €","40 €","60 €","75 €"]); return wahl(`Welchen <b>Euro-Schein</b> gibt es <b>nicht</b>?`, ok, ["5 €","10 €","20 €","50 €","100 €","200 €"], "schein",
+    `Es gibt Scheine zu 5, 10, 20, 50, 100 und 200 Euro. Einen Schein zu ${ok} gibt es nicht.`); },
+  muenze(){ const ok=aus(["3 Cent","15 Cent","25 Cent","30 Cent","3 Euro","5 Euro"]); return wahl(`Welche <b>Euro-Münze</b> gibt es <b>nicht</b>?`, ok, ["1 Cent","2 Cent","5 Cent","10 Cent","20 Cent","50 Cent","1 Euro","2 Euro"], "muenze",
+    `Es gibt Münzen zu 1, 2, 5, 10, 20 und 50 Cent und zu 1 und 2 Euro. ${ok} gibt es nicht.`); },
+  ecken(){ const f=aus([["ein Dreieck",3],["ein Viereck",4],["ein Quadrat",4],["ein Rechteck",4],["ein Fünfeck",5],["ein Sechseck",6],["ein Kreis",0]]);
+    return zahl(`Wie viele <b>Ecken</b> hat ${f[0]}?`, f[1], "ecken"+f[0], f[1] ? `${f[0][0].toUpperCase()+f[0].slice(1)} hat ${f[1]} Ecken.` : "Ein Kreis hat keine Ecken – also 0."); },
+  fakt1(){ const f=aus([["Wie viele Tage hat eine <b>Woche</b>?",7],["Wie viele Monate hat ein <b>Jahr</b>?",12],["Wie viele Stunden hat ein <b>Tag</b>?",24],["Wie viele Minuten hat eine <b>Stunde</b>?",60],
+      ["Wie viele <b>Cent</b> sind 1 Euro?",100],["Wie viele <b>Zentimeter</b> sind 1 Meter?",100],["Wie viele <b>Jahreszeiten</b> gibt es?",4],["Wie viele Tage hat das <b>Wochenende</b>?",2]]);
+    return zahl(f[0], f[1], "f1"+f[1]+f[0].length, `Die Antwort ist ${f[1]}.`); },
+  // ---- Stufe 2 ----
+  tagNr(){ if(Math.random()<0.5){ const i=rnd(0,6); return zahl(`Der wievielte Tag der Woche ist der <b>${TAGE[i]}</b>?<br><small>(Die Woche beginnt am Montag.)</small>`, i+1, "tagNr"+i, `Montag ist der 1. Tag – ${TAGE[i]} ist der ${i+1}. Tag.`); }
+    const i=rnd(0,6); return wahl(`Welcher ist der <b>${i+1}. Tag</b> der Woche?<br><small>(Die Woche beginnt am Montag.)</small>`, TAGE[i], TAGE, "tagWer"+i, `Der ${i+1}. Tag der Woche ist ${TAGE[i]}.`); },
+  monatNr(){ if(Math.random()<0.5){ const i=rnd(0,11); return zahl(`Der wievielte Monat im Jahr ist der <b>${MONATE[i]}</b>?`, i+1, "monNr"+i, `${MONATE[i]} ist der ${i+1}. Monat.`); }
+    const i=rnd(0,11); return wahl(`Welcher ist der <b>${i+1}. Monat</b> im Jahr?`, MONATE[i], MONATE, "monWer"+i, `Der ${i+1}. Monat ist ${MONATE[i]}.`); },
+  monatTage(){ const i=rnd(0,11); return zahl(`Wie viele Tage hat der <b>${MONATE[i]}</b>?${i===1?"<br><small>(kein Schaltjahr)</small>":""}`, MTAGE[i], "mt"+i,
+    i===1 ? "Der Februar hat 28 Tage – im Schaltjahr 29." : `Der ${MONATE[i]} hat ${MTAGE[i]} Tage. Tipp: Zähle an deinen Fingerknöcheln!`); },
+  tagRel(){ const i=rnd(0,6), r=aus([[1,"morgen","ist"],[2,"übermorgen","ist"],[-1,"gestern","war"],[-2,"vorgestern","war"]]), ok=TAGE[(i+r[0]+7)%7];
+    return wahl(`Heute ist <b>${TAGE[i]}</b>. Welcher Tag ${r[2]} <b>${r[1]}</b>?`, ok, TAGE.filter(t=>t!==TAGE[i]), "rel"+i+r[1], `${r[1][0].toUpperCase()+r[1].slice(1)} ${r[2]} ${ok}.`); },
+  stundenteil(){ const f=aus([["eine Viertelstunde",15],["eine halbe Stunde",30],["eine Dreiviertelstunde",45],["eine ganze Stunde",60]]);
+    return zahl(`Wie viele <b>Minuten</b> sind ${f[0]}?`, f[1], "st"+f[1], `${f[0][0].toUpperCase()+f[0].slice(1)} hat ${f[1]} Minuten.`); },
+  fakt2(){ const f=aus([["Wie viele <b>Sekunden</b> hat eine Minute?",60],["Wie viele <b>Millimeter</b> sind 1 Zentimeter?",10],["Wie viele <b>Meter</b> sind 1 Kilometer?",1000],
+      ["Wie viele <b>Gramm</b> sind 1 Kilogramm?",1000],["Wie viele <b>Milliliter</b> sind 1 Liter?",1000],["Wie viele <b>Tage</b> sind 2 Wochen?",14]]);
+    return zahl(f[0], f[1], "f2"+f[1]+f[0].length, `Die Antwort ist ${f[1]}.`); },
+  koerper(){ const k=aus(["ein Würfel","ein Quader"]), f=aus([["Ecken",8],["Kanten",12],["Flächen",6]]);
+    return zahl(`Wie viele <b>${f[0]}</b> hat ${k}?`, f[1], "k"+k+f[0], `${k==="ein Würfel"?"Ein Würfel":"Ein Quader"} hat 8 Ecken, 12 Kanten und 6 Flächen.`); },
+  einheit(){ const s=aus([["Ein Schulheft wiegt etwa 50 …","g",["g","kg","t","ml"]],["Eine Tür ist etwa 2 … hoch.","m",["mm","cm","m","km"]],["Ein Radiergummi ist etwa 4 … lang.","cm",["mm","cm","m","km"]],
+      ["In eine Badewanne passen etwa 150 …","l",["ml","l","g","kg"]],["Ein Löffel Saft sind etwa 5 …","ml",["ml","l","g","m"]],["Ein Fahrrad wiegt etwa 15 …","kg",["g","kg","t","l"]],
+      ["Von Hamburg nach Berlin sind es etwa 290 …","km",["cm","m","km","kg"]],["Eine Ameise ist etwa 5 … lang.","mm",["mm","cm","m","km"]]]);
+    return wahl(`Welche Einheit passt?<br><b>${s[0]}</b>`, s[1], s[2], "einh"+s[1]+s[0].length, `${s[0].replace("…", s[1])}`); },
+  centEuro(){ if(Math.random()<0.5){ const e=rnd(2,9); return zahl(`Wie viele <b>Cent</b> sind <b>${e} Euro</b>?`, e*100, "ce"+e, `1 Euro = 100 Cent, also ${e} Euro = ${e*100} Cent.`); }
+    const m=aus([[50,2],[20,5],[10,10],[5,20]]); return zahl(`Wie viele <b>${m[0]}-Cent-Münzen</b> sind zusammen 1 Euro?`, m[1], "cm"+m[0], `${m[1]} · ${m[0]} Cent = 100 Cent = 1 Euro.`); },
+  gerade(){ const n=rnd(11,99), ok=n%2?"ungerade":"gerade"; return wahl(`Ist <b>${n}</b> gerade oder ungerade?`, ok, ["gerade","ungerade"], "ger"+(n%10), `${n} endet auf ${n%10} – also ist ${n} ${ok}.`); },
+  // ---- Stufe 3 ----
+  minInStd(){ const h=rnd(1,2), m=rnd(1,11)*5, ges=h*60+m;
+    return zahl(`<b>${ges} Minuten</b> sind ${h} ${h===1?"Stunde":"Stunden"} und ${BOX} Minuten.`, m, "ms"+ges, `${h} ${h===1?"Stunde":"Stunden"} sind ${h*60} Minuten. ${ges} − ${h*60} = ${m}.`); },
+  stdInMin(){ const h=rnd(1,3), m=rnd(1,11)*5; return zahl(`<b>${h} h ${m} min</b> = ${BOX} min`, h*60+m, "sm"+h+"_"+m, `${h} h = ${h*60} min, dazu ${m} min: ${h*60+m} min.`); },
+  sekunden(){ if(Math.random()<0.5){ const m=rnd(2,5); return zahl(`<b>${m} Minuten</b> = ${BOX} Sekunden`, m*60, "sek"+m, `1 Minute = 60 Sekunden, also ${m} · 60 = ${m*60}.`); }
+    const s=rnd(61,119); return zahl(`<b>${s} Sekunden</b> sind 1 Minute und ${BOX} Sekunden.`, s-60, "sek_"+s, `1 Minute = 60 Sekunden. ${s} − 60 = ${s-60}.`); },
+  massUm(){ const f=aus([()=>{ const m=rnd(1,5), c=rnd(1,9)*10; return [`<b>${m} m ${c} cm</b> = ${BOX} cm`, m*100+c, `${m} m = ${m*100} cm, dazu ${c} cm.`]; },
+      ()=>{ const k=rnd(2,9); return [`<b>${k} km</b> = ${BOX} m`, k*1000, `1 km = 1000 m.`]; },
+      ()=>{ const k=rnd(1,3), g=rnd(1,9)*100; return [`<b>${k} kg ${g} g</b> = ${BOX} g`, k*1000+g, `${k} kg = ${k*1000} g, dazu ${g} g.`]; },
+      ()=>[`<b>ein halbes Kilogramm</b> = ${BOX} g`, 500, `1 kg = 1000 g, die Hälfte sind 500 g.`],
+      ()=>[`<b>ein Viertelliter</b> = ${BOX} ml`, 250, `1 l = 1000 ml, ein Viertel davon sind 250 ml.`],
+      ()=>[`<b>ein halber Meter</b> = ${BOX} cm`, 50, `1 m = 100 cm, die Hälfte sind 50 cm.`],
+      ()=>[`<b>1 Tonne</b> = ${BOX} kg`, 1000, `1 t = 1000 kg.`]])(); return zahl(f[0], f[1], "um"+f[0].length+f[1], f[2]); },
+  euroCent(){ const e=rnd(1,9), c=rnd(1,19)*5; return zahl(`<b>${e},${String(c).padStart(2,"0")} €</b> = ${BOX} Cent`, e*100+c, "ec"+e+c, `${e} € = ${e*100} Cent, dazu ${c} Cent.`); },
+  jahr(){ const f=aus([["Wie viele Tage hat ein <b>Jahr</b>?<br><small>(kein Schaltjahr)</small>",365],["Wie viele Tage hat ein <b>Schaltjahr</b>?",366],["Etwa wie viele <b>Wochen</b> hat ein Jahr?",52],
+      ["Wie viele Monate haben <b>31 Tage</b>?",7],["Wie viele <b>Stunden</b> sind 2 Tage?",48],["Wie viele <b>Tage</b> sind 3 Wochen?",21]]);
+    return zahl(f[0], f[1], "j"+f[1], `Die Antwort ist ${f[1]}.`); },
+  uhrSpaeter(){ const h=rnd(7,17), m=rnd(0,11)*5, d=aus([15,20,30,45]), t=h*60+m+d, u=x=>`${Math.floor(x/60)}.${String(x%60).padStart(2,"0")} Uhr`;
+    return wahl(`Es ist <b>${u(h*60+m)}</b>. Wie spät ist es <b>${d} Minuten</b> später?`, u(t), [u(t+5),u(t-5),u(t+10),u(t+60),u(t-10)], "uhr"+d, `${u(h*60+m)} + ${d} Minuten = ${u(t)}.`); }
+};
+const STUFE=[ ["tagNach","tagVor","monatNach","jahreszeit","schein","muenze","ecken","fakt1"],
+              ["tagNr","monatNr","monatTage","tagRel","stundenteil","fakt2","koerper","einheit","centEuro","gerade"],
+              ["minInStd","stdInMin","sekunden","massUm","euroCent","jahr","uhrSpaeter","monatTage","tagRel"] ];
+const STUFE_NAME=["Grundwissen: Woche, Monate, Geld, Formen","Mehr Wissen: Kalender, Uhr, Maße, Körper","Umrechnen: Zeit, Längen, Gewichte, Geld"];
+function stufeVon(e){ return e<=20 ? 0 : e<=60 ? 1 : 2; }
+function typenFuer(e){ const s=stufeVon(e); return istReise(e) ? STUFE.slice(0,s+1).flat() : STUFE[s]; }
+function stufenText(e){ return istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : STUFE_NAME[stufeVon(e)]; }
+function mkTyp(t){ return WISSEN[t](); }
 function baueAufgaben(e){ const typen=typenFuer(e), q=[], seen=new Set(); let g=0;
-  while(q.length<PRO_ETAGE+6 && g++<800){ const t=mkTyp(typen[Math.floor(Math.random()*typen.length)]); if(seen.has(t.key)) continue; seen.add(t.key); q.push(t); }
-  while(q.length<PRO_ETAGE+6) q.push(mkTyp(typen[0])); return q; }
+  while(q.length<PRO_ETAGE+6 && g++<800){ const a=mkTyp(aus(typen)); if(seen.has(a.key)) continue; seen.add(a.key); q.push(a); }
+  while(q.length<PRO_ETAGE+6) q.push(mkTyp(aus(typen))); return q; }
 
 //// ===== Stand aus den gespeicherten Etagen =====
 function geschafft(){ return MEINE.filter(e=>e.bestanden==="Ja" && +e.etage>0); }
@@ -292,7 +320,7 @@ function aktDach(h){ let d=null; try{ d=localStorage.getItem(dachKey()); }catch(
 
 //// ===== Der Turm (SVG) =====
 // Eine Etage ist 2:1 – so groß wie die gemalten Bilder. Links bleibt Platz für das Nummernschild.
-const W=300, TX=24, TW=264, EH=132, LOBBY=58, BILD=TurmDaten.BILDER, OEFF_STD=[0.12,0.12,0.76,0.76];
+const W=300, TX=24, TW=264, EH=132, BILD=TurmDaten.BILDER, LOBBY = TurmDaten.BILDER.eingang ? 132 : 58, OEFF_STD=[0.12,0.12,0.76,0.76];
 function himmelFarbe(e){ const st=[[0,"#7dd3fc"],[20,"#93c5fd"],[45,"#fbcfe8"],[70,"#fb923c"],[95,"#7c3aed"],[125,"#1e1b4b"],[160,"#020617"]];
   let a=st[0], b=st[st.length-1]; for(let i=0;i<st.length-1;i++) if(e>=st[i][0] && e<=st[i+1][0]){ a=st[i]; b=st[i+1]; break; }
   if(e>st[st.length-1][0]) return b[1]; const t=(e-a[0])/((b[0]-a[0])||1), h=x=>parseInt(x,16), c1=a[1], c2=b[1];
@@ -377,7 +405,8 @@ function turmSVG(h, z, dach, neu, buehne){
     s+=`<text x="22" y="${gr+20}" font-size="20">🌳</text><text x="258" y="${gr+20}" font-size="20">🌳</text>`; }
   else s+=`<ellipse cx="${TX+TW/2}" cy="${gr+6}" rx="${TW/2+30}" ry="12" fill="#3f6b2a" opacity=".35"/><text x="${TX-6}" y="${gr+8}" font-size="26">🌷</text><text x="${TX+TW-20}" y="${gr+8}" font-size="26">🌷</text>`;
   // Erdgeschoss: Eingang aus Ziegeln mit leuchtender Bogentür, Laternen und erleuchteten Fenstern
-  { const lx=TX-6, lw=TW+12, ly=gr-LOBBY, m=TX+TW/2, tb=40, th=LOBBY-8;
+  if(BILD.eingang) s+=`<image href="bilder/turm/eingang.webp" x="${TX}" y="${gr-LOBBY}" width="${TW}" height="${LOBBY}" preserveAspectRatio="none"/>`;
+  else { const lx=TX-6, lw=TW+12, ly=gr-LOBBY, m=TX+TW/2, tb=40, th=LOBBY-8;
     s+=`<defs><radialGradient id="tuerLicht" cx="50%" cy="60%" r="60%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".6" stop-color="#ffcf6b"/><stop offset="1" stop-color="#e08a1e"/></radialGradient></defs>`;
     s+=`<rect x="${lx}" y="${ly}" width="${lw}" height="${LOBBY}" fill="#b4532f"/>`;
     for(let rr=0; rr<4; rr++) for(let k=0;k<15;k++){ const xx=lx+k*20+(rr%2?10:0); if(xx<lx+lw-6) s+=`<rect x="${xx}" y="${ly+5+rr*12}" width="${Math.min(18,lx+lw-xx)}" height="1.6" fill="#7f2f18" opacity=".5"/>`; }
@@ -432,7 +461,7 @@ function zeigeSeite(h){
   const st=stilVon(h+1), naechsteReise=Math.ceil((h+1)/REISE)*REISE, ziel=zielStadt(naechsteReise), im=(h)%REISE, fehlt=naechsteReise-h;
   $("buehne").style.setProperty("--hg", BILD.hintergrund.includes(st.id) ? `url(bilder/turm/hintergrund_${st.id}.webp)` : "none");
   $("naechster").innerHTML=`<h4>✦ Nächster Halt ✦</h4>${kartenBild(ziel)}<div class="stadt">${esc(ziel.name)}</div>
-    <div class="punkte">${[0,1,2,3,4].map(i=>`<i class="${i<im?"an":""}"></i>`).join("")}</div><div class="klein">${fehlt===1?"Die nächste Etage ist die Reise-Etage ✈️":`noch ${fehlt} Etagen bis zum Abflug`}</div>
+    <div class="punkte">${[...Array(REISE).keys()].map(i=>`<i class="${i<im?"an":""}"></i>`).join("")}</div><div class="klein">${fehlt===1?"Die nächste Etage ist die Reise-Etage ✈️":`noch ${fehlt} Etagen bis zum Abflug`}</div>
     <button id="passKnopf">🛂 Reisepass</button>`;
   $("passKnopf").addEventListener("click", ()=>$("passBtn").click());
   const da=STAEDTE.slice(0, Math.min(STAEDTE.length, Math.floor(h/REISE)+1)).slice(-3).reverse();
@@ -453,18 +482,31 @@ function zeichneFortschritt(){ let h=""; for(let i=0;i<PRO_ETAGE;i++) h+=`<i cla
 function naechsteAufgabe(){
   if(richtig>=PRO_ETAGE){ fertig(true); return; } if(herzen<=0){ fertig(false); return; }
   const a=aufgaben[idx % aufgaben.length]; $("frage").innerHTML=a.html; $("frage").classList.toggle("lang", a.text.length>14);
-  zeichneHerzen(); zeichneFortschritt(); $("rueck").textContent=""; $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
-  try{ $("antwort").focus({preventScroll:true}); }catch(e){}
+  zeichneHerzen(); zeichneFortschritt(); $("rueck").textContent="";
+  const mitWahl=!!a.optionen; $("zahlZeile").classList.toggle("hide", mitWahl); $("optionen").classList.toggle("hide", !mitWahl);
+  if(mitWahl){
+    $("optionen").innerHTML=a.optionen.map((o,i)=>`<button type="button" data-i="${i}">${esc(o)}</button>`).join("");
+    $("optionen").querySelectorAll("button").forEach(b=>b.addEventListener("click", ()=>pruefe(a.optionen[+b.dataset.i], b)));
+  } else { $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false; try{ $("antwort").focus({preventScroll:true}); }catch(e){} }
 }
-$("okBtn").addEventListener("click", pruefe);
+$("okBtn").addEventListener("click", ()=>pruefe());
 $("antwort").addEventListener("keydown", e=>{ if(e.key==="Enter") pruefe(); });
-function pruefe(){
-  if($("antwort").disabled || $("antwort").value.trim()==="") return;
-  const a=aufgaben[idx % aufgaben.length], ok=parseInt($("antwort").value,10)===a.antwort;
-  $("antwort").disabled=true; $("okBtn").disabled=true; gestellt.push(a.key); const r=$("rueck");
+function pruefe(gewaehlt, knopf){
+  const a=aufgaben[idx % aufgaben.length]; let ok;
+  if(a.optionen){
+    if(typeof gewaehlt!=="string" || $("optionen").dataset.zu==="1") return;
+    $("optionen").dataset.zu="1"; ok = gewaehlt===a.ok;
+    $("optionen").querySelectorAll("button").forEach(b=>{ b.disabled=true; if(a.optionen[+b.dataset.i]===a.ok) b.classList.add("richtig"); });
+    if(!ok && knopf) knopf.classList.add("falsch");
+    setTimeout(()=>{ $("optionen").dataset.zu=""; }, ok?650:1900);
+  } else {
+    if($("antwort").disabled || $("antwort").value.trim()==="") return;
+    ok=parseInt($("antwort").value,10)===a.antwort; $("antwort").disabled=true; $("okBtn").disabled=true;
+  }
+  gestellt.push(a.key); const r=$("rueck"), loesung = a.optionen ? a.ok : a.antwort;
   if(ok){ richtig++; r.style.color="var(--good)"; r.textContent="Richtig! 👍"; }
-  else { herzen--; falsch.push(a.key); fehlerListe.push(`${a.text} = ${a.antwort}`); r.style.color="var(--bad)"; r.textContent=`Falsch! ${a.text} = ${a.antwort}`; }
-  zeichneHerzen(); zeichneFortschritt(); idx++; setTimeout(naechsteAufgabe, ok?650:1500);
+  else { herzen--; falsch.push(a.key); fehlerListe.push(a.erkl || `${a.text} → ${loesung}`); r.style.color="var(--bad)"; r.innerHTML=`Nicht ganz: ${esc(a.erkl || String(loesung))}`; }
+  zeichneHerzen(); zeichneFortschritt(); idx++; setTimeout(naechsteAufgabe, ok?700:2600);
 }
 
 //// ===== Etage fertig =====
@@ -490,7 +532,7 @@ function fertig(ok){
     $("ergOben").innerHTML=`<div class="flug"><span class="wolk" style="left:20%;top:12px">☁</span><span class="wolk" style="left:62%;top:58px">☁</span><span class="flz">✈️</span><span class="ziel">${z.b}</span></div>
       ${BILD.karten.includes(z.id)?`<img class="postkarte" src="bilder/turm/karte_${z.id}.webp" alt="${esc(z.name)}">`:""}
       <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
-    $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten 5 Etagen baust du im Stil von <b>${esc(z.name)}</b>.`+
+    $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten ${REISE} Etagen baust du im Stil von <b>${esc(z.name)}</b>.`+
       (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
     setTimeout(()=>{ $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti(); }, 3100);
     weiter(); if(dachNeu) setTimeout(()=>konfetti(), 3400); return;
@@ -514,7 +556,7 @@ $("endeBtn").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
 function speichere(ok, dauer, zimmer){
   const n=new Date(), p=x=>String(x).padStart(2,"0");
   const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
-    modus:"Turm", etage:etage, stufe: istReise(etage) ? "Reise-Etage" : planFuer(etage).label, richtig, falsch:falsch.length,
+    modus:"Turm", etage:etage, stufe: istReise(etage) ? "Reise-Etage" : STUFE_NAME[stufeVon(etage)], richtig, falsch:falsch.length,
     prozent: gestellt.length ? Math.round(richtig/gestellt.length*100) : 0, bestanden: ok?"Ja":"Nein", dauer, gestellt:gestellt.slice(), fehler:falsch.slice(), _t:Date.now() };
   if(ok && zimmer) eintrag.zimmer=zimmer;
   if(ok && istReise(etage)) eintrag.stadt=zielStadt(etage).id;
@@ -543,7 +585,7 @@ $("ganzBtn").addEventListener("click", ()=>{
 $("passBtn").addEventListener("click", ()=>{
   const h=hoechste(), da=Math.min(STAEDTE.length, Math.floor(h/REISE)+1), wr=Math.floor(h/(REISE*STAEDTE.length));
   $("extraTitel").innerHTML="🛂 Mein Reisepass";
-  $("extraInhalt").innerHTML=`<div class="info">Jede 5. Etage fliegst du in eine neue Stadt. Tippe auf einen Stempel!${wr?`<br>🌍 Du warst schon <b>${wr}×</b> einmal um die ganze Welt!`:""}</div>
+  $("extraInhalt").innerHTML=`<div class="info">Jede 10. Etage fliegst du in eine neue Stadt. Tippe auf einen Stempel!${wr?`<br>🌍 Du warst schon <b>${wr}×</b> einmal um die ganze Welt!`:""}</div>
     <div class="pass">${STAEDTE.map((s,i)=>`<div class="pst${i<da?" da":""}" style="--c:${s.c}" data-i="${i}">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="b">${s.b}</span>`}${i<da?esc(s.name):`ab Etage ${i*REISE}`}</div>`).join("")}</div><div class="info fakt" id="fakt">Hamburg ist dein Start.</div>`;
   $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.addEventListener("click",()=>{ const s=STAEDTE[+p.dataset.i]; $("fakt").innerHTML=`<b>${s.b} ${esc(s.name)} (${esc(s.land)})</b><br>${esc(s.fakt)}`; }));
   zeige("extra");
@@ -551,7 +593,7 @@ $("passBtn").addEventListener("click", ()=>{
 $("dachBtn").addEventListener("click", ()=>{
   const h=hoechste(), n=daecherOffen(h), akt=aktDach(h);
   $("extraTitel").innerHTML="🏗️ Dach wählen";
-  $("extraInhalt").innerHTML=`<div class="info">Jede <b>25. Etage</b> schaltet ein neues Dach frei. Tippe auf ein Dach, das du schon hast.</div>
+  $("extraInhalt").innerHTML=`<div class="info">Jede <b>20. Etage</b> schaltet ein neues Dach frei. Tippe auf ein Dach, das du schon hast.</div>
     <div class="daecher">${DAECHER.map((d,i)=>`<div class="dk${i<n?"":" zu"}${d[0]===akt?" an":""}" data-d="${d[0]}"><svg viewBox="${TX-10} -140 ${TW+20} 150">${dachSVG(d[0],0,"#ef4444")}</svg>${i<n?esc(d[1]):`🔒 ab Etage ${i*DACH}`}</div>`).join("")}</div>`;
   $("extraInhalt").querySelectorAll(".dk:not(.zu)").forEach(k=>k.addEventListener("click",()=>{ try{ localStorage.setItem(dachKey(), k.dataset.d); }catch(e){} $("dachBtn").click(); }));
   zeige("extra");
@@ -587,7 +629,7 @@ function konfetti(){
     if(Date.now()<end) requestAnimationFrame(f); else c.remove(); })();
 }
 // für die automatischen Tests
-window.Turm={ turmSVG, zimmerVon, hoechste, stilVon, zielStadt, istReise, baueAufgaben, typenFuer, mkTyp, PLAN, STAEDTE, ZIMMER, DAECHER, dachSVG, dreiZimmer,
+window.Turm={ turmSVG, zimmerVon, hoechste, stilVon, zielStadt, istReise, baueAufgaben, typenFuer, mkTyp, WISSEN, STUFE, STAEDTE, ZIMMER, DAECHER, dachSVG, dreiZimmer,
   get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; }, setEtage(v){ etage=v; } };
 </script>
 </body>
