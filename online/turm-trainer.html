@@ -39,7 +39,7 @@
   .pill{display:inline-block;background:rgba(56,189,248,.14);color:#7dd3fc;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
   .pill.gold{background:rgba(251,191,36,.15);color:#fde68a}
   /* Turm */
-  .turmBox{border-radius:16px;overflow:auto;max-height:520px;border:1px solid #23304a;background:#7dd3fc;-webkit-overflow-scrolling:touch}
+  .turmBox{border-radius:16px;overflow:auto;max-height:560px;border:1px solid #23304a;background:#7dd3fc;-webkit-overflow-scrolling:touch}
   .turmBox svg{display:block;width:100%;height:auto}
   .reihe{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px} .reihe button{flex:1}
   .herzen{font-size:26px;letter-spacing:3px} .herzen .weg{opacity:.25;filter:grayscale(1)}
@@ -54,7 +54,11 @@
   .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
   .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px} .credit a{color:var(--muted)}
   /* Zimmer wählen */
-  .wahl3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+  .wahl3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:12px 0}
+  .zk .bild{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:10px;margin-bottom:6px}
+  .zk .ersatz{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:2/1;border-radius:10px;margin-bottom:6px;background:#fef3c7;font-size:56px}
+  .zk .name{display:block;font-size:17px} .zk.s2{background:rgba(56,189,248,.08)} .zk.s3{background:rgba(253,224,71,.08)}
+  .zk .stern{position:absolute;right:10px;top:8px;font-size:24px;filter:drop-shadow(0 1px 2px #000)} .zk{position:relative}
   .zk{background:#0b1220;border:2px solid #334155;border-radius:16px;padding:12px 6px;text-align:center;cursor:pointer;color:var(--text);font-weight:700;font-size:14px}
   .zk .b{font-size:42px;line-height:1.15;display:block} .zk .w{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:3px}
   .zk.s2{border-color:#38bdf8} .zk.s3{border-color:#fde047;box-shadow:0 0 14px rgba(253,224,71,.4)}
@@ -102,6 +106,7 @@
       <div id="tankZeile" style="margin-top:14px"></div>
       <button class="full" id="startBtn" style="margin-top:14px">Etage starten ▶</button>
       <div class="reihe">
+        <button class="ghost klein" id="ganzBtn">🏙️ Mein ganzer Turm</button>
         <button class="ghost klein" id="passBtn">🛂 Mein Reisepass</button>
         <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
       </div>
@@ -253,7 +258,8 @@ function daecherOffen(h){ return Math.min(DAECHER.length, 1+Math.floor(h/DACH));
 function aktDach(h){ let d=null; try{ d=localStorage.getItem(dachKey()); }catch(e){} const n=daecherOffen(h); const i=DAECHER.findIndex(x=>x[0]===d); return i>=0 && i<n ? DAECHER[i][0] : DAECHER[n-1][0]; }
 
 //// ===== Der Turm (SVG) =====
-const W=300, TX=50, TW=200, EH=46, LOBBY=34;
+// Eine Etage ist 2:1 – so groß wie die gemalten Bilder. Links bleibt Platz für das Nummernschild.
+const W=300, TX=24, TW=264, EH=132, LOBBY=58, BILD=TurmDaten.BILDER, OEFF_STD=[0.12,0.12,0.76,0.76];
 function himmelFarbe(e){ const st=[[0,"#7dd3fc"],[20,"#93c5fd"],[45,"#fbcfe8"],[70,"#fb923c"],[95,"#7c3aed"],[125,"#1e1b4b"],[160,"#020617"]];
   let a=st[0], b=st[st.length-1]; for(let i=0;i<st.length-1;i++) if(e>=st[i][0] && e<=st[i+1][0]){ a=st[i]; b=st[i+1]; break; }
   if(e>st[st.length-1][0]) return b[1]; const t=(e-a[0])/((b[0]-a[0])||1), h=x=>parseInt(x,16), c1=a[1], c2=b[1];
@@ -284,20 +290,34 @@ function deko(st,y,e,oben){ const d=st.deko; let s="";
   if(d==="zinnen" && oben) for(let k=0;k<10;k++) s+=`<rect x="${TX+k*20+2}" y="${y-8}" width="12" height="9" fill="${st.wand}"/>`;
   if(d==="pagode" && oben) s+=`<path d="M${TX-16} ${y+2} Q${TX+TW/2} ${y-10} ${TX+TW+16} ${y+2} L${TX+TW} ${y+6} L${TX} ${y+6} Z" fill="${st.kante}"/>`;
   return s; }
-function etageSVG(e,y,z){ const st=stilVon(e), oben = e%REISE===0;
-  let s=`<rect x="${TX}" y="${y}" width="${TW}" height="${EH}" fill="${st.wand}"/>`+deko(st,y,e,oben);
-  s+=`<rect x="${TX}" y="${y+EH-2}" width="${TW}" height="2" fill="${st.kante}" opacity=".9"/>`;
+function oeffnung(st){ return BILD.fassaden[st.id] || OEFF_STD; }
+function etageSVG(e,y,z){ const st=stilVon(e), o=oeffnung(st), ox=TX+o[0]*TW, oy=y+o[1]*EH, ow=o[2]*TW, oh=o[3]*EH;
+  let s="";
+  // 1) innen: Zimmer, Reise-Halle oder Baustelle
   if(istReise(e)){
     const ziel=zielStadt(e);
-    s+=`<rect x="${TX+14}" y="${y+6}" width="${TW-28}" height="${EH-12}" rx="6" fill="#0b1220" stroke="${ziel.c}" stroke-width="2.5"/>`+
-       `<text x="${TX+34}" y="${y+EH/2+8}" font-size="22" text-anchor="middle">✈️</text><text x="${TX+TW-34}" y="${y+EH/2+9}" font-size="24" text-anchor="middle">${ziel.b}</text>`+
-       `<text x="${TX+TW/2}" y="${y+EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="#f1f5f9" font-family="Segoe UI,Arial">${esc(ziel.name)}</text>`;
+    s+=`<rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="${ziel.c}"/><rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="#0b1220" opacity=".55"/>`+
+       `<text x="${ox+ow*0.2}" y="${oy+oh*0.62}" font-size="${oh*0.42}" text-anchor="middle">✈️</text><text x="${ox+ow*0.8}" y="${oy+oh*0.64}" font-size="${oh*0.46}" text-anchor="middle">${ziel.b}</text>`+
+       `<rect x="${ox+ow*0.33}" y="${oy+oh*0.33}" width="${ow*0.34}" height="${oh*0.34}" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>`+
+       `<text x="${ox+ow/2}" y="${oy+oh*0.56}" font-size="${Math.min(15, ow*0.34/ziel.name.length*1.7)}" font-weight="800" text-anchor="middle" fill="#7c2d12" font-family="Georgia,serif">${esc(ziel.name)}</text>`;
+  }else if(z && BILD.zimmer.includes(z)){
+    s+=`<image href="bilder/turm/zimmer_${z}.webp" x="${ox}" y="${oy}" width="${ow}" height="${oh}" preserveAspectRatio="xMidYMid slice"/>`;
   }else{
-    s+=fensterForm(st,TX+18,y+9,30,26,true)+fensterForm(st,TX+TW-48,y+9,30,26,true);
-    s+=`<rect x="${TX+TW/2-24}" y="${y+5}" width="48" height="34" rx="4" fill="#fef9c3" stroke="${st.rahmen}" stroke-width="2.5"/>`;
-    const zi=ZN[z]; s+= zi ? `<text x="${TX+TW/2}" y="${y+31}" font-size="24" text-anchor="middle">${zi[1]}</text>` : `<text x="${TX+TW/2}" y="${y+29}" font-size="14" text-anchor="middle" fill="#94a3b8" font-family="Arial">?</text>`;
+    const zi=ZN[z];
+    s+=`<rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="#fef3c7"/><rect x="${ox}" y="${oy+oh*0.72}" width="${ow}" height="${oh*0.28}" fill="#d6a565"/>`+
+       (zi ? `<text x="${ox+ow/2}" y="${oy+oh*0.66}" font-size="${oh*0.5}" text-anchor="middle">${zi[1]}</text>` : `<text x="${ox+ow/2}" y="${oy+oh*0.6}" font-size="${oh*0.3}" text-anchor="middle" fill="#a8a29e" font-family="Arial">?</text>`);
   }
-  s+=`<text x="${TX-6}" y="${y+EH/2+4}" font-size="11" font-weight="800" text-anchor="end" fill="${e>=85?"#e2e8f0":"#0f172a"}" opacity="${e>=85?.8:.55}" font-family="Segoe UI,Arial">${e}</text>`;
+  // 2) davor: die Fassade der Stadt (gemalt oder gezeichnet)
+  if(BILD.fassaden[st.id]) s+=`<image href="bilder/turm/fassade_${st.id}.webp" x="${TX}" y="${y}" width="${TW}" height="${EH}" preserveAspectRatio="none"/>`;
+  else {
+    s+=`<path d="M${TX} ${y} h${TW} v${EH} h${-TW} Z M${ox} ${oy} v${oh} h${ow} v${-oh} Z" fill="${st.wand}" fill-rule="evenodd"/>`+
+       `<rect x="${TX}" y="${y}" width="${TW}" height="${EH*0.07}" fill="${st.kante}"/><rect x="${TX}" y="${y+EH*0.93}" width="${TW}" height="${EH*0.07}" fill="${st.kante}"/>`+
+       `<rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="none" stroke="${st.rahmen}" stroke-width="3"/>`+
+       fensterForm(st, TX+o[0]*TW*0.18, y+EH*0.32, o[0]*TW*0.64, EH*0.36, true)+fensterForm(st, TX+TW-o[0]*TW*0.82, y+EH*0.32, o[0]*TW*0.64, EH*0.36, true);
+  }
+  if(istReise(e)) s+=`<rect x="${ox}" y="${oy-1}" width="${ow}" height="5" fill="${zielStadt(e).c}"/>`;
+  // 3) Nummernschild
+  s+=`<rect x="2" y="${y+EH/2-13}" width="${TX+8}" height="26" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text x="${(TX+12)/2}" y="${y+EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="#7c2d12" font-family="Georgia,serif">${e}</text>`;
   return s; }
 function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
   switch(id){
@@ -314,11 +334,11 @@ function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
   } }
 // Ganzer Turm: gebaute Etagen, darüber das Dach und (gestrichelt) die nächste Etage mit Kran
 function turmSVG(h, z, dach, neu){
-  const oben=150, unten=70+LOBBY, H=oben+(h+1)*EH+unten; let s="";
+  const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten; let s="";
   for(let e=0;e<=h+4;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
   s+=`<rect x="0" y="0" width="${W}" height="${oben}" fill="${himmelFarbe(h+4)}"/>`;
   for(let e=1;e<=h+4;e++){ const y=H-unten-e*EH; if(e>110 && e%2===0) s+=`<circle cx="${(e*53)%280+10}" cy="${y+12}" r="1.6" fill="#fff"/><circle cx="${(e*97)%280+10}" cy="${y+30}" r="1.1" fill="#fff"/>`;
-    else if(e>4 && e<100 && e%6===0) s+=`<g fill="#fff" opacity=".85"><ellipse cx="${(e*41)%220+20}" cy="${y+20}" rx="26" ry="9"/><ellipse cx="${(e*41)%220+38}" cy="${y+14}" rx="16" ry="9"/></g>`; }
+    else if(e>2 && e<100 && e%3===0) s+=`<g fill="#fff" opacity=".8"><ellipse cx="${e%2?8:292}" cy="${y+40}" rx="22" ry="9"/></g>`; }
   const gr=H-70;      // Höhe des Bodens
   s+=`<rect x="0" y="${gr}" width="${W}" height="70" fill="#4ade80"/><rect x="0" y="${gr+24}" width="${W}" height="46" fill="#475569"/><path d="M0 ${gr+46} H${W}" stroke="#facc15" stroke-width="2.5" stroke-dasharray="14 10"/>`;
   s+=`<text x="22" y="${gr+20}" font-size="20">🌳</text><text x="258" y="${gr+20}" font-size="20">🌳</text>`;
@@ -329,7 +349,7 @@ function turmSVG(h, z, dach, neu){
   for(let e=1;e<=h;e++){ const y=H-unten-e*EH; s+=`<g${neu===e?' class="neuEtage"':""}>${etageSVG(e,y,z[e])}</g>`; }
   const yTop=H-unten-h*EH, hell = h+1>=85 ? "#e2e8f0" : "#0f172a";
   s+=`<rect x="${TX}" y="${yTop-EH}" width="${TW}" height="${EH}" fill="none" stroke="${hell}" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/><text x="${TX+TW/2}" y="${yTop-EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="${hell}" opacity=".75" font-family="Segoe UI,Arial">Etage ${h+1}</text>`;
-  s+=`<path d="M${TX+TW+22} ${yTop+10} V${yTop-EH-40} H${TX+TW/2}" stroke="#f59e0b" stroke-width="5" fill="none"/><path d="M${TX+TW/2+10} ${yTop-EH-40} V${yTop-EH-8}" stroke="#334155" stroke-width="1.5"/><rect x="${TX+TW/2+2}" y="${yTop-EH-8}" width="16" height="10" fill="#f59e0b"/>`;
+  const kx=TX+TW-14; s+=`<path d="M${kx} ${yTop} V${yTop-EH-46} M${kx-70} ${yTop-EH-46} H${kx+10}" stroke="#f59e0b" stroke-width="5" fill="none"/><path d="M${kx-60} ${yTop-EH-46} V${yTop-EH+10}" stroke="#334155" stroke-width="1.5"/><rect x="${kx-70}" y="${yTop-EH+10}" width="20" height="12" fill="#b45309"/>`;
   s+=dachSVG(dach, yTop-EH-2, stilVon(h+1).c);
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mein Wolkenkratzer mit ${h} Etagen">${s}</svg>`;
 }
@@ -421,7 +441,7 @@ function fertig(ok){
   $("ergTitel").innerHTML=`🎉 Etage ${e} steht! Was soll hinein?`;
   $("ergText").innerHTML=`Such dir ein Zimmer für deine neue Etage aus.`;
   $("weiterBtn").classList.add("hide");
-  $("ergOben").innerHTML=`<div class="wahl3">${angebot.map(z=>`<div class="zk s${z[3]}" data-z="${z[0]}"><span class="b">${z[1]}</span>${esc(z[2])}<span class="w">${z[3]>1?SW[z[3]]:(besitz()[z[0]]?"hast du schon":"neu")}</span></div>`).join("")}</div>`;
+  $("ergOben").innerHTML=`<div class="wahl3">${angebot.map(z=>`<div class="zk s${z[3]}" data-z="${z[0]}">${BILD.zimmer.includes(z[0]) ? `<img class="bild" src="bilder/turm/zimmer_${z[0]}.webp" alt="">` : `<span class="ersatz">${z[1]}</span>`}${z[3]>1?`<span class="stern">${z[3]===3?"🌟🌟":"⭐"}</span>`:""}<span class="name">${z[1]} ${esc(z[2])}</span><span class="w">${z[3]>1?SW[z[3]]:(besitz()[z[0]]?"hast du schon":"neu")}</span></div>`).join("")}</div>`;
   $("ergOben").querySelectorAll(".zk").forEach(k=>k.addEventListener("click",()=>{
     const id=k.dataset.z, z=ZN[id]; waehleZimmer(e, id);
     $("ergOben").innerHTML=""; $("ergTitel").innerHTML=`${z[1]} ${esc(z[2])} zieht ein!`;
@@ -452,6 +472,17 @@ function waehleZimmer(e, id){
 }
 
 //// ===== Reisepass und Dächer =====
+$("ganzBtn").addEventListener("click", ()=>{
+  const h=hoechste(), z=zimmerVon(), eh=26, w=200, H=h*eh+40; let s=`<rect width="${w}" height="${H}" fill="#7dd3fc"/><rect y="${H-24}" width="${w}" height="24" fill="#4ade80"/>`;
+  for(let e=1;e<=h;e++){ const y=H-24-e*eh, st=stilVon(e), zi=ZN[z[e]];
+    s+=`<rect x="40" y="${y}" width="120" height="${eh}" fill="${st.wand}" stroke="${st.kante}" stroke-width="1"/>`+
+       (istReise(e) ? `<text x="100" y="${y+18}" font-size="13" text-anchor="middle">✈️ ${zielStadt(e).b}</text>` : `<rect x="72" y="${y+3}" width="56" height="${eh-6}" rx="3" fill="#fef3c7"/><text x="100" y="${y+18}" font-size="14" text-anchor="middle">${zi?zi[1]:""}</text>`)+
+       `<text x="34" y="${y+17}" font-size="10" font-weight="800" text-anchor="end" fill="#0f172a" font-family="Arial">${e}</text>`; }
+  $("extraTitel").innerHTML=`🏙️ Mein ganzer Turm`;
+  $("extraInhalt").innerHTML=`<div class="info">${h} Etagen · ${Object.keys(besitz()).length} verschiedene Zimmer · 🛂 ${Math.min(STAEDTE.length, Math.floor(h/REISE)+1)} Städte</div>`+
+    (h ? `<div style="max-height:620px;overflow:auto;border-radius:14px;margin-top:10px"><svg viewBox="0 0 ${w} ${H}" style="display:block;width:100%;max-width:420px;margin:0 auto">${s}</svg></div>` : "");
+  zeige("extra");
+});
 $("passBtn").addEventListener("click", ()=>{
   const h=hoechste(), da=Math.min(STAEDTE.length, Math.floor(h/REISE)+1), wr=Math.floor(h/(REISE*STAEDTE.length));
   $("extraTitel").innerHTML="🛂 Mein Reisepass";

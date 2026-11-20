@@ -47,5 +47,8 @@ window.TurmDaten=(function(){
   ["flach","Flachdach mit Antenne"],["spitze","Turmspitze"],["kuppel","Goldene Kuppel"],["garten","Dachgarten"],
   ["heli","Hubschrauber-Platz"],["stern","Sternwarte"],["fahne","Fahnenturm"],["rad","Riesenrad"],["burg","Burgtürme"],["krone","Kronen-Dach"]
 ];
-  return { STAEDTE, ZIMMER, DAECHER, REISE:5, DACH:25 };
+  // Gemalte Bilder (bilder/turm): Fassade je Stadt mit durchsichtiger Öffnung [x, y, Breite, Höhe] als Anteil, Zimmer als Innenansicht 2:1.
+  // Fehlt ein Bild, zeichnet das Spiel die Etage selbst. Neue Bilder: aufbereiten mit scratchpad/bilder_bauen.py, dann hier eintragen.
+  const BILDER={ fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "biblio", "drache", "kino"] };
+  return { STAEDTE, ZIMMER, DAECHER, BILDER, REISE:5, DACH:25 };
 })();
