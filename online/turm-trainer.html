@@ -115,6 +115,14 @@
   .pst.da{background:#fff;border:2px dashed #c08a3e;color:#7c2d12;cursor:pointer;transform:rotate(-2deg);box-shadow:0 1px 4px rgba(0,0,0,.2)} .pst.da:nth-child(2n){transform:rotate(2deg)}
   .pst.da img{filter:none;opacity:1} .pst.da .b{filter:none;opacity:1}
   .fakt{margin-top:10px}
+  button.pst{font:700 12.5px Georgia,serif;position:relative;width:100%;box-shadow:0 1px 4px rgba(0,0,0,.2);text-shadow:none}
+  .pst .frag{position:absolute;right:-6px;top:-6px;width:26px;height:26px;border-radius:50%;background:#2c7a7b;color:#fff;font:800 15px/26px Arial,sans-serif;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+  .pst.an{outline:3px solid #e5a50a;outline-offset:2px}
+  .marke{cursor:pointer}
+  .stadtKarte{margin-top:16px;background:#fffaf0;border:3px solid var(--rahmen);border-radius:16px;padding:12px 14px}
+  .stadtKarte .gross{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;border:5px solid #fff;box-shadow:0 3px 10px rgba(60,40,10,.25);display:flex;align-items:center;justify-content:center;font-size:70px}
+  .stadtKarte h3{font:900 24px/1.2 Georgia,serif;color:var(--blau);margin:12px 0 6px} .stadtKarte h3 small{font:700 15px "Segoe UI",Arial,sans-serif;color:var(--muted)}
+  .stadtKarte ul{margin:0;padding-left:20px;line-height:1.55;font-size:16.5px} .stadtKarte li{margin:5px 0}
   .daecher{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
   .dk{background:#fffaf0;border:2px solid #e3c98f;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--text)}
   .dk svg{width:100%;height:70px;display:block} .dk.an{border-color:#e5a50a;box-shadow:0 0 10px rgba(229,165,10,.5)}
@@ -188,6 +196,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="tank.js"></script>
 <script src="turm.js"></script>
+<script src="turm-info.js"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -211,13 +220,15 @@ function istReise(e){ return e%REISE===0; }
 function zielStadt(e){ return STAEDTE[(e/REISE) % STAEDTE.length]; }          // wohin man nach der Reise-Etage e fliegt
 function runde(e){ return Math.floor((e-1)/(REISE*STAEDTE.length))+1; }
 
-//// ===== Zimmer =====  1 = häufig, 2 = selten ⭐, 3 = legendär 🌟
+//// ===== Zimmer =====  1 = häufig, 2 = selten ⭐, 3 = einzigartig 🌟 (nur einmal pro Turm)
 const ZIMMER=TurmDaten.ZIMMER;
-const ZN={}; ZIMMER.forEach(z=>ZN[z[0]]=z);
-const SW=["","","⭐ selten","🌟 legendär"];
+const ZN={}; [["pingpong","🏓","Tischtennis",1],["thron","👑","Thronsaal",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]].concat(ZIMMER).forEach(z=>ZN[z[0]]=z);   // alte Zimmer bleiben sichtbar
+const SW=["","","⭐ selten","🌟 einzigartig"];
 function dreiZimmer(besitz){
-  const l=[], nimm=s=>{ const pool=ZIMMER.filter(z=>z[3]===s && !l.includes(z)), neu=pool.filter(z=>!besitz[z[0]]); const w=(neu.length && Math.random()<0.75)?neu:pool; return w[Math.floor(Math.random()*w.length)]; };
-  for(let i=0;i<3;i++){ const r=Math.random(); l.push(nimm(r<0.08?3:r<0.33?2:1)); }
+  const l=[], nimm=s=>{ let pool=ZIMMER.filter(z=>z[3]===s && !l.includes(z) && !(s===3 && besitz[z[0]]));
+      if(!pool.length) pool=ZIMMER.filter(z=>z[3]===2 && !l.includes(z));                 // alle einzigartigen schon da → ein seltenes
+      const neu=pool.filter(z=>!besitz[z[0]]); const w=(neu.length && Math.random()<0.75)?neu:pool; return w[Math.floor(Math.random()*w.length)]; };
+  for(let k=0;k<3;k++){ const x=Math.random(); l.push(nimm(x<0.08?3:x<0.33?2:1)); }
   return l;
 }
 //// ===== Dächer (jede 20. Etage eines mehr) =====
@@ -463,11 +474,12 @@ function zeigeSeite(h){
   $("naechster").innerHTML=`<h4>✦ Nächster Halt ✦</h4>${kartenBild(ziel)}<div class="stadt">${esc(ziel.name)}</div>
     <div class="punkte">${[...Array(REISE).keys()].map(i=>`<i class="${i<im?"an":""}"></i>`).join("")}</div><div class="klein">${fehlt===1?"Die nächste Etage ist die Reise-Etage ✈️":`noch ${fehlt} Etagen bis zum Abflug`}</div>
     <button id="passKnopf">🛂 Reisepass</button>`;
-  $("passKnopf").addEventListener("click", ()=>$("passBtn").click());
-  const da=STAEDTE.slice(0, Math.min(STAEDTE.length, Math.floor(h/REISE)+1)).slice(-3).reverse();
-  $("passKlein").innerHTML=`<h4>Reisepass</h4><div class="marken">${da.map(s=>`<div class="marke">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="em">${s.b}</span>`}<span>${esc(s.name)}</span></div>`).join("")}</div>
+  $("passKnopf").addEventListener("click", ()=>zeigePass());
+  const da=STAEDTE.slice(0, Math.min(STAEDTE.length, Math.floor(h/REISE)+1)).map((s,i)=>Object.assign({i},s)).slice(-3).reverse();
+  $("passKlein").innerHTML=`<h4>Reisepass</h4><div class="marken">${da.map(s=>`<div class="marke" data-i="${s.i}" title="Mehr über ${esc(s.name)}">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="em">${s.b}</span>`}<span>${esc(s.name)}</span></div>`).join("")}</div>
     <div class="klein" style="margin-top:6px">${Math.min(STAEDTE.length, Math.floor(h/REISE)+1)} von ${STAEDTE.length} Städten</div>`;
 }
+document.addEventListener("click", e=>{ const m=e.target.closest && e.target.closest("#passKlein .marke"); if(m) zeigePass(+m.dataset.i); });
 function zeige(id){ ["start","spiel","ergebnis","extra"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
 
 //// ===== Spiel =====
@@ -532,8 +544,9 @@ function fertig(ok){
     $("ergOben").innerHTML=`<div class="flug"><span class="wolk" style="left:20%;top:12px">☁</span><span class="wolk" style="left:62%;top:58px">☁</span><span class="flz">✈️</span><span class="ziel">${z.b}</span></div>
       ${BILD.karten.includes(z.id)?`<img class="postkarte" src="bilder/turm/karte_${z.id}.webp" alt="${esc(z.name)}">`:""}
       <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
-    $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten ${REISE} Etagen baust du im Stil von <b>${esc(z.name)}</b>.`+
+    $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten ${REISE} Etagen baust du im Stil von <b>${esc(z.name)}</b>.<br><button type="button" class="klein" id="mehrBtn" style="margin-top:10px">🔍 Mehr über ${esc(z.name)}</button>`+
       (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
+    const mb=$("mehrBtn"); if(mb) mb.addEventListener("click", ()=>zeigePass(STAEDTE.indexOf(z)));
     setTimeout(()=>{ $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti(); }, 3100);
     weiter(); if(dachNeu) setTimeout(()=>konfetti(), 3400); return;
   }
@@ -544,7 +557,7 @@ function fertig(ok){
   $("ergOben").querySelectorAll(".zk").forEach(k=>k.addEventListener("click",()=>{
     const id=k.dataset.z, z=ZN[id]; waehleZimmer(e, id);
     $("ergOben").innerHTML=""; $("ergTitel").innerHTML=`${z[1]} ${esc(z[2])} zieht ein!`;
-    $("ergText").innerHTML = (z[3]===3?"🌟 Ein <b>legendäres</b> Zimmer – stark!<br>":z[3]===2?"⭐ Ein <b>seltenes</b> Zimmer!<br>":"")+
+    $("ergText").innerHTML = (z[3]===3?"🌟 Ein <b>einzigartiges</b> Zimmer – das gibt es in deinem Turm nur einmal!<br>":z[3]===2?"⭐ Ein <b>seltenes</b> Zimmer!<br>":"")+
       (istReise(etage) ? `Die nächste Etage ist eine <b>Reise-Etage</b> – danach fliegst du nach <b>${esc(zielStadt(etage).name)}</b>! ✈️` : `Noch <b>${REISE-(e%REISE)-1}</b> ${REISE-(e%REISE)-1===1?"Etage":"Etagen"} bis zur nächsten Reise.`);
     $("weiterBtn").classList.remove("hide"); weiter();
     $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti();
@@ -582,14 +595,36 @@ $("ganzBtn").addEventListener("click", ()=>{
     (h ? `<div style="max-height:620px;overflow:auto;border-radius:14px;margin-top:10px"><svg viewBox="0 0 ${w} ${H}" style="display:block;width:100%;max-width:420px;margin:0 auto">${s}</svg></div>` : "");
   zeige("extra");
 });
-$("passBtn").addEventListener("click", ()=>{
-  const h=hoechste(), da=Math.min(STAEDTE.length, Math.floor(h/REISE)+1), wr=Math.floor(h/(REISE*STAEDTE.length));
+// Reisepass: alle besuchten Städte als Briefmarken. Tippen → Postkarte und Spannendes über die Stadt, auf Wunsch vorgelesen.
+function besucht(h){ return Math.min(STAEDTE.length, Math.floor(h/REISE)+1); }
+function vorlesen(text){
+  try{ if(!("speechSynthesis" in window)) return false; speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; u.rate=0.92;
+    const v=speechSynthesis.getVoices().find(x=>/^de/i.test(x.lang)); if(v) u.voice=v;
+    speechSynthesis.speak(u); return true; }catch(e){ return false; } }
+function stillsein(){ try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){} }
+function zeigePass(nr){
+  const h=hoechste(), da=besucht(h), wr=Math.floor(h/(REISE*STAEDTE.length)), rest=STAEDTE.length-da;
   $("extraTitel").innerHTML="🛂 Mein Reisepass";
-  $("extraInhalt").innerHTML=`<div class="info">Jede 10. Etage fliegst du in eine neue Stadt. Tippe auf einen Stempel!${wr?`<br>🌍 Du warst schon <b>${wr}×</b> einmal um die ganze Welt!`:""}</div>
-    <div class="pass">${STAEDTE.map((s,i)=>`<div class="pst${i<da?" da":""}" style="--c:${s.c}" data-i="${i}">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="b">${s.b}</span>`}${i<da?esc(s.name):`ab Etage ${i*REISE}`}</div>`).join("")}</div><div class="info fakt" id="fakt">Hamburg ist dein Start.</div>`;
-  $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.addEventListener("click",()=>{ const s=STAEDTE[+p.dataset.i]; $("fakt").innerHTML=`<b>${s.b} ${esc(s.name)} (${esc(s.land)})</b><br>${esc(s.fakt)}`; }));
+  $("extraInhalt").innerHTML=`<div class="info">Du warst schon in <b>${da}</b> ${da===1?"Stadt":"Städten"}. Tippe auf eine Stadt – dann erfährst du Spannendes über sie! 🔍${wr?`<br>🌍 Du bist schon <b>${wr}×</b> einmal um die ganze Welt gereist!`:""}${rest?`<br>✈️ Noch <b>${rest}</b> ${rest===1?"Stadt wartet":"Städte warten"} auf dich – jede 10. Etage geht es weiter.`:""}</div>
+    <div class="pass">${STAEDTE.slice(0,da).map((s,i)=>`<button type="button" class="pst da" data-i="${i}">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="b">${s.b}</span>`}<span class="frag">?</span>${esc(s.name)}</button>`).join("")}</div>
+    <div id="stadtInfo"></div>`;
+  $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.addEventListener("click",()=>zeigeStadt(+p.dataset.i)));
   zeige("extra");
-});
+  if(nr!==undefined) zeigeStadt(nr);
+}
+function zeigeStadt(i){
+  const s=STAEDTE[i], saetze=(window.TurmInfo && TurmInfo[s.id]) || [s.fakt], kannLesen="speechSynthesis" in window;
+  stillsein();
+  $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.classList.toggle("an", +p.dataset.i===i));
+  $("stadtInfo").innerHTML=`<div class="stadtKarte">${BILD.karten.includes(s.id)?`<img class="gross" src="bilder/turm/karte_${s.id}.webp" alt="${esc(s.name)}">`:`<div class="ersatzkarte gross">${s.b}</div>`}
+    <h3>${s.b} ${esc(s.name)} <small>${esc(s.land)}</small></h3>
+    <ul>${saetze.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    ${kannLesen?`<div class="reihe"><button type="button" id="lesBtn">🔊 Vorlesen</button><button type="button" class="ghost" id="stopBtn">⏹ Stopp</button></div>`:""}</div>`;
+  if(kannLesen){ $("lesBtn").addEventListener("click", ()=>vorlesen(`${s.name}. ${saetze.join(" ")}`)); $("stopBtn").addEventListener("click", stillsein); }
+  try{ $("stadtInfo").scrollIntoView({behavior:"smooth", block:"start"}); }catch(e){}
+}
+$("passBtn").addEventListener("click", ()=>zeigePass());
 $("dachBtn").addEventListener("click", ()=>{
   const h=hoechste(), n=daecherOffen(h), akt=aktDach(h);
   $("extraTitel").innerHTML="🏗️ Dach wählen";
@@ -598,7 +633,7 @@ $("dachBtn").addEventListener("click", ()=>{
   $("extraInhalt").querySelectorAll(".dk:not(.zu)").forEach(k=>k.addEventListener("click",()=>{ try{ localStorage.setItem(dachKey(), k.dataset.d); }catch(e){} $("dachBtn").click(); }));
   zeige("extra");
 });
-$("extraZu").addEventListener("click", ()=>{ zeige("start"); zeigeStart(); });
+$("extraZu").addEventListener("click", ()=>{ stillsein(); zeige("start"); zeigeStart(); });
 
 //// ===== Namen und Verbindung =====
 $("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });

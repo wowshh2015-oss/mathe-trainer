@@ -44,7 +44,7 @@ window.TurmDaten=(function(){
    wand:"#f5d0a9", kante:"#b91c1c", fenster:"bogen", rahmen:"#9a3412", deko:"kacheln"},
   {id:"peking",   name:"Peking",        land:"China",       b:"🏯",  c:"#b91c1c", fakt:"Der Himmelstempel in Peking ist rund 600 Jahre alt – sein rundes Dach ist blau wie der Himmel.",
    wand:"#b91c1c", kante:"#facc15", fenster:"papier", rahmen:"#fde68a", deko:"pagode"},
-  {id:"tokio",    name:"Tokio",         land:"Japan",       b:"🏯",  c:"#be123c", fakt:"In Tokio und um Tokio herum leben mehr Menschen als in jeder anderen Stadt der Welt.",
+  {id:"tokio",    name:"Tokio",         land:"Japan",       b:"🏯",  c:"#be123c", fakt:"Tokio ist eine der größten Städte der Welt – mit Umgebung leben dort fast 37 Millionen Menschen.",
    wand:"#7f1d1d", kante:"#1f2937", fenster:"papier", rahmen:"#fef2f2", deko:"pagode"},
   {id:"kairo",    name:"Kairo",         land:"Ägypten",     b:"🐫",  c:"#d97706", fakt:"Bei Kairo stehen die Pyramiden von Gizeh – sie sind über 4500 Jahre alt.",
    wand:"#d6b06b", kante:"#92400e", fenster:"klein", rahmen:"#78350f", deko:"zinnen"},
@@ -59,14 +59,14 @@ window.TurmDaten=(function(){
   {id:"nordpol",  name:"Nordpol",       land:"Arktis",      b:"🐻‍❄️", c:"#0ea5e9", fakt:"Am Nordpol gibt es kein Land – nur dickes Eis auf dem Meer. In der Arktis leben Eisbären.",
    wand:"#e0f2fe", kante:"#38bdf8", fenster:"glas", rahmen:"#0284c7", deko:"zacken"}
 ];
+  // 30 Zimmer: 15 häufige (1), 10 seltene (2), 5 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
   const ZIMMER=[
   ["schlaf","🛏️","Schlafzimmer",1],["kueche","🍳","Küche",1],["biblio","📚","Bibliothek",1],["mal","🎨","Malzimmer",1],["spiel","🧸","Spielzimmer",1],
-  ["games","🎮","Spielehöhle",1],["musik","🎸","Musikzimmer",1],["pingpong","🏓","Tischtennis",1],["pizza","🍕","Pizzeria",1],["eis","🍦","Eisdiele",1],
-  ["garten","🌱","Gewächshaus",1],["aqua","🐠","Aquarium",1],["labor","🧪","Labor",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],["werk","🔧","Werkstatt",1],
+  ["games","🎮","Spielehöhle",1],["musik","🎸","Musikzimmer",1],["pizza","🍕","Pizzeria",1],["eis","🍦","Eisdiele",1],["garten","🌱","Gewächshaus",1],
+  ["aqua","🐠","Aquarium",1],["labor","🧪","Labor",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],["werk","🔧","Werkstatt",1],
   ["kino","🎬","Kino",2],["pool","🏊","Schwimmbad",2],["zirkus","🎪","Zirkus",2],["achter","🎢","Achterbahn",2],["dino","🦖","Dino-Museum",2],
   ["stern","🔭","Sternwarte",2],["karaoke","🎤","Karaoke",2],["panda","🐼","Panda-Zimmer",2],["eisbahn","⛸️","Eisbahn",2],["burg","🏰","Ritterzimmer",2],
-  ["drache","🐉","Drachenhöhle",3],["schatz","💎","Schatzkammer",3],["rakete","🚀","Raketenstart",3],["zauber","🧙","Zauberschule",3],
-  ["einhorn","🦄","Einhornstall",3],["thron","👑","Thronsaal",3],["ufo","🛸","Ufo-Landeplatz",3],["vulkan","🌋","Vulkanlabor",3]
+  ["drache","🐉","Drachenhöhle",3],["schatz","💎","Schatzkammer",3],["rakete","🚀","Raketenstart",3],["zauber","🧙","Zauberschule",3],["einhorn","🦄","Einhornstall",3]
 ];
   const DAECHER=[
   ["flach","Flachdach mit Antenne"],["spitze","Turmspitze"],["kuppel","Goldene Kuppel"],["garten","Dachgarten"],
