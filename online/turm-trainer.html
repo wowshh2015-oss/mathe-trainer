@@ -12,56 +12,83 @@
 <script src="wiederholung.js"></script>
 <script src="sterne.js"></script>
 <style>
-  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
-    --accent:#38bdf8; --accent2:#0284c7; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  /* Warmes Bilderbuch-Design: Pergament, goldener Rahmen, grüne Bau-Knöpfe */
+  :root{ --bg:#f6ead0; --card:#fffaf0; --card2:#e5cf9f; --text:#3f2a14; --muted:#8a6a45; --accent:#2f855a; --accent2:#276749;
+    --good:#2f9e44; --bad:#d9480f; --gold:#c9932b; --rahmen:#d4a64a; --blau:#173a6b; --shadow:0 6px 20px rgba(120,80,20,.18); }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
-  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#123a5a 0%,var(--bg) 60%);
-    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:linear-gradient(180deg,#cfe8f8 0%,#f6ead0 38%,#f1dfba 100%) fixed;
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:18px}
   .app{width:100%;max-width:680px}
-  h1{font-size:28px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
-  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
-  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  .kopfband{position:relative;margin:0 auto 12px;max-width:540px}
+  .kopfband img{width:100%;display:block;filter:drop-shadow(0 4px 6px rgba(80,50,10,.25))}
+  .kopfband b{position:absolute;left:4%;right:4%;top:9%;height:52%;display:flex;align-items:center;justify-content:center;font:900 clamp(21px,6.4vw,36px)/1 Georgia,"Times New Roman",serif;
+    color:#fde68a;text-shadow:0 2px 0 #0b1f3f,0 0 12px rgba(253,230,138,.35);letter-spacing:.3px}
+  .kopfband i{position:absolute;left:0;right:0;top:73%;text-align:center;font:italic 700 clamp(12px,3.4vw,19px)/1 Georgia,serif;color:#5b3a12}
+  .card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow),inset 0 0 0 2px #fff6e0;border:3px solid var(--rahmen);margin-bottom:16px}
   label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
-  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none}
+  input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#fff;color:var(--text);outline:none}
   input[type=text]:focus{border-color:var(--accent)}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:18px;font-weight:700;padding:15px 20px;color:#042433;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:.15s}
-  button:hover{filter:brightness(1.08)} button:disabled{opacity:.5;cursor:not-allowed}
-  button.full{width:100%} button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-size:18px;font-weight:800;padding:14px 20px;color:#fff;
+    background:linear-gradient(180deg,#48bb78,#2f855a);box-shadow:0 4px 0 #22543d;text-shadow:0 1px 0 rgba(0,0,0,.25);transition:.12s}
+  button:hover{filter:brightness(1.06)} button:active{transform:translateY(2px);box-shadow:0 2px 0 #22543d} button:disabled{opacity:.5;cursor:not-allowed}
+  button.full{width:100%} button.ghost{background:#fff8e7;color:#6b4423;border:2px solid var(--card2);box-shadow:0 3px 0 #e5cf9f;text-shadow:none;font-weight:700}
   button.klein{font-size:15px;padding:10px 14px}
   .hide{display:none!important}
   .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px} .chips .lbl{color:var(--muted);font-size:12px;width:100%}
-  .chip{cursor:pointer;background:#0b1220;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+  .chip{cursor:pointer;background:#fff8e7;border:1px solid var(--card2);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
   .kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-  .etagenbadge{font-size:30px;font-weight:800;line-height:1.05}
-  .etagenbadge small{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-top:3px}
-  .pill{display:inline-block;background:rgba(56,189,248,.14);color:#7dd3fc;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
-  .pill.gold{background:rgba(251,191,36,.15);color:#fde68a}
-  /* Turm */
-  .turmBox{border-radius:16px;overflow:auto;max-height:560px;border:1px solid #23304a;background:#7dd3fc;-webkit-overflow-scrolling:touch}
+  .etagenbadge{font:900 28px/1.05 Georgia,serif;color:var(--blau)}
+  .etagenbadge small{display:block;font:600 13px "Segoe UI",Arial,sans-serif;color:var(--muted);margin-top:4px}
+  .pill{display:inline-block;background:#e9f5ec;color:#276749;border:1px solid #b7dfc3;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:800}
+  .pill.gold{background:#fdf0d2;color:#8a5a12;border-color:#f0d49a}
+  /* Bühne: Stadt im Hintergrund, Turm davor, Karten daneben */
+  .buehne{position:relative;border-radius:18px;overflow:hidden;border:3px solid var(--rahmen);background-image:var(--hg,none),linear-gradient(180deg,#8fcbef,#e3f3fb);background-size:cover;background-position:center bottom}
+  .turmBox{border-radius:16px;overflow:auto;max-height:560px;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#8fcbef,#d7eef9)}
+  .buehne .turmBox{background:transparent;border-radius:0}
   .turmBox svg{display:block;width:100%;height:auto}
+  .seite{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+  .pk{background:rgba(255,250,240,.95);border:3px solid var(--rahmen);border-radius:16px;padding:9px 9px 11px;text-align:center;box-shadow:0 4px 10px rgba(80,50,10,.2)}
+  .pk h4{margin:0 0 6px;font:800 16px/1.2 Georgia,serif;color:var(--blau)}
+  .pk .karte{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);display:block}
+  .pk .ersatzkarte{width:100%;aspect-ratio:3/2;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:54px;background:linear-gradient(180deg,#bfe3f8,#fdf2dc)}
+  .pk .stadt{display:inline-block;margin-top:-15px;position:relative;background:#fdf2dc;border:2px solid var(--rahmen);border-radius:999px;padding:3px 14px;font:800 17px Georgia,serif;color:var(--text)}
+  .punkte{display:flex;justify-content:center;gap:6px;margin:8px 0 2px} .punkte i{width:12px;height:12px;border-radius:50%;border:2px solid var(--rahmen);background:#fff} .punkte i.an{background:#e5a50a}
+  .pk .klein{font-size:12.5px;color:var(--muted);font-weight:700}
+  .pk button{margin-top:8px;width:100%;font-size:15px;padding:9px 10px;background:linear-gradient(180deg,#2c7a7b,#205e5f);box-shadow:0 3px 0 #163f40}
+  .marken{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .marke{width:74px;padding:4px;background:#fff;border:2px dashed #c08a3e;transform:rotate(-4deg);box-shadow:0 1px 3px rgba(0,0,0,.25)} .marke:nth-child(2n){transform:rotate(3deg)}
+  .marke img{width:100%;aspect-ratio:1;object-fit:cover;display:block} .marke .em{display:block;font-size:36px;line-height:66px;background:#fdf2dc}
+  .marke span{display:block;font:700 11px Georgia,serif;color:#7c2d12;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media (max-width:759px){ .buehne{background:none;border:none;overflow:visible;border-radius:0}
+    .buehne .turmBox{background-image:var(--hg,none),linear-gradient(180deg,#8fcbef,#e3f3fb);background-size:cover;background-position:center bottom;border:3px solid var(--rahmen);border-radius:18px}
+    .seite{padding:10px 0 0} .pk h4{font-size:14px} .bauen .auf{font-size:12.5px} }
+  @media (min-width:760px){ .app{max-width:1000px} .buehne{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:16px;padding:16px;align-items:start}
+    .buehne .turmBox{max-height:740px;border-radius:12px} .seite{display:flex;flex-direction:column;gap:14px;padding:0} }
+  .bauen{display:flex;gap:10px;align-items:stretch;margin-top:14px} .bauen button{flex:1;font-size:21px}
+  .bauen .auf{background:#fdf2dc;border:2px solid var(--rahmen);border-radius:14px;padding:8px 12px;font-weight:800;color:#6b4423;display:flex;align-items:center;gap:6px;font-size:14px;line-height:1.2}
   .reihe{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px} .reihe button{flex:1}
   .herzen{font-size:26px;letter-spacing:3px} .herzen .weg{opacity:.25;filter:grayscale(1)}
-  .fortschritt{display:flex;gap:5px;margin:0 0 18px} .fortschritt i{flex:1;height:8px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt{display:flex;gap:5px;margin:0 0 18px} .fortschritt i{flex:1;height:9px;border-radius:999px;background:#f1e4c6;border:1px solid var(--card2)}
   .fortschritt i.ok{background:var(--good);border-color:var(--good)}
-  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px} .frage.lang{font-size:30px;letter-spacing:0}
+  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px;color:var(--blau)} .frage.lang{font-size:30px;letter-spacing:0}
   .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
   .antwortzeile{display:flex;gap:12px} .antwortzeile input{flex:1;font-size:30px;text-align:center}
-  .rueck{min-height:28px;text-align:center;font-size:18px;font-weight:700;margin-top:14px}
-  .info{background:#0b1220;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);line-height:1.5}
-  .gross{font-size:26px;font-weight:800;text-align:center;margin:4px 0 10px}
+  .rueck{min-height:28px;text-align:center;font-size:18px;font-weight:800;margin-top:14px}
+  .info{background:#fdf2dc;border:1px solid #f0dcae;border-radius:12px;padding:12px 14px;font-size:14px;color:#6b4f2c;line-height:1.5}
+  .gross{font:900 25px/1.2 Georgia,serif;text-align:center;margin:4px 0 10px;color:var(--blau)}
   .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
   .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px} .credit a{color:var(--muted)}
   /* Zimmer wählen */
   .wahl3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:12px 0}
+  .zk{position:relative;background:#fffaf0;border:3px solid #e3c98f;border-radius:16px;padding:8px 8px 10px;text-align:center;cursor:pointer;color:var(--text);font-weight:800;font-size:14px;box-shadow:0 3px 8px rgba(80,50,10,.15)}
   .zk .bild{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:10px;margin-bottom:6px}
   .zk .ersatz{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:2/1;border-radius:10px;margin-bottom:6px;background:#fef3c7;font-size:56px}
-  .zk .name{display:block;font-size:17px} .zk.s2{background:rgba(56,189,248,.08)} .zk.s3{background:rgba(253,224,71,.08)}
-  .zk .stern{position:absolute;right:10px;top:8px;font-size:24px;filter:drop-shadow(0 1px 2px #000)} .zk{position:relative}
-  .zk{background:#0b1220;border:2px solid #334155;border-radius:16px;padding:12px 6px;text-align:center;cursor:pointer;color:var(--text);font-weight:700;font-size:14px}
-  .zk .b{font-size:42px;line-height:1.15;display:block} .zk .w{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:3px}
-  .zk.s2{border-color:#38bdf8} .zk.s3{border-color:#fde047;box-shadow:0 0 14px rgba(253,224,71,.4)}
+  .zk .name{display:block;font:800 18px Georgia,serif} .zk .w{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:3px}
+  .zk.s2{border-color:#3b82f6;background:#eff6ff} .zk.s3{border-color:#e5a50a;background:#fff7db;box-shadow:0 0 16px rgba(229,165,10,.55)}
+  .zk .stern{position:absolute;right:12px;top:10px;font-size:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
   .zk:hover{transform:translateY(-2px)}
   /* Reise */
   .flug{position:relative;height:120px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#38bdf8,#bae6fd);margin:8px 0 12px}
@@ -70,26 +97,29 @@
   .flug .ziel{position:absolute;right:14px;bottom:8px;font-size:52px;opacity:0;animation:auftauchen .6s 2.3s forwards}
   .flug .wolk{position:absolute;color:#fff;font-size:30px;opacity:.85}
   @keyframes auftauchen{ to{opacity:1} }
-  .stempel{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:120px;height:120px;border-radius:50%;border:5px double #e11d48;color:#fecdd3;
-    transform:rotate(-12deg) scale(.2);opacity:0;animation:stempeln .5s 2.6s cubic-bezier(.2,1.6,.4,1) forwards;font-weight:800;text-align:center;font-size:15px;line-height:1.15}
-  .stempel b{font-size:38px;display:block}
+  .postkarte{display:block;width:100%;max-width:440px;margin:4px auto 10px;border:7px solid #fff;border-radius:6px;box-shadow:0 6px 16px rgba(60,40,10,.35);transform:rotate(-2deg) scale(.6);opacity:0;animation:karteRein .6s 2.2s cubic-bezier(.2,1.4,.4,1) forwards}
+  @keyframes karteRein{ to{ transform:rotate(-2deg) scale(1); opacity:1 } }
+  .stempel{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:116px;height:116px;border-radius:50%;border:5px double #e11d48;color:#be123c;background:rgba(255,255,255,.6);
+    transform:rotate(-12deg) scale(.2);opacity:0;animation:stempeln .5s 2.8s cubic-bezier(.2,1.6,.4,1) forwards;font-weight:800;text-align:center;font:800 15px/1.15 Georgia,serif}
+  .stempel b{font-size:36px;display:block}
   @keyframes stempeln{ to{ transform:rotate(-12deg) scale(1); opacity:1 } }
   /* Reisepass */
-  .pass{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:10px}
-  .pst{border-radius:14px;padding:10px 4px;text-align:center;background:#0b1220;border:2px dashed #334155;color:#64748b;font-size:13px;font-weight:700;cursor:default}
+  .pass{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:12px;margin-top:10px}
+  .pst{padding:5px;text-align:center;background:#fffaf0;border:2px dashed #e3c98f;color:#a08060;font:700 12.5px Georgia,serif;cursor:default}
+  .pst img{display:block;width:100%;aspect-ratio:1;object-fit:cover;filter:grayscale(1);opacity:.25}
   .pst .b{font-size:34px;display:block;line-height:1.2;filter:grayscale(1);opacity:.35}
-  .pst.da{border:2px solid var(--c);color:#f1f5f9;cursor:pointer} .pst.da .b{filter:none;opacity:1}
+  .pst.da{background:#fff;border:2px dashed #c08a3e;color:#7c2d12;cursor:pointer;transform:rotate(-2deg);box-shadow:0 1px 4px rgba(0,0,0,.2)} .pst.da:nth-child(2n){transform:rotate(2deg)}
+  .pst.da img{filter:none;opacity:1} .pst.da .b{filter:none;opacity:1}
   .fakt{margin-top:10px}
   .daecher{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
-  .dk{background:#0b1220;border:2px solid #334155;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--text)}
-  .dk svg{width:100%;height:70px;display:block} .dk.an{border-color:#fbbf24}
+  .dk{background:#fffaf0;border:2px solid #e3c98f;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--text)}
+  .dk svg{width:100%;height:70px;display:block} .dk.an{border-color:#e5a50a;box-shadow:0 0 10px rgba(229,165,10,.5)}
   .dk.zu{opacity:.4;cursor:default}
 </style>
 </head>
 <body>
 <div class="app">
-  <h1>🏙️ Mein Wolkenkratzer</h1>
-  <p class="sub">Bau dein eigenes Hochhaus – und reise dabei einmal um die Welt.</p>
+  <div class="kopfband"><img src="bilder/turm/band.webp" alt=""><b>Mein Wolkenkratzer</b><i>Eine Reise um die Welt</i></div>
 
   <!-- ===== START ===== -->
   <div id="start" class="card">
@@ -102,12 +132,15 @@
         <div class="etagenbadge" id="etageGross">1. Stock<small id="etageStufe"></small></div>
         <div style="text-align:right" id="kopfRechts"></div>
       </div>
-      <div class="turmBox" id="turm"></div>
+      <div class="buehne" id="buehne">
+        <div class="turmBox" id="turm"></div>
+        <div class="seite"><div class="pk" id="naechster"></div><div class="pk" id="passKlein"></div></div>
+      </div>
       <div id="tankZeile" style="margin-top:14px"></div>
-      <button class="full" id="startBtn" style="margin-top:14px">Etage starten ▶</button>
+      <div class="bauen"><div class="auf">📋 8 Aufgaben<br>⚡ 1 Sprit</div><button id="startBtn">🔨 Weiterbauen</button></div>
       <div class="reihe">
         <button class="ghost klein" id="ganzBtn">🏙️ Mein ganzer Turm</button>
-        <button class="ghost klein" id="passBtn">🛂 Mein Reisepass</button>
+        <button class="ghost klein hide" id="passBtn">🛂 Mein Reisepass</button>
         <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
       </div>
       <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Aufgaben</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
@@ -333,27 +366,37 @@ function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
     default: return `<rect x="${TX-6}" y="${y-8}" width="${TW+12}" height="8" fill="#334155"/><path d="M${TX+TW-40} ${y-8} V${y-56}" stroke="#475569" stroke-width="3"/><path d="M${TX+TW-52} ${y-44} H${TX+TW-28} M${TX+TW-48} ${y-34} H${TX+TW-32}" stroke="#475569" stroke-width="2.5"/><circle cx="${TX+TW-40}" cy="${y-58}" r="3.5" fill="#ef4444"/>`;
   } }
 // Ganzer Turm: gebaute Etagen, darüber das Dach und (gestrichelt) die nächste Etage mit Kran
-function turmSVG(h, z, dach, neu){
+function turmSVG(h, z, dach, neu, buehne){
   const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten; let s="";
-  for(let e=0;e<=h+4;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
-  s+=`<rect x="0" y="0" width="${W}" height="${oben}" fill="${himmelFarbe(h+4)}"/>`;
+  if(!buehne){ for(let e=0;e<=h+4;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
+    s+=`<rect x="0" y="0" width="${W}" height="${oben}" fill="${himmelFarbe(h+4)}"/>`; }
   for(let e=1;e<=h+4;e++){ const y=H-unten-e*EH; if(e>110 && e%2===0) s+=`<circle cx="${(e*53)%280+10}" cy="${y+12}" r="1.6" fill="#fff"/><circle cx="${(e*97)%280+10}" cy="${y+30}" r="1.1" fill="#fff"/>`;
     else if(e>2 && e<100 && e%3===0) s+=`<g fill="#fff" opacity=".8"><ellipse cx="${e%2?8:292}" cy="${y+40}" rx="22" ry="9"/></g>`; }
   const gr=H-70;      // Höhe des Bodens
-  s+=`<rect x="0" y="${gr}" width="${W}" height="70" fill="#4ade80"/><rect x="0" y="${gr+24}" width="${W}" height="46" fill="#475569"/><path d="M0 ${gr+46} H${W}" stroke="#facc15" stroke-width="2.5" stroke-dasharray="14 10"/>`;
-  s+=`<text x="22" y="${gr+20}" font-size="20">🌳</text><text x="258" y="${gr+20}" font-size="20">🌳</text>`;
-  // Erdgeschoss: Eingangshalle mit Glastür und Schild
-  s+=`<rect x="${TX-6}" y="${gr-LOBBY}" width="${TW+12}" height="${LOBBY}" fill="#334155"/><rect x="${TX-10}" y="${gr-LOBBY-5}" width="${TW+20}" height="6" rx="2" fill="#0f172a"/>`+
-     `<rect x="${TX+TW/2-22}" y="${gr-LOBBY+8}" width="44" height="${LOBBY-8}" fill="#bae6fd" stroke="#e2e8f0" stroke-width="2"/><path d="M${TX+TW/2} ${gr-LOBBY+8} V${gr}" stroke="#e2e8f0" stroke-width="2"/>`+
-     `<rect x="${TX+10}" y="${gr-LOBBY+10}" width="44" height="16" rx="3" fill="#7dd3fc" opacity=".55"/><rect x="${TX+TW-54}" y="${gr-LOBBY+10}" width="44" height="16" rx="3" fill="#7dd3fc" opacity=".55"/>`;
+  if(!buehne){ s+=`<rect x="0" y="${gr}" width="${W}" height="70" fill="#4ade80"/><rect x="0" y="${gr+24}" width="${W}" height="46" fill="#475569"/><path d="M0 ${gr+46} H${W}" stroke="#facc15" stroke-width="2.5" stroke-dasharray="14 10"/>`;
+    s+=`<text x="22" y="${gr+20}" font-size="20">🌳</text><text x="258" y="${gr+20}" font-size="20">🌳</text>`; }
+  else s+=`<ellipse cx="${TX+TW/2}" cy="${gr+6}" rx="${TW/2+30}" ry="12" fill="#3f6b2a" opacity=".35"/><text x="${TX-6}" y="${gr+8}" font-size="26">🌷</text><text x="${TX+TW-20}" y="${gr+8}" font-size="26">🌷</text>`;
+  // Erdgeschoss: Eingang aus Ziegeln mit leuchtender Bogentür, Laternen und erleuchteten Fenstern
+  { const lx=TX-6, lw=TW+12, ly=gr-LOBBY, m=TX+TW/2, tb=40, th=LOBBY-8;
+    s+=`<defs><radialGradient id="tuerLicht" cx="50%" cy="60%" r="60%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".6" stop-color="#ffcf6b"/><stop offset="1" stop-color="#e08a1e"/></radialGradient></defs>`;
+    s+=`<rect x="${lx}" y="${ly}" width="${lw}" height="${LOBBY}" fill="#b4532f"/>`;
+    for(let rr=0; rr<4; rr++) for(let k=0;k<15;k++){ const xx=lx+k*20+(rr%2?10:0); if(xx<lx+lw-6) s+=`<rect x="${xx}" y="${ly+5+rr*12}" width="${Math.min(18,lx+lw-xx)}" height="1.6" fill="#7f2f18" opacity=".5"/>`; }
+    s+=`<rect x="${lx-4}" y="${ly-7}" width="${lw+8}" height="9" rx="2" fill="#ead7a8" stroke="#b8975a"/><rect x="${lx}" y="${gr-5}" width="${lw}" height="5" fill="#d9c391"/>`;
+    s+=`<ellipse cx="${m}" cy="${ly+LOBBY*0.55}" rx="46" ry="${LOBBY*0.7}" fill="#ffd27a" opacity=".22"/>`;
+    s+=`<path d="M${m-tb/2-4} ${gr} V${ly+16} A${tb/2+4} ${tb/2+4} 0 0 1 ${m+tb/2+4} ${ly+16} V${gr} Z" fill="#5b3416"/>`+
+       `<path d="M${m-tb/2} ${gr} V${ly+17} A${tb/2} ${tb/2} 0 0 1 ${m+tb/2} ${ly+17} V${gr} Z" fill="url(#tuerLicht)"/>`+
+       `<path d="M${m} ${ly+6} V${gr} M${m-tb/2} ${ly+20} H${m+tb/2}" stroke="#7a4a1f" stroke-width="2"/><circle cx="${m-4}" cy="${gr-16}" r="1.6" fill="#7a4a1f"/><circle cx="${m+4}" cy="${gr-16}" r="1.6" fill="#7a4a1f"/>`;
+    [m-62, m+62].forEach(x=>{ s+=`<circle cx="${x}" cy="${ly+18}" r="9" fill="#ffd27a" opacity=".3"/><rect x="${x-3.5}" y="${ly+12}" width="7" height="11" rx="2" fill="#fff1b8" stroke="#3a2a12" stroke-width="1.4"/><path d="M${x} ${ly+12} V${ly+7}" stroke="#3a2a12" stroke-width="1.4"/>`; });
+    [lx+16, lx+lw-56].forEach(x=>{ s+=`<path d="M${x} ${ly+LOBBY-12} V${ly+22} A20 20 0 0 1 ${x+40} ${ly+22} V${ly+LOBBY-12} Z" fill="#ffe7a3" stroke="#ead7a8" stroke-width="3"/><path d="M${x+20} ${ly+8} V${ly+LOBBY-12} M${x} ${ly+26} H${x+40}" stroke="#ead7a8" stroke-width="2"/>`; });
+    s+=`<text x="${lx+2}" y="${gr+2}" font-size="22">🪴</text><text x="${lx+lw-24}" y="${gr+2}" font-size="22">🪴</text>`; }
   for(let e=1;e<=h;e++){ const y=H-unten-e*EH; s+=`<g${neu===e?' class="neuEtage"':""}>${etageSVG(e,y,z[e])}</g>`; }
   const yTop=H-unten-h*EH, hell = h+1>=85 ? "#e2e8f0" : "#0f172a";
   s+=`<rect x="${TX}" y="${yTop-EH}" width="${TW}" height="${EH}" fill="none" stroke="${hell}" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/><text x="${TX+TW/2}" y="${yTop-EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="${hell}" opacity=".75" font-family="Segoe UI,Arial">Etage ${h+1}</text>`;
-  const kx=TX+TW-14; s+=`<path d="M${kx} ${yTop} V${yTop-EH-46} M${kx-70} ${yTop-EH-46} H${kx+10}" stroke="#f59e0b" stroke-width="5" fill="none"/><path d="M${kx-60} ${yTop-EH-46} V${yTop-EH+10}" stroke="#334155" stroke-width="1.5"/><rect x="${kx-70}" y="${yTop-EH+10}" width="20" height="12" fill="#b45309"/>`;
   s+=dachSVG(dach, yTop-EH-2, stilVon(h+1).c);
+  const kw=104, kh=219; s+=`<image href="bilder/turm/kran.webp" x="${TX+TW-0.63*kw}" y="${yTop-kh+8}" width="${kw}" height="${kh}"/>`;      // Kran mit Ziegeln über der nächsten Etage
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mein Wolkenkratzer mit ${h} Etagen">${s}</svg>`;
 }
-function zeichneTurm(box, h, neu){ box.innerHTML=turmSVG(h, zimmerVon(), aktDach(h), neu); box.scrollTop=0;
+function zeichneTurm(box, h, neu){ box.innerHTML=turmSVG(h, zimmerVon(), aktDach(h), neu, !!box.closest(".buehne")); box.scrollTop=0;
   if(neu){ const g=box.querySelector(".neuEtage"); if(g){ g.style.transformOrigin="center"; g.animate([{opacity:0,transform:"translateY(-30px)"},{opacity:1,transform:"none"}],{duration:700,easing:"cubic-bezier(.2,1.4,.4,1)"}); } } }
 
 //// ===== Kraft (Sprit) =====
@@ -379,9 +422,22 @@ function zeigeStart(){
   const staedte=Math.min(STAEDTE.length, Math.floor(h/REISE)+1);
   $("kopfRechts").innerHTML=`<div class="pill">${st.b} Du baust gerade in ${esc(st.name)}</div><div class="pill gold" style="margin-top:6px">🛂 ${staedte} von ${STAEDTE.length} Städten</div>`;
   zeigeTank();
-  $("startBtn").textContent = tankLeer() ? "⚡ Erst Kraft tanken – dann geht es weiter" : istReise(etage) ? `✈️ Reise-Etage ${etage} starten` : `Etage ${etage} bauen ▶`;
+  $("startBtn").textContent = tankLeer() ? "⚡ Erst Sprit tanken" : istReise(etage) ? `✈️ Reise-Etage ${etage}` : `🔨 Weiterbauen`;
   zeichneTurm($("turm"), h);
+  zeigeSeite(h);
   $("turmBox").classList.remove("hide");
+}
+function kartenBild(s, cls){ return BILD.karten.includes(s.id) ? `<img class="${cls||"karte"}" src="bilder/turm/karte_${s.id}.webp" alt="${esc(s.name)}" loading="lazy">` : `<div class="ersatzkarte">${s.b}</div>`; }
+function zeigeSeite(h){
+  const st=stilVon(h+1), naechsteReise=Math.ceil((h+1)/REISE)*REISE, ziel=zielStadt(naechsteReise), im=(h)%REISE, fehlt=naechsteReise-h;
+  $("buehne").style.setProperty("--hg", BILD.hintergrund.includes(st.id) ? `url(bilder/turm/hintergrund_${st.id}.webp)` : "none");
+  $("naechster").innerHTML=`<h4>✦ Nächster Halt ✦</h4>${kartenBild(ziel)}<div class="stadt">${esc(ziel.name)}</div>
+    <div class="punkte">${[0,1,2,3,4].map(i=>`<i class="${i<im?"an":""}"></i>`).join("")}</div><div class="klein">${fehlt===1?"Die nächste Etage ist die Reise-Etage ✈️":`noch ${fehlt} Etagen bis zum Abflug`}</div>
+    <button id="passKnopf">🛂 Reisepass</button>`;
+  $("passKnopf").addEventListener("click", ()=>$("passBtn").click());
+  const da=STAEDTE.slice(0, Math.min(STAEDTE.length, Math.floor(h/REISE)+1)).slice(-3).reverse();
+  $("passKlein").innerHTML=`<h4>Reisepass</h4><div class="marken">${da.map(s=>`<div class="marke">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="em">${s.b}</span>`}<span>${esc(s.name)}</span></div>`).join("")}</div>
+    <div class="klein" style="margin-top:6px">${Math.min(STAEDTE.length, Math.floor(h/REISE)+1)} von ${STAEDTE.length} Städten</div>`;
 }
 function zeige(id){ ["start","spiel","ergebnis","extra"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
 
@@ -432,6 +488,7 @@ function fertig(ok){
     const z=zielStadt(e), rnd2=runde(e+1);
     $("ergTitel").innerHTML=`✈️ Auf nach ${esc(z.name)}!`;
     $("ergOben").innerHTML=`<div class="flug"><span class="wolk" style="left:20%;top:12px">☁</span><span class="wolk" style="left:62%;top:58px">☁</span><span class="flz">✈️</span><span class="ziel">${z.b}</span></div>
+      ${BILD.karten.includes(z.id)?`<img class="postkarte" src="bilder/turm/karte_${z.id}.webp" alt="${esc(z.name)}">`:""}
       <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
     $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten 5 Etagen baust du im Stil von <b>${esc(z.name)}</b>.`+
       (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
@@ -487,7 +544,7 @@ $("passBtn").addEventListener("click", ()=>{
   const h=hoechste(), da=Math.min(STAEDTE.length, Math.floor(h/REISE)+1), wr=Math.floor(h/(REISE*STAEDTE.length));
   $("extraTitel").innerHTML="🛂 Mein Reisepass";
   $("extraInhalt").innerHTML=`<div class="info">Jede 5. Etage fliegst du in eine neue Stadt. Tippe auf einen Stempel!${wr?`<br>🌍 Du warst schon <b>${wr}×</b> einmal um die ganze Welt!`:""}</div>
-    <div class="pass">${STAEDTE.map((s,i)=>`<div class="pst${i<da?" da":""}" style="--c:${s.c}" data-i="${i}"><span class="b">${s.b}</span>${i<da?esc(s.name):`ab Etage ${i*REISE}`}</div>`).join("")}</div><div class="info fakt" id="fakt">Hamburg ist dein Start.</div>`;
+    <div class="pass">${STAEDTE.map((s,i)=>`<div class="pst${i<da?" da":""}" style="--c:${s.c}" data-i="${i}">${BILD.karten.includes(s.id)?`<img src="bilder/turm/karte_${s.id}.webp" alt="" loading="lazy">`:`<span class="b">${s.b}</span>`}${i<da?esc(s.name):`ab Etage ${i*REISE}`}</div>`).join("")}</div><div class="info fakt" id="fakt">Hamburg ist dein Start.</div>`;
   $("extraInhalt").querySelectorAll(".pst.da").forEach(p=>p.addEventListener("click",()=>{ const s=STAEDTE[+p.dataset.i]; $("fakt").innerHTML=`<b>${s.b} ${esc(s.name)} (${esc(s.land)})</b><br>${esc(s.fakt)}`; }));
   zeige("extra");
 });

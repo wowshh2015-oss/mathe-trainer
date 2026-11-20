@@ -483,7 +483,7 @@ function zeigeHallo(rows, name){
   const tests=rows.filter(e=>e.modus==="Test"), bestanden=tests.filter(e=>e.bestanden==="Ja");
   if(bestanden.length) erfolge.push(`🏅 ${bestanden.length}× Test bestanden`);
   const mEtage=rows.filter(e=>e.app==="turm"&&e.bestanden==="Ja").reduce((m,e)=>Math.max(m,+e.etage||0),0);
-  if(mEtage) erfolge.push(`🏙️ ${mEtage} ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(15,Math.floor(mEtage/5)+1)} Städte`);
+  if(mEtage) erfolge.push(`🏙️ ${mEtage} ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(18,Math.floor(mEtage/5)+1)} Städte`);
   const runden=rows.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   if(runden) erfolge.push(`🏎️ ${runden} Runden gefahren`);
   const zooTiere=rows.filter(e=>e.app==="zoo").reduce((s,e)=>s+((e.tiere||[]).length),0);
@@ -800,7 +800,7 @@ function zeigeLernweg(){
   const mMal=LW_ROWS.filter(e=>e.app==="turm").length;
   const runden=LW_ROWS.filter(e=>e.app==="rallye").reduce((s,e)=>s+(+e.runden||0),0);
   const spiele=`<div class="lwSpiele">
-     <div class="lwSpiel">🏙️ <b>Mein Wolkenkratzer</b><br>${mMal ? `<b>${mEtage}</b> ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(15,Math.floor(mEtage/5)+1)} Städte` : "noch nicht gebaut"}</div>
+     <div class="lwSpiel">🏙️ <b>Mein Wolkenkratzer</b><br>${mMal ? `<b>${mEtage}</b> ${mEtage===1?"Etage":"Etagen"} · 🛂 ${Math.min(18,Math.floor(mEtage/5)+1)} Städte` : "noch nicht gebaut"}</div>
      <div class="lwSpiel">🏎️ <b>Rechen-Rallye</b><br>${runden ? `<b>${runden}</b> Runde${runden===1?"":"n"} gefahren` : "noch nicht gespielt"}</div>
    </div>`;
   const vielGespielt = (mMal+runden)>=5;
