@@ -54,6 +54,8 @@
   .empty{color:var(--muted);font-size:14px;padding:8px 0}
   .scroll{overflow-x:auto}
   .hide{display:none!important}
+  .hilfeZeile{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 12px;margin-bottom:8px;border-radius:12px;background:rgba(245,158,11,.14);font-size:17px}
+  .hilfeZeile small{opacity:.75}
   .status{font-size:13px;color:var(--muted);margin-top:4px}
   /* Hochhaus der Klasse */
   .hh{position:relative;border-radius:14px;border:1px solid #23304a;overflow:hidden;
@@ -192,6 +194,7 @@
     </div>
     <div class="status" id="status">Verbinde …</div>
   </div>
+  <div class="card noprint hide" id="hilfeOben" style="border:2px solid #f59e0b"></div>
 
   <div class="card">
     <h2>📊 Überblick <small id="zeitLabel"></small></h2>
@@ -304,9 +307,11 @@
     <div id="gabenListe" style="margin-top:14px"></div>
   </div>
 
-  <div class="card noprint">
+  <div class="card noprint" id="tiereCard">
     <h2>🐾 Geheimtiere <small>damit meldet sich jedes Kind an · vergessen? → zurücksetzen, dann wählt das Kind beim nächsten Mal neu</small></h2>
+    <div id="hilfeListe"></div>
     <div id="tiere"></div>
+    <details id="rufBox" style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">📱 Nachricht aufs Handy, wenn ein Kind sein Tier vergessen hat</summary><div id="rufInhalt" style="margin-top:10px"></div></details>
   </div>
 
   <div class="card noprint">
@@ -452,6 +457,8 @@ function imZeitraum(e){
 function zeitLabel(){ return {"0":"heute","1":"gestern","7":"letzte 7 Tage","30":"letzte 30 Tage","-1":"gesamter Zeitraum"}[String(tage)]; }
 
 //// ===== Anzeige =====
+// aus der Handy-Nachricht (…lehrer.html#tiere) gleich zu den Geheimtieren springen
+function zuTieren(){ if(location.hash==="#tiere") setTimeout(()=>{ try{ $("tiereCard").scrollIntoView({behavior:"smooth"}); }catch(e){} }, 400); }
 function render(){
   $("zeitLabel").textContent = "· " + zeitLabel();
   const rows = ALLE.filter(imZeitraum).sort((a,b)=>ts(b).localeCompare(ts(a)));
@@ -996,8 +1003,51 @@ async function schenke(name, menge){
 //// ===== Geheimtiere =====
 const TIERBILD={hund:"🐶",katze:"🐱",hase:"🐰",fuchs:"🦊",baer:"🐻",panda:"🐼",loewe:"🦁",frosch:"🐸",affe:"🐵",pinguin:"🐧",einhorn:"🦄",schildkroete:"🐢",
   tiger:"🐯",koala:"🐨",elefant:"🐘",eule:"🦉",delfin:"🐬",pferd:"🐴",maus:"🐭",schwein:"🐷",schlange:"🐍",fisch:"🐠",tintenfisch:"🐙",marienkaefer:"🐞"};
-let KONTEN=[];
+let KONTEN=[], RUF="";
+// Kinder, die auf „Ich habe mein Tier vergessen" getippt haben – oben auf der Seite und in der Geheimtier-Karte
+function renderHilfe(){
+  const h=KONTEN.filter(k=>k.tier && k.hilfe).sort((a,b)=>a.hilfe-b.hilfe);
+  const zeile=k=>`<div class="hilfeZeile"><span>🙋 <b>${esc(k.name)}</b> hat das Geheimtier vergessen <small>· ${esc(k.hilfeAm||"")}</small></span>
+      <span><button data-hreset="${esc(k._id)}" data-name="${esc(k.name)}">↺ Zurücksetzen</button> <button class="ghost" data-hweg="${esc(k._id)}">nicht jetzt</button></span></div>`;
+  const html=h.length?h.map(zeile).join(""):"";
+  $("hilfeListe").innerHTML=html; $("hilfeOben").innerHTML=html; $("hilfeOben").classList.toggle("hide", !h.length);
+  document.querySelectorAll("button[data-hreset]").forEach(b=>b.onclick=async ()=>{
+    b.disabled=true;
+    try{ await db.collection("einstellungen").doc(b.dataset.hreset).set({key:KEY, name:b.dataset.name, tier:"", fehl:0}); }
+    catch(err){ b.disabled=false; alert("⚠️ Fehler: "+(err.code||err)); }
+  });
+  document.querySelectorAll("button[data-hweg]").forEach(b=>b.onclick=async ()=>{
+    try{ await db.collection("einstellungen").doc(b.dataset.hweg).update({hilfe:firebase.firestore.FieldValue.delete(), hilfeAm:firebase.firestore.FieldValue.delete()}); }
+    catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  });
+}
+async function neuesThema(){
+  const a="abcdefghijkmnpqrstuvwxyz23456789"; let t="mathe-"; const r=new Uint32Array(14); crypto.getRandomValues(r); r.forEach(x=>t+=a[x%a.length]);
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, ruf:t}, {merge:true}); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+}
+function renderRuf(){
+  const box=$("rufInhalt"); if(!box) return;
+  if(!RUF){
+    box.innerHTML=`<div class="status" style="margin-top:0">Wenn ein Kind auf <b>„Ich habe mein Tier vergessen"</b> tippt, steht es sofort oben auf dieser Seite.
+      Zusätzlich kann Ihr Handy eine Nachricht bekommen – über die kostenlose App <b>ntfy</b> (ohne Konto). Der Name des Kindes wird dabei <b>nicht</b> verschickt.</div>
+      <button id="rufAn" style="margin-top:10px">📱 Handy-Nachricht einschalten</button>`;
+    $("rufAn").onclick=neuesThema;
+    return;
+  }
+  box.innerHTML=`<ol style="margin:0 0 10px;padding-left:20px;line-height:1.7">
+      <li>App <b>ntfy</b> installieren (kostenlos: App Store / Google Play).</li>
+      <li>In der App auf <b>+</b> tippen und dieses Thema abonnieren:<br><code style="font-size:17px;user-select:all;background:#0b1220;padding:3px 8px;border-radius:6px">${esc(RUF)}</code> <button class="ghost" id="rufKopie">kopieren</button></li>
+      <li><button class="ghost" id="rufTest">Test-Nachricht senden</button> <span id="rufMeld" class="status"></span></li></ol>
+    <div class="status">Das Thema ist wie ein geheimer Kanalname – bitte nicht weitergeben. <a href="#" id="rufNeu">Neues Thema erzeugen</a> · <a href="#" id="rufAus">ausschalten</a></div>`;
+  $("rufKopie").onclick=()=>{ try{ navigator.clipboard.writeText(RUF); $("rufKopie").textContent="✓ kopiert"; }catch(e){} };
+  $("rufTest").onclick=()=>{ fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:RUF,title:"🐾 Test",message:"So sieht die Nachricht aus, wenn ein Kind sein Geheimtier vergessen hat.",click:location.href.replace(/[#?].*$/,"")+"#tiere",tags:["raising_hand"]})})
+      .then(r=>$("rufMeld").textContent=r.ok?"✓ gesendet – kommt sie auf dem Handy an?":"⚠️ nicht gesendet ("+r.status+")").catch(()=>$("rufMeld").textContent="⚠️ keine Verbindung"); };
+  const setz=async v=>{ try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, ruf:v}, {merge:true}); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); } };
+  $("rufNeu").onclick=e=>{ e.preventDefault(); if(confirm("Neues Thema erzeugen? Danach müssen Sie es in der ntfy-App neu abonnieren.")) neuesThema(); };
+  $("rufAus").onclick=e=>{ e.preventDefault(); if(confirm("Handy-Nachrichten ausschalten?")) setz(""); };
+}
 function renderTiere(){
+  renderHilfe(); renderRuf();
   const box=$("tiere");
   const mit=KONTEN.filter(k=>k.tier).sort((a,b)=>String(a.name).localeCompare(String(b.name),"de"));
   if(!mit.length){ box.innerHTML='<div class="empty">Noch kein Kind hat ein Geheimtier gewählt. Das passiert automatisch bei der nächsten Anmeldung.</div>'; return; }
@@ -1307,10 +1357,10 @@ async function entsperren(){
   while(true){
     const r=await pinDialog({ title:"🔒 Klassenübersicht", text:"Diese Seite ist nur für die Lehrkraft. Bitte die 4-stellige PIN eingeben.",
       check:v=> v===pin ? null : "Falsche PIN.", link:"PIN vergessen?" });
-    if(r.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); return; }
+    if(r.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); zuTieren(); return; }
     const s=await pinDialog({ title:"🛟 Super-PIN", text:"Bitte die Super-PIN eingeben. Die PIN selbst kann in einem Trainer über „PIN ändern“ neu gesetzt werden.",
       check:v=> v===SUPER_PIN ? null : "Falsche Super-PIN." });
-    if(s.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); return; }
+    if(s.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); zuTieren(); return; }
   }
 }
 
@@ -1326,7 +1376,7 @@ async function entsperren(){
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
-                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld(); } });
       if(entsperrt) renderTiere();

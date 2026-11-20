@@ -199,12 +199,15 @@
           const min=Math.ceil((bis-Date.now())/60000);
           setze(`<h3>🔒 Kurze Pause</h3><p>Das Geheimtier von <b>${esc(name)}</b> wurde zu oft falsch getippt.<br>
             In ${min} ${min===1?"Minute":"Minuten"} geht es wieder.</p>
-            <p>Tier vergessen? Dann frag deine Lehrerin oder deinen Lehrer – sie können es zurücksetzen.</p>
+            <div class="anmKn"><button id="anmVerg">🙋 Ich habe mein Tier vergessen</button></div>
             <div class="anmKn"><button class="zweit" data-ab="1">Zurück</button></div>`);
+          ov.querySelector("#anmVerg").addEventListener("click", vergessen);
           return;
         }
         setze(`<h3>👋 Hallo ${esc(name)}!</h3><p>Tippe auf <b>dein Geheimtier</b>.</p>${gitter()}
-          <div class="anmMeld">${meldung||""}</div>${andere}`);
+          <div class="anmMeld">${meldung||""}</div>
+          <a class="anmLink" id="anmVerg" style="display:block;color:#fde68a;font-weight:700">🙋 Ich habe mein Tier vergessen</a>${andere}`);
+        ov.querySelector("#anmVerg").addEventListener("click", vergessen);
         ov.querySelectorAll(".anmTier").forEach(b=>b.addEventListener("click",()=>{
           if(b.dataset.t===konto.tier){ setOk(name); fertig(true); return; }
           fehl++;
@@ -214,6 +217,55 @@
           else pruefen(`Das war nicht das richtige Tier. Noch ${VERSUCHE-fehl} ${VERSUCHE-fehl===1?"Versuch":"Versuche"}.`);
         }));
       }
+      // ----- Tier vergessen: der Lehrkraft Bescheid sagen (Klassenübersicht + auf Wunsch Nachricht aufs Handy) -----
+      // Ist das Tier zurückgesetzt, merkt das diese Seite von selbst und das Kind sucht sich gleich ein neues aus.
+      let horcht=null;
+      function vergessen(){
+        const schon = konto && konto.hilfe && Date.now()-konto.hilfe < 12*3600000;
+        if(schon){ warten(); return; }
+        setze(`<h3>🙋 Tier vergessen?</h3>
+          <p>Kein Problem! Deine Lehrerin oder dein Lehrer bekommt Bescheid und setzt dein Tier zurück.
+             Danach suchst du dir einfach ein neues aus.</p>
+          <div class="anmMeld" id="anmMeld"></div>
+          <div class="anmKn"><button id="anmRuf">📨 Bescheid sagen</button><button class="zweit" id="anmNochmal">Doch noch probieren</button></div>`);
+        ov.querySelector("#anmNochmal").addEventListener("click", ()=>pruefen());
+        ov.querySelector("#anmRuf").addEventListener("click", async ()=>{
+          ov.querySelector("#anmRuf").disabled=true;
+          const am=new Date().toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+          try{ await mitZeit(ref.update({hilfe:Date.now(), hilfeAm:am}), 7000); konto.hilfe=Date.now(); }
+          catch(e){ ov.querySelector("#anmMeld").textContent="Das hat nicht geklappt. Sag es bitte morgen in der Schule."; ov.querySelector("#anmRuf").disabled=false; return; }
+          try{ handy(); }catch(e){}
+          warten();
+        });
+      }
+      async function handy(){
+        // Nachricht über ntfy – ohne Namen des Kindes, nur der Hinweis, dass jemand wartet
+        const db=firebase.firestore(); const f=await mitZeit(db.collection("einstellungen").doc("freigabe").get(), 7000);
+        const ruf=f.exists && (f.data()||{}).ruf; if(!ruf || !/^[A-Za-z0-9_-]{8,64}$/.test(ruf)) return;
+        const ziel=location.href.replace(/[#?].*$/,"").replace(/[^\/]*$/,"")+"lehrer.html#tiere";
+        fetch("https://ntfy.sh/", {method:"POST", body:JSON.stringify({topic:ruf, title:"🐾 Geheimtier vergessen",
+          message:"Ein Kind wartet darauf, dass Sie sein Geheimtier zurücksetzen. Tippen öffnet die Klassenübersicht.", click:ziel, tags:["raising_hand"], priority:4})}).catch(()=>{});
+      }
+      function warten(){
+        setze(`<h3>✅ Bescheid gesagt!</h3><div class="anmGross">📨</div>
+          <p>Deine Lehrerin oder dein Lehrer weiß jetzt, dass du dein Tier vergessen hast.<br>
+             Sobald es zurückgesetzt ist, geht es <b>hier von selbst</b> weiter – du kannst das Fenster offen lassen.</p>
+          <div class="anmMeld" id="anmMeld" style="color:#94a3b8;font-weight:600">⏳ Ich schaue alle paar Sekunden nach …</div>
+          <div class="anmKn"><button class="zweit" id="anmNochmal">Doch noch probieren</button><button class="zweit" data-ab="1">Zurück</button></div>`);
+        ov.querySelector("#anmNochmal").addEventListener("click", ()=>{ stopp(); pruefen(); });
+        stopp();
+        horcht=setInterval(async ()=>{
+          if(!ov.isConnected){ stopp(); return; }
+          try{
+            const db=firebase.firestore(); let neu=null;
+            const q=await mitZeit(db.collection("einstellungen").where("key","==",KEY).where("name","==",name).get(), 7000);
+            q.forEach(d=>{ if(d.id===docId(name)) neu=d.data(); });
+            if(neu && !neu.tier){ stopp(); try{ localStorage.removeItem("sperre_"+docId(name)); }catch(e){} konto=neu; fehl=0; waehlen(); }
+          }catch(e){}
+        }, 8000);
+      }
+      function stopp(){ if(horcht){ clearInterval(horcht); horcht=null; } }
+
       if(konto && konto.tier) pruefen();
       else if(bekannt) waehlen();
       else neuFrage();
