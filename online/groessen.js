@@ -273,24 +273,39 @@
   ];
   // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
-    {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Plus und Minus bis 20 · Zahlen · Formen · Münzen · Wochentage", kern:["rp_20","rm_20","rz_10","rz_20","rp_20","rm_20"],
+    // zooF: im Zoo machen schwerere Runden seltene Tiere wahrscheinlicher (zoo.js) · chance: so steht es bei der Runde
+    {id:1, zooF:0.6, chance:"klein", mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Plus und Minus bis 20 · Zahlen · Formen · Münzen · Wochentage", kern:["rp_20","rm_20","rz_10","rz_20","rp_20","rm_20"],
       typen:["z_ze","z_stelle2","z_vorNach","f_form","f_form2","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen"]},
-    // Klasse 2 in zwei Hälften (id 5 steht vor id 2, die alten Ergebnisse von id 2 bleiben gültig). Ohne Gramm und ohne Kommapreise – das kommt erst in Klasse 3.
-    {id:5, nr:"2a", kl:"2 · 1. Halbjahr", mix:true, sek:75, uhr:[0,30], name:"Klasse 2 – erstes Halbjahr", kurz:"Plus und Minus bis 100 ohne Einmaleins · Zehner und Einer · volle und halbe Stunden · Cent · Formen",
+    // Klasse 2 und 3 in drei Stufen: Leicht = Grundwissen aus dem Vorjahr und der Anfang der Klasse · Mittel = was man im Winter können sollte · Profi = alles aus der Klasse.
+    // Die neuen Stufen (id 5–8) stehen vor den alten Klassen-Runden (id 2 und 3 = Profi) – alte Ergebnisse bleiben gültig.
+    // Klasse 2: ohne Gramm und ohne Kommapreise – das kommt erst in Klasse 3.
+    {id:7, nr:"2", kl:"2 · Leicht", zooF:0.8, chance:"klein", mix:true, sek:75, uhr:[0,30], name:"Klasse 2 – Leicht", kurz:"Plus und Minus bis 20 · Zehner dazu und weg · Zahlen bis 100 · volle und halbe Stunden · Münzen",
+      kern:["rp_20","rm_20","rz_10","rz_20","rp_zehner","rm_zehner"],
+      typen:["z_ze","z_stelle2","z_vorNach","z_zehnerNachbar","z_strahl","z_vergleich","f_form","f_form2","f_ecken","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen","u_wortUhr"]},
+    {id:5, nr:"2", kl:"2 · Mittel", zooF:1, chance:"mittel", mix:true, sek:75, uhr:[0,30], name:"Klasse 2 – Mittel", kurz:"Plus und Minus bis 100 ohne Einmaleins · Zehner und Einer · volle und halbe Stunden · Cent · Formen",
       kern:["rp_20","rm_20","rp_zehner","rm_zehner","rp_ohne","rm_ohne","rp_einer","rz_zehner","rf_plus"],
       typen:["z_ze","z_stelle2","z_vorNach","z_zehnerNachbar","z_strahl","z_vergleich","z_groesste","u_wortUhr","u_uhrPaar","f_form2","f_ecken","f_sym","g_cent","k_tag","k_monat","l_messen","l_messenVersetzt","d_strich","w_schwerer"]},
-    {id:2, nr:"2b", kl:"2 · 2. Halbjahr", mix:true, sek:75, uhr:[0,15,30,45], name:"Klasse 2 – zweites Halbjahr", kurz:"Plus und Minus bis 100 · Einmaleins · Uhr mit Viertelstunden · Euro und Cent · Körper · Diagramme", kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rz_100","rf_plus","rp_einer"],
+    {id:2, nr:"2", kl:"2 · Profi", zooF:1.3, chance:"groß", mix:true, sek:75, uhr:[0,15,30,45], name:"Klasse 2 – Profi", kurz:"alles aus Klasse 2: Plus und Minus bis 100 · Einmaleins · Uhr mit Viertelstunden · Euro und Cent · Körper · Diagramme", kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rz_100","rf_plus","rp_einer"],
       typen:["z_strahl","s_schritt","s_pfeil","z_vergleich","z_groesste","z_doppelt","z_haelfte","z_gerade","z_zehnerNachbar","k_tageMonat","k_wochen","k_hMin","k_bruch","u_wortUhr","u_uhrPaar",
              "f_ecken","f_koerper","f_alltag","f_sym","g_euro","g_inCent","g_ausCent","l_messenVersetzt","l_mInCm","l_cmAus","w_schwerer","d_diaLesen","d_diaMax"]},
-    {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"Einmaleins und Teilen · bis 1000 · schriftlich · Kommazahlen · Zeit · Gewichte", kern:["rx_alle","rd_alle","rp_1000","rm_1000","rp_100","rm_100","rw_malZehner","rw_malZerlegen","rf_minus","rf_mal","rx_alle","rd_alle"],
+    // Klasse 3 Leicht: das Wichtigste aus Klasse 2 (Plus und Minus bis 100, Einmaleins, Uhr, Geld) und der Anfang von Klasse 3 (Zahlen bis 1000)
+    {id:8, nr:"3", kl:"3 · Leicht", zooF:1.2, chance:"mittel", mix:true, sek:100, uhr:[0,15,30,45], name:"Klasse 3 – Leicht", kurz:"Plus und Minus bis 100 · Einmaleins · Zahlen bis 1000 · Uhr mit Viertelstunden · Euro und Cent",
+      kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rp_einer","rz_100","rf_plus"],
+      typen:["z_strahl","z_vergleich","z_zehnerNachbar","z_doppelt","z_haelfte","z_hze","z_stelle3","z_vorNach1000","k_hMin","k_bruch","k_tageMonat","u_wortUhr","u_uhrPaar","f_ecken","f_koerper","f_sym","g_euro","g_ausCent","l_mInCm","l_cmAus","d_diaLesen","d_diaMax","q_bus"]},
+    // Klasse 3 Mittel: Einmaleins, bis 1000, Rechnen mit Zehnerzahlen, Millimeter, Uhr bis zur Viertelstunde – noch ohne schriftliches Rechnen, Kommapreise, Gramm, Zeitspannen auf die Minute
+    {id:6, nr:"3", kl:"3 · Mittel", zooF:1.5, chance:"groß", mix:true, sek:100, uhr:[0,15,30,45], name:"Klasse 3 – Mittel", kurz:"Einmaleins und Teilen · Zahlen bis 1000 · Plus und Minus mit Zehnerzahlen · Millimeter · Uhr mit Viertelstunden",
+      kern:["rx_alle","rd_alle","rp_100","rm_100","rp_1000","rm_1000","rw_malZehner","rf_minus","rf_mal","rx_alle","rd_alle"],
+      typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","k_bruchH","k_hMin","u_beide","u_wortUhr","f_eck","f_rund","f_flaeche","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
+             "d_diaUnterschied","d_diaSumme","d_sicher","q_anfangPlus","q_anfangMinus","q_bus","q_malPlus"]},
+    {id:3, nr:"3", kl:"3 · Profi", zooF:1.8, chance:"sehr groß", mix:true, sek:100, name:"Klasse 3 – Profi", kurz:"alles aus Klasse 3: schriftlich rechnen · Kommazahlen · Zeitspannen · Gewichte · Uhr auf 5 Minuten", kern:["rx_alle","rd_alle","rp_1000","rm_1000","rp_100","rm_100","rw_malZehner","rw_malZerlegen","rf_minus","rf_mal","rx_alle","rd_alle"],
       typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","z_rundeH","z_rest","sp_mit","sp_drei","sm_mit","sm_null","k_minAus2","k_hMinIn","k_bruchH","k_sekAus","zs_in","zs_vor","zs_dauer","zs_training","zs_los",
              "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
              "w_stueckeKg","w_kgInG","w_gAus","w_bruch","w_rechneMinus","w_lInMl","w_lBruch","d_diaUnterschied","d_diaSumme","d_sicher","d_wahrsch","d_kombi","k_datum","q_anfangPlus","q_anfangMinus","q_plusMinus","q_bus","q_malPlus","q_malRueck","q_summeTeil"]},
-    {id:4, mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
+    {id:4, zooF:2.2, chance:"riesig", mix:true, sek:120, name:"Vorschau auf Klasse 4", kurz:"Tonnen · Malnehmen schriftlich · Zeit in Stunden und Minuten · Dreisatz", kern:["rw_malZehner","rw_malZerlegen","rp_1000","rm_1000","rf_mal","rx_alle","rd_alle"],
       typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck","sd_ohne","sd_mit","sd_rest"]}
   ];
   // Mein Zoo: dieselben Aufgaben wie die Bunte Mischung, aber als Spiel – 10 Aufgaben, für je 5 richtige zieht ein Tier ein (zoo.js)
-  const ZOO=MIX.map(s=>Object.assign({}, s, {name:"Zoo-Runde Klasse "+(s.kl||s.id), kurz:"10 Aufgaben aus allen Themen · ab 5 richtigen ein Tier · 10 von 10 = zwei Tiere"}));
+  const ZOO=MIX.map(s=>Object.assign({}, s, {name:"Zoo-Runde Klasse "+(s.kl||s.id), kurz:"10 Aufgaben · ab 5 richtigen ein Tier · 10 von 10 = zwei Tiere · Chance auf seltene Tiere: "+(s.chance||"mittel")}));
   // ===== Blitzrechnen: kurze Kopfrechen-Übungen, die blitzschnell sitzen sollen (wie der Blitzrechenkurs im Zahlenbuch) =====
   // Üben = 10 Aufgaben mit Erklärung. Blitz = eine Minute, so viele Aufgaben wie möglich; Ziel geschafft (ziel richtige, höchstens 2 Fehler) zählt wie ein bestandener Test.
   const BLITZ_SEK=60;
@@ -1511,10 +1526,11 @@
       // Wie viele Tiere? 10 von 10 = zwei (das erste mindestens selten) · 7 bis 9 = eines · 5 oder 6 = ein häufiges · darunter keines
       const besitz=Zoo.zaehle(MEINE), nTiere = runde.richtig===n ? 2 : runde.richtig*2>=n ? 1 : 0, nurHaeufig = runde.richtig*10 < n*7, schwerGut=runde.aufgaben.filter((a,i)=>a.schwer && runde.verlauf[i]).length;
       const bonus=Math.min(1, (runde.richtig===n?0.5:runde.richtig>=n-1?0.25:0)+schwerGut*0.25), tiere=[];
-      for(let i=0;i<nTiere;i++){ const id=Zoo.ziehe(besitz, nurHaeufig?0:bonus, i===0 && runde.richtig===n ? 2 : 0, nurHaeufig ? 1 : 0); tiere.push(id); besitz[id]=(besitz[id]||0)+1; }
+      for(let i=0;i<nTiere;i++){ const id=Zoo.ziehe(besitz, nurHaeufig?0:bonus, i===0 && runde.richtig===n ? 2 : 0, nurHaeufig ? 1 : 0, runde.st.zooF); tiere.push(id); besitz[id]=(besitz[id]||0)+1; }
       runde.tiere=tiere;
       $("ergTitel").textContent = tiere.length ? (tiere.length===1?"🎉 Ein neues Tier zieht ein!":"🎉 Zwei neue Tiere ziehen ein!") : "💪 Diesmal noch kein Tier";
       $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> Aufgaben richtig.`+(tiere.length ? Zoo.neuHTML(tiere) : "<br>Ab <b>5 richtigen</b> Aufgaben zieht ein Tier in deinen Zoo ein. Gleich noch einmal?")+(tiere.length && nurHaeufig ? "<div>Mit <b>7 oder mehr</b> richtigen Aufgaben kann es beim nächsten Mal auch ein seltenes Tier sein.</div>" : "")+
+        ((runde.st.zooF||1)<1.5 && runde.richtig*10>=n*9 ? `<div>🍀 <b>Tipp:</b> Das war leicht für dich! In den schwereren Runden ziehen viel öfter seltene ⭐ und legendäre 🌟 Tiere ein.</div>` : "")+
         (schwerGut ? `<div>💪 Du hast ${schwerGut===1?"eine Aufgabe":schwerGut+" Aufgaben"} gelöst, die dir früher schwerfiel${schwerGut===1?"":"en"} – das macht seltene Tiere wahrscheinlicher.</div>` : "")+
         `<div style="margin-top:8px;font-size:13px">5 oder 6 richtige: ein häufiges Tier · 7 bis 9: ein Tier, vielleicht ein seltenes ⭐ · 10 von 10: <b>zwei</b> Tiere, eines davon selten.</div>`;
     }
@@ -1644,6 +1660,6 @@
   if(n){ playerName=capName(n); $("name").value=playerName; $("menuLink").href="index.html#name="+encodeURIComponent(playerName); zeigeMenue(); setTimeout(ladeMeine, 300); }
   addEventListener("pagehide", stoppZeit);
   // für die automatischen Tests
-  window.Groessen={ blitzStufe(v){ BL=v; }, get BL(){ return BL; }, sterneLv, stufeWahl, STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
+  window.Groessen={ fertig, blitzStufe(v){ BL=v; }, get BL(){ return BL; }, sterneLv, stufeWahl, STUFEN, BAU, baueAufgabe, starte, stufe, zeigeMenue, get runde(){ return runde; }, get MEINE(){ return MEINE; }, set MEINE(v){ MEINE=v; }, ohneDb(){ db=null; },
                     komma, euroCent, zerlege, linealBild, geldBild, gewText, tText, ziffern, THEMA };
 })();

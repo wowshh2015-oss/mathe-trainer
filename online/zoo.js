@@ -24,8 +24,10 @@ window.Zoo=(function(){
   function zaehle(rows){ const z={}; (rows||[]).forEach(e=>{ if(e.app==="zoo") (e.tiere||[]).forEach(id=>{ if(NACH_ID[id]) z[id]=(z[id]||0)+1; }); }); return z; }
   function summe(z){ return Object.values(z).reduce((a,b)=>a+b,0); }
   // Ein neues Tier ziehen. besitz: was das Kind schon hat. bonus (0…1): gute Runde und gelöste schwere Aufgaben machen seltene Tiere wahrscheinlicher.
-  function ziehe(besitz, bonus, mindestens, hoechstens){
-    const w=Math.random(); let s = w < 0.04+bonus*0.10 ? 3 : w < 0.26+bonus*0.30 ? 2 : 1; if(mindestens && s<mindestens) s=mindestens; if(hoechstens && s>hoechstens) s=hoechstens;
+  // faktor: schwerere Runden (Klasse 3 statt Klasse 1) machen seltene und legendäre Tiere wahrscheinlicher – 1 = wie bisher
+  function ziehe(besitz, bonus, mindestens, hoechstens, faktor){
+    const f=faktor||1, p3=Math.min(0.35,(0.04+bonus*0.10)*f), p2=Math.min(0.85,(0.26+bonus*0.30)*Math.min(f,1.8));
+    const w=Math.random(); let s = w < p3 ? 3 : w < p2 ? 2 : 1; if(mindestens && s<mindestens) s=mindestens; if(hoechstens && s>hoechstens) s=hoechstens;
     const pool=TIERE.filter(t=>t[4]===s), neu=pool.filter(t=>!besitz[t[0]]);
     const wahl = neu.length && Math.random()<0.7 ? neu : pool;
     return wahl[Math.floor(Math.random()*wahl.length)][0];
