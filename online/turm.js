@@ -59,19 +59,22 @@ window.TurmDaten=(function(){
   {id:"nordpol",  name:"Nordpol",       land:"Arktis",      b:"🐻‍❄️", c:"#0ea5e9", fakt:"Am Nordpol gibt es kein Land – nur dickes Eis auf dem Meer. In der Arktis leben Eisbären.",
    wand:"#e0f2fe", kante:"#38bdf8", fenster:"glas", rahmen:"#0284c7", deko:"zacken"}
 ];
-  // 30 Zimmer (alle gemalt): 15 häufige (1), 10 seltene (2), 5 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
+  // 40 Zimmer: 19 häufige (1), 14 seltene (2), 7 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
   const ZIMMER=[
   ["schlaf","🛏️","Schlafzimmer",1],["wohn","🛋️","Wohnzimmer",1],["kueche","🍳","Küche",1],["bad","🛁","Badezimmer",1],["spiel","🧸","Spielzimmer",1],
   ["biblio","📚","Bibliothek",1],["klasse","🏫","Klassenzimmer",1],["mal","🎨","Malatelier",1],["musik","🎹","Musikzimmer",1],["baeckerei","🥐","Bäckerei",1],
   ["eis","🍦","Eisdiele",1],["werk","🔧","Werkstatt",1],["garten","🌿","Wintergarten",1],["katzen","🐱","Katzenzimmer",1],["lobby","🛎️","Empfangshalle",1],
+  ["games","🎮","Videospielzimmer",1],["pizza","🍕","Pizzeria",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],
   ["kino","🎬","Kino",2],["aqua","🐠","Aquarium",2],["pool","🏊","Schwimmbad",2],["disco","🪩","Disco",2],["labor","🧪","Forschungslabor",2],
   ["stern","🔭","Sternwarte",2],["dino","🦖","Dinosauriermuseum",2],["roboter","🤖","Roboterwerkstatt",2],["dschungel","🦜","Dschungelzimmer",2],["piraten","🏴‍☠️","Piratenkajüte",2],
-  ["drache","🐉","Drachenhöhle",3],["thron","👑","Königlicher Thronsaal",3],["zauber","🧙","Zauberzimmer",3],["weltraum","🚀","Weltraumstation",3],["kristall","💎","Kristallgrotte",3]
+  ["zirkus","🎪","Zirkus",2],["panda","🐼","Bambusgarten der Pandas",2],["eisbahn","⛸️","Eisbahn",2],["burg","🛡️","Rittersaal",2],
+  ["drache","🐉","Drachenhöhle",3],["thron","👑","Königlicher Thronsaal",3],["zauber","🧙","Zauberzimmer",3],["weltraum","🚀","Weltraumstation",3],["kristall","💎","Kristallgrotte",3],
+  ["schatz","💰","Schatzkammer",3],["einhorn","🦄","Einhornstall",3]
 ];
   // frühere Zimmer – nur damit schon gebaute Etagen weiter richtig aussehen
-  const ZIMMER_ALT=[["games","🎮","Spielehöhle",1],["pizza","🍕","Pizzeria",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],["pingpong","🏓","Tischtennis",1],
-  ["zirkus","🎪","Zirkus",2],["achter","🎢","Achterbahn",2],["karaoke","🎤","Karaoke",2],["panda","🐼","Panda-Zimmer",2],["eisbahn","⛸️","Eisbahn",2],["burg","🏰","Ritterzimmer",2],
-  ["schatz","💎","Schatzkammer",3],["rakete","🚀","Raketenstart",3],["einhorn","🦄","Einhornstall",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]];
+  const ZIMMER_ALT=[["pingpong","🏓","Tischtennis",1],
+  ["achter","🎢","Achterbahn",2],["karaoke","🎤","Karaoke",2],
+  ["rakete","🚀","Raketenstart",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]];
   const DAECHER=[
   ["flach","Flachdach mit Antenne"],["spitze","Turmspitze"],["kuppel","Goldene Kuppel"],["garten","Dachgarten"],
   ["heli","Hubschrauber-Platz"],["stern","Sternwarte"],["fahne","Fahnenturm"],["rad","Riesenrad"],["burg","Burgtürme"],["krone","Kronen-Dach"]
