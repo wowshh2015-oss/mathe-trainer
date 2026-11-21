@@ -226,7 +226,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="anmeldung.js"></script>
+<script src="anmeldung.js?v=20261122a"></script>
 <script src="komfort.js"></script>
 <script src="anleitung.js"></script>
 <script src="wiederholung.js"></script>
@@ -297,7 +297,7 @@ function zeigeSperren(){
   });
 }
 function update(){
-  const n=capName($("name").value), frei=Anmeldung.ok(n);
+  const n=capName($("name").value), frei=Anmeldung.darf ? Anmeldung.darf(n) : Anmeldung.ok(n);
   zeigeUhrKachel(); zeigeSperren();
   $("grid").classList.toggle("dis",!frei);
   $("losBtn").style.display = (n && !frei) ? "" : "none";
@@ -313,7 +313,7 @@ function update(){
 }
 async function anmelden(){
   const n=capName($("name").value);
-  if(!n || Anmeldung.ok(n)){ update(); return; }
+  if(!n || (Anmeldung.darf ? Anmeldung.darf(n) : Anmeldung.ok(n))){ update(); return; }
   const r=await Anmeldung.pruefe(n);
   if(!r && capName($("name").value)===n){ $("name").value=""; try{ localStorage.removeItem("mathe_name"); }catch(e){} $("name").focus(); }
   update();
@@ -330,12 +330,18 @@ $("name").addEventListener("input",update);
   $("name").value=n;
   // Nur wegen einer langsamen Verbindung ohne Geheimtier hereingelassen (oder Tab von vor der Tier-Anmeldung)?
   // Dann jetzt nachfragen – sonst bleibt so ein Kind für immer ohne Geheimtier.
-  const nachfragen = n && Anmeldung.ok(capName(n)) && !Anmeldung.geprueft(capName(n));
-  if(nachfragen) Anmeldung.abmelden();
   renderChips(); update();
   if(!n) $("name").focus();
-  if(nachfragen) setTimeout(anmelden, 600);
+  nachfragen();
 })();
+function nachfragen(){
+  const n=capName($("name").value);
+  if(!n || !Anmeldung.darf || Anmeldung.darf(n) || document.querySelector(".anmOv")) return;
+  if(Anmeldung.ok(n)) Anmeldung.abmelden();
+  update(); setTimeout(anmelden, 600);
+}
+// Safari zeigt beim „Zurück" oft die alte, gespeicherte Seite, ohne die Skripte neu zu starten – dann auch nachfragen
+window.addEventListener("pageshow", e=>{ if(e.persisted){ update(); nachfragen(); } });
 
 //// ===== Persönliche Begrüßung aus dem Klassen-Archiv =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";

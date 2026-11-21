@@ -32,6 +32,12 @@
   function geprueft(n){ n=cap(n); if(!ok(n)) return false;
     try{ if(sessionStorage.getItem("mathe_geprueft")===n) return true; }catch(e){}
     return String(window.name||"")==="mathe_okg:"+n; }
+  // Wegen fehlender Verbindung ohne Tier hereingelassen? Das gilt 30 Minuten – danach wird wieder gefragt.
+  function ohneNetz(n){ n=cap(n); try{ const v=JSON.parse(sessionStorage.getItem("mathe_ohneNetz")||"null");
+    return !!v && v.n===n && Date.now()-v.t < 30*60000; }catch(e){ return false; } }
+  function setOhneNetz(n){ try{ sessionStorage.setItem("mathe_ohneNetz", JSON.stringify({n:cap(n), t:Date.now()})); }catch(e){} }
+  // Darf dieses Kind ohne neue Abfrage weiter? (Tier geprüft, oder gerade eben ohne Verbindung hereingelassen)
+  function darf(n){ return geprueft(n) || (ok(n) && ohneNetz(n)); }
 
   const seite=(location.pathname.split("/").pop()||"index.html").toLowerCase();
   const istStart=seite==="index.html"||seite==="", istLehrer=seite==="lehrer.html";
@@ -41,7 +47,9 @@
     let n=""; const m=location.hash.match(/name=([^&]+)/);
     if(m){ try{ n=decodeURIComponent(m[1]); }catch(e){} }
     if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
-    if(!ok(n)){ location.replace("index.html"+(n?"#name="+encodeURIComponent(cap(n)):"")); return; }
+    // Nicht nur „angemeldet", sondern Tier wirklich geprüft – sonst zurück zur Startseite, die nach dem Tier fragt
+    // (so kam ein Kind auf dem iPhone ohne Geheimtier in die Spiele, 21.11.2026)
+    if(!darf(n)){ location.replace("index.html"+(n?"#name="+encodeURIComponent(cap(n)):"")); return; }
     const css=document.createElement("style");
     css.textContent="#nameChips{display:none!important} #name[readonly]{opacity:.85;cursor:default}"+
       ".anmWechsel{display:inline-block;margin-top:8px;font-size:13.5px;color:#94a3b8;text-decoration:underline;cursor:pointer}";
@@ -142,7 +150,7 @@
   }
   async function pruefeIntern(name){
     let db=null; try{ db=firebase.firestore(); }catch(e){}
-    if(!db){ setOk(name); return true; }                 // ohne Datenbank niemanden aussperren (nicht „geprüft")
+    if(!db){ setOk(name); setOhneNetz(name); return true; }   // ohne Datenbank niemanden aussperren (nicht „geprüft")
     const ref=db.collection("einstellungen").doc(docId(name));
     let konto=null, bekannt=false;
     stil();
@@ -169,7 +177,7 @@
       // Früher: nach 7 Sekunden ohne Antwort einfach hereinlassen – auf einem iPhone mit langsamer Verbindung
       // kam so ein Kind ganz ohne Geheimtier hinein. Jetzt: länger warten und einmal neu versuchen.
       try{ await lesen(10000); }catch(e){ await lesen(15000); }
-    }catch(e){ warteOv.remove(); setOk(name); return true; }   // wirklich keine Verbindung: hereinlassen, aber NICHT „geprüft"
+    }catch(e){ warteOv.remove(); setOk(name); setOhneNetz(name); return true; }   // wirklich keine Verbindung: hereinlassen, aber NICHT „geprüft"
     warteOv.remove();
     return new Promise(resolve=>{
       const ov=document.createElement("div"); ov.className="anmOv";
@@ -207,7 +215,7 @@
           }catch(e){
             // nicht „geprüft": beim nächsten Besuch der Startseite wird das Tier noch einmal ausgesucht
             ov.querySelector("#anmMeld").textContent="Das Speichern hat nicht geklappt. Du kannst trotzdem üben.";
-            setTimeout(()=>{ setOk(name); fertig(true); }, 1800);
+            setTimeout(()=>{ setOk(name); setOhneNetz(name); fertig(true); }, 1800);
           }
         });
       }
@@ -291,5 +299,5 @@
     });
   }
 
-  window.Anmeldung={ ok, geprueft, pruefe, abmelden, cap, TIERE, docId };
+  window.Anmeldung={ ok, geprueft, darf, pruefe, abmelden, cap, TIERE, docId };
 })();
