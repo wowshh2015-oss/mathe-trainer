@@ -23,9 +23,9 @@
   .serif{font-family:Georgia,"Times New Roman",serif}
   .kopfband{position:relative;margin:0 auto 12px;max-width:540px}
   .kopfband img{width:100%;display:block;filter:drop-shadow(0 4px 6px rgba(80,50,10,.25))}
-  .kopfband b{position:absolute;left:4%;right:4%;top:9%;height:52%;display:flex;align-items:center;justify-content:center;font:900 clamp(21px,6.4vw,36px)/1 Georgia,"Times New Roman",serif;
+  .kopfband b{position:absolute;left:4%;right:4%;top:31%;height:44%;display:flex;align-items:center;justify-content:center;font:900 clamp(21px,6.4vw,36px)/1 Georgia,"Times New Roman",serif;
     color:#fde68a;text-shadow:0 2px 0 #0b1f3f,0 0 12px rgba(253,230,138,.35);letter-spacing:.3px}
-  .kopfband i{position:absolute;left:0;right:0;top:73%;text-align:center;font:italic 700 clamp(12px,3.4vw,19px)/1 Georgia,serif;color:#5b3a12}
+  .kopfband i{position:absolute;left:0;right:0;top:87.5%;transform:translateY(-50%);text-align:center;font:italic 700 clamp(12px,3.4vw,19px)/1 Georgia,serif;color:#5b3a12}
   .card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow),inset 0 0 0 2px #fff6e0;border:3px solid var(--rahmen);margin-bottom:16px}
   label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
   input[type=text]{width:100%;font-size:20px;padding:13px 16px;border-radius:12px;border:2px solid var(--card2);background:#fff;color:var(--text);outline:none}
@@ -252,7 +252,7 @@ function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.flo
 const BOX='<span class="blank">?</span>';
 // Zahl-Aufgabe und Auswahl-Aufgabe
 function zahl(html, antwort, key, erkl){ return {html, text:html.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim(), antwort, key, erkl}; }
-function wahl(html, ok, falsch, key, erkl){ const optionen=mische([ok].concat(mische(falsch.filter(x=>x!==ok)).slice(0,3)));
+function wahl(html, ok, falsch, key, erkl){ const optionen=mische([ok].concat(mische([...new Set(falsch)].filter(x=>x!==ok)).slice(0,3)));
   return {html, text:html.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim(), ok, optionen, key, erkl}; }
 const WISSEN={
   // ---- Stufe 1 ----
@@ -266,9 +266,37 @@ const WISSEN={
   muenze(){ const ok=aus(["3 Cent","15 Cent","25 Cent","30 Cent","3 Euro","5 Euro"]); return wahl(`Welche <b>Euro-Münze</b> gibt es <b>nicht</b>?`, ok, ["1 Cent","2 Cent","5 Cent","10 Cent","20 Cent","50 Cent","1 Euro","2 Euro"], "muenze",
     `Es gibt Münzen zu 1, 2, 5, 10, 20 und 50 Cent und zu 1 und 2 Euro. ${ok} gibt es nicht.`); },
   ecken(){ const f=aus([["ein Dreieck",3],["ein Viereck",4],["ein Quadrat",4],["ein Rechteck",4],["ein Fünfeck",5],["ein Sechseck",6],["ein Kreis",0]]);
-    return zahl(`Wie viele <b>Ecken</b> hat ${f[0]}?`, f[1], "ecken"+f[0], f[1] ? `${f[0][0].toUpperCase()+f[0].slice(1)} hat ${f[1]} Ecken.` : "Ein Kreis hat keine Ecken – also 0."); },
+    const was = f[1] && Math.random()<0.5 ? "Seiten" : "Ecken", Gross=f[0][0].toUpperCase()+f[0].slice(1);
+    return zahl(`Wie viele <b>${was}</b> hat ${f[0]}?`, f[1], "ecken"+was+f[0], f[1] ? `${Gross} hat ${f[1]} Ecken und ${f[1]} Seiten.` : "Ein Kreis hat keine Ecken – also 0."); },
+  monatVor(){ const i=rnd(0,11), ok=MONATE[(i+11)%12]; return wahl(`Welcher Monat kommt vor <b>${MONATE[i]}</b>?`, ok, MONATE.filter(m=>m!==MONATE[i]), "monVor"+i, `Vor ${MONATE[i]} kommt ${ok}.`); },
+  formName(){ const F=["Dreieck","Quadrat","Rechteck","Kreis","Fünfeck","Sechseck"];
+    const f=aus([["hat <b>3 Ecken</b> und 3 Seiten","Dreieck",[]],["hat <b>keine Ecken</b> und ist ganz rund","Kreis",[]],["hat <b>5 Ecken</b>","Fünfeck",[]],["hat <b>6 Ecken</b>","Sechseck",[]],
+      ["hat <b>4 gleich lange Seiten</b> und 4 rechte Winkel","Quadrat",["Rechteck"]],["hat 4 rechte Winkel, aber <b>nicht alle Seiten</b> sind gleich lang","Rechteck",["Quadrat"]]]);
+    return wahl(`Welche Form ${f[0]}?`, f[1], F.filter(x=>x!==f[1] && !f[2].includes(x)), "form"+f[1], `Das ist ein ${f[1]}.`); },
+  koerperForm(){ const K=["Kugel","Würfel","Quader","Zylinder","Kegel","Pyramide"];
+    const f=aus([["ein Fußball","Kugel"],["ein Tennisball","Kugel"],["ein Spielwürfel","Würfel"],["eine Schuhschachtel","Quader"],["ein Ziegelstein","Quader"],
+      ["eine Konservendose","Zylinder"],["eine Klopapierrolle","Zylinder"],["eine Eistüte","Kegel"],["ein Partyhut","Kegel"]]);
+    return wahl(`Welche Körperform hat <b>${f[0]}</b>?`, f[1], K.filter(x=>x!==f[1] && !(f[1]==="Würfel" && x==="Quader")), "kf"+f[0], `${f[0][0].toUpperCase()+f[0].slice(1)} hat die Form: ${f[1]}.`); },
+  uhrVoll(){ const h=rnd(1,12), n=x=>((x-1+12)%12)+1, ok=`${h} Uhr`;
+    return wahl(`Der <b>große Zeiger</b> zeigt auf die 12, der <b>kleine Zeiger</b> auf die ${h}. Wie spät ist es?`, ok, [12,n(h+1),n(h-1),n(h+6)].filter(x=>x!==h).map(x=>`${x} Uhr`), "uv"+h,
+      `Steht der große Zeiger auf der 12, ist es eine volle Stunde. Der kleine Zeiger zeigt die Stunde: ${ok}.`); },
+  geldMehr(){ const W=[1,2,5,10,20,50,100,200,500,1000,2000,5000], name=c=>c<100?`${c}-Cent-Münze`:c<=200?`${c/100}-Euro-Münze`:`${c/100}-Euro-Schein`;
+    let a=aus(W), b=aus(W); while(b===a) b=aus(W); const mehr=Math.random()<0.6, ok=name(mehr?Math.max(a,b):Math.min(a,b));
+    return wahl(`Was ist <b>${mehr?"mehr":"weniger"}</b> wert?`, ok, [name(a),name(b)], "gm"+Math.min(a,b)+"_"+Math.max(a,b)+mehr, `${ok} ist ${mehr?"mehr":"weniger"} wert.`); },
+  feiertag(){ const f=aus([["Weihnachten","Dezember"],["Silvester","Dezember"],["Nikolaus","Dezember"],["Neujahr","Januar"],["Halloween","Oktober"],
+      ["Sankt Martin","November"],["der Valentinstag","Februar"],["der Tag der Deutschen Einheit","Oktober"]]);
+    return wahl(`In welchem Monat ist <b>${f[0]}</b>?`, f[1], MONATE, "ft"+f[0].length+f[1], `${f[0][0].toUpperCase()+f[0].slice(1)} ist im ${f[1]}.`); },
+  uhrHalb(){ const h=rnd(1,12), n=x=>((x-1+12)%12)+1, ok=`halb ${n(h+1)}`;
+    return wahl(`Der <b>große Zeiger</b> zeigt auf die 6, der <b>kleine Zeiger</b> steht zwischen der ${h} und der ${n(h+1)}. Wie spät ist es?`, ok, [`halb ${h}`,`${h} Uhr`,`${n(h+1)} Uhr`,`halb ${n(h+2)}`], "uh"+h,
+      `Der große Zeiger auf der 6 heißt: halbe Stunde. Der kleine Zeiger ist schon über die ${h} hinaus – es ist ${ok} (${h}.30 Uhr).`); },
+  vergleich(){ const f=aus([()=>{ const x=aus([80,90,99,101,110,150]); return [["Was ist <b>länger</b>?"],"1 m",`${x} cm`,x<100,`1 m = 100 cm.`]; },
+      ()=>{ const x=aus([500,800,900,1100,1200,1500]); return [["Was ist <b>schwerer</b>?"],"1 kg",`${x} g`,x<1000,`1 kg = 1000 g.`]; },
+      ()=>{ const x=aus([45,50,55,65,70,90]); return [["Was dauert <b>länger</b>?"],"1 Stunde",`${x} Minuten`,x<60,`1 Stunde = 60 Minuten.`]; },
+      ()=>{ const x=aus([80,95,105,120,150]); return [["Was ist <b>mehr</b> Geld?"],"1 Euro",`${x} Cent`,x<100,`1 Euro = 100 Cent.`]; }])();
+    const ok=f[3]?f[1]:f[2]; return wahl(f[0][0], ok, [f[1],f[2]], "vg"+f[1]+f[2], `${f[4]} Also: ${ok}.`); },
   fakt1(){ const f=aus([["Wie viele Tage hat eine <b>Woche</b>?",7],["Wie viele Monate hat ein <b>Jahr</b>?",12],["Wie viele Stunden hat ein <b>Tag</b>?",24],["Wie viele Minuten hat eine <b>Stunde</b>?",60],
-      ["Wie viele <b>Cent</b> sind 1 Euro?",100],["Wie viele <b>Zentimeter</b> sind 1 Meter?",100],["Wie viele <b>Jahreszeiten</b> gibt es?",4],["Wie viele Tage hat das <b>Wochenende</b>?",2]]);
+      ["Wie viele <b>Cent</b> sind 1 Euro?",100],["Wie viele <b>Zentimeter</b> sind 1 Meter?",100],["Wie viele <b>Jahreszeiten</b> gibt es?",4],["Wie viele Tage hat das <b>Wochenende</b>?",2],
+      ["Wie viele <b>Schultage</b> hat eine normale Woche?",5],["Wie viele Monate hat ein <b>halbes Jahr</b>?",6],["Wie viele <b>Euro</b> sind 200 Cent?",2]]);
     return zahl(f[0], f[1], "f1"+f[1]+f[0].length, `Die Antwort ist ${f[1]}.`); },
   // ---- Stufe 2 ----
   tagNr(){ if(Math.random()<0.5){ const i=rnd(0,6); return zahl(`Der wievielte Tag der Woche ist der <b>${TAGE[i]}</b>?<br><small>(Die Woche beginnt am Montag.)</small>`, i+1, "tagNr"+i, `Montag ist der 1. Tag – ${TAGE[i]} ist der ${i+1}. Tag.`); }
@@ -313,17 +341,22 @@ const WISSEN={
   uhrSpaeter(){ const h=rnd(7,17), m=rnd(0,11)*5, d=aus([15,20,30,45]), t=h*60+m+d, u=x=>`${Math.floor(x/60)}.${String(x%60).padStart(2,"0")} Uhr`;
     return wahl(`Es ist <b>${u(h*60+m)}</b>. Wie spät ist es <b>${d} Minuten</b> später?`, u(t), [u(t+5),u(t-5),u(t+10),u(t+60),u(t-10)], "uhr"+d, `${u(h*60+m)} + ${d} Minuten = ${u(t)}.`); }
 };
-const STUFE=[ ["tagNach","tagVor","monatNach","jahreszeit","schein","muenze","ecken","fakt1"],
-              ["tagNr","monatNr","monatTage","tagRel","stundenteil","fakt2","koerper","einheit","centEuro","gerade"],
-              ["minInStd","stdInMin","sekunden","massUm","euroCent","jahr","uhrSpaeter","monatTage","tagRel"] ];
+const STUFE=[ ["tagNach","tagVor","monatNach","monatVor","jahreszeit","schein","muenze","ecken","fakt1","formName","koerperForm","uhrVoll","geldMehr","feiertag"],
+              ["tagNr","monatNr","monatTage","tagRel","stundenteil","fakt2","koerper","einheit","centEuro","gerade","uhrHalb","vergleich","koerperForm"],
+              ["minInStd","stdInMin","sekunden","massUm","euroCent","jahr","uhrSpaeter","monatTage","tagRel","vergleich","uhrHalb"] ];
 const STUFE_NAME=["Grundwissen: Woche, Monate, Geld, Formen","Mehr Wissen: Kalender, Uhr, Maße, Körper","Umrechnen: Zeit, Längen, Gewichte, Geld"];
 function stufeVon(e){ return e<=20 ? 0 : e<=60 ? 1 : 2; }
 function typenFuer(e){ const s=stufeVon(e); return istReise(e) ? STUFE.slice(0,s+1).flat() : STUFE[s]; }
 function stufenText(e){ return istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : STUFE_NAME[stufeVon(e)]; }
 function mkTyp(t){ return WISSEN[t](); }
-function baueAufgaben(e){ const typen=typenFuer(e), q=[], seen=new Set(); let g=0;
-  while(q.length<PRO_ETAGE+6 && g++<800){ const a=mkTyp(aus(typen)); if(seen.has(a.key)) continue; seen.add(a.key); q.push(a); }
-  while(q.length<PRO_ETAGE+6) q.push(mkTyp(aus(typen))); return q; }
+// Damit sich nichts ständig wiederholt: Fragen der letzten 4 Etagen (aus den gespeicherten Durchgängen, also auf jedem Gerät)
+// werden gemieden, und von jeder Art kommen höchstens 2 Fragen pro Etage. Reicht das nicht, wird Schritt für Schritt gelockert.
+function zuletztGefragt(){ const s=new Set(); (MEINE||[]).slice().sort((a,b)=>(b._t||0)-(a._t||0)).slice(0,4).forEach(r=>(r.gestellt||[]).forEach(k=>s.add(k))); return s; }
+function baueAufgaben(e){ const typen=typenFuer(e), alt=zuletztGefragt(), q=[], seen=new Set(), jeArt={}, ziel=PRO_ETAGE+6;
+  [[true,2],[false,2],[false,3],[false,99]].forEach(([meiden,max])=>{ let g=0;
+    while(q.length<ziel && g++<1500){ const t=aus(typen); if((jeArt[t]||0)>=max) continue; const a=mkTyp(t);
+      if(seen.has(a.key) || (meiden && alt.has(a.key))) continue; seen.add(a.key); jeArt[t]=(jeArt[t]||0)+1; q.push(a); } });
+  while(q.length<ziel) q.push(mkTyp(aus(typen))); return mische(q); }
 
 //// ===== Stand aus den gespeicherten Etagen =====
 function geschafft(){ return MEINE.filter(e=>e.bestanden==="Ja" && +e.etage>0); }
