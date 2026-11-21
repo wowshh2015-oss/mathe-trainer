@@ -75,12 +75,14 @@ window.TurmDaten=(function(){
   const ZIMMER_ALT=[["pingpong","🏓","Tischtennis",1],
   ["achter","🎢","Achterbahn",2],["karaoke","🎤","Karaoke",2],
   ["rakete","🚀","Raketenstart",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]];
+  // Dächer in der Reihenfolge, in der sie frei werden (jede 20. Etage eines mehr) – alle gemalt
   const DAECHER=[
-  ["flach","Flachdach mit Antenne"],["spitze","Turmspitze"],["kuppel","Goldene Kuppel"],["garten","Dachgarten"],
-  ["heli","Hubschrauber-Platz"],["stern","Sternwarte"],["fahne","Fahnenturm"],["rad","Riesenrad"],["burg","Burgtürme"],["krone","Kronen-Dach"]
+  ["flach","Flachdach mit Antenne"],["garten","Dachgarten"],["kuppel","Goldene Kuppel"],["heli","Hubschrauber-Platz"],["achter","Achterbahn"],["stern","Sternwarte"],
+  ["rad","Riesenrad"],["burg","Burgtürme"],["rakete","Raketenstart"],["krone","Kronen-Dach"],["spitze","Turmspitze"],["fahne","Fahnenturm"]
 ];
   // Gemalte Bilder (bilder/turm): Fassade je Stadt mit durchsichtiger Öffnung [x, y, Breite, Höhe] als Anteil, Zimmer als Innenansicht 2:1.
   // Fehlt ein Bild, zeichnet das Spiel die Etage selbst. Neue Bilder: aufbereiten mit scratchpad/bilder_bauen.py, dann hier eintragen.
-  const BILDER={ karten:["accra", "athen", "barcelona", "damaskus", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "teheran", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "bad", "baeckerei", "biblio", "bowling", "burg", "dino", "disco", "drache", "dschungel", "einhorn", "eis", "eisbahn", "fussball", "games", "garten", "katzen", "kino", "klasse", "kristall", "kueche", "labor", "lobby", "mal", "musik", "panda", "piraten", "pizza", "pool", "roboter", "schatz", "schlaf", "spiel", "stern", "thron", "weltraum", "werk", "wohn", "zauber", "zirkus"] };
+  // Dächer: [Sockel links, Sockel rechts] als Anteil der Bildbreite und Höhe/Breite – der Sockel wird genau auf die Turmbreite gelegt
+  const BILDER={ daecher:{"flach": [0.0075, 0.9925, 0.5], "garten": [0.0088, 0.9912, 0.5], "kuppel": [0.0025, 0.9975, 0.5], "heli": [0.0025, 0.9975, 0.5], "achter": [0.0088, 0.9912, 0.5], "stern": [0.0112, 0.9888, 0.5012], "rad": [0.0038, 0.9962, 0.5], "burg": [0.0038, 0.9962, 0.5], "rakete": [0.0025, 0.9975, 0.5], "krone": [0.0025, 0.9975, 0.5], "spitze": [0.0038, 0.9962, 0.5], "fahne": [0.0038, 0.9962, 0.5]}, karten:["accra", "athen", "barcelona", "damaskus", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "teheran", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "bad", "baeckerei", "biblio", "bowling", "burg", "dino", "disco", "drache", "dschungel", "einhorn", "eis", "eisbahn", "fussball", "games", "garten", "katzen", "kino", "klasse", "kristall", "kueche", "labor", "lobby", "mal", "musik", "panda", "piraten", "pizza", "pool", "roboter", "schatz", "schlaf", "spiel", "stern", "thron", "weltraum", "werk", "wohn", "zauber", "zirkus"] };
   return { STAEDTE, ZIMMER, ZIMMER_ALT, DAECHER, BILDER, REISE:10, DACH:20 };
 })();

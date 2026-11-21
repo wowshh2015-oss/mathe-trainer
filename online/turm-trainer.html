@@ -430,6 +430,9 @@ function etageSVG(e,y,z){ const st=stilVon(e), o=oeffnung(st), ox=TX+o[0]*TW, oy
   s+=`<rect x="2" y="${y+EH/2-13}" width="${TX+8}" height="26" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text x="${(TX+12)/2}" y="${y+EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="#7c2d12" font-family="Georgia,serif">${e}</text>`;
   return s; }
 function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
+  const bild=BILD.daecher && BILD.daecher[id];
+  if(bild){ const bw=TW/(bild[1]-bild[0]), hh=bw*bild[2];            // gemaltes Dach: Sockel genau so breit wie der Turm
+    return `<image href="bilder/turm/dach_${id}.webp" x="${(TX-bild[0]*bw).toFixed(1)}" y="${(y+2-hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" preserveAspectRatio="none"/>`; }
   switch(id){
     case "spitze": return `<path d="M${TX+20} ${y} L${m} ${y-90} L${TX+TW-20} ${y} Z" fill="#475569"/><path d="M${m} ${y-90} V${y-120}" stroke="#fbbf24" stroke-width="3"/><circle cx="${m}" cy="${y-122}" r="4" fill="#fbbf24"/>`;
     case "kuppel": return `<rect x="${TX+30}" y="${y-14}" width="${TW-60}" height="14" fill="#e2e8f0"/><path d="M${TX+40} ${y-14} A${TW/2-40} ${TW/2-40} 0 0 1 ${TX+TW-40} ${y-14} Z" fill="#fbbf24" stroke="#b45309" stroke-width="2"/><path d="M${m} ${y-14-(TW/2-40)} V${y-30-(TW/2-40)}" stroke="#b45309" stroke-width="3"/>`;

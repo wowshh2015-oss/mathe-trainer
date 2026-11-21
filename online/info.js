@@ -311,7 +311,7 @@
     ],
     turm:[
       ["#etageGross", "<b>Deine nächste Etage:</b> 8 richtige Antworten, 3 Herzen. Erst Grundwissen (Wochentage, Monate, Geld, Formen), ab Etage 21 mehr Wissen, ab Etage 61 Umrechnen. Fertige Etagen bleiben immer stehen. Jede 10. Etage ist eine Reise-Etage: danach fliegst du in eine neue Stadt und baust in ihrem Stil weiter."],
-      ["#dachBtn", "<b>Dächer:</b> Jede 20. Etage schaltet ein neues Dach frei: Turmspitze, goldene Kuppel, Dachgarten, Riesenrad …", "nach"]
+      ["#dachBtn", "<b>Dächer:</b> Jede 20. Etage schaltet ein neues Dach frei: Dachgarten, goldene Kuppel, Hubschrauber-Platz, Achterbahn, Riesenrad, Rakete …", "nach"]
     ],
     marathon:[
       ["#etageGross", "<b>Etagen:</b> Pro Etage brauchst du 10 richtige Aufgaben. Je höher du kommst, desto schwerer wird es: erst bis 20, dann bis 100, später Einmaleins und Teilen. Geschaffte Etagen verlierst du nie."],
