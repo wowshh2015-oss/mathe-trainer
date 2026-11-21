@@ -328,8 +328,13 @@ $("name").addEventListener("input",update);
   // „Namen wechseln" aus einem Trainer: abmelden und mit leerem Feld beginnen
   if(location.hash==="#wechsel"){ Anmeldung.abmelden(); n=""; try{ localStorage.removeItem("mathe_name"); }catch(e){} history.replaceState(null,"",location.pathname); }
   $("name").value=n;
+  // Nur wegen einer langsamen Verbindung ohne Geheimtier hereingelassen (oder Tab von vor der Tier-Anmeldung)?
+  // Dann jetzt nachfragen – sonst bleibt so ein Kind für immer ohne Geheimtier.
+  const nachfragen = n && Anmeldung.ok(capName(n)) && !Anmeldung.geprueft(capName(n));
+  if(nachfragen) Anmeldung.abmelden();
   renderChips(); update();
   if(!n) $("name").focus();
+  if(nachfragen) setTimeout(anmelden, 600);
 })();
 
 //// ===== Persönliche Begrüßung aus dem Klassen-Archiv =====

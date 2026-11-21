@@ -18,13 +18,20 @@
   function docId(n){ return "tier_"+encodeURIComponent(cap(n).toLowerCase()).replace(/[%.]/g,"_"); }
 
   // „Angemeldet" gilt für diesen Tab. Wo sessionStorage gesperrt ist (privater Modus), hilft window.name.
+  // „geprüft" = das Geheimtier wurde wirklich abgefragt oder ausgesucht. Wer nur wegen einer langsamen Verbindung
+  // hereingelassen wurde, ist angemeldet, aber nicht geprüft – die Startseite fragt dann beim nächsten Mal nach.
   function okName(){
     try{ const v=sessionStorage.getItem("mathe_ok"); if(v) return v; }catch(e){}
-    const m=String(window.name||"").match(/^mathe_ok:(.*)$/); return m?m[1]:"";
+    const m=String(window.name||"").match(/^mathe_okg?:(.*)$/); return m?m[1]:"";
   }
-  function setOk(n){ n=cap(n); try{ sessionStorage.setItem("mathe_ok",n); }catch(e){} window.name="mathe_ok:"+n; }
-  function abmelden(){ try{ sessionStorage.removeItem("mathe_ok"); }catch(e){} window.name=""; }
+  function setOk(n, geprueft){ n=cap(n);
+    try{ sessionStorage.setItem("mathe_ok",n); if(geprueft) sessionStorage.setItem("mathe_geprueft",n); else sessionStorage.removeItem("mathe_geprueft"); }catch(e){}
+    window.name=(geprueft?"mathe_okg:":"mathe_ok:")+n; }
+  function abmelden(){ try{ sessionStorage.removeItem("mathe_ok"); sessionStorage.removeItem("mathe_geprueft"); }catch(e){} window.name=""; }
   function ok(n){ n=cap(n); return !!n && okName()===n; }
+  function geprueft(n){ n=cap(n); if(!ok(n)) return false;
+    try{ if(sessionStorage.getItem("mathe_geprueft")===n) return true; }catch(e){}
+    return String(window.name||"")==="mathe_okg:"+n; }
 
   const seite=(location.pathname.split("/").pop()||"index.html").toLowerCase();
   const istStart=seite==="index.html"||seite==="", istLehrer=seite==="lehrer.html";
@@ -128,31 +135,42 @@
   function pruefe(name){
     name=cap(name);
     if(!name) return Promise.resolve(false);
-    if(ok(name)) return Promise.resolve(true);
+    if(geprueft(name)) return Promise.resolve(true);
     if(laeuft) return laeuft;
     laeuft=pruefeIntern(name).then(r=>{ laeuft=null; return r; }, e=>{ laeuft=null; throw e; });
     return laeuft;
   }
   async function pruefeIntern(name){
     let db=null; try{ db=firebase.firestore(); }catch(e){}
-    if(!db){ setOk(name); return true; }                 // ohne Datenbank niemanden aussperren
+    if(!db){ setOk(name); return true; }                 // ohne Datenbank niemanden aussperren (nicht „geprüft")
     const ref=db.collection("einstellungen").doc(docId(name));
     let konto=null, bekannt=false;
-    try{
+    stil();
+    // Während gefragt wird, ein Hinweis – auf dem Handy dauert die erste Verbindung manchmal ein paar Sekunden
+    const warteOv=document.createElement("div"); warteOv.className="anmOv";
+    warteOv.innerHTML=`<div class="anmBox"><div class="anmGross">🐾</div><p>Einen Moment, ich schaue nach deinem Geheimtier …</p></div>`;
+    document.body.appendChild(warteOv);
+    const lesen=async ms=>{
+      konto=null; bekannt=false;
       // Als Abfrage lesen, nicht als einzelnes Dokument: Die Datenbank verweigert das Lesen eines Dokuments,
       // das es noch nicht gibt (Kind ohne Geheimtier) – das darf nicht wie „keine Verbindung" behandelt werden.
       try{
-        const q=await mitZeit(db.collection("einstellungen").where("key","==",KEY).where("name","==",name).get(), 7000);
+        const q=await mitZeit(db.collection("einstellungen").where("key","==",KEY).where("name","==",name).get(), ms);
         q.forEach(d=>{ if(d.id===docId(name)) konto=d.data(); });
       }catch(e){
         if(!(e && e.code==="permission-denied")) throw e;   // verweigert = es gibt noch kein Konto
       }
       if(!(konto && konto.tier)){
-        const s=await mitZeit(db.collection("ergebnisse").where("key","==",KEY).where("name","==",name).limit(1).get(), 7000);
+        const s=await mitZeit(db.collection("ergebnisse").where("key","==",KEY).where("name","==",name).limit(1).get(), ms);
         bekannt=!s.empty;
       }
-    }catch(e){ setOk(name); return true; }               // keine Verbindung: lieber hereinlassen
-    stil();
+    };
+    try{
+      // Früher: nach 7 Sekunden ohne Antwort einfach hereinlassen – auf einem iPhone mit langsamer Verbindung
+      // kam so ein Kind ganz ohne Geheimtier hinein. Jetzt: länger warten und einmal neu versuchen.
+      try{ await lesen(10000); }catch(e){ await lesen(15000); }
+    }catch(e){ warteOv.remove(); setOk(name); return true; }   // wirklich keine Verbindung: hereinlassen, aber NICHT „geprüft"
+    warteOv.remove();
     return new Promise(resolve=>{
       const ov=document.createElement("div"); ov.className="anmOv";
       document.body.appendChild(ov);
@@ -184,9 +202,10 @@
         ov.querySelector("#anmJa").addEventListener("click", async ()=>{
           ov.querySelector("#anmJa").disabled=true;
           try{
-            await mitZeit(ref.set({key:KEY, name:name, tier:id, fehl:0, seit:new Date().toISOString().slice(0,10)}), 7000);
-            setOk(name); fertig(true);
+            await mitZeit(ref.set({key:KEY, name:name, tier:id, fehl:0, seit:new Date().toISOString().slice(0,10)}), 10000);
+            setOk(name, true); fertig(true);
           }catch(e){
+            // nicht „geprüft": beim nächsten Besuch der Startseite wird das Tier noch einmal ausgesucht
             ov.querySelector("#anmMeld").textContent="Das Speichern hat nicht geklappt. Du kannst trotzdem üben.";
             setTimeout(()=>{ setOk(name); fertig(true); }, 1800);
           }
@@ -209,7 +228,7 @@
           <a class="anmLink" id="anmVerg" style="display:block;color:#fde68a;font-weight:700">🙋 Ich habe mein Tier vergessen</a>${andere}`);
         ov.querySelector("#anmVerg").addEventListener("click", vergessen);
         ov.querySelectorAll(".anmTier").forEach(b=>b.addEventListener("click",()=>{
-          if(b.dataset.t===konto.tier){ setOk(name); fertig(true); return; }
+          if(b.dataset.t===konto.tier){ setOk(name, true); fertig(true); return; }
           fehl++;
           // Fehlversuche merken – die Lehrkraft sieht sie in der Klassenübersicht
           try{ ref.update({fehl:firebase.firestore.FieldValue.increment(1), fehlAm:new Date().toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}).catch(()=>{}); }catch(e){}
@@ -272,5 +291,5 @@
     });
   }
 
-  window.Anmeldung={ ok, pruefe, abmelden, cap, TIERE, docId };
+  window.Anmeldung={ ok, geprueft, pruefe, abmelden, cap, TIERE, docId };
 })();
