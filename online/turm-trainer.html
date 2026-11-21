@@ -48,7 +48,11 @@
   .buehne{position:relative;border-radius:18px;overflow:hidden;border:3px solid var(--rahmen);background-image:var(--hg,none),linear-gradient(180deg,#8fcbef,#e3f3fb);background-size:cover;background-position:center bottom}
   .turmBox{border-radius:16px;overflow:auto;max-height:560px;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#8fcbef,#d7eef9)}
   .buehne .turmBox{background:transparent;border-radius:0}
-  .turmBox svg{display:block;width:100%;height:auto}
+  .turmBox svg{display:block;width:100%;height:auto;margin:0 auto;max-width:none}
+  .turmRahmen{position:relative;min-width:0} .turmBox{position:relative;touch-action:pan-x pan-y}
+  .zoom{position:absolute;right:8px;bottom:10px;display:flex;flex-direction:column-reverse;gap:6px;z-index:3}
+  .zoom button{width:46px;height:46px;padding:0;border-radius:50%;font:900 26px/1 Arial,sans-serif;background:rgba(255,250,240,.92);color:#7c2d12;border:2px solid var(--rahmen);box-shadow:0 2px 6px rgba(0,0,0,.25);text-shadow:none}
+  .zoom button[data-z="ganz"]{font-size:22px} .zoom button:disabled{opacity:.4}
   .seite{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:10px}
   .pk{background:rgba(255,250,240,.95);border:3px solid var(--rahmen);border-radius:16px;padding:9px 9px 11px;text-align:center;box-shadow:0 4px 10px rgba(80,50,10,.2)}
   .pk h4{margin:0 0 6px;font:800 16px/1.2 Georgia,serif;color:var(--blau)}
@@ -145,7 +149,8 @@
         <div style="text-align:right" id="kopfRechts"></div>
       </div>
       <div class="buehne" id="buehne">
-        <div class="turmBox" id="turm"></div>
+        <div class="turmRahmen"><div class="turmBox" id="turm"></div>
+          <div class="zoom" id="zoom"><button type="button" data-z="-" aria-label="kleiner" title="kleiner">−</button><button type="button" data-z="ganz" aria-label="ganzer Turm" title="ganzer Turm / normal">⤢</button><button type="button" data-z="+" aria-label="größer" title="größer">+</button></div></div>
         <div class="seite"><div class="pk" id="naechster"></div><div class="pk" id="passKlein"></div></div>
       </div>
       <div id="tankZeile" style="margin-top:14px"></div>
@@ -436,7 +441,40 @@ function turmSVG(h, z, dach, neu, buehne){
   const kw=104, kh=219; s+=`<image href="bilder/turm/kran.webp" x="${TX+TW-0.63*kw}" y="${yTop-kh+8}" width="${kw}" height="${kh}"/>`;      // Kran mit Ziegeln über der nächsten Etage
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mein Wolkenkratzer mit ${h} Etagen">${s}</svg>`;
 }
+// ----- Zoom: Knöpfe − ⤢ +, zwei Finger auf dem Tablet, Strg + Mausrad am Computer -----
+let ZOOM=0.6, GANZ=false;
+try{ const v=parseFloat(localStorage.getItem("turm_zoom")); if(v>0) ZOOM=v; GANZ=localStorage.getItem("turm_ganz")==="1"; }catch(e){}
+function zoomGrenzen(box){ const svg=box.querySelector("svg"); if(!svg || !box.clientWidth) return [0.04,2.2];
+  const vb=svg.viewBox.baseVal, mh=parseFloat(getComputedStyle(box).maxHeight)||560;
+  return [Math.min(1, Math.max(0.04, (mh-4)*vb.width/(box.clientWidth*vb.height))), 2.2]; }
+function aktZoom(){ const box=$("turm"), svg=box.querySelector("svg"); return svg && box.clientWidth ? svg.clientWidth/box.clientWidth : ZOOM; }
+function zoomKnoepfe(){ const box=$("turm"), [lo,hi]=zoomGrenzen(box), z=$("zoom"), a=aktZoom(); if(!z) return;
+  z.querySelector('[data-z="-"]').disabled = a<=lo+0.002; z.querySelector('[data-z="+"]').disabled = a>=hi-0.002; }
+function setzeZoom(z, punkt){ const box=$("turm"), svg=box.querySelector("svg"); if(!svg) return;
+  const [lo,hi]=zoomGrenzen(box); z=Math.max(lo, Math.min(hi, z));
+  const r=box.getBoundingClientRect(), mx=punkt?punkt[0]-r.left:box.clientWidth/2, my=punkt?punkt[1]-r.top:box.clientHeight/2;
+  const fx=(box.scrollLeft+mx-svg.offsetLeft)/svg.clientWidth, fy=(box.scrollTop+my-svg.offsetTop)/svg.clientHeight;
+  ZOOM=z; GANZ = z<=lo+0.001; svg.style.width=(z*100)+"%";
+  box.scrollLeft=fx*svg.clientWidth+svg.offsetLeft-mx; box.scrollTop=fy*svg.clientHeight+svg.offsetTop-my;
+  try{ localStorage.setItem("turm_zoom", String(z)); localStorage.setItem("turm_ganz", GANZ?"1":"0"); }catch(e){}
+  zoomKnoepfe(); }
+(function(){ const box=$("turm"); let pinch=null;
+  const abst=e=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+  const mitte=e=>[(e.touches[0].clientX+e.touches[1].clientX)/2, (e.touches[0].clientY+e.touches[1].clientY)/2];
+  box.addEventListener("touchstart", e=>{ if(e.touches.length===2){ pinch={d:abst(e), z:aktZoom()}; e.preventDefault(); } }, {passive:false});
+  box.addEventListener("touchmove", e=>{ if(pinch && e.touches.length===2){ e.preventDefault(); setzeZoom(pinch.z*abst(e)/pinch.d, mitte(e)); } }, {passive:false});
+  box.addEventListener("touchend", e=>{ if(e.touches.length<2) pinch=null; });
+  ["gesturestart","gesturechange"].forEach(n=>box.addEventListener(n, e=>e.preventDefault(), {passive:false}));     // Safari: nicht die ganze Seite zoomen
+  box.addEventListener("wheel", e=>{ if(e.ctrlKey){ e.preventDefault(); setzeZoom(aktZoom()*Math.exp(-e.deltaY*0.0025), [e.clientX,e.clientY]); } }, {passive:false});
+  $("zoom").addEventListener("click", e=>{ const k=e.target.closest("button"); if(!k) return; const w=k.dataset.z;
+    if(w==="+") setzeZoom(aktZoom()*1.4); else if(w==="-") setzeZoom(aktZoom()/1.4);
+    else { const [lo]=zoomGrenzen(box); if(aktZoom()>lo+0.002){ setzeZoom(lo); box.scrollTop=0; } else setzeZoom(0.6); } });
+})();
+function zoomAnwenden(box){ const svg=box.querySelector("svg"); if(!svg) return;
+  const [lo,hi]=zoomGrenzen(box), z = GANZ ? lo : Math.max(lo, Math.min(hi, ZOOM));
+  svg.style.width=(z*100)+"%"; box.scrollTop=0; box.scrollLeft=(box.scrollWidth-box.clientWidth)/2; zoomKnoepfe(); }
 function zeichneTurm(box, h, neu){ box.innerHTML=turmSVG(h, zimmerVon(), aktDach(h), neu, !!box.closest(".buehne")); box.scrollTop=0;
+  if(box.id==="turm"){ zoomAnwenden(box); requestAnimationFrame(()=>zoomAnwenden(box)); }
   if(neu){ const g=box.querySelector(".neuEtage"); if(g){ g.style.transformOrigin="center"; g.animate([{opacity:0,transform:"translateY(-30px)"},{opacity:1,transform:"none"}],{duration:700,easing:"cubic-bezier(.2,1.4,.4,1)"}); } } }
 
 //// ===== Kraft (Sprit) =====
