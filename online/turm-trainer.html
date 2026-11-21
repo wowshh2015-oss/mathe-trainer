@@ -222,7 +222,7 @@ function runde(e){ return Math.floor((e-1)/(REISE*STAEDTE.length))+1; }
 
 //// ===== Zimmer =====  1 = häufig, 2 = selten ⭐, 3 = einzigartig 🌟 (nur einmal pro Turm)
 const ZIMMER=TurmDaten.ZIMMER;
-const ZN={}; [["pingpong","🏓","Tischtennis",1],["thron","👑","Thronsaal",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]].concat(ZIMMER).forEach(z=>ZN[z[0]]=z);   // alte Zimmer bleiben sichtbar
+const ZN={}; (TurmDaten.ZIMMER_ALT||[]).concat(ZIMMER).forEach(z=>ZN[z[0]]=z);   // alte Zimmer bleiben sichtbar
 const SW=["","","⭐ selten","🌟 einzigartig"];
 function dreiZimmer(besitz){
   const l=[], nimm=s=>{ let pool=ZIMMER.filter(z=>z[3]===s && !l.includes(z) && !(s===3 && besitz[z[0]]));

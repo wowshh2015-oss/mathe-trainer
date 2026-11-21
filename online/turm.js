@@ -59,21 +59,25 @@ window.TurmDaten=(function(){
   {id:"nordpol",  name:"Nordpol",       land:"Arktis",      b:"🐻‍❄️", c:"#0ea5e9", fakt:"Am Nordpol gibt es kein Land – nur dickes Eis auf dem Meer. In der Arktis leben Eisbären.",
    wand:"#e0f2fe", kante:"#38bdf8", fenster:"glas", rahmen:"#0284c7", deko:"zacken"}
 ];
-  // 30 Zimmer: 15 häufige (1), 10 seltene (2), 5 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
+  // 30 Zimmer (alle gemalt): 15 häufige (1), 10 seltene (2), 5 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
   const ZIMMER=[
-  ["schlaf","🛏️","Schlafzimmer",1],["kueche","🍳","Küche",1],["biblio","📚","Bibliothek",1],["mal","🎨","Malzimmer",1],["spiel","🧸","Spielzimmer",1],
-  ["games","🎮","Spielehöhle",1],["musik","🎸","Musikzimmer",1],["pizza","🍕","Pizzeria",1],["eis","🍦","Eisdiele",1],["garten","🌱","Gewächshaus",1],
-  ["aqua","🐠","Aquarium",1],["labor","🧪","Labor",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],["werk","🔧","Werkstatt",1],
-  ["kino","🎬","Kino",2],["pool","🏊","Schwimmbad",2],["zirkus","🎪","Zirkus",2],["achter","🎢","Achterbahn",2],["dino","🦖","Dino-Museum",2],
-  ["stern","🔭","Sternwarte",2],["karaoke","🎤","Karaoke",2],["panda","🐼","Panda-Zimmer",2],["eisbahn","⛸️","Eisbahn",2],["burg","🏰","Ritterzimmer",2],
-  ["drache","🐉","Drachenhöhle",3],["schatz","💎","Schatzkammer",3],["rakete","🚀","Raketenstart",3],["zauber","🧙","Zauberschule",3],["einhorn","🦄","Einhornstall",3]
+  ["schlaf","🛏️","Schlafzimmer",1],["wohn","🛋️","Wohnzimmer",1],["kueche","🍳","Küche",1],["bad","🛁","Badezimmer",1],["spiel","🧸","Spielzimmer",1],
+  ["biblio","📚","Bibliothek",1],["klasse","🏫","Klassenzimmer",1],["mal","🎨","Malatelier",1],["musik","🎹","Musikzimmer",1],["baeckerei","🥐","Bäckerei",1],
+  ["eis","🍦","Eisdiele",1],["werk","🔧","Werkstatt",1],["garten","🌿","Wintergarten",1],["katzen","🐱","Katzenzimmer",1],["lobby","🛎️","Empfangshalle",1],
+  ["kino","🎬","Kino",2],["aqua","🐠","Aquarium",2],["pool","🏊","Schwimmbad",2],["disco","🪩","Disco",2],["labor","🧪","Forschungslabor",2],
+  ["stern","🔭","Sternwarte",2],["dino","🦖","Dinosauriermuseum",2],["roboter","🤖","Roboterwerkstatt",2],["dschungel","🦜","Dschungelzimmer",2],["piraten","🏴‍☠️","Piratenkajüte",2],
+  ["drache","🐉","Drachenhöhle",3],["thron","👑","Königlicher Thronsaal",3],["zauber","🧙","Zauberzimmer",3],["weltraum","🚀","Weltraumstation",3],["kristall","💎","Kristallgrotte",3]
 ];
+  // frühere Zimmer – nur damit schon gebaute Etagen weiter richtig aussehen
+  const ZIMMER_ALT=[["games","🎮","Spielehöhle",1],["pizza","🍕","Pizzeria",1],["fussball","⚽","Fußballhalle",1],["bowling","🎳","Bowling",1],["pingpong","🏓","Tischtennis",1],
+  ["zirkus","🎪","Zirkus",2],["achter","🎢","Achterbahn",2],["karaoke","🎤","Karaoke",2],["panda","🐼","Panda-Zimmer",2],["eisbahn","⛸️","Eisbahn",2],["burg","🏰","Ritterzimmer",2],
+  ["schatz","💎","Schatzkammer",3],["rakete","🚀","Raketenstart",3],["einhorn","🦄","Einhornstall",3],["ufo","🛸","UFO-Zimmer",3],["vulkan","🌋","Vulkanlabor",3]];
   const DAECHER=[
   ["flach","Flachdach mit Antenne"],["spitze","Turmspitze"],["kuppel","Goldene Kuppel"],["garten","Dachgarten"],
   ["heli","Hubschrauber-Platz"],["stern","Sternwarte"],["fahne","Fahnenturm"],["rad","Riesenrad"],["burg","Burgtürme"],["krone","Kronen-Dach"]
 ];
   // Gemalte Bilder (bilder/turm): Fassade je Stadt mit durchsichtiger Öffnung [x, y, Breite, Höhe] als Anteil, Zimmer als Innenansicht 2:1.
   // Fehlt ein Bild, zeichnet das Spiel die Etage selbst. Neue Bilder: aufbereiten mit scratchpad/bilder_bauen.py, dann hier eintragen.
-  const BILDER={ karten:["athen", "barcelona", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "biblio", "drache", "kino"] };
-  return { STAEDTE, ZIMMER, DAECHER, BILDER, REISE:10, DACH:20 };
+  const BILDER={ karten:["accra", "athen", "barcelona", "damaskus", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "teheran", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "bad", "baeckerei", "biblio", "dino", "disco", "drache", "dschungel", "eis", "garten", "katzen", "kino", "klasse", "kristall", "kueche", "labor", "lobby", "mal", "musik", "piraten", "pool", "roboter", "schlaf", "spiel", "stern", "thron", "weltraum", "werk", "wohn", "zauber"] };
+  return { STAEDTE, ZIMMER, ZIMMER_ALT, DAECHER, BILDER, REISE:10, DACH:20 };
 })();
