@@ -110,12 +110,14 @@
     "Plus und Minus mit großen Zahlen":"Klasse 4. Plus und Minus mit Tausendern und Zehntausendern.",
     // Mein Zoo
     "Zoo-Runde Klasse 1":"Zehn Aufgaben aus der 1. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
-    "Zoo-Runde Klasse 2":"Zehn Aufgaben aus der 2. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
+    "Zoo-Runde Klasse 2 · 1. Halbjahr":"Zehn Aufgaben für den Anfang der 2. Klasse: Plus und Minus bis 100 in kleinen Schritten, Zehner und Einer, volle und halbe Stunden, Cent, Formen – noch ohne Einmaleins. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
+    "Zoo-Runde Klasse 2 · 2. Halbjahr":"Zehn Aufgaben für das Ende der 2. Klasse: Plus und Minus bis 100 mit Zehnerübergang, Einmaleins und Teilen, Uhr mit Viertelstunden, Euro und Cent, Körper, Diagramme. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
     "Zoo-Runde Klasse 3":"Zehn Aufgaben aus der 3. Klasse. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei – eines davon selten.",
     "Zoo-Runde Klasse 4":"Zehn Aufgaben für alle, die schon weiter sind. Ab 5 richtigen zieht ein Tier ein, bei 10 von 10 zwei.",
     // Bunte Mischung
     "Klasse 1 – bunt gemischt":"15 Aufgaben für die 1. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 20, Partnerzahlen) und neun aus den anderen Themen – Zehner und Einer, Formen, Münzen, Wochentage.",
-    "Klasse 2 – bunt gemischt":"15 Aufgaben für die 2. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 100, Einmaleins, Teilen) und neun aus den anderen Themen – Zahlenstrahl, Uhr, Geld, Körper, Längen, Diagramme.",
+    "Klasse 2 – erstes Halbjahr":"15 Aufgaben für den Anfang der 2. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 100 in kleinen Schritten, bis zum Zehner ergänzen) und neun aus den anderen Themen – Zehner und Einer, Zahlenstrahl, volle und halbe Stunden, Cent, Formen, Messen. Noch ohne Einmaleins.",
+    "Klasse 2 – zweites Halbjahr":"15 Aufgaben für das Ende der 2. Klasse: immer sechs Rechenaufgaben (Plus und Minus bis 100, Einmaleins, Teilen) und neun aus den anderen Themen – Zahlenstrahl, Uhr mit Viertelstunden, Euro und Cent, Körper, Längen, Diagramme.",
     "Klasse 3 – bunt gemischt":"15 Aufgaben für die 3. Klasse: immer sechs Rechenaufgaben (Einmaleins, Teilen, Plus und Minus, Rechenwege, fehlende Zahl) und neun aus den anderen Themen – bis 1000, schriftlich, Kommazahlen, Zeitspannen, Gewichte, Zufall. Jede Runde ist anders.",
     "Vorschau auf Klasse 4":"Für alle, die schon weiter sind: Tonnen, schriftlich malnehmen, lange Zeitspannen, Dreisatz.",
     // Kalender und Zeit

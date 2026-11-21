@@ -275,9 +275,13 @@
   const MIX=[
     {id:1, mix:true, sek:60, name:"Klasse 1 – bunt gemischt", kurz:"Plus und Minus bis 20 · Zahlen · Formen · Münzen · Wochentage", kern:["rp_20","rm_20","rz_10","rz_20","rp_20","rm_20"],
       typen:["z_ze","z_stelle2","z_vorNach","f_form","f_form2","g_cent","g_euro","k_tag","k_monat","d_strich","w_schwerer","l_messen"]},
-    {id:2, mix:true, sek:75, name:"Klasse 2 – bunt gemischt", kurz:"Plus und Minus bis 100 · Einmaleins · Uhr · Geld · Körper · Diagramme", kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rz_100","rf_plus","rp_20","rm_20"],
+    // Klasse 2 in zwei Hälften (id 5 steht vor id 2, die alten Ergebnisse von id 2 bleiben gültig). Ohne Gramm und ohne Kommapreise – das kommt erst in Klasse 3.
+    {id:5, nr:"2a", kl:"2 · 1. Halbjahr", mix:true, sek:75, uhr:[0,30], name:"Klasse 2 – erstes Halbjahr", kurz:"Plus und Minus bis 100 ohne Einmaleins · Zehner und Einer · volle und halbe Stunden · Cent · Formen",
+      kern:["rp_20","rm_20","rp_zehner","rm_zehner","rp_ohne","rm_ohne","rp_einer","rz_zehner","rf_plus"],
+      typen:["z_ze","z_stelle2","z_vorNach","z_zehnerNachbar","z_strahl","z_vergleich","z_groesste","u_wortUhr","u_uhrPaar","f_form2","f_ecken","f_sym","g_cent","k_tag","k_monat","l_messen","l_messenVersetzt","d_strich","w_schwerer"]},
+    {id:2, nr:"2b", kl:"2 · 2. Halbjahr", mix:true, sek:75, uhr:[0,15,30,45], name:"Klasse 2 – zweites Halbjahr", kurz:"Plus und Minus bis 100 · Einmaleins · Uhr mit Viertelstunden · Euro und Cent · Körper · Diagramme", kern:["rp_100","rm_100","rx_kern","rx_alle","rd_alle","rz_100","rf_plus","rp_einer"],
       typen:["z_strahl","s_schritt","s_pfeil","z_vergleich","z_groesste","z_doppelt","z_haelfte","z_gerade","z_zehnerNachbar","k_tageMonat","k_wochen","k_hMin","k_bruch","u_wortUhr","u_uhrPaar",
-             "f_ecken","f_koerper","f_alltag","f_sym","g_inCent","g_ausCent","g_legen","g_einkauf","l_messenVersetzt","l_mInCm","l_cmAus","w_schaetzen","d_diaLesen","d_diaMax"]},
+             "f_ecken","f_koerper","f_alltag","f_sym","g_euro","g_inCent","g_ausCent","l_messenVersetzt","l_mInCm","l_cmAus","w_schwerer","d_diaLesen","d_diaMax"]},
     {id:3, mix:true, sek:100, name:"Klasse 3 – bunt gemischt", kurz:"Einmaleins und Teilen · bis 1000 · schriftlich · Kommazahlen · Zeit · Gewichte", kern:["rx_alle","rd_alle","rp_1000","rm_1000","rp_100","rm_100","rw_malZehner","rw_malZerlegen","rf_minus","rf_mal","rx_alle","rd_alle"],
       typen:["z_hze","z_stelle3","z_vorNach1000","t_schritt","t_pfeil","z_rundeZ","z_rundeH","z_rest","sp_mit","sp_drei","sm_mit","sm_null","k_minAus2","k_hMinIn","k_bruchH","k_sekAus","zs_in","zs_vor","zs_dauer","zs_training","zs_los",
              "u_beide","u_digitalWort","f_eck","f_rund","f_flaeche","f_umfang","g_ctKomma","g_kPlus","g_kMinus","g_reicht","g_mal","g_teil","g_rueckgeld","gs_plus","gs_minus","l_cmInMm","l_mmAus","l_rechneMinus","l_einheit",
@@ -286,7 +290,7 @@
       typen:["w_tInKg","w_kgAusT","w_lkw","sx_zwei","sx_drei","sp_gross","zs_dauerH","zs_inH","zs_woche","zs_fahrplan","g_dreisatz","g_gross","gs_plus3","f_flaeche","f_umfang","d_kombi","z_rundeH","l_seil","l_rechnePlus","w_mal","m_stelle","m_zerlegt","m_vorNach","m_runde","m_plus","m_mal","m_teil","q_teilMinus","q_malRueck","sd_ohne","sd_mit","sd_rest"]}
   ];
   // Mein Zoo: dieselben Aufgaben wie die Bunte Mischung, aber als Spiel – 10 Aufgaben, für je 5 richtige zieht ein Tier ein (zoo.js)
-  const ZOO=MIX.map((s,i)=>Object.assign({}, s, {name:"Zoo-Runde Klasse "+(i+1), kurz:"10 Aufgaben aus allen Themen · ab 5 richtigen ein Tier · 10 von 10 = zwei Tiere"}));
+  const ZOO=MIX.map(s=>Object.assign({}, s, {name:"Zoo-Runde Klasse "+(s.kl||s.id), kurz:"10 Aufgaben aus allen Themen · ab 5 richtigen ein Tier · 10 von 10 = zwei Tiere"}));
   // ===== Blitzrechnen: kurze Kopfrechen-Übungen, die blitzschnell sitzen sollen (wie der Blitzrechenkurs im Zahlenbuch) =====
   // Üben = 10 Aufgaben mit Erklärung. Blitz = eine Minute, so viele Aufgaben wie möglich; Ziel geschafft (ziel richtige, höchstens 2 Fehler) zählt wie ein bestandener Test.
   const BLITZ_SEK=60;
@@ -450,12 +454,14 @@
          : m<25 ? `${m} Minuten nach ${nach}` : `${60-m} Minuten vor ${vor}`;
   }
   const uhrZeit=(h,m)=>`${h}.${zz(m)} Uhr`;
-  function uhrZufall(){ return [rnd(1,11), aus([0,5,10,15,20,25,30,35,40,45,50,55])]; }
+  // UHR_MIN: welche Minuten die Stufe zeigt (z. B. Klasse 2: nur volle und halbe Stunden) – null = alle Fünf-Minuten-Schritte
+  let UHR_MIN=null;
+  function uhrZufall(){ return [rnd(1,11), aus(UHR_MIN||[0,5,10,15,20,25,30,35,40,45,50,55])]; }
   // typische Verwechslungen: Zeiger vertauscht, eine Stunde daneben, „vor" und „nach" gespiegelt
   function uhrFallen(h, m){
     const l=[], hh=(m/5)||12, mm=(h*5)%60; if((hh!==h || mm!==m) && hh<12) l.push([hh, mm]);      // Stunde 12 auslassen – sonst entstünde „24.55 Uhr"
     l.push([h%11+1, m]); if(m%30) l.push([h, 60-m]); l.push([(h+5)%11+1, (m+30)%60]); l.push([(h+2)%11+1, m]);
-    const s=new Set([h+":"+m]); return l.filter(x=>{ const k=x[0]+":"+x[1]; if(s.has(k)) return false; s.add(k); return true; });
+    const s=new Set([h+":"+m]); return l.filter(x=>{ const k=x[0]+":"+x[1]; if(s.has(k) || (UHR_MIN && !UHR_MIN.includes(x[1]))) return false; s.add(k); return true; });
   }
   // ---------- Zahlen, Formen, Daten: Bilder ----------
   function zeBild(z,e){
@@ -1054,6 +1060,19 @@
       return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Schrittweise: ${a} + ${Math.floor(b/10)*10} = ${a+Math.floor(b/10)*10}, dann + ${b%10} = <b>${a+b}</b>.`); },
     rm_100(){ let a,b; do{ a=rnd(41,95); b=rnd(13,38); }while(a%10>=b%10);
       return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Schrittweise: ${a} − ${Math.floor(b/10)*10} = ${a-Math.floor(b/10)*10}, dann − ${b%10} = <b>${a-b}</b>.`); },
+    // Klasse 2, erstes Halbjahr: die Schritte vor dem großen Plus und Minus bis 100
+    rp_zehner(){ const a=rnd(11,69), b=rnd(1,9-Math.floor(a/10))*10;
+      return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Nur die Zehner ändern sich: ${Math.floor(a/10)} Zehner + ${b/10} Zehner = ${Math.floor(a/10)+b/10} Zehner. Die Einer bleiben: <b>${a+b}</b>.`); },
+    rm_zehner(){ const a=rnd(31,99), b=rnd(1,Math.floor(a/10)-1)*10;
+      return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Nur die Zehner ändern sich: ${Math.floor(a/10)} Zehner − ${b/10} Zehner = ${Math.floor(a/10)-b/10} Zehner. Die Einer bleiben: <b>${a-b}</b>.`); },
+    rp_ohne(){ let a,b; do{ a=rnd(11,68); b=rnd(11,38); }while(a%10+b%10>9 || a+b>99 || b%10===0);
+      return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Erst die Zehner, dann die Einer: ${a} + ${b-b%10} = ${a+b-b%10}, dann + ${b%10} = <b>${a+b}</b>.`); },
+    rm_ohne(){ let a,b; do{ a=rnd(35,99); b=rnd(11,a-11); }while(a%10<b%10 || b%10===0);
+      return rechen(`${a} − ${b}`, a-b, [a,"-",b,a-b], `Erst die Zehner, dann die Einer: ${a} − ${b-b%10} = ${a-b+b%10}, dann − ${b%10} = <b>${a-b}</b>.`); },
+    rp_einer(){ let a,b; do{ a=rnd(13,88); b=rnd(3,9); }while(a%10+b<10 || a%10===0);
+      const bis=10-a%10; return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Erst bis zum nächsten Zehner: ${a} + ${bis} = ${a+bis}, dann noch + ${b-bis} = <b>${a+b}</b>.`); },
+    rz_zehner(){ let a; do{ a=rnd(12,89); }while(a%10===0); const z=Math.ceil(a/10)*10;
+      return rechen(`${a} + ☐ = ${z}`, z-a, [a,"+",z-a,z], `Wie viele fehlen bis zum nächsten Zehner? ${a%10} und <b>${z-a}</b> ergeben 10 – also ${a} + <b>${z-a}</b> = ${z}.`); },
     rp_1000(){ const a=rnd(12,58)*10, b=rnd(12,38)*10;
       return rechen(`${a} + ${b}`, a+b, [a,"+",b,a+b], `Rechne mit den Zehnern wie mit kleinen Zahlen: ${a/10} + ${b/10} = ${(a+b)/10} – also <b>${a+b}</b>.`); },
     rm_1000(){ const a=rnd(42,95)*10, b=rnd(12,38)*10;
@@ -1296,7 +1315,7 @@
         erkl:`Wandle um: ${m} m = ${m*100} cm. Dann ${m*100} cm − ${ab} cm = ${rest} cm. Das sind <b>${euroLaenge(rest)}</b>.`}); }
   };
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
-  function baueAufgabe(st, typ){ typ=typ||aus(st.typen); const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
+  function baueAufgabe(st, typ){ typ=typ||aus(st.typen); UHR_MIN=st.uhr||null; const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
     const frei = !(typen && typen.length), imZoo = WAS==="zoo" && st.mix && frei, anzahl = st.mix && frei && !imZoo ? 15 : PRO_RUNDE;
     // Zoo: bis zu zwei Aufgabenarten, die dem Kind in früheren Zoo-Runden schwerfielen, kommen wieder – wer sie jetzt löst, hat bessere Chancen auf ein seltenes Tier
@@ -1567,7 +1586,7 @@
       const lv = WAS==="blitz" ? stufeWahl(s.id) : 0, rk = WAS==="blitz" ? rekord(s.id, lv) : 0;
       const info = WAS==="blitz" ? `${s.kurz} · ${rk ? `Rekord ⚡ ${rk} · ` : ""}Ziel ${zielFuer(s,lv)}` : z.bestanden ? `✓ Test bestanden · ${z.geuebt}× geübt` : z.tests ? `${z.geuebt}× geübt · bester Test ${z.besterTest} %` : z.geuebt ? `${z.geuebt}× geübt · noch kein Test` : s.kurz;
       if(WAS==="blitz" && BLITZ_KL && s.kl!==BLITZ_KL) return "";
-      return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":s.id}</span><span class="tx"><b>${s.name}</b><span>${info}</span>${WAS==="blitz"?lvKnoepfe(s):""}</span>
+      return `<div class="stufe${z.bestanden?" fertig":""}${dran&&dran.id===s.id?" dran":""}"><span class="nr">${z.bestanden?"✓":(s.nr||s.id)}</span><span class="tx"><b>${s.name}</b><span>${info}</span>${WAS==="blitz"?lvKnoepfe(s):""}</span>
         <span class="kn"><button class="klein" data-ueben="${s.id}">Üben</button><button class="ghost klein" data-test="${s.id}"${WAS==="mix"?' style="border-color:#f59e0b;color:#fde68a"':""}>${WAS==="mix"?"Check ⭐×2":WAS==="blitz"?"⚡ Blitz":"Test"}</button></span></div>`; }).join("")+
 
       (WAS==="mix" ? `<div class="info" style="margin-bottom:8px;border:1px solid rgba(245,158,11,.5)">📝 <b>Der Check</b> zeigt dir, was du schon sicher kannst und was du vergessen hast. Der <b>erste Check am Tag</b> bringt <b>doppelte Sterne und doppelt Sprit</b> – auch wenn nicht alles richtig ist (ab der Hälfte richtiger Aufgaben).</div>` : "");
