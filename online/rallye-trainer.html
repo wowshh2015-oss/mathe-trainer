@@ -925,7 +925,7 @@ function mitTuning(svg, id, tune, gold){
 // ===== Gemalte Modelle (vom Lehrer gemalt, Teil zum Umfärben in Magenta) =====
 // bilder/rallye/<id>_s.webp = Schatten des Lack-Teils in Grau (128 = genau die gewählte Farbe), <id>_r.webp = alles andere.
 // Die Farbe (auch Verläufe wie Gold oder Regenbogen) liegt unter den Schatten, Mischung „hard-light".
-const BILD_FZ={p1:1, r1:1};
+const BILD_FZ={p1:1, p3:1, p9:1, p10:1, r1:1};     // Pferde 22.11.2026 realistisch (Pony, Reitpferd, Einhorn, Pegasus)
 for(let i=1;i<=20;i++) BILD_FZ["a"+i]=1;      // 22.11.2026: alle 20 Autos gemalt (realistischer Stil)
 let bildNr=0;
 function svgBild(id,c){
