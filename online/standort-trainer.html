@@ -293,8 +293,14 @@ function gGeld(stufe){
   return Z("geld", `Du bezahlst mit <b>${mit/100} €</b>. Es kostet <b>${(preis/100).toFixed(2).replace(".",",")} €</b>.<br>Wie viel <b>Rückgeld</b> bekommst du?`, mit-preis, `Bezahlt mit ${mit/100} €, kostet ${(preis/100).toFixed(2).replace(".",",")} € – Rückgeld in ct?`, {einheit:"ct"});
 }
 // ---- Längen und Gewichte ----
-const EINHEIT2=[["Ein Bleistift ist etwa 15 ___ lang.","cm"],["Eine Tür ist etwa 2 ___ hoch.","m"],["Ein Radiergummi ist etwa 4 ___ lang.","cm"],["Ein Klassenzimmer ist etwa 8 ___ lang.","m"],["Ein Schulheft ist etwa 30 ___ lang.","cm"],["Ein Auto ist etwa 4 ___ lang.","m"]];
-const EINHEIT3=[["Eine Ameise ist etwa 5 ___ lang.","mm"],["Von Hamburg nach Berlin sind es etwa 290 ___.","km"],["Ein Lineal ist 30 ___ lang.","cm"],["Ein Bus ist etwa 12 ___ lang.","m"],["Eine Münze ist etwa 2 ___ dick.","mm"],["Ein Marathon ist etwa 42 ___ lang.","km"]];
+const EINHEIT2=[["Ein Bleistift ist etwa 15 ___ lang.","cm"],["Eine Tür ist etwa 2 ___ hoch.","m"],["Ein Radiergummi ist etwa 4 ___ lang.","cm"],["Ein Klassenzimmer ist etwa 8 ___ lang.","m"],
+  ["Ein Schulheft ist etwa 30 ___ lang.","cm"],["Ein Auto ist etwa 4 ___ lang.","m"],["Eine Büroklammer ist etwa 3 ___ lang.","cm"],["Ein Baum ist etwa 10 ___ hoch.","m"],
+  ["Ein Löffel ist etwa 18 ___ lang.","cm"],["Ein Bett ist etwa 2 ___ lang.","m"],["Ein Buntstift ist etwa 17 ___ lang.","cm"],["Ein Schwimmbecken ist etwa 25 ___ lang.","m"],
+  ["Eine Banane ist etwa 20 ___ lang.","cm"],["Eine Tafel im Klassenzimmer ist etwa 3 ___ breit.","m"],["Ein Handy ist etwa 15 ___ lang.","cm"],["Ein Haus ist etwa 9 ___ hoch.","m"]];
+const EINHEIT3=[["Eine Ameise ist etwa 5 ___ lang.","mm"],["Von Hamburg nach Berlin sind es etwa 290 ___.","km"],["Ein Lineal ist 30 ___ lang.","cm"],["Ein Bus ist etwa 12 ___ lang.","m"],
+  ["Eine Münze ist etwa 2 ___ dick.","mm"],["Ein Marathon ist etwa 42 ___ lang.","km"],["Ein Marienkäfer ist etwa 7 ___ lang.","mm"],["Der Schulweg ist etwa 2 ___ lang.","km"],
+  ["Ein Buch ist etwa 25 ___ hoch.","cm"],["Ein Turm ist etwa 50 ___ hoch.","m"],["Ein Reiskorn ist etwa 6 ___ lang.","mm"],["Von Hamburg bis an die Ostsee sind es etwa 80 ___.","km"],
+  ["Eine Gabel ist etwa 19 ___ lang.","cm"],["Ein Zug ist etwa 200 ___ lang.","m"],["Ein Fingernagel ist etwa 10 ___ breit.","mm"],["Eine Autobahnfahrt dauert 1 Stunde und geht etwa 100 ___ weit.","km"]];
 function gLaengen(art){
   if(art==="m_cm"){ const m=rnd(2,9); return Z("laengen", `<span class="gross">${m} m = ${B} cm</span>`, m*100, `${m} m = ? cm`); }
   if(art==="mcm_cm"){ const m=rnd(1,4), c=rnd(1,9)*10+rnd(1,9); return Z("laengen", `<span class="gross">${m} m ${c} cm = ${B} cm</span>`, m*100+c, `${m} m ${c} cm = ? cm`); }
@@ -304,7 +310,10 @@ function gLaengen(art){
   if(art==="m0cm"){ const m=rnd(2,6), c=rnd(1,9); return Z("laengen", `<span class="gross">${m} m ${c} cm = ${B} cm</span>`, m*100+c, `${m} m ${c} cm = ? cm`); }   // Falle: 2 m 5 cm = 205
   const [s,e]=waehle(EINHEIT3); return W("laengen", `Was passt?<br><span class="klein">${s.replace("___",B)}</span>`, ["mm","cm","m","km"], e, s);
 }
-const EINHEIT_G=[["Eine Tafel Schokolade wiegt 100 ___.","g"],["Ein Kind wiegt etwa 30 ___.","kg"],["Ein Apfel wiegt etwa 150 ___.","g"],["Ein Fahrrad wiegt etwa 15 ___.","kg"],["Ein Brief wiegt etwa 20 ___.","g"],["Ein Hund wiegt etwa 12 ___.","kg"]];
+const EINHEIT_G=[["Eine Tafel Schokolade wiegt 100 ___.","g"],["Ein Kind wiegt etwa 30 ___.","kg"],["Ein Apfel wiegt etwa 150 ___.","g"],["Ein Fahrrad wiegt etwa 15 ___.","kg"],
+  ["Ein Brief wiegt etwa 20 ___.","g"],["Ein Hund wiegt etwa 12 ___.","kg"],["Ein Radiergummi wiegt etwa 10 ___.","g"],["Ein Sack Kartoffeln wiegt etwa 5 ___.","kg"],
+  ["Eine Banane wiegt etwa 120 ___.","g"],["Ein Erwachsener wiegt etwa 70 ___.","kg"],["Ein Ei wiegt etwa 60 ___.","g"],["Ein voller Schulranzen wiegt etwa 4 ___.","kg"],
+  ["Ein Bleistift wiegt etwa 5 ___.","g"],["Eine Wassermelone wiegt etwa 3 ___.","kg"],["Eine Packung Butter wiegt 250 ___.","g"],["Eine Katze wiegt etwa 4 ___.","kg"]];
 function gGewichte(art){
   if(art==="kg_g"){ const k=rnd(2,9); return Z("gewichte", `<span class="gross">${k} kg = ${B} g</span>`, k*1000, `${k} kg = ? g`); }
   if(art==="kgg_g"){ const k=rnd(1,4), g=rnd(1,9)*100+rnd(1,9)*10; return Z("gewichte", `<span class="gross">${k} kg ${g} g = ${B} g</span>`, k*1000+g, `${k} kg ${g} g = ? g`); }
@@ -361,7 +370,10 @@ function gFormen(art){
     const a=W("formen", `Welche Figur ist <b>symmetrisch</b>?<br><span class="klein">Wie beim Schmetterling: Beide Hälften sind gleich.</span>`, opts, "sym", "Welche Figur ist symmetrisch?"); a.bilder=true; return a; }
   if(art==="wuerfel"){ const [w,z]=waehle([["Ecken",8],["Flächen",6]]); return Z("formen", `Wie viele <b>${w}</b> hat ein <b>Würfel</b>?`, z); }
   if(art==="quader"){ const [w,z]=waehle([["Ecken",8],["Flächen",6]]); return Z("formen", `Wie viele <b>${w}</b> hat ein <b>Quader</b> (wie ein Schuhkarton)?`, z); }
-  return W("formen", `Welcher Körper kann <b>rollen</b>, aber hat keine Ecken und keine Kanten?`, ["Kugel","Würfel","Quader","Pyramide"], "Kugel");
+  const [fr,lo]=waehle([["Welcher Körper kann <b>rollen</b>, aber hat keine Ecken und keine Kanten?","Kugel"],["Welcher Körper hat <b>6 gleich große, quadratische</b> Flächen?","Würfel"],
+                        ["Welcher Körper sieht aus wie ein <b>Schuhkarton</b>?","Quader"],["Welcher Körper hat eine <b>Spitze</b> und unten ein Viereck?","Pyramide"],
+                        ["Welche Form hat ein <b>Fußball</b>?","Kugel"],["Welche Form hat ein <b>Spielwürfel</b>?","Würfel"],["Welche Form hat ein <b>Ziegelstein</b>?","Quader"]]);
+  return W("formen", fr, ["Kugel","Würfel","Quader","Pyramide"], lo);
 }
 // ---- Muster ----
 function gMuster(art){
@@ -386,7 +398,11 @@ function gDaten(art){
     if(unter && w[i]<w[j]){ const t=i; return Z("daten", `Lieblingstiere der Klasse: Wie viele Kinder mögen <b>${tiere[j][1]}e</b> mehr als <b>${tiere[t][1]}e</b>?${diagrammSVG(w,tiere.map(x=>x[0]))}`, w[j]-w[t], `Diagramm: ${tiere.map((x,k)=>x[1]+" "+w[k]).join(", ")} – Unterschied ${tiere[j][1]} und ${tiere[t][1]}`); }
     return Z("daten", `${unter?"Lieblingstiere der Klasse: ":""}${f}${diagrammSVG(w,tiere.map(x=>x[0]))}`, unter?w[i]-w[j]:w[i], `Diagramm: ${tiere.map((x,k)=>x[1]+" "+w[k]).join(", ")} – ${unter?"Unterschied":"ablesen"}`); }
   if(art==="kombi"){ const a=rnd(2,4), b=rnd(2,3), n=waehle(NAMEN); return Z("daten", `${n} hat <b>${a} T-Shirts</b> und <b>${b} Hosen</b>. Wie viele verschiedene Kombinationen kann ${n} anziehen?`, a*b); }
-  const [s,e]=waehle([["In einer Tüte sind nur rote Kugeln. Du ziehst eine blaue Kugel.","unmöglich"],["In einer Tüte sind rote und blaue Kugeln. Du ziehst eine rote Kugel.","möglich"],["In einer Tüte sind nur rote Kugeln. Du ziehst eine rote Kugel.","sicher"],["Du würfelst mit einem normalen Würfel eine 7.","unmöglich"],["Du würfelst mit einem normalen Würfel eine 3.","möglich"]]);
+  const [s,e]=waehle([["In einer Tüte sind nur rote Kugeln. Du ziehst eine blaue Kugel.","unmöglich"],["In einer Tüte sind rote und blaue Kugeln. Du ziehst eine rote Kugel.","möglich"],
+    ["In einer Tüte sind nur rote Kugeln. Du ziehst eine rote Kugel.","sicher"],["Du würfelst mit einem normalen Würfel eine 7.","unmöglich"],["Du würfelst mit einem normalen Würfel eine 3.","möglich"],
+    ["Du würfelst mit einem normalen Würfel eine Zahl kleiner als 7.","sicher"],["Du wirfst eine Münze. Sie zeigt Zahl.","möglich"],["In einer Schachtel sind nur grüne Stifte. Du nimmst einen gelben Stift.","unmöglich"],
+    ["In einer Schachtel sind nur grüne Stifte. Du nimmst einen grünen Stift.","sicher"],["Auf einem Glücksrad sind Rot, Blau und Gelb. Es bleibt auf Blau stehen.","möglich"],
+    ["Du würfelst mit einem normalen Würfel eine 0.","unmöglich"]]);
   return W("daten", `${s}<br>Ist das <b>sicher</b>, <b>möglich</b> oder <b>unmöglich</b>?`, ["sicher","möglich","unmöglich"], e, s);
 }
 // ---- Sachaufgaben ----
@@ -428,7 +444,9 @@ const TESTS={
 };
 function baueTest(id){
   const l=[];
-  TESTS[id].forEach(g=>{ let a, k=0; do{ a=g(); k++; }while(k<20 && l.some(x=>x.druck===a.druck)); l.push(a); });
+  // Aufgaben, die das Kind in früheren Tests schon hatte, möglichst nicht wiederholen (gleiche Art, andere Zahlen/Sätze)
+  const gehabt=new Set(); MEINE.filter(e=>e.app===APP && e.aufgaben).forEach(e=>e.aufgaben.forEach(x=>gehabt.add(x.f)));
+  TESTS[id].forEach(g=>{ let a, k=0; do{ a=g(); k++; }while(k<60 && (l.some(x=>x.druck===a.druck) || (k<40 && gehabt.has(a.druck)))); l.push(a); });
   // nach Leitidee/Thema in der Reihenfolge der Liste lassen – wie eine Klassenarbeit, Thema für Thema
   return l;
 }
