@@ -212,6 +212,20 @@
     </div>
   </div>
 
+  <div class="card" id="testsCard">
+    <h2>🧪 Lernstandstests <small>„Wo stehe ich?" · nach Monaten · Druckblätter für die Mappe · Noten nur hier sichtbar</small></h2>
+    <div class="row noprint" style="margin-bottom:10px">
+      <label class="kl" style="margin:0">Monat</label><select id="tMonat"></select>
+      <button id="tAlleDruck">🖨️ Alle drucken</button>
+      <button class="ghost" id="tNotenAlle">📝 Noten nach Schlüssel eintragen</button>
+      <button class="ghost" id="tZu">🔒 Monat abschließen</button>
+      <button class="ghost" id="tSchlBtn">⚙️ Notenschlüssel</button>
+    </div>
+    <div id="tSchl" class="haEin hide noprint"></div>
+    <div id="tInfo" class="legende" style="margin:0 0 10px"></div>
+    <div class="scroll"><div id="tListe"></div></div>
+  </div>
+
   <div class="card">
     <h2>🧨 Schwierige Aufgaben der Klasse <small id="schwerLabel"></small></h2>
     <div id="schwer"></div>
@@ -374,6 +388,7 @@
 <script src="zoo.js"></script>
 <script src="turm.js"></script>
 <script src="hausaufgabe.js"></script>
+<script src="lernstand.js"></script>
 <script>
 //// ===== Verbindung (dieselbe Datenbank wie die Trainer) =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -428,6 +443,7 @@ function uebungLabel(e){
     return `${r} ${r===1?"Runde":"Runden"} · ${e.stufe||""}${e.bestzeit?` · beste Runde ${e.bestzeit} s`:""}`.trim();
   }
   if(e.modus==="Marathon" || e.modus==="Turm") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
+  if(e.app==="standort") return `${e.stufe||""} · ${e.richtig} von ${e.max} Punkten${e.note?" · Note "+e.note:""}`;
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
   if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
@@ -509,6 +525,7 @@ function render(){
     : '<div class="empty">Noch keine Daten.</div>';
 
   renderLernstand();
+  renderTests();
   renderSchwer(rows);
   renderTiere();
   renderTank();
@@ -1366,6 +1383,78 @@ async function entsperren(){
   }
 }
 
+//// ===== Lernstandstests („Wo stehe ich?") nach Monaten =====
+let T_ZU=[], T_SCHL=null, T_MONAT="";
+const monatVon=e=>e.monat || (()=>{ const p=String(e.datum||"").split("."); return p.length===3 ? `${p[2]}-${p[1]}` : ""; })();
+const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const monatName=m=>{ const [j,mm]=m.split("-"); return `${MONATE[(+mm)-1]||mm} ${j}`; };
+const schluessel=()=>T_SCHL||Lernstand.SCHLUESSEL_STD;
+function testsDesMonats(m){ return ALLE.filter(e=>e.app==="standort" && e.aufgaben && monatVon(e)===m).sort((a,b)=>a.name.localeCompare(b.name,"de") || ts(a).localeCompare(ts(b))); }
+function renderTests(){
+  if(!$("tListe")) return;
+  const d=new Date(), jetzt=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  const monate=[...new Set(ALLE.filter(e=>e.app==="standort").map(monatVon).concat([jetzt]))].filter(Boolean).sort().reverse();
+  if(!T_MONAT || !monate.includes(T_MONAT)) T_MONAT=jetzt;
+  $("tMonat").innerHTML=monate.map(m=>`<option value="${m}"${m===T_MONAT?" selected":""}>${monatName(m)}${T_ZU.includes(m)?" 🔒":""}</option>`).join("");
+  const liste=testsDesMonats(T_MONAT), zu=T_ZU.includes(T_MONAT);
+  const kinder=KLASSE || [...new Set(ALLE.map(e=>e.name))].sort((a,b)=>a.localeCompare(b,"de"));
+  const mit=new Set(liste.map(e=>e.name)), ohne=kinder.filter(n=>!mit.has(n));
+  const s=schluessel();
+  $("tZu").textContent = zu ? "🔓 Monat wieder öffnen" : "🔒 Monat abschließen";
+  $("tNotenAlle").disabled = zu || !liste.some(e=>!e.note);
+  $("tAlleDruck").disabled = !liste.length;
+  $("tInfo").innerHTML = `${zu?"🔒 <b>Abgeschlossen</b> – Noten sind gesperrt. ":""}<b>${liste.length}</b> ${liste.length===1?"Test":"Tests"} von <b>${mit.size}</b> ${mit.size===1?"Kind":"Kindern"} im ${monatName(T_MONAT)}`+
+    (ohne.length ? ` · noch ohne Test${KLASSE?"":" (alle bekannten Namen)"}: ${ohne.map(n=>`<span class="chip off" style="padding:2px 9px;font-size:12.5px">${esc(n)}</span>`).join(" ")}` : (kinder.length?" · 🎉 alle haben einen Test gemacht":""))+
+    `<br>Notenschlüssel: 1 ab ${s[0]} % · 2 ab ${s[1]} % · 3 ab ${s[2]} % · 4 ab ${s[3]} % · 5 ab ${s[4]} % · darunter 6${T_SCHL?"":" <i>(Standard – bitte nach dem Protokoll der Fachkonferenz anpassen)</i>"}`;
+  $("tListe").innerHTML = liste.length
+    ? `<table><thead><tr><th>Kind</th><th>Test</th><th>Datum</th><th>Punkte</th><th>%</th><th>schwach in</th><th>Vorschlag</th><th>Note</th><th></th></tr></thead><tbody>`+
+      liste.map(e=>{ const st=e.themen||Lernstand.themenStand(e.aufgaben), schwach=Object.keys(st).filter(t=>Lernstand.ampel(st[t])==="r").map(t=>Lernstand.THEMEN[t]?Lernstand.THEMEN[t].ic:t).join(" ");
+        const v=Lernstand.noteAus(e.prozent, s), cls=e.prozent>=77?"ok":e.prozent>=50?"mid":"no";
+        return `<tr><td class="nm">${esc(e.name)}</td><td>${esc(Lernstand.testName(e.test))}</td><td>${esc(e.datum)} ${esc(e.zeit||"")}</td><td>${e.richtig} / ${e.max}</td><td class="${cls}">${e.prozent} %</td>
+          <td title="rot = wiederholen">${schwach||"–"}</td><td>${v}</td>
+          <td><select data-note="${e._id}"${zu?" disabled":""}><option value="">–</option>${[1,2,3,4,5,6].map(n=>`<option${String(e.note)===String(n)?" selected":""}>${n}</option>`).join("")}</select></td>
+          <td><button class="ghost" style="padding:5px 10px;font-size:13px" data-blatt="${e._id}">Ansehen · Drucken</button></td></tr>`; }).join("")+`</tbody></table>`
+    : `<div class="empty">Im ${monatName(T_MONAT)} hat noch niemand den Test gemacht. Die Kinder finden ihn auf der Startseite: „🧪 Wo stehe ich?".</div>`;
+  $("tListe").querySelectorAll("select[data-note]").forEach(sel=>sel.addEventListener("change", async ()=>{
+    const v=sel.value; try{ await db.collection("ergebnisse").doc(sel.dataset.note).update(v ? {note:+v} : {note:firebase.firestore.FieldValue.delete()}); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); } }));
+  $("tListe").querySelectorAll("button[data-blatt]").forEach(b=>b.addEventListener("click",()=>zeigeTestBlaetter(liste.filter(e=>e._id===b.dataset.blatt))));
+}
+// Blätter im großen Fenster zeigen (eins oder alle), von dort drucken – Exemplar der Lehrkraft mit Note
+function zeigeTestBlaetter(liste, sofortDrucken){
+  $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken${liste.length>1?` (${liste.length} Blätter)`:""}</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>`+
+    liste.map(e=>Lernstand.blattHTML(e,{note:true})).join("");
+  $("blatt").classList.remove("hide"); document.body.classList.add("blattOffen"); $("blatt").scrollTop=0;
+  $("blattDruck").addEventListener("click",()=>window.print());
+  $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
+  if(sofortDrucken) setTimeout(()=>window.print(), 300);
+}
+$("tMonat").addEventListener("change",()=>{ T_MONAT=$("tMonat").value; renderTests(); });
+$("tAlleDruck").addEventListener("click",()=>{ const l=testsDesMonats(T_MONAT); if(l.length) zeigeTestBlaetter(l, true); });
+$("tNotenAlle").addEventListener("click", async ()=>{
+  const l=testsDesMonats(T_MONAT).filter(e=>!e.note); if(!l.length) return;
+  if(!confirm(`Für ${l.length} ${l.length===1?"Test":"Tests"} ohne Note die Note nach dem Notenschlüssel eintragen?\nSchon eingetragene Noten bleiben, wie sie sind.`)) return;
+  try{ const b=db.batch(); l.forEach(e=>b.update(db.collection("ergebnisse").doc(e._id),{note:Lernstand.noteAus(e.prozent, schluessel())})); await b.commit(); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+});
+$("tZu").addEventListener("click", async ()=>{
+  const zu=T_ZU.includes(T_MONAT);
+  if(!zu && !confirm(`${monatName(T_MONAT)} abschließen?\nDie Blätter bleiben sichtbar und druckbar, die Noten werden gesperrt.`)) return;
+  const neu = zu ? T_ZU.filter(m=>m!==T_MONAT) : T_ZU.concat([T_MONAT]);
+  try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, testMonateZu:neu}, {merge:true}); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+});
+$("tSchlBtn").addEventListener("click",()=>{
+  const box=$("tSchl"); if(!box.classList.contains("hide")){ box.classList.add("hide"); return; }
+  const s=schluessel();
+  box.innerHTML=`<div class="kopf"><b>⚙️ Notenschlüssel</b><small style="color:var(--muted)">Mindest-Prozent für jede Note – nach dem Beschluss der Fachkonferenz</small></div>
+    <div class="row">${[1,2,3,4,5].map((n,i)=>`<label class="kl" style="margin:0">Note ${n} ab</label><input type="text" inputmode="numeric" data-schl="${i}" value="${s[i]}" style="width:64px"> %`).join(" ")}</div>
+    <div class="row" style="margin-top:10px"><button id="tSchlSpeichern">Speichern</button><button class="ghost" id="tSchlStd">Standard (92 · 77 · 60 · 45 · 25)</button></div>`;
+  box.classList.remove("hide");
+  const sichern=async werte=>{ try{ await db.collection("einstellungen").doc("freigabe").set({key:KEY, notenSchluessel:werte}, {merge:true}); box.classList.add("hide"); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); } };
+  $("tSchlSpeichern").addEventListener("click",()=>{ const w=[...box.querySelectorAll("input[data-schl]")].map(i=>parseInt(i.value,10));
+    if(w.some(x=>!(x>=0 && x<=100)) || w.some((x,i)=>i && x>=w[i-1])){ alert("Bitte fünf Zahlen von 0 bis 100 eingeben, jede kleiner als die vorige (z. B. 92, 77, 60, 45, 25)."); return; }
+    sichern(w); });
+  $("tSchlStd").addEventListener("click",()=>sichern(Lernstand.SCHLUESSEL_STD.slice()));
+});
+
 //// ===== Start =====
 (function init(){
   try{
@@ -1380,7 +1469,9 @@ async function entsperren(){
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
                                     if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
-                                      MELD=(d.data()||{}).meldung||null; zeigeMeld(); } });
+                                      MELD=(d.data()||{}).meldung||null; zeigeMeld();
+                                      T_ZU=Array.isArray((d.data()||{}).testMonateZu) ? d.data().testMonateZu : []; T_SCHL=Array.isArray((d.data()||{}).notenSchluessel) && d.data().notenSchluessel.length===5 ? d.data().notenSchluessel : null;
+                                      if(entsperrt) renderTests(); } });
       if(entsperrt) renderTiere();
     }, ()=>{});
     db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{

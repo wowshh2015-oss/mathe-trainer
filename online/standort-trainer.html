@@ -9,6 +9,7 @@
 <title>Wo stehe ich?</title>
 <script src="anmeldung.js?v=20261122a"></script>
 <script src="komfort.js"></script>
+<script src="lernstand.js"></script>
 <style>
   :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:#a3e635; --good:#22c55e; --mid:#facc15; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
   *{box-sizing:border-box} html,body{margin:0;min-height:100%}
@@ -78,17 +79,10 @@
     .frage{font-size:21px} .frage .gross{font-size:32px} .wahl button{font-size:17px} .schr{font-size:27px} .antwortzeile input{width:140px} }
   /* ===== Druckblatt (A4, schwarz auf weiß) ===== */
   @media print{
-    @page{size:A4;margin:14mm 14mm 16mm}
     body{background:#fff!important;color:#000;padding:0;display:block;font-size:11pt}
     body > *:not(.app){display:none!important}
     .app{max-width:none} .app > *:not(#druck){display:none!important}
-    #druck{display:block!important;color:#000}
-    #druck h1{font-size:18pt;margin:0 0 2mm} #druck .kz{display:flex;justify-content:space-between;gap:8mm;font-size:11pt;border-bottom:1.5pt solid #000;padding-bottom:2mm;margin-bottom:4mm}
-    #druck table{width:100%;border-collapse:collapse;margin:2mm 0 5mm} #druck th,#druck td{border:0.6pt solid #666;padding:1.6mm 2mm;text-align:left;font-size:10pt;vertical-align:top}
-    #druck th{background:#eee} #druck .liz td{background:#f4f4f4;font-weight:bold}
-    #druck .sum{font-size:14pt;font-weight:bold;margin:2mm 0 4mm}
-    #druck .fuss{margin-top:8mm;font-size:9pt;color:#444} #druck .unterschrift{margin-top:12mm;display:flex;gap:16mm} #druck .unterschrift div{flex:1;border-top:0.8pt solid #000;padding-top:1mm;font-size:9pt}
-    #druck tr{page-break-inside:avoid}
+    #druck{display:block!important}
   }
 </style>
 </head>
@@ -158,26 +152,7 @@ const zz=n=>String(n).padStart(2,"0");
 const B='<span class="blank">?</span>';
 
 //// ===== Leitideen (Hamburger Bildungsplan Mathematik Grundschule) und Themen =====
-const LEITIDEEN={ Z:"Zahlen und Operationen", G:"Größen und Messen", R:"Raum und Form", M:"Muster und Strukturen", D:"Daten und Zufall" };
-const THEMEN={
-  zahlraum:   {n:"Zahlen und Stellenwerte",   ic:"🔢", li:"Z", link:"zahlen-trainer.html"},
-  plusminus:  {n:"Plus und Minus",            ic:"➕", li:"Z", link:"plus-trainer.html"},
-  zerlegen:   {n:"Zerlegen und Ergänzen",     ic:"🧩", li:"Z", link:"zerlegen-trainer.html"},
-  verdoppeln: {n:"Verdoppeln und Halbieren",  ic:"✌️", li:"Z", link:"blitz-trainer.html"},
-  malgeteilt: {n:"Mal und Geteilt",           ic:"✖️", li:"Z", link:"einmaleins-trainer.html"},
-  rechenwege: {n:"Rechnen bis 1000",          ic:"🪜", li:"Z", link:"halbschriftlich-trainer.html"},
-  schriftlich:{n:"Schriftlich rechnen",       ic:"✍️", li:"Z", link:"schrift-trainer.html"},
-  sach:       {n:"Sachaufgaben",              ic:"📖", li:"Z", link:"sach-trainer.html"},
-  geld:       {n:"Geld",                      ic:"💶", li:"G", link:"geld-trainer.html"},
-  laengen:    {n:"Längen",                    ic:"📏", li:"G", link:"laengen-trainer.html"},
-  gewichte:   {n:"Gewichte",                  ic:"⚖️", li:"G", link:"gewichte-trainer.html"},
-  uhr:        {n:"Uhr und Zeit",              ic:"🕒", li:"G", link:"uhr-trainer.html"},
-  formen:     {n:"Formen, Körper, Symmetrie", ic:"📐", li:"R", link:"geo-trainer.html"},
-  muster:     {n:"Zahlenfolgen und Muster",   ic:"🔁", li:"M", link:"platz-trainer.html"},
-  daten:      {n:"Diagramme und Kombinieren", ic:"📊", li:"D", link:"daten-trainer.html"}
-};
-const ZEIT={anfang:"Anfang", halbjahr:"Halbjahr", ende:"Ende"};
-const ZEIT_LANG={anfang:"Anfang des Schuljahres", halbjahr:"Halbjahr (bis Ende Januar)", ende:"Ende des Schuljahres"};
+const {LEITIDEEN, THEMEN, ZEIT, ZEIT_LANG, themenStand, ampel, AMPEL}=Lernstand;
 
 //// ===== Aufgaben-Bausteine =====
 // Eine Aufgabe: {t:Thema, f:HTML der Frage, typ:"zahl"|"wahl", soll:"…", opt:[{h,w}], einheit, druck:Klartext}
@@ -454,7 +429,7 @@ function baueTest(id){
 //// ===== Ablauf =====
 let db=null, playerName="", MEINE=[], test=null, nr=0, antw=[], startZeit=0, auswahl=null;
 function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
-function testName(id){ const [k,z]=id.split("-"); return `Klasse ${k} · ${ZEIT[z]}`; }
+const testName=Lernstand.testName;
 function zeigeAuswahl(){
   let h=`<span></span>${Object.keys(ZEIT).map(z=>`<span class="kopfz">${ZEIT[z]}</span>`).join("")}`;
   for(let k=1;k<=4;k++){ h+=`<span class="kl">Klasse ${k}</span>`;
@@ -506,9 +481,6 @@ $("weissNicht").addEventListener("click",()=>weiter(true));
 $("abbrBtn").addEventListener("click",()=>{ if(confirm("Test wirklich abbrechen? Deine Antworten werden nicht gespeichert.")){ test=null; zeige("start"); } });
 
 //// ===== Auswertung =====
-function themenStand(liste){ const st={}; liste.forEach(x=>{ (st[x.t]=st[x.t]||[0,0]); st[x.t][1]++; if(x.ok) st[x.t][0]++; }); return st; }
-const ampel=([r,n])=>{ const p=r/n; return p>=0.75?"g":p>=0.5?"m":"r"; };
-const AMPEL={g:["🟢","sitzt sicher"], m:["🟡","noch üben"], r:["🔴","wiederholen"]};
 function fertig(){
   const r=antw.filter(x=>x.ok).length, max=antw.length, d=new Date(), p=x=>String(x).padStart(2,"0");
   const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`, ts:Date.now(),
@@ -536,23 +508,8 @@ function zeigeErgebnis(e, neu){
   $("ergAlle").innerHTML=e.aufgaben.map((x,i)=>`<tr><td>${x.ok?"✅":"❌"}</td><td>${i+1}. ${esc(x.f)}<br><small style="color:var(--muted)">Deine Antwort: <b style="color:${x.ok?"#86efac":"#fca5a5"}">${esc(x.a)}</b>${x.ok?"":` · richtig: <b>${esc(x.s)}</b>`}</small></td></tr>`).join("");
   baueDruck(e);
 }
-// Druckblatt: wie ein Rückmeldebogen zur Klassenarbeit – ohne Note
-function baueDruck(e){
-  const st=e.themen||themenStand(e.aufgaben); let zeilen="";
-  Object.keys(LEITIDEEN).forEach(li=>{ const ts=Object.keys(st).filter(t=>THEMEN[t].li===li); if(!ts.length) return;
-    const s=ts.reduce((a,t)=>[a[0]+st[t][0],a[1]+st[t][1]],[0,0]);
-    zeilen+=`<tr class="liz"><td>${LEITIDEEN[li]}</td><td>${s[0]} / ${s[1]}</td><td></td></tr>`+
-      ts.map(t=>{ const a=ampel(st[t]); return `<tr><td>&nbsp;&nbsp;${THEMEN[t].n}</td><td>${st[t][0]} / ${st[t][1]}</td><td>${{g:"● sitzt sicher",m:"◐ noch üben",r:"○ wiederholen"}[a]}</td></tr>`; }).join(""); });
-  const [k,z]=e.test.split("-");
-  $("druck").innerHTML=`<h1>Lernstand Mathematik</h1>
-    <div class="kz"><span><b>Name:</b> ${esc(e.name||playerName)}</span><span><b>Test:</b> Klasse ${k} · ${ZEIT_LANG[z]}</span><span><b>Datum:</b> ${esc(e.datum)}</span></div>
-    <div class="sum">Erreicht: ${e.richtig} von ${e.max} Punkten (${e.prozent} %)</div>
-    <table><tr><th>Leitidee / Thema</th><th style="width:22mm">Punkte</th><th style="width:38mm">Einschätzung</th></tr>${zeilen}</table>
-    <table><tr><th style="width:8mm">Nr.</th><th>Aufgabe</th><th style="width:30mm">Antwort</th><th style="width:30mm">Richtig</th><th style="width:9mm"></th></tr>
-      ${e.aufgaben.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.f)}</td><td>${esc(x.a)}</td><td>${esc(x.s)}</td><td>${x.ok?"✓":"✗"}</td></tr>`).join("")}</table>
-    <div class="unterschrift"><div>Unterschrift Erziehungsberechtigte</div><div>Bemerkung der Lehrkraft</div></div>
-    <div class="fuss">Mathe-Trainer · Schule Hohe Landwehr · Aufgaben orientiert an „Flex und Flo" und an den Leitideen des Hamburger Bildungsplans Mathematik (Grundschule).</div>`;
-}
+// Druckblatt (ohne Note) – aus lernstand.js, damit Kind und Lehrkraft dasselbe Blatt haben
+function baueDruck(e){ $("druck").innerHTML=Lernstand.blattHTML(Object.assign({name:playerName}, e)); }
 $("druckBtn").addEventListener("click",()=>window.print());
 $("nochBtn").addEventListener("click",()=>{ zeigeAuswahl(); zeige("start"); });
 
