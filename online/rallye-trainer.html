@@ -451,8 +451,9 @@ STUFEN.forEach((ab,i)=>{
 // Runden auf Bergpass, Rennstrecke und Formel 1 – also dort, wo es mathematisch etwas zu lernen gibt.
 const GARAGE_VOLL=180, PROFI_STRECKEN=[3,4,5];
 const PROFI_STUFEN=[20,50,90,130,180];
-// 22.11.2026 (Wunsch der Lehrkraft): Dünen-Buggy und Schwebeauto getauscht – das Schwebeauto ist das Besondere und kommt später
-const AUTO_PROFI  =["Monster-Truck","Limousine","Renn-Laster","Dünen-Buggy","Raketenauto"];
+// 22.11.2026 (mit der Lehrkraft): Profi = echte Fahrzeuge, Legende = Fantasie-Fahrzeuge.
+// Limousine zuerst (der Monster-Truck ist spannender und kommt danach), Mondauto zu Profi, Raketenauto und Schwebeauto zu Legende.
+const AUTO_PROFI  =["Limousine","Monster-Truck","Renn-Laster","Dünen-Buggy","Mondauto"];
 const PFERD_PROFI =["Zebra-Pferd","Feuerpferd","Regenbogen-Einhorn","Drachenpferd","Sternen-Pegasus"];
 const RAKETE_PROFI=["Mondfähre","Weltraum-Wal","Drachenschiff","Ringschiff","Galaxie-Kreuzer"];
 PROFI_STUFEN.forEach((pab,i)=>{
@@ -463,7 +464,7 @@ PROFI_STUFEN.forEach((pab,i)=>{
 // ===== Legenden-Garage =====
 // Ist auch die Profi-Garage voll (180 Profi-Runden), kommen noch einmal 15 Fahrzeuge – wieder nur für Profi-Runden.
 const LEGENDE_STUFEN=[220,260,300,350,400];
-const AUTO_LEGENDE  =["Schwebeauto","Amphibienauto","Flügelauto","Mondauto","Legenden-Bolide"];
+const AUTO_LEGENDE  =["Schwebeauto","Amphibienauto","Flügelauto","Raketenauto","Legenden-Bolide"];
 const PFERD_LEGENDE =["Wolkenpferd","Eispferd","Ritter-Einhorn","Blitzpferd","Königspferd"];
 const RAKETE_LEGENDE=["Sternen-Segler","Asteroiden-Bohrer","Raumstation","Phönix-Schiff","Legenden-Kreuzer"];
 LEGENDE_STUFEN.forEach((pab,i)=>{
