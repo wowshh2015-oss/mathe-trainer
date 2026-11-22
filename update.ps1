@@ -16,6 +16,9 @@ foreach ($x in "lehrer.html","marathon-trainer.html","rallye-trainer.html","halb
 # Bilder (Mein Wolkenkratzer): ganzer Ordner
 New-Item -ItemType Directory -Force (Join-Path $dst "online\bilder\turm") | Out-Null
 Copy-Item (Join-Path $src "mathe-trainer-online\bilder\turm\*.webp") (Join-Path $dst "online\bilder\turm") -Force
+# Bilder (Rechen-Rallye): gemalte Modelle
+New-Item -ItemType Directory -Force (Join-Path $dst "online\bilder\rallye") | Out-Null
+Copy-Item (Join-Path $src "mathe-trainer-online\bilder\rallye\*.webp") (Join-Path $dst "online\bilder\rallye") -Force
 Set-Location $dst
 git add -A
 git commit -m ("Update " + (Get-Date -Format "dd.MM.yyyy HH:mm")) 2>$null

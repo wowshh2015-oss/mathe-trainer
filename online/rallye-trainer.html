@@ -905,7 +905,19 @@ function mitTuning(svg, id, tune, gold){
   const i=svg.indexOf(">")+1, e=svg.lastIndexOf("</svg>");
   return svg.slice(0,i)+hinten+svg.slice(i,e)+vorn+svg.slice(e);
 }
+// ===== Gemalte Modelle (vom Lehrer gemalt, Teil zum Umfärben in Magenta) =====
+// bilder/rallye/<id>_s.webp = Schatten des Lack-Teils in Grau (128 = genau die gewählte Farbe), <id>_r.webp = alles andere.
+// Die Farbe (auch Verläufe wie Gold oder Regenbogen) liegt unter den Schatten, Mischung „hard-light".
+const BILD_FZ={a1:1, p1:1, r1:1};
+let bildNr=0;
+function svgBild(id,c){
+  const H = id[0]==="p" ? 50 : id[0]==="r" ? 44 : 40, m="fzm"+(++bildNr), q="bilder/rallye/"+id;
+  const im=(t,extra)=>`<image href="${q}_${t}.webp" x="0" y="0" width="76" height="${H}" preserveAspectRatio="xMidYMax meet"${extra||""}/>`;
+  return `<svg viewBox="0 0 76 ${H}"><defs><mask id="${m}" maskUnits="userSpaceOnUse" x="0" y="0" width="76" height="${H}" style="mask-type:alpha">${im("s")}</mask></defs>
+    <g style="isolation:isolate"><rect x="0" y="0" width="76" height="${H}" fill="${c}" mask="url(#${m})"/>${im("s",' style="mix-blend-mode:hard-light"')}</g>${im("r")}</svg>`;
+}
 function fahrzeugSVG(id,c){
+  if(BILD_FZ[id]) return svgBild(id,c);
   if(id[0]==="a") return svgAuto(id,c);
   if(id[0]==="p") return svgPferd(id,c);
   return svgRakete(id,c);
