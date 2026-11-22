@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wo stehe ich?">
+<title>Wo stehe ich?</title>
+<script src="anmeldung.js?v=20261122a"></script>
+<script src="komfort.js"></script>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:#a3e635; --good:#22c55e; --mid:#facc15; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#1f3a1a 0%,var(--bg) 60%);
+    color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:62px 24px 24px}
+  .app{width:100%;max-width:720px} h1{font-size:28px;margin:0 0 4px} .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-size:17px;font-weight:700;padding:13px 18px;color:#1a2e05;background:linear-gradient(180deg,#bef264,var(--accent));transition:.15s}
+  button:hover{filter:brightness(1.08)} button:disabled{opacity:.45;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--text);border:2px solid var(--card2);font-weight:600} button.klein{font-size:14.5px;padding:9px 13px}
+  .hide{display:none!important}
+  .backbtn{background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:0;margin-bottom:12px;cursor:pointer;text-decoration:none;display:inline-block}
+  .info{background:#0b1220;border-radius:12px;padding:13px 15px;font-size:15px;color:#cbd5e1;line-height:1.55} .info b{color:#fff}
+  .status{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .credit{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 6px} .credit a{color:var(--muted)}
+  h2{font-size:18px;margin:18px 0 10px}
+  /* Auswahl: Klasse × Zeitpunkt */
+  .wahlTab{display:grid;grid-template-columns:92px repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+  .wahlTab .kopfz{font-size:12.5px;color:var(--muted);font-weight:700;text-align:center;align-self:end;padding-bottom:2px}
+  .wahlTab .kl{font-weight:800;font-size:15px;display:flex;align-items:center}
+  .wahlTab button{padding:12px 6px;font-size:14.5px;line-height:1.25;background:#0b1220;color:var(--text);border:2px solid var(--card2);font-weight:700}
+  .wahlTab button:hover:not(:disabled){border-color:var(--accent)}
+  .wahlTab button small{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
+  .wahlTab button.gemacht{border-color:rgba(34,197,94,.55)}
+  .meine{display:flex;flex-direction:column;gap:8px}
+  .meine .z{display:flex;align-items:center;gap:10px;background:#0b1220;border:1px solid var(--card2);border-radius:12px;padding:9px 12px;font-size:14.5px}
+  .meine .z .tx{flex:1;min-width:0} .meine .z .tx small{display:block;color:var(--muted);font-size:12.5px}
+  /* Test */
+  .kopf{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;padding-right:120px}
+  .pille{display:inline-block;background:rgba(163,230,53,.15);color:#d9f99d;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+  .fortschritt{display:flex;gap:3px;margin-bottom:12px} .fortschritt i{flex:1;height:7px;border-radius:999px;background:#0b1220;border:1px solid var(--card2)}
+  .fortschritt i.da{background:var(--accent);border-color:var(--accent)} .fortschritt i.jetzt{background:#fff}
+  .thema{font-size:13.5px;color:var(--muted);font-weight:700;text-align:center;margin-bottom:6px}
+  .frage{text-align:center;font-size:24px;font-weight:800;margin:6px 0 14px;line-height:1.4}
+  .frage .gross{font-size:38px;white-space:nowrap} .frage .blank{display:inline-block;min-width:1.3em;border:3px dashed #fde68a;border-radius:12px;color:#fde68a;padding:0 .15em}
+  .frage .klein{font-size:19px;font-weight:700;color:#e2e8f0}
+  .frage svg{max-width:100%;height:auto;display:block;margin:6px auto 0}
+  .lautKn{font-size:18px;padding:4px 10px;margin-left:6px;vertical-align:middle;background:#0b1220;color:var(--text);border:2px solid var(--card2)}
+  .antwortzeile{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .antwortzeile input{font-family:inherit;width:170px;font-size:30px;text-align:center;font-weight:800;padding:10px 12px;border-radius:12px;border:2px solid var(--accent);background:#0b1220;color:var(--text);outline:none}
+  .antwortzeile .einheit{font-size:24px;font-weight:800}
+  .wahl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .wahl button{background:#0b1220;color:var(--text);border:2px solid var(--card2);font-size:20px;padding:14px 8px}
+  .wahl button.an{border-color:var(--accent);background:rgba(163,230,53,.14)}
+  .wahl.bilder button{padding:8px} .wahl.bilder svg{width:100%;max-width:110px;height:auto;display:block;margin:0 auto}
+  .unten{display:flex;gap:10px;margin-top:18px} .unten button{flex:1}
+  .muenze{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:50%;font-size:15px;font-weight:900;margin:4px;color:#3b2a06;
+    background:radial-gradient(circle at 35% 30%,#fff7c2,#e2b33c 60%,#a87a14);border:3px solid #8a6410;vertical-align:middle}
+  .muenze.cu{background:radial-gradient(circle at 35% 30%,#ffd2b0,#c46a32 60%,#7c3a12);border-color:#6b2f0c;color:#2a1004;width:46px;height:46px;font-size:13px}
+  .muenze.bi{background:radial-gradient(circle at 50% 50%,#e2b33c 0 42%,#d6dbe1 44%,#9aa4b0);border-color:#6b7480}
+  .schein{display:inline-flex;align-items:center;justify-content:center;width:96px;height:52px;border-radius:7px;font-size:19px;font-weight:900;margin:4px;vertical-align:middle;border:2px solid rgba(0,0,0,.35);color:#1e293b}
+  .schr{display:inline-block;font-family:"Consolas","Courier New",monospace;font-size:32px;line-height:1.25;text-align:right;background:#0b1220;border-radius:12px;padding:10px 18px;white-space:pre}
+  .schr u{text-decoration:none;border-bottom:3px solid #e2e8f0;display:inline-block}
+  /* Ergebnis */
+  .punkteGross{font-size:46px;font-weight:900;text-align:center;line-height:1.1} .punkteGross small{font-size:18px;color:var(--muted);font-weight:700}
+  .li{margin-top:14px} .li > b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:6px}
+  .th{display:flex;align-items:center;gap:10px;background:#0b1220;border:2px solid var(--card2);border-radius:12px;padding:9px 12px;margin-bottom:6px}
+  .th .amp{font-size:20px;flex:none} .th .tx{flex:1;min-width:0;font-size:15px;font-weight:700} .th .tx small{display:block;font-size:12.5px;color:var(--muted);font-weight:600}
+  .th .p{flex:none;font-weight:800;font-size:14px;border-radius:999px;padding:4px 10px;background:var(--card2)}
+  .th a{flex:none;font-size:13px;font-weight:800;color:#1a2e05;background:var(--accent);border-radius:9px;padding:6px 10px;text-decoration:none}
+  .th.g{border-color:rgba(34,197,94,.5)} .th.m{border-color:rgba(250,204,21,.5)} .th.r{border-color:rgba(239,68,68,.55)}
+  details{margin-top:14px} summary{cursor:pointer;font-weight:700;color:#d9f99d}
+  .alle{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px} .alle td{padding:6px 6px;border-bottom:1px solid var(--card2);vertical-align:top}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px} .btnrow > *{flex:1}
+  #druck{display:none}
+  @media (max-width:520px){ body{padding:60px 14px 14px} .wahlTab{grid-template-columns:62px repeat(3,minmax(0,1fr));gap:6px} .wahlTab button{font-size:13px;padding:10px 3px}
+    .frage{font-size:21px} .frage .gross{font-size:32px} .wahl button{font-size:17px} .schr{font-size:27px} .antwortzeile input{width:140px} }
+  /* ===== Druckblatt (A4, schwarz auf weiß) ===== */
+  @media print{
+    @page{size:A4;margin:14mm 14mm 16mm}
+    body{background:#fff!important;color:#000;padding:0;display:block;font-size:11pt}
+    body > *:not(.app){display:none!important}
+    .app{max-width:none} .app > *:not(#druck){display:none!important}
+    #druck{display:block!important;color:#000}
+    #druck h1{font-size:18pt;margin:0 0 2mm} #druck .kz{display:flex;justify-content:space-between;gap:8mm;font-size:11pt;border-bottom:1.5pt solid #000;padding-bottom:2mm;margin-bottom:4mm}
+    #druck table{width:100%;border-collapse:collapse;margin:2mm 0 5mm} #druck th,#druck td{border:0.6pt solid #666;padding:1.6mm 2mm;text-align:left;font-size:10pt;vertical-align:top}
+    #druck th{background:#eee} #druck .liz td{background:#f4f4f4;font-weight:bold}
+    #druck .sum{font-size:14pt;font-weight:bold;margin:2mm 0 4mm}
+    #druck .fuss{margin-top:8mm;font-size:9pt;color:#444} #druck .unterschrift{margin-top:12mm;display:flex;gap:16mm} #druck .unterschrift div{flex:1;border-top:0.8pt solid #000;padding-top:1mm;font-size:9pt}
+    #druck tr{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🧪 Wo stehe ich?</h1>
+  <p class="sub">Der Mathe-Test für deine Klasse – wie eine kleine Klassenarbeit.</p>
+
+  <!-- ===== START ===== -->
+  <div id="start" class="card">
+    <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
+    <div class="info">
+      🧪 <b>So geht der Test:</b> Wähle deine <b>Klasse</b> und den <b>Zeitpunkt im Schuljahr</b>.
+      Es kommen etwa <b>20 Aufgaben</b> aus allen Themen – ohne Zeitdruck. Ob es richtig war, siehst du erst am Ende.
+      Weißt du etwas nicht, tippe auf <b>„Weiß ich nicht"</b>. Das ist völlig in Ordnung – genau dafür ist der Test da!<br><br>
+      Am Ende siehst du, <b>welche Themen schon sicher sitzen</b> und <b>was du noch üben solltest</b>. Du kannst das Ergebnis auch <b>ausdrucken</b>.
+    </div>
+    <h2>Welcher Test?</h2>
+    <div class="wahlTab" id="wahlTab"></div>
+    <div id="meineBox" class="hide"><h2>📁 Meine Tests</h2><div class="meine" id="meine"></div></div>
+    <div class="status" id="status">Verbinde …</div>
+  </div>
+
+  <!-- ===== TEST ===== -->
+  <div id="spiel" class="card hide">
+    <div class="kopf"><span class="pille" id="testTitel"></span><button class="ghost klein" id="abbrBtn">✕ Abbrechen</button></div>
+    <div class="fortschritt" id="fortschritt"></div>
+    <div class="thema" id="thema"></div>
+    <div class="frage" id="frage"></div>
+    <div id="eingabe"></div>
+    <div class="unten"><button class="ghost" id="weissNicht">🤷 Weiß ich nicht</button><button id="weiterBtn" disabled>Weiter ▶</button></div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="ergebnis" class="card hide">
+    <div style="padding-right:120px;margin-bottom:10px"><span class="pille" id="ergTitel"></span></div>
+    <div class="punkteGross" id="ergPunkte"></div>
+    <div class="info" id="ergText" style="margin-top:12px"></div>
+    <div id="ergThemen"></div>
+    <details><summary>Alle Aufgaben ansehen</summary><table class="alle" id="ergAlle"></table></details>
+    <div class="btnrow">
+      <button id="druckBtn">🖨️ Drucken</button>
+      <button class="ghost" id="nochBtn">🧪 Anderer Test</button>
+    </div>
+    <div class="btnrow"><a id="ergLink" href="index.html"><button class="ghost" style="width:100%">← Alle Trainer</button></a></div>
+  </div>
+
+  <div id="druck"></div>
+  <footer class="credit">Entwickelt von <strong style="color:var(--accent)">@P.Svyetnyenko</strong> · <a href="index.html">Mathe-Trainer</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const APP="standort";
+const $=id=>document.getElementById(id);
+function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function waehle(a){ return a[rnd(0,a.length-1)]; }
+function mische(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function versuche(f){ for(let i=0;i<500;i++){ const r=f(); if(r) return r; } return f(); }
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const zz=n=>String(n).padStart(2,"0");
+const B='<span class="blank">?</span>';
+
+//// ===== Leitideen (Hamburger Bildungsplan Mathematik Grundschule) und Themen =====
+const LEITIDEEN={ Z:"Zahlen und Operationen", G:"Größen und Messen", R:"Raum und Form", M:"Muster und Strukturen", D:"Daten und Zufall" };
+const THEMEN={
+  zahlraum:   {n:"Zahlen und Stellenwerte",   ic:"🔢", li:"Z", link:"zahlen-trainer.html"},
+  plusminus:  {n:"Plus und Minus",            ic:"➕", li:"Z", link:"plus-trainer.html"},
+  zerlegen:   {n:"Zerlegen und Ergänzen",     ic:"🧩", li:"Z", link:"zerlegen-trainer.html"},
+  verdoppeln: {n:"Verdoppeln und Halbieren",  ic:"✌️", li:"Z", link:"blitz-trainer.html"},
+  malgeteilt: {n:"Mal und Geteilt",           ic:"✖️", li:"Z", link:"einmaleins-trainer.html"},
+  rechenwege: {n:"Rechnen bis 1000",          ic:"🪜", li:"Z", link:"halbschriftlich-trainer.html"},
+  schriftlich:{n:"Schriftlich rechnen",       ic:"✍️", li:"Z", link:"schrift-trainer.html"},
+  sach:       {n:"Sachaufgaben",              ic:"📖", li:"Z", link:"sach-trainer.html"},
+  geld:       {n:"Geld",                      ic:"💶", li:"G", link:"geld-trainer.html"},
+  laengen:    {n:"Längen",                    ic:"📏", li:"G", link:"laengen-trainer.html"},
+  gewichte:   {n:"Gewichte",                  ic:"⚖️", li:"G", link:"gewichte-trainer.html"},
+  uhr:        {n:"Uhr und Zeit",              ic:"🕒", li:"G", link:"uhr-trainer.html"},
+  formen:     {n:"Formen, Körper, Symmetrie", ic:"📐", li:"R", link:"geo-trainer.html"},
+  muster:     {n:"Zahlenfolgen und Muster",   ic:"🔁", li:"M", link:"platz-trainer.html"},
+  daten:      {n:"Diagramme und Kombinieren", ic:"📊", li:"D", link:"daten-trainer.html"}
+};
+const ZEIT={anfang:"Anfang", halbjahr:"Halbjahr", ende:"Ende"};
+const ZEIT_LANG={anfang:"Anfang des Schuljahres", halbjahr:"Halbjahr (bis Ende Januar)", ende:"Ende des Schuljahres"};
+
+//// ===== Aufgaben-Bausteine =====
+// Eine Aufgabe: {t:Thema, f:HTML der Frage, typ:"zahl"|"wahl", soll:"…", opt:[{h,w}], einheit, druck:Klartext}
+const nurText=h=>String(h).replace(/<br\s*\/?>/g," ").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+function Z(t,f,soll,druck,extra){ return Object.assign({t,typ:"zahl",f,soll:String(soll),druck:druck||nurText(f)},extra||{}); }
+function W(t,f,opts,soll,druck){ return {t,typ:"wahl",f,opt:mische(opts.map(o=>typeof o==="object"?o:{h:esc(o),w:String(o)})),soll:String(soll),druck:druck||nurText(f)}; }
+const NAMEN=["Lina","Ben","Mia","Emil","Lea","Paul","Hanna","Noah","Ida","Finn","Ella","Jonas","Mila","Leo","Amira","Can"];
+const ueber=(a,b)=>a%10+b%10>=10;
+
+// ---- Zahlen ----
+function gNachbar(max){      // immer über die Zehner-/Hundertergrenze – gleich schwer für alle
+  const nach=Math.random()<0.5;
+  const x = max===20 ? (nach ? rnd(11,18) : rnd(12,19))
+          : max===100 ? (nach ? rnd(2,9)*10-1 : rnd(2,9)*10)
+          : (nach ? rnd(1,8)*100+99 : rnd(2,9)*100);
+  return Z("zahlraum", `Welche Zahl kommt <b>${nach?"nach":"vor"}</b> <span class="gross">${x}</span>?`, nach?x+1:x-1, `Welche Zahl kommt ${nach?"nach":"vor"} ${x}?`);
+}
+function gStellen(max, art){
+  if(max===100){ const z=rnd(2,9), e=rnd(1,9);
+    return art==="zehner" ? Z("zahlraum", `Wie viele <b>Zehner</b> hat die Zahl <span class="gross">${z*10+e}</span>?`, z, `Wie viele Zehner hat ${z*10+e}?`)
+                          : Z("zahlraum", `<b>${z}</b> Zehner und <b>${e}</b> Einer. Welche Zahl ist das?`, z*10+e); }
+  const h=rnd(1,9), z=rnd(1,9), e=rnd(1,9);
+  if(art==="hunderter"){ const n=h*100+z*10+e; return Z("zahlraum", `Wie viele <b>Hunderter</b> hat die Zahl <span class="gross">${n}</span>?`, h, `Wie viele Hunderter hat ${n}?`); }
+  // immer mit einer Null an der Zehnerstelle – daran sieht man, ob die Stellenwerte sitzen
+  return Z("zahlraum", `<b>${h}</b> Hunderter, <b>0</b> Zehner und <b>${e}</b> Einer. Welche Zahl ist das?`, h*100+e);
+}
+function strahlSVG(start, schritt, k){
+  const x=i=>14+i*14.6; let s=`<line x1="8" y1="40" x2="312" y2="40" stroke="#e2e8f0" stroke-width="2.5"/><polygon points="312,35 320,40 312,45" fill="#e2e8f0"/>`;
+  for(let i=0;i<=20;i++){ const lang=i%10===0, mittel=i%5===0;
+    s+=`<line x1="${x(i)}" y1="${lang?28:mittel?32:35}" x2="${x(i)}" y2="${lang?52:mittel?48:45}" stroke="#e2e8f0" stroke-width="${lang?2.5:1.5}"/>`;
+    if(lang) s+=`<text x="${x(i)}" y="68" text-anchor="middle" font-size="14" font-weight="800" fill="#e2e8f0">${start+i*schritt}</text>`; }
+  s+=`<polygon points="${x(k)-7},6 ${x(k)+7},6 ${x(k)},24" fill="#a3e635"/>`;
+  return `<svg viewBox="0 0 324 74" width="324" height="74">${s}</svg>`;
+}
+function gStrahl(max){
+  const [start,schritt] = max===20 ? [0,1] : max===100 ? [rnd(0,8)*10,1] : [rnd(1,7)*100,10];
+  const k=waehle([1,2,3,4,6,7,8,9,11,12,13,14,16,17,18,19]);
+  return Z("zahlraum", `Welche Zahl zeigt der Pfeil?${strahlSVG(start,schritt,k)}`, start+k*schritt, `Zahlenstrahl ${start} bis ${start+20*schritt}: Welche Zahl zeigt der Pfeil? (${start+k*schritt})`);
+}
+function gVergleich(max){     // immer Zahlen mit vertauschten Ziffern (47 / 74) – gleich schwer für alle
+  const [a,b]=versuche(()=>{ let a,b;
+    if(max===20){ a=rnd(11,19); b=a+waehle([-3,-2,2,3]); }
+    else if(max===100){ const z=rnd(1,9), e=rnd(1,9); a=z*10+e; b=e*10+z; }
+    else{ const h=rnd(1,9), z=rnd(0,9), e=rnd(1,9); a=h*100+z*10+e; b=e*100+z*10+h; }
+    return a!==b && b>0 && b<=max && a<=max ? [a,b] : null; });
+  return W("zahlraum", `Setze das richtige Zeichen ein:<br><span class="gross">${a} ${B} ${b}</span>`, ["<",">"], a<b?"<":">", `${a} ? ${b} – setze < oder > ein`);
+}
+// ---- Plus und Minus ----
+function gPlus(max, ue){
+  let a,b;
+  if(max===20){ [a,b]=versuche(()=>{ const a=rnd(5,9), b=rnd(3,9); return a+b>10 && a+b<=20 ? [a,b] : null; }); }
+  else if(ue==="ze_e"){ [a,b]=versuche(()=>{ const a=rnd(21,88), b=rnd(3,9); return ueber(a,b)&&a+b<=100?[a,b]:null; }); }
+  else{ [a,b]=versuche(()=>{ const a=rnd(15,68), b=rnd(13,39); return (ue?ueber(a,b):!ueber(a,b)) && a+b<=100 ? [a,b] : null; }); }
+  return Z("plusminus", `<span class="gross">${a} + ${b} = ${B}</span>`, a+b, `${a} + ${b}`);
+}
+function gMinus(max, ue){
+  let a,b;
+  if(max===20){ [a,b]=versuche(()=>{ const a=rnd(11,18), b=rnd(3,9); return a%10<b && a-b>0 ? [a,b] : null; }); }
+  else if(ue==="ze_e"){ [a,b]=versuche(()=>{ const a=rnd(31,95), b=rnd(3,9); return a%10<b?[a,b]:null; }); }
+  else{ [a,b]=versuche(()=>{ const a=rnd(45,98), b=rnd(12,39); return (ue? a%10<b%10 : a%10>=b%10) && a-b>0 ? [a,b] : null; }); }
+  return Z("plusminus", `<span class="gross">${a} − ${b} = ${B}</span>`, a-b, `${a} − ${b}`);
+}
+function gErgaenzen(ziel){
+  if(ziel===10){ const a=rnd(1,9); return Z("zerlegen", `<span class="gross">${a} + ${B} = 10</span>`, 10-a, `${a} + ? = 10`); }
+  if(ziel===20){ const a=rnd(11,19); return Z("zerlegen", `<span class="gross">${a} + ${B} = 20</span>`, 20-a, `${a} + ? = 20`); }
+  if(ziel==="platz20"){ const b=rnd(3,9), s=rnd(11,17); return Z("zerlegen", `<span class="gross">${B} + ${b} = ${s}</span>`, s-b, `? + ${b} = ${s}`); }
+  if(ziel===1000){ const a=rnd(1,9)*100+waehle([0,50]); return Z("zerlegen", `<span class="gross">${a} + ${B} = 1000</span>`, 1000-a, `${a} + ? = 1000`); }
+  const a=versuche(()=>{ const a=rnd(21,89); return a%10?a:null; });
+  return Z("zerlegen", `<span class="gross">${a} + ${B} = 100</span>`, 100-a, `${a} + ? = 100`);
+}
+function gVerdoppeln(art){     // immer über die 10
+  if(art==="halb"){ const x=rnd(6,10); return Z("verdoppeln", `Halbiere: Die <b>Hälfte</b> von <span class="gross">${2*x}</span>`, x, `Die Hälfte von ${2*x}`); }
+  const x=rnd(6,9); return Z("verdoppeln", `Verdopple: Das <b>Doppelte</b> von <span class="gross">${x}</span>`, 2*x, `Das Doppelte von ${x}`);
+}
+// ---- Mal und Geteilt ----
+function gMal(art){
+  if(art==="kern"){ const a=waehle([2,5]), b=rnd(3,9); return Math.random()<0.5 ? Z("malgeteilt", `<span class="gross">${b} · ${a} = ${B}</span>`, a*b, `${b} · ${a}`) : Z("malgeteilt", `<span class="gross">${a} · ${b} = ${B}</span>`, a*b, `${a} · ${b}`); }
+  if(art==="geteilt"){ const b=rnd(4,9), a=rnd(4,9); return Z("malgeteilt", `<span class="gross">${a*b} : ${b} = ${B}</span>`, a, `${a*b} : ${b}`); }
+  if(art==="rest"){ const b=rnd(4,9), a=rnd(4,9), r=rnd(1,b-1); return Z("malgeteilt", `<span class="gross">${a*b+r} : ${b} = ${a} Rest ${B}</span>`, r, `${a*b+r} : ${b} = ${a} Rest ?`); }
+  if(art==="platz"){ const b=rnd(4,9), a=rnd(4,9); return Z("malgeteilt", `<span class="gross">${B} · ${b} = ${a*b}</span>`, a, `? · ${b} = ${a*b}`); }
+  if(art==="zehner"){ const a=rnd(3,9), b=rnd(3,9)*10; return Z("malgeteilt", `<span class="gross">${a} · ${b} = ${B}</span>`, a*b, `${a} · ${b}`); }
+  if(art==="mehrstellig"){ const a=rnd(3,8), b=versuche(()=>{ const b=rnd(13,48); return b%10?b:null; }); return Z("malgeteilt", `<span class="gross">${a} · ${b} = ${B}</span>`, a*b, `${a} · ${b}`); }
+  const [a,b]=waehle([[7,8],[6,9],[8,4],[9,7],[6,7],[8,8],[3,9],[7,4],[6,8],[9,9],[4,6],[7,7]]);   // alle Reihen
+  return Z("malgeteilt", `<span class="gross">${a} · ${b} = ${B}</span>`, a*b, `${a} · ${b}`);
+}
+// ---- Rechnen bis 1000 ----
+function gTausend(art){
+  if(art==="hunderter"){ const a=rnd(1,6)*100, b=rnd(1,3)*100+waehle([0,50]); return Math.random()<0.5 ? Z("rechenwege", `<span class="gross">${a} + ${b} = ${B}</span>`, a+b, `${a} + ${b}`) : Z("rechenwege", `<span class="gross">${a+b} − ${b} = ${B}</span>`, a, `${a+b} − ${b}`); }
+  if(art==="plus"){ const [a,b]=versuche(()=>{ const a=rnd(215,640), b=rnd(126,348); return ueber(a,b) && a+b<1000 ? [a,b] : null; }); return Z("rechenwege", `<span class="gross">${a} + ${b} = ${B}</span>`, a+b, `${a} + ${b}`); }
+  if(art==="minus"){ const [a,b]=versuche(()=>{ const a=rnd(420,960), b=rnd(126,398); return a%10<b%10 && a>b ? [a,b] : null; }); return Z("rechenwege", `<span class="gross">${a} − ${b} = ${B}</span>`, a-b, `${a} − ${b}`); }
+  const [a,b]=versuche(()=>{ const a=rnd(12,68)*10, b=rnd(12,38)*10; return (a/10)%10+(b/10)%10>=10 && a+b<1000 ? [a,b] : null; });
+  return Z("rechenwege", `<span class="gross">${a} + ${b} = ${B}</span>`, a+b, `${a} + ${b}`);
+}
+function gSchriftlich(art){
+  if(art==="minus"){ const [a,b]=versuche(()=>{ const a=rnd(512,968), b=rnd(137,489); return a>b && a%10<b%10 ? [a,b] : null; });
+    return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">  ${a}\n<u>− ${b}</u></span>`, a-b, `schriftlich: ${a} − ${b}`); }
+  const [a,b]=versuche(()=>{ const a=rnd(236,587), b=rnd(148,396); return ueber(a,b) && Math.floor(a/10)%10+Math.floor(b/10)%10>=9 && a+b<1000 ? [a,b] : null; });
+  return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">  ${a}\n<u>+ ${b}</u></span>`, a+b, `schriftlich: ${a} + ${b}`);
+}
+// ---- Geld ----
+const MUENZEN={"2 €":["muenze bi",200],"1 €":["muenze bi",100],"50 ct":["muenze",50],"20 ct":["muenze",20],"10 ct":["muenze",10],"5 ct":["muenze cu",5],"2 ct":["muenze cu",2],"1 ct":["muenze cu",1]};
+const SCHEINE={"5 €":["#cbd5e1",500],"10 €":["#fca5a5",1000],"20 €":["#93c5fd",2000]};
+const geldHTML=l=>l.map(x=>MUENZEN[x]?`<span class="${MUENZEN[x][0]}">${x}</span>`:`<span class="schein" style="background:${SCHEINE[x][0]}">${x}</span>`).join("");
+const geldWert=x=>(MUENZEN[x]||SCHEINE[x])[1];
+function gGeld(stufe){
+  if(stufe===1){ const l=versuche(()=>{ const l=Array.from({length:4},()=>waehle(["1 €","2 €","2 €","5 €","10 €"])); const s=l.reduce((a,x)=>a+geldWert(x),0); return s<=2000 && s>=1000 && new Set(l).size>=3 ? l : null; });
+    return Z("geld", `Wie viel <b>Euro</b> sind das?<br>${geldHTML(l.sort((a,b)=>geldWert(b)-geldWert(a)))}`, l.reduce((a,x)=>a+geldWert(x),0)/100, `Geld zählen: ${l.join(" + ")}`, {einheit:"€"}); }
+  if(stufe==="2ct"||stufe===2){
+    if(stufe==="2ct"){ const e=rnd(1,9), c=rnd(1,9)*10+waehle([0,5]); return Z("geld", `Wie viele <b>Cent</b> sind <span class="gross">${e} € ${c} ct</span>?`, e*100+c, `${e} € ${c} ct = ? ct`, {einheit:"ct"}); }
+    const l=versuche(()=>{ const l=Array.from({length:4},()=>waehle(["1 €","50 ct","20 ct","10 ct","5 ct","2 ct"])); const s=l.reduce((a,x)=>a+geldWert(x),0); return s<=300 && s>100 && new Set(l).size>=3 ? l : null; });
+    return Z("geld", `Wie viel <b>Cent</b> sind das?<br>${geldHTML(l.sort((a,b)=>geldWert(b)-geldWert(a)))}`, l.reduce((a,x)=>a+geldWert(x),0), `Geld zählen: ${l.join(" + ")}`, {einheit:"ct"}); }
+  const preis=rnd(21,89)*10, mit=preis<500?500:1000;
+  return Z("geld", `Du bezahlst mit <b>${mit/100} €</b>. Es kostet <b>${(preis/100).toFixed(2).replace(".",",")} €</b>.<br>Wie viel <b>Rückgeld</b> bekommst du?`, mit-preis, `Bezahlt mit ${mit/100} €, kostet ${(preis/100).toFixed(2).replace(".",",")} € – Rückgeld in ct?`, {einheit:"ct"});
+}
+// ---- Längen und Gewichte ----
+const EINHEIT2=[["Ein Bleistift ist etwa 15 ___ lang.","cm"],["Eine Tür ist etwa 2 ___ hoch.","m"],["Ein Radiergummi ist etwa 4 ___ lang.","cm"],["Ein Klassenzimmer ist etwa 8 ___ lang.","m"],["Ein Schulheft ist etwa 30 ___ lang.","cm"],["Ein Auto ist etwa 4 ___ lang.","m"]];
+const EINHEIT3=[["Eine Ameise ist etwa 5 ___ lang.","mm"],["Von Hamburg nach Berlin sind es etwa 290 ___.","km"],["Ein Lineal ist 30 ___ lang.","cm"],["Ein Bus ist etwa 12 ___ lang.","m"],["Eine Münze ist etwa 2 ___ dick.","mm"],["Ein Marathon ist etwa 42 ___ lang.","km"]];
+function gLaengen(art){
+  if(art==="m_cm"){ const m=rnd(2,9); return Z("laengen", `<span class="gross">${m} m = ${B} cm</span>`, m*100, `${m} m = ? cm`); }
+  if(art==="mcm_cm"){ const m=rnd(1,4), c=rnd(1,9)*10+rnd(1,9); return Z("laengen", `<span class="gross">${m} m ${c} cm = ${B} cm</span>`, m*100+c, `${m} m ${c} cm = ? cm`); }
+  if(art==="einheit2"){ const [s,e]=waehle(EINHEIT2); return W("laengen", `Was passt?<br><span class="klein">${s.replace("___",B)}</span>`, ["cm","m"], e, s); }
+  if(art==="km_m"){ const k=rnd(2,9); return Z("laengen", `<span class="gross">${k} km = ${B} m</span>`, k*1000, `${k} km = ? m`); }
+  if(art==="cmmm_mm"){ const c=rnd(3,9), m=rnd(1,9); return Z("laengen", `<span class="gross">${c} cm ${m} mm = ${B} mm</span>`, c*10+m, `${c} cm ${m} mm = ? mm`); }
+  if(art==="m0cm"){ const m=rnd(2,6), c=rnd(1,9); return Z("laengen", `<span class="gross">${m} m ${c} cm = ${B} cm</span>`, m*100+c, `${m} m ${c} cm = ? cm`); }   // Falle: 2 m 5 cm = 205
+  const [s,e]=waehle(EINHEIT3); return W("laengen", `Was passt?<br><span class="klein">${s.replace("___",B)}</span>`, ["mm","cm","m","km"], e, s);
+}
+const EINHEIT_G=[["Eine Tafel Schokolade wiegt 100 ___.","g"],["Ein Kind wiegt etwa 30 ___.","kg"],["Ein Apfel wiegt etwa 150 ___.","g"],["Ein Fahrrad wiegt etwa 15 ___.","kg"],["Ein Brief wiegt etwa 20 ___.","g"],["Ein Hund wiegt etwa 12 ___.","kg"]];
+function gGewichte(art){
+  if(art==="kg_g"){ const k=rnd(2,9); return Z("gewichte", `<span class="gross">${k} kg = ${B} g</span>`, k*1000, `${k} kg = ? g`); }
+  if(art==="kgg_g"){ const k=rnd(1,4), g=rnd(1,9)*100+rnd(1,9)*10; return Z("gewichte", `<span class="gross">${k} kg ${g} g = ${B} g</span>`, k*1000+g, `${k} kg ${g} g = ? g`); }
+  if(art==="g_kg"){ const k=rnd(2,8); return Z("gewichte", `<span class="gross">${k*1000} g = ${B} kg</span>`, k, `${k*1000} g = ? kg`); }
+  const [s,e]=waehle(EINHEIT_G); return W("gewichte", `Was passt?<br><span class="klein">${s.replace("___",B)}</span>`, ["g","kg"], e, s);
+}
+// ---- Uhr ----
+const FELD_FARBEN=["#8b6fd6","#e9a3d6","#e2559e","#e53935","#f07a2a","#f6b631","#8bc34a","#cddc39","#2e7d4f","#7cc6ee","#4f63c4","#29a9e8"];
+function zeiger(C,grad,l,b,farbe){ const k=Math.min(b*1.1,l*0.2), sp=b*0.8;
+  return `<g transform="rotate(${grad.toFixed(1)} ${C} ${C})"><polygon points="${C-b/2},${C+6} ${C-b/2},${C-l+k} ${C-sp},${C-l+k} ${C},${C-l} ${C+sp},${C-l+k} ${C+b/2},${C-l+k} ${C+b/2},${C+6}" fill="${farbe}" stroke="rgba(0,0,0,.35)"/></g>`; }
+function uhrSVG(h,m){   // wie die Uhr im Uhr-Trainer (ohne Hilfen)
+  const C=130, pol=(g,r)=>{ const a=(g-90)*Math.PI/180; return [(C+r*Math.cos(a)).toFixed(1),(C+r*Math.sin(a)).toFixed(1)]; };
+  const bogen=(r1,r2,g1,g2)=>{ const [a,b]=pol(g1,r2),[c,d]=pol(g2,r2),[e,f]=pol(g2,r1),[g,i]=pol(g1,r1); return `M${a} ${b} A${r2} ${r2} 0 0 1 ${c} ${d} L${e} ${f} A${r1} ${r1} 0 0 0 ${g} ${i}Z`; };
+  let s=`<circle cx="${C}" cy="${C}" r="105.5" fill="#fff" stroke="#1e3a8a" stroke-width="4"/>`;
+  for(let i=0;i<60;i++){ const f=i%5===0,[x1,y1]=pol(i*6,f?97.5:99.5),[x2,y2]=pol(i*6,103.5); s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1e293b" stroke-width="${f?2.6:1.1}"/>`; }
+  for(let i=0;i<12;i++) s+=`<path d="${bogen(60,97,i*30,(i+1)*30)}" fill="${FELD_FARBEN[i]}"/>`;
+  for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,78); s+=`<text x="${x}" y="${(+y+8).toFixed(1)}" text-anchor="middle" font-size="23" font-weight="900" fill="#fff" stroke="#1e293b" stroke-width="3.4" style="paint-order:stroke">${i}</text>`; }
+  s+=`<circle cx="${C}" cy="${C}" r="60" fill="#fff" stroke="#1e293b"/>`;
+  for(let i=0;i<60;i++){ const [x,y]=pol(i*6,57); s+=`<circle cx="${x}" cy="${y}" r="${i%5===0?1.5:0.8}" fill="#1e293b"/>`; }
+  s+=zeiger(C,(h%12+m/60)*30,56,13,"#1d4ed8")+zeiger(C,m*6,98,10.5,"#dc2626")+`<circle cx="${C}" cy="${C}" r="6.5" fill="#0f172a"/>`;
+  return `<svg viewBox="22 22 216 216" width="220" height="220">${s}</svg>`;
+}
+const nachH=h=>h%12+1;
+function uhrWort(h,m){ return m===0?`${h} Uhr`:m===30?`halb ${nachH(h)}`:m===15?`Viertel nach ${h}`:m===45?`Viertel vor ${nachH(h)}`:`${h}:${zz(m)} Uhr`; }
+function gUhr(art){
+  if(art==="spanne_ende"){   // immer über die volle Stunde hinweg
+    const [h,m,d]=versuche(()=>{ const h=rnd(8,16), m=waehle([20,30,40,45,50]), d=waehle([15,20,25,30,35,40]); return m+d>60 ? [h,m,d] : null; });
+    const T=h*60+m+d, h2=Math.floor(T/60), m2=T%60;
+    const opts=[...new Set([`${h2}:${zz(m2)} Uhr`, `${h}:${zz(m2)} Uhr`, `${h2}:${zz((m2+10)%60)} Uhr`, `${h2+1}:${zz(m2)} Uhr`, `${h2}:${zz((m2+50)%60)} Uhr`])].slice(0,4);
+    return W("uhr", `Es ist <b>${h}:${zz(m)} Uhr</b>. Wie spät ist es in <b>${d} Minuten</b>?`, opts, `${h2}:${zz(m2)} Uhr`, `Es ist ${h}:${zz(m)} Uhr. Wie spät in ${d} Minuten?`); }
+  if(art==="spanne_dauer"){
+    const [h,m,d]=versuche(()=>{ const h=rnd(8,15), m=waehle([20,30,40,45,50]), d=waehle([20,25,35,40,45]); return m+d>60 ? [h,m,d] : null; }); const T=h*60+m+d;
+    return Z("uhr", `Der Film beginnt um <b>${h}:${zz(m)} Uhr</b> und endet um <b>${Math.floor(T/60)}:${zz(T%60)} Uhr</b>.<br>Wie viele <b>Minuten</b> dauert er?`, d, `Von ${h}:${zz(m)} bis ${Math.floor(T/60)}:${zz(T%60)} Uhr – wie viele Minuten?`, {einheit:"min"}); }
+  const h=rnd(1,12), m = art==="stunde" ? 30 : art==="viertel" ? waehle([15,45]) : art==="fuenf" ? rnd(1,11)*5 : versuche(()=>{ const m=rnd(1,59); return m%5?m:null; });
+  const wort = art==="stunde"||art==="viertel" ? uhrWort : (h,m)=>`${h}:${zz(m)} Uhr`;
+  const kand=[[h,m],[h%12+1,m],[(h+10)%12+1,m]];
+  if(m%5===0 && m>0 && m/5!==h) kand.push([m/5||12, (h%12)*5]);           // Zeiger verwechselt
+  kand.push([h, (m+30)%60], [h, (60-m)%60]);
+  const opts=[]; kand.forEach(([a,b])=>{ const w=wort(a,b); if(!opts.includes(w)) opts.push(w); });
+  return W("uhr", `Wie spät ist es?${uhrSVG(h,m)}`, opts.slice(0,4), wort(h,m), `Uhr ablesen (${wort(h,m)})`);
+}
+// ---- Formen ----
+function figurSVG(punkte){ return `<svg viewBox="-50 -50 100 100" width="100" height="100"><polygon points="${punkte.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="#a3e635" stroke="#1a2e05" stroke-width="2.5" stroke-linejoin="round"/></svg>`; }
+function symFigur(){ const n=rnd(2,3), halb=[[0,-40]]; for(let i=1;i<=n;i++) halb.push([rnd(10,40), -40+i*80/(n+1)+rnd(-8,8)]); halb.push([0,40]);
+  const rechts=halb.slice(1,-1); return [halb[0], ...rechts, halb[halb.length-1], ...rechts.slice().reverse().map(([x,y])=>[-x,y])]; }
+function unsymFigur(){ return versuche(()=>{ const n=rnd(5,6), p=[]; for(let i=0;i<n;i++){ const a=i/n*2*Math.PI+rnd(-15,15)/100, r=rnd(18,42); p.push([r*Math.sin(a), -r*Math.cos(a)]); }
+  const rs=p.map(q=>Math.hypot(q[0],q[1])); return Math.max(...rs)-Math.min(...rs)>12 ? p : null; }); }
+const FORMEN={Dreieck:[[0,-40],[42,32],[-42,32]], Quadrat:[[-34,-34],[34,-34],[34,34],[-34,34]], Rechteck:[[-44,-24],[44,-24],[44,24],[-44,24]], Fünfeck:[[0,-42],[40,-13],[25,34],[-25,34],[-40,-13]]};
+function gFormen(art){
+  if(art==="name"){ const n=waehle(["Quadrat","Rechteck","Fünfeck"]); const p=FORMEN[n].map(([x,y])=>{ const w=rnd(-20,20)*Math.PI/180; return [x*Math.cos(w)-y*Math.sin(w), x*Math.sin(w)+y*Math.cos(w)]; });
+    return W("formen", `Wie heißt diese Form?${figurSVG(p)}`, ["Dreieck","Quadrat","Rechteck","Fünfeck"], n, `Form erkennen (${n})`); }
+  if(art==="ecken"){ const [n,e]=waehle([["ein Rechteck",4],["ein Fünfeck",5],["ein Sechseck",6]]); return Z("formen", `Wie viele <b>Ecken</b> hat ${n}?`, e); }
+  if(art==="sym"){ const opts=[{h:figurSVG(symFigur()),w:"sym"}]; for(let i=0;i<3;i++) opts.push({h:figurSVG(unsymFigur()),w:"nein"+i});
+    const a=W("formen", `Welche Figur ist <b>symmetrisch</b>?<br><span class="klein">Wie beim Schmetterling: Beide Hälften sind gleich.</span>`, opts, "sym", "Welche Figur ist symmetrisch?"); a.bilder=true; return a; }
+  if(art==="wuerfel"){ const [w,z]=waehle([["Ecken",8],["Flächen",6]]); return Z("formen", `Wie viele <b>${w}</b> hat ein <b>Würfel</b>?`, z); }
+  if(art==="quader"){ const [w,z]=waehle([["Ecken",8],["Flächen",6]]); return Z("formen", `Wie viele <b>${w}</b> hat ein <b>Quader</b> (wie ein Schuhkarton)?`, z); }
+  return W("formen", `Welcher Körper kann <b>rollen</b>, aber hat keine Ecken und keine Kanten?`, ["Kugel","Würfel","Quader","Pyramide"], "Kugel");
+}
+// ---- Muster ----
+function gMuster(art){
+  let l;
+  if(art==="leicht"){ const s=rnd(1,6), d=rnd(2,5); l=Array.from({length:5},(_,i)=>s+i*d); }
+  else if(art==="plus"){ const d=waehle([3,4,6,7,9]), s=rnd(1,9); l=Array.from({length:5},(_,i)=>s+i*d); }
+  else if(art==="minus"){ const d=waehle([4,6,7,8,9]), s=d*rnd(8,11)+rnd(1,3); l=Array.from({length:5},(_,i)=>s-i*d); }
+  else{ const d=waehle([25,50,15,35]), s=rnd(1,8)*25; l=Array.from({length:5},(_,i)=>s+i*d); }
+  return Z("muster", `Wie geht es weiter?<br><span class="gross">${l.slice(0,4).join(", ")}, ${B}</span>`, l[4], `Zahlenfolge: ${l.slice(0,4).join(", ")}, ?`);
+}
+// ---- Daten ----
+function diagrammSVG(werte, namen){
+  const W0=40, b=56, H=160; let s="";
+  for(let v=0;v<=10;v+=2){ const y=H-v*14; s+=`<line x1="${W0-4}" y1="${y}" x2="${W0+4*b+10}" y2="${y}" stroke="#475569" stroke-width="1"/><text x="${W0-8}" y="${y+4}" text-anchor="end" font-size="12" fill="#cbd5e1">${v}</text>`; }
+  werte.forEach((v,i)=>{ const x=W0+10+i*b; s+=`<rect x="${x}" y="${H-v*14}" width="${b-18}" height="${v*14}" rx="3" fill="${["#a3e635","#38bdf8","#f472b6","#facc15"][i]}"/><text x="${x+(b-18)/2}" y="${H+20}" text-anchor="middle" font-size="18">${namen[i]}</text>`; });
+  return `<svg viewBox="0 0 ${W0+4*b+16} ${H+28}" width="${W0+4*b+16}" height="${H+28}">${s}</svg>`;
+}
+function gDaten(art){
+  if(art==="ablesen"||art==="unterschied"){ const tiere=[["🐶","Hund"],["🐱","Katze"],["🐰","Hase"],["🐟","Fisch"]], w=versuche(()=>{ const w=tiere.map(()=>rnd(2,10)); return new Set(w).size===4?w:null; });
+    const i=rnd(0,3), j=versuche(()=>{ const j=rnd(0,3); return j!==i?j:null; }), unter=art==="unterschied";
+    const f = unter ? `Wie viele Kinder mögen <b>${tiere[i][1]}e</b> mehr als <b>${tiere[j][1]}e</b>?` : `Lieblingstiere der Klasse: Wie viele Kinder mögen am liebsten <b>${tiere[i][0]} ${tiere[i][1]}e</b>?`;
+    if(unter && w[i]<w[j]){ const t=i; return Z("daten", `Lieblingstiere der Klasse: Wie viele Kinder mögen <b>${tiere[j][1]}e</b> mehr als <b>${tiere[t][1]}e</b>?${diagrammSVG(w,tiere.map(x=>x[0]))}`, w[j]-w[t], `Diagramm: ${tiere.map((x,k)=>x[1]+" "+w[k]).join(", ")} – Unterschied ${tiere[j][1]} und ${tiere[t][1]}`); }
+    return Z("daten", `${unter?"Lieblingstiere der Klasse: ":""}${f}${diagrammSVG(w,tiere.map(x=>x[0]))}`, unter?w[i]-w[j]:w[i], `Diagramm: ${tiere.map((x,k)=>x[1]+" "+w[k]).join(", ")} – ${unter?"Unterschied":"ablesen"}`); }
+  if(art==="kombi"){ const a=rnd(2,4), b=rnd(2,3), n=waehle(NAMEN); return Z("daten", `${n} hat <b>${a} T-Shirts</b> und <b>${b} Hosen</b>. Wie viele verschiedene Kombinationen kann ${n} anziehen?`, a*b); }
+  const [s,e]=waehle([["In einer Tüte sind nur rote Kugeln. Du ziehst eine blaue Kugel.","unmöglich"],["In einer Tüte sind rote und blaue Kugeln. Du ziehst eine rote Kugel.","möglich"],["In einer Tüte sind nur rote Kugeln. Du ziehst eine rote Kugel.","sicher"],["Du würfelst mit einem normalen Würfel eine 7.","unmöglich"],["Du würfelst mit einem normalen Würfel eine 3.","möglich"]]);
+  return W("daten", `${s}<br>Ist das <b>sicher</b>, <b>möglich</b> oder <b>unmöglich</b>?`, ["sicher","möglich","unmöglich"], e, s);
+}
+// ---- Sachaufgaben ----
+function gSach(art){
+  const n=waehle(NAMEN);
+  if(art==="1plus"){ const [a,b]=versuche(()=>{ const a=rnd(6,9), b=rnd(4,9); return a+b>10?[a,b]:null; }); return Z("sach", `${n} hat <b>${a} Murmeln</b>. ${n} bekommt <b>${b}</b> dazu. Wie viele Murmeln hat ${n} jetzt?`, a+b); }
+  if(art==="1minus"){ const [a,b]=versuche(()=>{ const a=rnd(12,17), b=rnd(3,9); return a%10<b?[a,b]:null; }); return Z("sach", `Auf dem Baum sitzen <b>${a} Vögel</b>. <b>${b}</b> fliegen weg. Wie viele sitzen noch auf dem Baum?`, a-b); }
+  if(art==="2plus"){ const [a,b]=versuche(()=>{ const a=rnd(24,48), b=rnd(13,39); return ueber(a,b)&&a+b<100?[a,b]:null; }); return Z("sach", `Ein Spiel kostet <b>${a} €</b>, ein Buch kostet <b>${b} €</b>. Wie viel kostet beides zusammen?`, a+b, null, {einheit:"€"}); }
+  if(art==="2minus"){ const [a,b]=versuche(()=>{ const a=rnd(52,95), b=rnd(18,45); return a%10<b%10?[a,b]:null; }); return Z("sach", `${n} hat <b>${a} Sticker</b>. ${n} verschenkt <b>${b}</b>. Wie viele Sticker hat ${n} noch?`, a-b); }
+  if(art==="3mal"){ const a=rnd(5,9), b=waehle([6,4]); return Z("sach", `In einer Packung sind <b>${b} Eier</b>. Wie viele Eier sind in <b>${a} Packungen</b>?`, a*b); }
+  if(art==="3geteilt"){ const k=rnd(3,6), je=rnd(4,8); return Z("sach", `<b>${k*je} Kekse</b> werden gerecht an <b>${k} Kinder</b> verteilt. Wie viele Kekse bekommt jedes Kind?`, je); }
+  if(art==="4zwei"){ const geld=waehle([50,40]), st=rnd(3,4), pr=rnd(6,9); return Z("sach", `${n} hat <b>${geld} €</b>. ${n} kauft <b>${st} Bücher</b> zu je <b>${pr} €</b>. Wie viel Geld bleibt übrig?`, geld-st*pr, null, {einheit:"€"}); }
+  if(art==="4minus"){ const [a,m]=versuche(()=>{ const a=rnd(310,480), m=rnd(140,260); return a%10<m%10 ? [a,m] : null; }); return Z("sach", `Die Schule hat <b>${a} Kinder</b>. <b>${m}</b> davon sind Mädchen. Wie viele Jungen sind es?`, a-m); }
+  const t=rnd(3,6), s=rnd(12,25); return Z("sach", `Eine Klasse fährt <b>${t} Tage</b> auf Klassenfahrt. Jeden Tag wandern sie <b>${s} km</b>. Wie viele km sind das zusammen?`, t*s, null, {einheit:"km"});
+}
+
+//// ===== Die Tests: Klasse × Zeitpunkt (Klasse 1 und 4 folgen) =====
+// Jede Zeile: [Erzeuger, Anzahl]
+// Jede Zeile ist EINE feste Aufgabenart mit festen Bedingungen (z. B. „mit Zehnerübergang") – zufällig sind nur die Zahlen.
+// So bekommt jedes Kind andere Aufgaben, aber alle gleich schwer.
+const TESTS={
+  "2-anfang":[ ()=>gNachbar(20), ()=>gVergleich(20), ()=>gStrahl(20), ()=>gPlus(20), ()=>gPlus(20), ()=>gMinus(20), ()=>gMinus(20), ()=>gErgaenzen(10), ()=>gErgaenzen("platz20"),
+               ()=>gVerdoppeln("doppelt"), ()=>gVerdoppeln("halb"), ()=>gFormen("name"), ()=>gFormen("ecken"), ()=>gGeld(1), ()=>gGeld(1), ()=>gUhr("stunde"), ()=>gUhr("stunde"),
+               ()=>gMuster("leicht"), ()=>gMuster("leicht"), ()=>gSach("1plus"), ()=>gSach("1minus") ],
+  "2-halbjahr":[ ()=>gStellen(100,"zahl"), ()=>gNachbar(100), ()=>gStrahl(100), ()=>gPlus(100,false), ()=>gPlus(100,"ze_e"), ()=>gPlus(100,true), ()=>gMinus(100,"ze_e"), ()=>gMinus(100,true),
+               ()=>gErgaenzen(100), ()=>gErgaenzen(100), ()=>gGeld("2ct"), ()=>gGeld(2), ()=>gLaengen("mcm_cm"), ()=>gLaengen("einheit2"), ()=>gFormen("sym"), ()=>gFormen("name"),
+               ()=>gUhr("viertel"), ()=>gUhr("viertel"), ()=>gMuster("plus"), ()=>gSach("2plus"), ()=>gSach("2minus") ],
+  "2-ende":[ ()=>gStellen(100,"zehner"), ()=>gVergleich(100), ()=>gPlus(100,true), ()=>gPlus(100,true), ()=>gMinus(100,true), ()=>gMinus(100,true), ()=>gMal("kern"), ()=>gMal("kern"), ()=>gMal("alle"), ()=>gMal("geteilt"),
+               ()=>gGeld(2), ()=>gLaengen("mcm_cm"), ()=>gLaengen("einheit2"), ()=>gUhr("fuenf"), ()=>gUhr("fuenf"), ()=>gUhr("spanne_ende"), ()=>gFormen("sym"),
+               ()=>gDaten("ablesen"), ()=>gDaten("unterschied"), ()=>gSach("3mal"), ()=>gSach("3geteilt") ],
+  "3-anfang":[ ()=>gStellen(100,"zahl"), ()=>gStrahl(100), ()=>gPlus(100,true), ()=>gPlus(100,true), ()=>gMinus(100,true), ()=>gMinus(100,true), ()=>gMal("alle"), ()=>gMal("alle"), ()=>gMal("alle"), ()=>gMal("geteilt"), ()=>gMal("geteilt"),
+               ()=>gGeld("2ct"), ()=>gGeld(2), ()=>gLaengen("mcm_cm"), ()=>gUhr("fuenf"), ()=>gUhr("fuenf"), ()=>gFormen("sym"), ()=>gDaten("unterschied"), ()=>gSach("3mal"), ()=>gSach("3geteilt") ],
+  "3-halbjahr":[ ()=>gStellen(1000,"null"), ()=>gStrahl(1000), ()=>gVergleich(1000), ()=>gTausend("hunderter"), ()=>gTausend("zehner"), ()=>gTausend("plus"), ()=>gTausend("minus"),
+               ()=>gMal("alle"), ()=>gMal("platz"), ()=>gMal("rest"), ()=>gGewichte("kgg_g"), ()=>gGewichte("einheit"), ()=>gLaengen("km_m"), ()=>gLaengen("einheit3"), ()=>gUhr("minute"), ()=>gUhr("spanne_dauer"),
+               ()=>gFormen("wuerfel"), ()=>gMuster("schwer"), ()=>gSach("3mal"), ()=>gSach("4minus") ],
+  "3-ende":[ ()=>gStellen(1000,"null"), ()=>gErgaenzen(1000), ()=>gTausend("plus"), ()=>gTausend("minus"), ()=>gSchriftlich("plus"), ()=>gSchriftlich("plus"), ()=>gSchriftlich("minus"),
+               ()=>gMal("zehner"), ()=>gMal("mehrstellig"), ()=>gMal("rest"), ()=>gGewichte("kgg_g"), ()=>gLaengen("m0cm"), ()=>gLaengen("cmmm_mm"), ()=>gUhr("spanne_ende"),
+               ()=>gFormen("quader"), ()=>gFormen("rollen"), ()=>gDaten("unterschied"), ()=>gDaten("kombi"), ()=>gDaten("zufall"), ()=>gSach("4zwei"), ()=>gSach("4mal") ]
+};
+function baueTest(id){
+  const l=[];
+  TESTS[id].forEach(g=>{ let a, k=0; do{ a=g(); k++; }while(k<20 && l.some(x=>x.druck===a.druck)); l.push(a); });
+  // nach Leitidee/Thema in der Reihenfolge der Liste lassen – wie eine Klassenarbeit, Thema für Thema
+  return l;
+}
+
+//// ===== Ablauf =====
+let db=null, playerName="", MEINE=[], test=null, nr=0, antw=[], startZeit=0, auswahl=null;
+function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); scrollTo(0,0); }
+function testName(id){ const [k,z]=id.split("-"); return `Klasse ${k} · ${ZEIT[z]}`; }
+function zeigeAuswahl(){
+  let h=`<span></span>${Object.keys(ZEIT).map(z=>`<span class="kopfz">${ZEIT[z]}</span>`).join("")}`;
+  for(let k=1;k<=4;k++){ h+=`<span class="kl">Klasse ${k}</span>`;
+    Object.keys(ZEIT).forEach(z=>{ const id=`${k}-${z}`, da=!!TESTS[id], letzt=MEINE.find(e=>e.app===APP && e.test===id);
+      h+= da ? `<button data-id="${id}" class="${letzt?"gemacht":""}">${ZEIT[z]}<small>${letzt?`zuletzt ${letzt.richtig}/${letzt.max}`:`${TESTS[id].length} Aufgaben`}</small></button>`
+             : `<button disabled>${ZEIT[z]}<small>kommt bald</small></button>`; }); }
+  $("wahlTab").innerHTML=h;
+  $("wahlTab").querySelectorAll("button[data-id]").forEach(b=>b.addEventListener("click",()=>starte(b.dataset.id)));
+  const meine=MEINE.filter(e=>e.app===APP && e.aufgaben).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  $("meineBox").classList.toggle("hide", !meine.length);
+  $("meine").innerHTML=meine.slice(0,12).map((e,i)=>`<div class="z"><span class="tx"><b>${esc(testName(e.test))}</b><small>${esc(e.datum)} · ${e.richtig} von ${e.max} Punkten</small></span><button class="ghost klein" data-i="${i}">Ansehen · Drucken</button></div>`).join("");
+  $("meine").querySelectorAll("button[data-i]").forEach(b=>b.addEventListener("click",()=>zeigeErgebnis(meine[+b.dataset.i], false)));
+}
+function starte(id){
+  test={id, aufgaben:baueTest(id)}; nr=0; antw=[]; startZeit=Date.now();
+  $("testTitel").textContent=testName(id); zeige("spiel"); zeigeAufgabe();
+}
+function zeigeAufgabe(){
+  const a=test.aufgaben[nr], th=THEMEN[a.t]; auswahl=null;
+  $("fortschritt").innerHTML=test.aufgaben.map((_,i)=>`<i class="${i<nr?"da":i===nr?"jetzt":""}"></i>`).join("");
+  $("thema").textContent=`Aufgabe ${nr+1} von ${test.aufgaben.length} · ${th.ic} ${th.n}`;
+  $("frage").innerHTML=a.f+("speechSynthesis" in window?` <button class="lautKn" id="lautBtn" title="Vorlesen">🔈</button>`:"");
+  const lb=$("lautBtn"); if(lb) lb.addEventListener("click",()=>sprich(a.druck.replace(/\s*\([^)]*\)/g,"").replace(/\?/g," Fragezeichen ").replace(/·/g," mal ").replace(/−/g," minus ").replace(/ : /g," geteilt durch ")));
+  $("weiterBtn").disabled=true; $("weiterBtn").textContent = nr===test.aufgaben.length-1 ? "Fertig ✓" : "Weiter ▶";
+  if(a.typ==="zahl"){
+    $("eingabe").innerHTML=`<div class="antwortzeile"><input type="text" id="antwort" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="?">${a.einheit?`<span class="einheit">${a.einheit}</span>`:""}</div>`;
+    const ein=$("antwort");
+    ein.addEventListener("input",()=>{ ein.value=ein.value.replace(/[^0-9]/g,""); $("weiterBtn").disabled=ein.value===""; });
+    ein.addEventListener("keydown",e=>{ if(e.key==="Enter" && ein.value!=="") weiter(); });
+    try{ ein.focus({preventScroll:true}); }catch(e){}
+  }else{
+    $("eingabe").innerHTML=`<div class="wahl${a.bilder?" bilder":""}">${a.opt.map((o,i)=>`<button data-i="${i}">${o.h}</button>`).join("")}</div>`;
+    $("eingabe").querySelectorAll(".wahl button").forEach(b=>b.addEventListener("click",()=>{
+      $("eingabe").querySelectorAll(".wahl button").forEach(x=>x.classList.toggle("an", x===b)); auswahl=a.opt[+b.dataset.i].w; $("weiterBtn").disabled=false; }));
+  }
+}
+function weiter(nichtGewusst){
+  const a=test.aufgaben[nr];
+  let gegeben = nichtGewusst ? "" : a.typ==="zahl" ? ($("antwort").value||"") : (auswahl||"");
+  if(!nichtGewusst && gegeben==="") return;
+  const ok = gegeben!=="" && (a.typ==="zahl" ? parseInt(gegeben,10)===parseInt(a.soll,10) : gegeben===a.soll);
+  const zeig = w=>a.typ==="wahl" ? (a.bilder ? (w==="sym"?"symmetrische Figur":w?"andere Figur":"") : w) : w;
+  antw.push({t:a.t, f:a.druck, s:zeig(a.soll)+(a.einheit?" "+a.einheit:""), a: gegeben==="" ? "–" : zeig(gegeben)+(a.einheit?" "+a.einheit:""), ok});
+  nr++;
+  if(nr>=test.aufgaben.length) fertig(); else zeigeAufgabe();
+}
+$("weiterBtn").addEventListener("click",()=>weiter(false));
+$("weissNicht").addEventListener("click",()=>weiter(true));
+$("abbrBtn").addEventListener("click",()=>{ if(confirm("Test wirklich abbrechen? Deine Antworten werden nicht gespeichert.")){ test=null; zeige("start"); } });
+
+//// ===== Auswertung =====
+function themenStand(liste){ const st={}; liste.forEach(x=>{ (st[x.t]=st[x.t]||[0,0]); st[x.t][1]++; if(x.ok) st[x.t][0]++; }); return st; }
+const ampel=([r,n])=>{ const p=r/n; return p>=0.75?"g":p>=0.5?"m":"r"; };
+const AMPEL={g:["🟢","sitzt sicher"], m:["🟡","noch üben"], r:["🔴","wiederholen"]};
+function fertig(){
+  const r=antw.filter(x=>x.ok).length, max=antw.length, d=new Date(), p=x=>String(x).padStart(2,"0");
+  const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p(d.getHours())}:${p(d.getMinutes())}`, ts:Date.now(),
+    monat:`${d.getFullYear()}-${p(d.getMonth()+1)}`, modus:"Lernstand", test:test.id, stufe:testName(test.id), richtig:r, falsch:max-r, max, prozent:Math.round(r/max*100), bestanden:"–",
+    themen:themenStand(antw), aufgaben:antw, dauer:Math.round((Date.now()-startZeit)/1000), gestellt:[], fehler:[], antworten:[] };      // Antworten stehen in „aufgaben" – die Fehlerarten-Auswertung der Trainer bleibt unberührt
+  MEINE.unshift(eintrag); test=null;
+  zeigeErgebnis(eintrag, true);
+  if(!db){ $("status").textContent="⚠️ Ohne Verbindung – nicht gespeichert."; return; }
+  const id=`${APP}_${eintrag.datum}_${eintrag.zeit}_${playerName}_${Date.now()%100000}`.replace(/[\/\s.]/g,"_");
+  db.collection("ergebnisse").doc(id).set(eintrag).catch(()=>{ $("ergText").insertAdjacentHTML("beforeend","<br>⚠️ Speichern hat nicht geklappt."); });
+}
+function zeigeErgebnis(e, neu){
+  zeige("ergebnis");
+  const st=e.themen||themenStand(e.aufgaben), p=e.prozent;
+  $("ergTitel").textContent=`${testName(e.test)} · ${e.datum}`;
+  $("ergPunkte").innerHTML=`${e.richtig} <small>von ${e.max} Punkten</small>`;
+  const gruen=Object.keys(st).filter(t=>ampel(st[t])==="g"), rot=Object.keys(st).filter(t=>ampel(st[t])!=="g");
+  $("ergText").innerHTML = (neu ? (p>=90?"🌟 Super! Fast alles sitzt.":p>=70?"👍 Gut gemacht! Das meiste sitzt schon.":p>=50?"💪 Ein guter Anfang. Einiges musst du noch üben.":"💪 Gut, dass du den Test gemacht hast. Jetzt weißt du, was du üben kannst.")+"<br>" : "")+
+    (rot.length ? `Üben lohnt sich bei: <b>${rot.map(t=>THEMEN[t].n).join(", ")}</b>.` : "Alle Themen sitzen sicher. 🎉");
+  let h="";
+  Object.keys(LEITIDEEN).forEach(li=>{ const ts=Object.keys(st).filter(t=>THEMEN[t].li===li); if(!ts.length) return;
+    h+=`<div class="li"><b>${LEITIDEEN[li]}</b>`+ts.map(t=>{ const a=ampel(st[t]), th=THEMEN[t];
+      return `<div class="th ${a}"><span class="amp">${AMPEL[a][0]}</span><span class="tx">${th.ic} ${th.n}<small>${AMPEL[a][1]}</small></span><span class="p">${st[t][0]} / ${st[t][1]}</span>${a!=="g"?`<a href="${th.link}#name=${encodeURIComponent(playerName)}">Üben ›</a>`:""}</div>`; }).join("")+`</div>`; });
+  $("ergThemen").innerHTML=h;
+  $("ergAlle").innerHTML=e.aufgaben.map((x,i)=>`<tr><td>${x.ok?"✅":"❌"}</td><td>${i+1}. ${esc(x.f)}<br><small style="color:var(--muted)">Deine Antwort: <b style="color:${x.ok?"#86efac":"#fca5a5"}">${esc(x.a)}</b>${x.ok?"":` · richtig: <b>${esc(x.s)}</b>`}</small></td></tr>`).join("");
+  baueDruck(e);
+}
+// Druckblatt: wie ein Rückmeldebogen zur Klassenarbeit – ohne Note
+function baueDruck(e){
+  const st=e.themen||themenStand(e.aufgaben); let zeilen="";
+  Object.keys(LEITIDEEN).forEach(li=>{ const ts=Object.keys(st).filter(t=>THEMEN[t].li===li); if(!ts.length) return;
+    const s=ts.reduce((a,t)=>[a[0]+st[t][0],a[1]+st[t][1]],[0,0]);
+    zeilen+=`<tr class="liz"><td>${LEITIDEEN[li]}</td><td>${s[0]} / ${s[1]}</td><td></td></tr>`+
+      ts.map(t=>{ const a=ampel(st[t]); return `<tr><td>&nbsp;&nbsp;${THEMEN[t].n}</td><td>${st[t][0]} / ${st[t][1]}</td><td>${{g:"● sitzt sicher",m:"◐ noch üben",r:"○ wiederholen"}[a]}</td></tr>`; }).join(""); });
+  const [k,z]=e.test.split("-");
+  $("druck").innerHTML=`<h1>Lernstand Mathematik</h1>
+    <div class="kz"><span><b>Name:</b> ${esc(e.name||playerName)}</span><span><b>Test:</b> Klasse ${k} · ${ZEIT_LANG[z]}</span><span><b>Datum:</b> ${esc(e.datum)}</span></div>
+    <div class="sum">Erreicht: ${e.richtig} von ${e.max} Punkten (${e.prozent} %)</div>
+    <table><tr><th>Leitidee / Thema</th><th style="width:22mm">Punkte</th><th style="width:38mm">Einschätzung</th></tr>${zeilen}</table>
+    <table><tr><th style="width:8mm">Nr.</th><th>Aufgabe</th><th style="width:30mm">Antwort</th><th style="width:30mm">Richtig</th><th style="width:9mm"></th></tr>
+      ${e.aufgaben.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.f)}</td><td>${esc(x.a)}</td><td>${esc(x.s)}</td><td>${x.ok?"✓":"✗"}</td></tr>`).join("")}</table>
+    <div class="unterschrift"><div>Unterschrift Erziehungsberechtigte</div><div>Bemerkung der Lehrkraft</div></div>
+    <div class="fuss">Mathe-Trainer · Schule Hohe Landwehr · Aufgaben orientiert an „Flex und Flo" und an den Leitideen des Hamburger Bildungsplans Mathematik (Grundschule).</div>`;
+}
+$("druckBtn").addEventListener("click",()=>window.print());
+$("nochBtn").addEventListener("click",()=>{ zeigeAuswahl(); zeige("start"); });
+
+function sprich(text){ if(!("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; u.rate=0.9;
+       const v=(window.Komfort && Komfort.stimme) ? Komfort.stimme() : speechSynthesis.getVoices().find(x=>/^de/i.test(x.lang)); if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){} }
+
+(function init(){
+  try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){}
+  // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
+  const m=location.hash.match(/name=([^&]+)/);
+  let n = m ? decodeURIComponent(m[1]) : "";
+  if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
+  playerName=capName(n);
+  $("menuLink").href=$("ergLink").href="index.html"+(playerName?"#name="+encodeURIComponent(playerName):"");
+  zeigeAuswahl();
+  if(!db || !playerName){ $("status").textContent="⚠️ Keine Verbindung – der Test geht trotzdem, wird aber nicht gespeichert."; return; }
+  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+    MEINE=[]; s.forEach(d=>MEINE.push(d.data())); $("status").textContent="☁️ Verbunden"; zeigeAuswahl();
+  }).catch(()=>{ $("status").textContent="⚠️ Keine Verbindung – der Test geht trotzdem, wird aber nicht gespeichert."; });
+})();
+</script>
+</body>
+</html>
