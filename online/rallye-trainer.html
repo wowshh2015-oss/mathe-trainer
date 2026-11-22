@@ -125,6 +125,20 @@
     border-radius:48% 40% 44% 52%/44% 50% 42% 48%;border:3px solid #8c93a8;text-shadow:0 2px 3px #0009}
   .hindernis.weg{transform:translate(70px,-60px) rotate(55deg) scale(.3);opacity:0}
 
+  /* ===== Gemalte Hintergründe (zwei Ebenen, endlos) und gemalte Hindernisse ===== */
+  .bgOben{position:absolute;left:0;right:0;top:0;overflow:hidden;z-index:0}
+  .bgBand{position:absolute;top:0;bottom:0;left:0;width:calc(100% + var(--k));background-repeat:repeat-x;background-size:var(--k) 100%;
+    animation:bandlauf 10s linear infinite;animation-play-state:paused;will-change:transform}
+  .fahrt .bgBand{animation-play-state:running}
+  @keyframes bandlauf{ from{transform:translateX(0)} to{transform:translateX(calc(-1 * var(--k)))} }
+  .bahn .strasse.bild{background:none;border-top:none;overflow:hidden}
+  .strasse.bild .mittellinie{top:46%;height:4px;opacity:.55}
+  .bahn.bildHind .hindernis{--hb:190px;width:var(--hb);height:calc(var(--hb) * var(--hs));min-width:0;box-sizing:border-box;
+    background:var(--hbild) center/100% 100% no-repeat;border:none;border-radius:0;box-shadow:none;bottom:10px;
+    padding:calc(var(--hb) * var(--hs) * var(--to)) calc(var(--hb) * (1 - var(--tr))) calc(var(--hb) * var(--hs) * (1 - var(--tu))) calc(var(--hb) * var(--tl));
+    display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;font-size:26px}
+  @media (max-width:520px){ .bahn.bildHind .hindernis{--hb:160px;font-size:22px} }
+
   .boxstop{position:absolute;inset:0;z-index:9;background:rgba(5,10,22,.88);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px}
   .boxstop .wz{font-size:40px;animation:dreh 1.1s linear infinite}
@@ -1033,7 +1047,35 @@ const DEKO={
 // Im Weltraum gibt es keinen Boden: die Objekte schweben verteilt über die ganze Höhe
 const RAUM_Y=[-8,-96,-44,-132,-66,-114,-22,-78,-140,-52,-104,-30];
 const RAUM_GR=[30,19,25,15,27,17,22,32,14,24,18,28];
+// Gemalte Hintergründe je Welt und Strecke (bilder/rallye/bg_<welt><nr>_oben/_strasse.webp, aus hintergrund_bauen.py):
+// strasse = Anteil der Straße an der Bildhöhe, seite = Kachelbreite / Bildhöhe. Fehlt eine Strecke, nimmt die Welt ihr erstes Bild.
+const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417} };
+// Gemalte Hindernisse: seite = Höhe/Breite, tafel = leere Tafel (links, oben, rechts, unten als Anteil) – dort steht die Aufgabe
+const HIND_BILD={ auto:{seite:0.49, tafel:[0.124,0.095,0.877,0.57]} };
+function bgFuer(){ if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
+const BAND_TEMPO={oben:26, strasse:120};      // Pixel pro Sekunde: Kulisse langsam, Straße schnell (Tiefe)
+function baendStellen(box){
+  const k=bgFuer(); if(!k) return; const H=box.clientHeight||200, w=BG_BILD[k].seite*H;
+  box.querySelectorAll(".bgBand").forEach(b=>{ b.style.setProperty("--k", w.toFixed(1)+"px");
+    b.style.animationDuration=(w/BAND_TEMPO[b.dataset.e]).toFixed(2)+"s"; });
+}
+window.addEventListener("resize", ()=>{ const b=$("bahn"); if(b) baendStellen(b); });
+// lange Aufgaben verkleinern, bis sie auf die Tafel passen
+function aufTafel(h){
+  if(!h.closest(".bildHind")) return; h.style.fontSize="";
+  let fs=parseFloat(getComputedStyle(h).fontSize);
+  while(h.scrollWidth>h.clientWidth+1 && fs>12){ fs-=1; h.style.fontSize=fs+"px"; }
+}
 function bahnHTML(){
+  const bg=bgFuer();
+  if(bg){
+    const p=(BG_BILD[bg].strasse*100).toFixed(2), q="bilder/rallye/bg_"+bg;
+    return `<div class="bgOben" style="bottom:${p}%"><div class="bgBand" data-e="oben" style="background-image:url(${q}_oben.webp)"></div></div>
+      <div class="strasse bild" style="height:${p}%"><div class="bgBand" data-e="strasse" style="background-image:url(${q}_strasse.webp)"></div><div class="mittellinie"></div></div>
+      <div class="fahrzeug fz" style="left:6%">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, tune(), meinGold())}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
+      <div class="hindernis hide hind"></div>
+      <div class="ziel zielflagge">🏁</div>`;
+  }
   const basis=(DEKO[welt]||DEKO.auto);
   const deko=basis.concat(basis).map((d,i)=> welt==="rakete"
     ? `<span style="transform:translateY(${RAUM_Y[i%RAUM_Y.length]}px);font-size:${RAUM_GR[i%RAUM_GR.length]}px">${d}</span>`
@@ -1047,8 +1089,12 @@ function bahnHTML(){
 // Vorschau und Spielbahn gibt es gleichzeitig – daher immer in der Spielbahn suchen
 const bq=s=>$("bahn").querySelector(s);
 function zeichneBahn(box){
-  box.className="bahn "+welt;
+  const hb=HIND_BILD[welt];
+  box.className="bahn "+welt+(hb?" bildHind":"");
+  if(hb){ box.style.setProperty("--hbild",`url(bilder/rallye/hind_${welt}.webp)`); box.style.setProperty("--hs",hb.seite);
+    ["tl","to","tr","tu"].forEach((n,i)=>box.style.setProperty("--"+n, hb.tafel[i])); }
   box.innerHTML=bahnHTML();
+  baendStellen(box);
 }
 function fahrzeugNach(stelle){          // 0 … PRO_RUNDE
   const f=bq(".fz"); if(!f) return;
@@ -1268,6 +1314,7 @@ function starteRunde(){
   $("rundeGross").innerHTML=`Runde ${rundeNr}<small>${st(strecke).ic} ${st(strecke).name}${tr===Infinity?"":` · ${(TANKWORT[welt]||TANKWORT.auto)[0]} ${tr}`}</small>`;
   zeichneBahn($("bahn"));
   zeige("spiel");
+  baendStellen($("bahn"));        // erst jetzt ist die Bahn sichtbar und hat ihre echte Höhe
   zeichneHerzen(); zeichneFortschritt();
   naechstesHindernis(true);
 }
@@ -1282,6 +1329,7 @@ function naechstesHindernis(neu){
   h.classList.remove("weg","hide");
   h.style.left = (6 + richtig*(66/PRO_RUNDE) + 21) + "%";   // immer direkt vor dem Fahrzeug
   h.innerHTML=a.html;
+  aufTafel(h);
   zeichneHerzen();
   $("rueck").textContent="";
   $("antwort").value=""; $("antwort").disabled=false; $("okBtn").disabled=false;
