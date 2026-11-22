@@ -220,6 +220,7 @@
       <button class="ghost" id="tNotenAlle">📝 Noten nach Schlüssel eintragen</button>
       <button class="ghost" id="tZu">🔒 Monat abschließen</button>
       <button class="ghost" id="tSchlBtn">⚙️ Notenschlüssel</button>
+      <button class="ghost" id="tVerlaufKlasse">📈 Verlauf der Klasse</button>
     </div>
     <div id="tSchl" class="haEin hide noprint"></div>
     <div id="tInfo" class="legende" style="margin:0 0 10px"></div>
@@ -1413,11 +1414,12 @@ function renderTests(){
         return `<tr><td class="nm">${esc(e.name)}</td><td>${esc(Lernstand.testName(e.test))}</td><td>${esc(e.datum)} ${esc(e.zeit||"")}</td><td>${e.richtig} / ${e.max}</td><td class="${cls}">${e.prozent} %</td>
           <td title="rot = wiederholen">${schwach||"–"}</td><td>${v}</td>
           <td><select data-note="${e._id}"${zu?" disabled":""}><option value="">–</option>${[1,2,3,4,5,6].map(n=>`<option${String(e.note)===String(n)?" selected":""}>${n}</option>`).join("")}</select></td>
-          <td><button class="ghost" style="padding:5px 10px;font-size:13px" data-blatt="${e._id}">Ansehen · Drucken</button></td></tr>`; }).join("")+`</tbody></table>`
+          <td style="white-space:nowrap"><button class="ghost" style="padding:5px 10px;font-size:13px" data-blatt="${e._id}">Ansehen · Drucken</button> <button class="ghost" style="padding:5px 10px;font-size:13px" data-verlauf="${esc(e.name)}" title="Lernverlauf: gleiche Aufgabenarten über die Monate">📈 Verlauf</button></td></tr>`; }).join("")+`</tbody></table>`
     : `<div class="empty">Im ${monatName(T_MONAT)} hat noch niemand den Test gemacht. Die Kinder finden ihn auf der Startseite: „🧪 Wo stehe ich?".</div>`;
   $("tListe").querySelectorAll("select[data-note]").forEach(sel=>sel.addEventListener("change", async ()=>{
     const v=sel.value; try{ await db.collection("ergebnisse").doc(sel.dataset.note).update(v ? {note:+v} : {note:firebase.firestore.FieldValue.delete()}); }catch(err){ alert("⚠️ Fehler: "+(err.code||err)); } }));
   $("tListe").querySelectorAll("button[data-blatt]").forEach(b=>b.addEventListener("click",()=>zeigeTestBlaetter(liste.filter(e=>e._id===b.dataset.blatt))));
+  $("tListe").querySelectorAll("button[data-verlauf]").forEach(b=>b.addEventListener("click",()=>zeigeVerlauf(b.dataset.verlauf)));
 }
 // Blätter im großen Fenster zeigen (eins oder alle), von dort drucken – Exemplar der Lehrkraft mit Note
 function zeigeTestBlaetter(liste, sofortDrucken){
@@ -1429,6 +1431,17 @@ function zeigeTestBlaetter(liste, sofortDrucken){
   if(sofortDrucken) setTimeout(()=>window.print(), 300);
 }
 $("tMonat").addEventListener("change",()=>{ T_MONAT=$("tMonat").value; renderTests(); });
+// Lernverlauf: nur gleiche Aufgabenarten werden verglichen (neue, schwerere Arten = „neu", kein Rückschritt)
+function zeigeVerlauf(name){
+  const alle=ALLE.filter(e=>e.app==="standort" && e.aufgaben && (!name || e.name===name));
+  const html=Lernstand.verlaufHTML(alle, name ? {titel:"Lernverlauf Mathematik", unter:`${name} · ${alle.length} ${alle.length===1?"Test":"Tests"}`}
+                                              : {titel:"Lernverlauf der Klasse", unter:`${new Set(alle.map(e=>e.name)).size} Kinder · ${alle.length} Tests`, klasse:true});
+  $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>`+html;
+  $("blatt").classList.remove("hide"); document.body.classList.add("blattOffen"); $("blatt").scrollTop=0;
+  $("blattDruck").addEventListener("click",()=>window.print());
+  $("blattZu").addEventListener("click",()=>{ $("blatt").classList.add("hide"); document.body.classList.remove("blattOffen"); });
+}
+$("tVerlaufKlasse").addEventListener("click",()=>zeigeVerlauf(""));
 $("tAlleDruck").addEventListener("click",()=>{ const l=testsDesMonats(T_MONAT); if(l.length) zeigeTestBlaetter(l, true); });
 $("tNotenAlle").addEventListener("click", async ()=>{
   const l=testsDesMonats(T_MONAT).filter(e=>!e.note); if(!l.length) return;
