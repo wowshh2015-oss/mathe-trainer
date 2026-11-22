@@ -157,8 +157,10 @@
       <button class="ghost klein" id="entLaut">🔈 Vorsprechen</button>
       <button class="ghost klein" id="entPlus">+ 1 Stunde</button>
     </div>
+    <div class="reihe"><button class="ghost klein" id="entSchritt">⏱ Minute für Minute drehen</button></div>
+    <div class="reihe hide" id="entMinReihe"><button class="ghost klein" id="entMinM">− 1 Minute</button><button class="ghost klein" id="entPlusM">+ 1 Minute</button></div>
     <div class="reihe"><button class="ghost klein" id="entHaelfte">🌇 Nachmittag und Abend zeigen (12–24 Uhr)</button></div>
-    <div class="reihe"><button class="ghost klein" id="entRinge">Hilfe-Ringe ausblenden</button></div>
+    <div class="reihe"><button class="ghost klein" id="entRinge">Hilfen ausblenden</button></div>
     <div class="info" style="margin-top:14px">💡 Wenn der lange Zeiger <b>eine ganze Runde</b> dreht, ist <b>eine Stunde</b> vorbei –
       und der kurze Zeiger ist genau <b>eine Zahl weiter</b> gewandert. Steht der lange Zeiger unten auf der 6, ist die Stunde <b>halb</b> vorbei:
       Der kurze steht dann genau <b>zwischen zwei Zahlen</b>.<br>
@@ -169,7 +171,7 @@
   <!-- ===== AUFGABE ===== -->
   <div id="spiel" class="card hide">
     <div class="kopf"><span class="pille" id="spielTitel"></span>
-      <span><button class="ghost klein" id="ringeBtn">Hilfe-Ringe</button> <button class="ghost klein" id="abbruchBtn">✕ Aufhören</button></span></div>
+      <span><button class="ghost klein" id="ringeBtn">Hilfen</button> <button class="ghost klein" id="abbruchBtn">✕ Aufhören</button></span></div>
     <div class="fortschritt" id="fortschritt"></div>
     <div class="zeitbalken hide" id="zeitbalken"><i id="zeitfuell"></i></div>
     <div class="frage" id="frage"></div>
@@ -262,36 +264,76 @@ function tonAn(){ try{ return localStorage.getItem("mathe_ton")==="an"; }catch(e
 
 //// ===== Die Uhr zeichnen =====
 // o: {ringe, nurStunde}
+// Zeiger mit Aufschrift (wie an der Lernuhr zu Hause): rot „MINUTE", blau „STUNDE"
+function zeigerSVG(C, grad, laenge, breite, farbe, wort, schrift){
+  const sp=breite*0.8, k=Math.min(breite*1.1, laenge*0.2);       // Pfeilspitze
+  const p=`${C-breite/2},${C+6} ${C-breite/2},${C-laenge+k} ${C-sp},${C-laenge+k} ${C},${C-laenge} ${C+sp},${C-laenge+k} ${C+breite/2},${C-laenge+k} ${C+breite/2},${C+6}`;
+  const links = (grad%360) > 180;                                  // linke Hälfte: Schrift drehen, damit sie nicht kopfsteht
+  const mitte = C-(laenge-k)/2-2;
+  const txt = wort ? `<text x="${C}" y="${mitte}" transform="rotate(${links?90:-90} ${C} ${mitte})" text-anchor="middle" dominant-baseline="central" font-size="${schrift}" font-weight="800" fill="#fff" letter-spacing=".4">${wort}</text>` : "";
+  return `<g transform="rotate(${grad.toFixed(2)} ${C} ${C})"><polygon points="${p}" fill="${farbe}" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/>${txt}</g>`;
+}
+// Farben der zwölf Stunden-Felder (Feld i reicht von der Zahl i bis zur nächsten), angelehnt an die Lernuhr der Lehrkraft
+const FELD_FARBEN=["#8b6fd6","#e9a3d6","#e2559e","#e53935","#f07a2a","#f6b631","#8bc34a","#cddc39","#2e7d4f","#7cc6ee","#4f63c4","#29a9e8"];
+// Eine Uhr für alles – nach dem Vorbild der Lernuhr zu Hause: bunte Stunden-Felder, beschriftete Zeiger.
+// Hilfen (o.ringe) blenden zusätzlich ein: Minutenring 0–59, PUNKT/HALB, VOR/NACH, innen 13–24 (o.ring24).
+// Ohne Hilfen bleiben Felder, Zahlen 1–12, Minutenstriche und die Zeiger – also nichts, was die Minuten verrät.
 function uhrSVG(h,m,o){
   o=o||{};
   const C=130, pol=(grad,r)=>{ const a=(grad-90)*Math.PI/180; return [(C+r*Math.cos(a)).toFixed(1),(C+r*Math.sin(a)).toFixed(1)]; };
-  let s=`<circle cx="${C}" cy="${C}" r="98" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/>`;
-  if(o.ringe && !o.nurStunde){
-    s+=`<circle cx="${C}" cy="${C}" r="114" fill="none" stroke="rgba(239,68,68,.28)" stroke-width="22"/>`;
-    for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,114); s+=`<text x="${x}" y="${(+y+4.5).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fecaca">${i*5}</text>`; }
+  const bogen=(r1,r2,g1,g2)=>{ const [a,b]=pol(g1,r2),[c,d]=pol(g2,r2),[e,f]=pol(g2,r1),[g,i]=pol(g1,r1);
+    return `M${a} ${b} A${r2} ${r2} 0 0 1 ${c} ${d} L${e} ${f} A${r1} ${r1} 0 0 0 ${g} ${i}Z`; };
+  const rand="paint-order:stroke;stroke:#1e293b;stroke-linejoin:round";
+  const hilfe=!!o.ringe, minuten=!o.nurStunde, ring=hilfe && minuten;
+  let s="";
+  if(ring){   // Minutenring außen
+    s+=`<circle cx="${C}" cy="${C}" r="114" fill="none" stroke="#fff" stroke-width="25"/><circle cx="${C}" cy="${C}" r="126.5" fill="none" stroke="#1e3a8a" stroke-width="3"/>`;
+    for(let i=0;i<60;i++){ const [x,y]=pol(i*6,114);
+      if(i%5===0) s+=`<rect x="${(+x-8.5).toFixed(1)}" y="${(+y-6.5).toFixed(1)}" width="17" height="13" rx="2.5" fill="#dc2626"/><text x="${x}" y="${(+y+3.6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">${i}</text>`;
+      else s+=`<text x="${x}" y="${(+y+2.8).toFixed(1)}" text-anchor="middle" font-size="7.4" font-weight="700" fill="#1e293b">${i}</text>`; }
+  }else{      // schmaler weißer Rand mit Minutenstrichen
+    s+=`<circle cx="${C}" cy="${C}" r="105.5" fill="#fff" stroke="#1e3a8a" stroke-width="4"/>`;
+    if(minuten) for(let i=0;i<60;i++){ const f=i%5===0, [x1,y1]=pol(i*6,f?97.5:99.5), [x2,y2]=pol(i*6,103.5);
+      s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1e293b" stroke-width="${f?2.6:1.1}" stroke-linecap="round"/>`; }
   }
-  for(let i=0;i<60;i++){ const f=i%5===0, [x1,y1]=pol(i*6,f?86:91), [x2,y2]=pol(i*6,96);
-    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${f?"#334155":"#94a3b8"}" stroke-width="${f?3:1.2}" stroke-linecap="round"/>`; }
-  for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,71);
-    s+=`<text x="${x}" y="${(+y+7).toFixed(1)}" text-anchor="middle" font-size="20" font-weight="800" fill="${o.ringe?"#1d4ed8":"#0f172a"}">${i}</text>`; }
-  if(o.ring24){
-    s+=`<circle cx="${C}" cy="${C}" r="46" fill="none" stroke="rgba(34,197,94,.22)" stroke-width="20"/>`;
-    for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,46); s+=`<text x="${x}" y="${(+y+4.5).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#15803d">${i+12}</text>`; }
+  // bunte Stunden-Felder (Feld i reicht von der Zahl i bis zur nächsten)
+  const aussen = ring ? 101 : (minuten ? 97 : 101);
+  for(let i=0;i<12;i++) s+=`<path d="${bogen(60,aussen,i*30,(i+1)*30)}" fill="${FELD_FARBEN[i]}"/>`;
+  if(ring){
+    s+=`<circle cx="${C}" cy="${C}" r="101" fill="none" stroke="#1e3a8a" stroke-width="1.5"/>`;
+    s+=`<text x="${C}" y="${C-90}" text-anchor="middle" font-size="8.5" font-weight="800" fill="#fff" stroke-width="2.2" style="${rand}">PUNKT</text>`;
+    s+=`<text x="${C}" y="${C+97}" text-anchor="middle" font-size="8.5" font-weight="800" fill="#fff" stroke-width="2.2" style="${rand}">HALB</text>`;
   }
-  const [hx,hy]=pol((h%12+m/60)*30,50), [mx,my]=pol(m*6,82);
-  s+=`<line x1="${C}" y1="${C}" x2="${hx}" y2="${hy}" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>`;
-  if(!o.nurStunde) s+=`<line x1="${C}" y1="${C}" x2="${mx}" y2="${my}" stroke="#dc2626" stroke-width="5.5" stroke-linecap="round"/>`;
-  s+=`<circle cx="${C}" cy="${C}" r="7" fill="#0f172a"/>`;
-  return `<svg class="uhr" viewBox="0 0 260 260" role="img" aria-label="Uhr">${s}</svg>`;
+  for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,78);
+    s+=`<text x="${x}" y="${(+y+8).toFixed(1)}" text-anchor="middle" font-size="23" font-weight="900" fill="#fff" stroke-width="3.4" style="${rand}">${i}</text>`; }
+  // innen weiß: Minutenpunkte; mit Hilfen VOR/NACH (mit Pfeilen) und 13–24
+  s+=`<circle cx="${C}" cy="${C}" r="60" fill="#fff" stroke="#1e293b" stroke-width="1"/>`;
+  if(minuten) for(let i=0;i<60;i++){ const [x,y]=pol(i*6,57); s+=`<circle cx="${x}" cy="${y}" r="${i%5===0?1.5:0.8}" fill="#1e293b"/>`; }
+  if(ring && !o.ring24){   // VOR/NACH – nicht zusammen mit 13–24, dort ist innen kein Platz
+    {
+      const pfeil=(g1,g2,r,farbe)=>{ const [a,b]=pol(g1,r),[c,d]=pol(g2,r), w=(g2-90)*Math.PI/180, tx=-Math.sin(w), ty=Math.cos(w), nx=Math.cos(w), ny=Math.sin(w);
+        const sp=[[+c+tx*6,+d+ty*6],[+c-nx*3.6,+d-ny*3.6],[+c+nx*3.6,+d+ny*3.6]].map(q=>q.map(v=>v.toFixed(1)).join(",")).join(" ");
+        return `<path d="M${a} ${b} A${r} ${r} 0 0 1 ${c} ${d}" fill="none" stroke="${farbe}" stroke-width="2.2"/><polygon points="${sp}" fill="${farbe}"/>`; };
+      s+=pfeil(30,140,43,"#ea580c")+pfeil(215,322,43,"#15803d");
+      s+=`<text x="${C+27}" y="${C+4}" text-anchor="middle" font-size="11" font-weight="900" fill="#15803d">NACH</text>`;
+      s+=`<text x="${C-27}" y="${C+4}" text-anchor="middle" font-size="11" font-weight="900" fill="#ea580c">VOR</text>`;
+    }
+  }
+  if(o.ring24) for(let i=1;i<=12;i++){ const [x,y]=pol(i*30,48); s+=`<text x="${x}" y="${(+y+4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#15803d">${i+12}</text>`; }
+  s+=zeigerSVG(C, (h%12+m/60)*30, 56, 13, "#1d4ed8", "STUNDE", 7.6);
+  if(minuten) s+=zeigerSVG(C, m*6, ring ? 104 : 98, 10.5, "#dc2626", "MINUTE", 8.2);
+  s+=`<circle cx="${C}" cy="${C}" r="6.5" fill="#0f172a"/><circle cx="${C}" cy="${C}" r="2.6" fill="#cbd5e1"/>`;
+  const vb = ring ? "0 0 260 260" : "22 22 216 216";            // ohne Minutenring: Uhr füllt die Fläche
+  return `<svg class="uhr" viewBox="${vb}" role="img" aria-label="Uhr">${s}</svg>`;
 }
 // Uhr, an der man den großen Zeiger drehen kann. T = Minuten seit 12:00 (0 … 719)
 function stellUhr(box, T, snap, opts, beiAenderung){
-  const zustand={T, opts:Object.assign({},opts)};
+  const zustand={T, snap, opts:Object.assign({},opts)};
   const zeichne=()=>{ const h=Math.floor(zustand.T/60)||12, m=zustand.T%60; box.innerHTML=uhrSVG(h,m,zustand.opts); if(beiAenderung) beiAenderung(zustand.T); };
   const setze=ev=>{
     const r=box.getBoundingClientRect(), x=ev.clientX-(r.left+r.width/2), y=ev.clientY-(r.top+r.height/2);
     let grad=Math.atan2(x,-y)*180/Math.PI; if(grad<0) grad+=360;
-    const mNeu=(Math.round(grad/6/snap)*snap)%60;
+    const mNeu=(Math.round(grad/6/zustand.snap)*zustand.snap)%60;
     let d=mNeu-(zustand.T%60); if(d>30) d-=60; if(d<=-30) d+=60;      // immer den kürzeren Weg; über die 12 hinweg läuft die Stunde mit
     if(d){ zustand.T=((zustand.T+d)%720+720)%720; zeichne(); }
   };
@@ -378,7 +420,7 @@ function naechste(){
   if(runde.i>=runde.aufgaben.length){ fertig(); return; }
   wartet=false;
   const a=runde.aufgaben[runde.i], st=a.st, o={ringe:mitRingen(), nurStunde:st.nurStunde};
-  $("ringeBtn").textContent = ringe ? "Hilfe-Ringe aus" : "Hilfe-Ringe an";
+  $("ringeBtn").textContent = ringe ? "Hilfen aus" : "Hilfen an";
   $("rueck").textContent=""; $("erkl").innerHTML="";
   zeichneFortschritt();
   runde.gestellt.push(a.key);
@@ -666,7 +708,7 @@ function starteZeit(){
 function stoppZeit(){ if(timer){ clearInterval(timer); timer=null; } }
 $("ringeBtn").addEventListener("click", ()=>{
   ringe=!ringe; try{ localStorage.setItem("uhr_ringe", ringe?"an":"aus"); }catch(e){}
-  $("ringeBtn").textContent = ringe ? "Hilfe-Ringe aus" : "Hilfe-Ringe an";
+  $("ringeBtn").textContent = ringe ? "Hilfen aus" : "Hilfen an";
   if(!runde || wartet) return;
   const a=runde.aufgaben[runde.i], g = (a && a.typ==="dauer") ? null : $("buehne").querySelector(".uhrGross");
   if(aktUhr && $("stellBox")){ aktUhr.opts.ringe=ringe; aktUhr.zeichne(); }
@@ -757,16 +799,26 @@ $("meineBtn").addEventListener("click", ()=>{
 });
 
 //// ===== Die Uhr entdecken =====
-let entUhr=null, entRinge=true, entSpaet=false;     // entSpaet: zweite Tageshälfte (12–24 Uhr)
+let entUhr=null, entRinge=true, entSpaet=false, entSchritt=5;     // entSpaet: zweite Tageshälfte (12–24 Uhr); entSchritt: 5 oder 1 Minute
 function entStunde(T){ const h=Math.floor(T/60); return entSpaet ? h+12 : h; }      // 0–23
+// krumme Minuten (z. B. 3:07, 3:48): „7 Minuten nach 3", „12 Minuten vor 4" – passt zu VOR/NACH auf der Uhr
+function minutenSatz(h,m){ if(m===0||m===30) return ""; const n=nach(h), z=k=>k===1?"eine Minute":`${k} Minuten`;
+  return m<30 ? `${z(m)} nach ${h}` : `${z(60-m)} vor ${n}`; }
 function zeigeEntdecken(){
   zeige("entdecken");
-  entUhr=stellUhr($("entUhr"), 180, 5, {ringe:entRinge, ring24:entRinge && entSpaet}, T=>{
-    const h=Math.floor(T/60)||12, m=T%60, H=entStunde(T), [tz,bild]=tageszeit(H);
+  entUhr=stellUhr($("entUhr"), 180, entSchritt, {ringe:entRinge, ring24:entRinge && entSpaet}, T=>{
+    const h=Math.floor(T/60)||12, m=T%60, H=entStunde(T), [tz,bild]=tageszeit(H), sag=alltag(h,m)||minutenSatz(h,m);
     $("entZeit").textContent=`${entSpaet ? H : h}:${zz(m)}`;
-    $("entSatz").textContent = `${bild} ${tz}`+(alltag(h,m) ? ` · So sagt man${entSpaet?" auch":""}: ${alltag(h,m)}` : "");
+    $("entSatz").textContent = `${bild} ${tz}`+(sag ? ` · So sagt man${entSpaet?" auch":""}: ${sag}` : "");
   });
 }
+$("entSchritt").addEventListener("click", ()=>{
+  entSchritt = entSchritt===5 ? 1 : 5; entUhr.snap=entSchritt;
+  $("entSchritt").textContent = entSchritt===1 ? "⏱ In 5-Minuten-Schritten drehen" : "⏱ Minute für Minute drehen";
+  $("entMinReihe").classList.toggle("hide", entSchritt!==1);
+});
+$("entMinM").addEventListener("click", ()=>entUhr.plus(-1));
+$("entPlusM").addEventListener("click", ()=>entUhr.plus(1));
 $("entHaelfte").addEventListener("click", ()=>{
   entSpaet=!entSpaet; entUhr.opts.ring24=entRinge && entSpaet; entUhr.zeichne();
   $("entHaelfte").textContent = entSpaet ? "🌅 Vormittag zeigen (0–12 Uhr)" : "🌇 Nachmittag und Abend zeigen (12–24 Uhr)";
@@ -776,7 +828,7 @@ $("entMinus").addEventListener("click", ()=>entUhr.plus(-60));
 $("entPlus").addEventListener("click", ()=>entUhr.plus(60));
 $("entLaut").addEventListener("click", ()=>{ const T=entUhr.T, h=Math.floor(T/60)||12, m=T%60, H=entStunde(T);
   sprich(entSpaet ? (m===0?`Es ist ${H} Uhr.`:`Es ist ${H} Uhr ${m}.`) : alltag(h,m) ? `Es ist ${alltag(h,m)}.` : `Es ist ${h} Uhr ${m}.`); });
-$("entRinge").addEventListener("click", ()=>{ entRinge=!entRinge; entUhr.opts.ringe=entRinge; entUhr.opts.ring24=entRinge && entSpaet; entUhr.zeichne(); $("entRinge").textContent=entRinge?"Hilfe-Ringe ausblenden":"Hilfe-Ringe einblenden"; });
+$("entRinge").addEventListener("click", ()=>{ entRinge=!entRinge; entUhr.opts.ringe=entRinge; entUhr.opts.ring24=entRinge && entSpaet; entUhr.zeichne(); $("entRinge").textContent=entRinge?"Hilfen ausblenden":"Hilfen einblenden"; });
 document.querySelectorAll("[data-zurueck]").forEach(b=>b.addEventListener("click",()=>{ zeige("start"); zeigeMenue(); }));
 if(!("speechSynthesis" in window)) $("entLaut").classList.add("hide");
 
