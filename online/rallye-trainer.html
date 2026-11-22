@@ -177,8 +177,8 @@
   .credit a{color:var(--muted)}
 
   /* ===== Baustelle / PIN ===== */
-  .pinOverlay{position:fixed;inset:0;background:rgba(5,10,22,.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
-  .pinModal{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .pinOverlay{position:fixed;inset:0;background:rgba(5,10,22,.85);z-index:999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain}
+  .pinModal{margin:auto;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow)}
   .pinModal h3{margin:0 0 8px;font-size:20px}
   .pinModal p{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.5}
   .pininput{width:100%;font-size:30px;text-align:center;letter-spacing:12px;padding:12px;border-radius:12px;

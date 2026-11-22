@@ -172,8 +172,8 @@
   .empf b{color:#fff}
 
   /* PIN-Dialog */
-  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.78);display:flex;align-items:center;justify-content:center;z-index:9998;padding:20px}
-  .modal{background:var(--card);border-radius:18px;padding:26px;max-width:380px;width:100%;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.08);text-align:center}
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.78);display:flex;align-items:flex-start;justify-content:center;z-index:9998;padding:20px;overflow-y:auto;overscroll-behavior:contain}
+  .modal{margin:auto;background:var(--card);border-radius:18px;padding:26px;max-width:380px;width:100%;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.08);text-align:center}
   .modal h3{margin:0 0 6px;font-size:20px}
   .modal p{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.5}
   .pininput{width:100%;font-size:34px;letter-spacing:14px;text-align:center;padding:12px;border-radius:12px;border:2px solid var(--card2);background:#0b1220;color:var(--text);outline:none;font-family:inherit}
