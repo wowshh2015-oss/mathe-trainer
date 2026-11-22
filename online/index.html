@@ -31,6 +31,10 @@
   a.tile{display:block;text-decoration:none;color:var(--text);background:var(--card);border:2px solid var(--card2);border-radius:20px;padding:28px 16px;box-shadow:var(--shadow);transition:.15s}
   a.tile:hover{transform:translateY(-3px);border-color:var(--ac);background:var(--soft)}
   .tile.gesperrt{opacity:.75;border-style:dashed}
+  a.tile.lsBand{grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;padding:18px 20px;
+    background:linear-gradient(135deg,rgba(163,230,53,.22),rgba(163,230,53,.05));border-color:rgba(163,230,53,.6)}
+  .lsBand .ic{font-size:46px;flex:none;margin:0} .lsBand .lsTx{flex:1;min-width:0} .lsBand .t{display:block;font-size:21px;color:#d9f99d;margin:0}
+  .lsBand .d{display:block;font-size:13.5px;margin-top:3px} .lsBand .lsPf{font-size:30px;color:#bef264;flex:none} .lsBand .kl{display:none}
   .tile.matt{opacity:.38}
   .tile.breit{grid-column:1/-1}
   .tile .kl{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;background:rgba(148,163,184,.16);color:#cbd5e1;line-height:1.4}
@@ -191,6 +195,8 @@
   </div>
   <div class="grid dis" id="grid">
     <!-- immer zwei Kacheln nebeneinander, paarweise nach Thema -->
+    <!-- Lernstandstest über die ganze Breite (22.11.2026) -->
+    <a class="tile lsBand" data-page="standort-trainer.html"><span class="ic">🧪</span><span class="lsTx"><span class="t">Wo stehe ich?</span><span class="d">Der Mathe-Test für deine Klasse: Was sitzt schon, was übe ich noch? · Klasse 1–4 · Anfang · Halbjahr · Ende</span></span><span class="lsPf">›</span></a>
     <!-- Rechnen -->
     <a class="tile t3" data-page="plus-trainer.html"><div class="ic">➕</div><div class="t">Plus</div><div class="d">bis 20 · 100 · 1000</div></a>
     <a class="tile t4" data-page="minus-trainer.html"><div class="ic">➖</div><div class="t">Minus</div><div class="d">bis 20 · 100 · 1000</div></a>
