@@ -59,9 +59,10 @@
   .stufe .kn{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 
   /* ===== Uhr ===== */
-  .uhr{display:block;width:100%;height:auto;touch-action:none;-webkit-user-select:none;user-select:none}
+  .uhr{display:block;width:100%;height:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none}   /* nur zum Anschauen: Wischen scrollt die Seite */
   .uhrGross{max-width:320px;margin:0 auto}
-  .uhrGross.zieh .uhr{cursor:grab}
+  .uhrGross.zieh{max-width:min(320px,74vw)}                                       /* daneben bleibt am Handy Platz zum Scrollen */
+  .uhrGross.zieh .uhr{cursor:grab;touch-action:none}                              /* nur hier wird der Zeiger gedreht */
   .zeitGross{text-align:center;font-size:44px;font-weight:800;line-height:1.1;margin-top:8px;font-variant-numeric:tabular-nums}
   .zeitSatz{text-align:center;font-size:19px;color:#ddd6fe;font-weight:700;margin-top:2px;min-height:26px}
   .reihe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
