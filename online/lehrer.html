@@ -420,6 +420,7 @@ const APPS={
   blitz:        {label:"Blitzrechnen",  ic:"⚡"},
   sach2:        {label:"Sach 2 Schritte", ic:"📚"},
   strahl:       {label:"Zahlenstrahl",  ic:"📍"},
+  stellen:      {label:"Stellenwerte",  ic:"🧱"},
   geo:          {label:"Geometrie",     ic:"📐"},
   daten:        {label:"Daten",         ic:"📊"},
   einstufung:   {label:"Einstufung",    ic:"🧪"},
@@ -446,7 +447,7 @@ function uebungLabel(e){
   if(e.modus==="Marathon" || e.modus==="Turm") return `Etage ${e.etage} · ${e.stufe||""}`.trim();
   if(e.app==="standort") return `${e.stufe||""} · ${e.richtig} von ${e.max} Punkten${e.note?" · Note "+e.note:""}`;
   if(e.app==="einstufung") return `${e.stufe||""}${(e.bestandenIn||[]).length?" · gefestigt: "+e.bestandenIn.map(a=>APPS[a]?APPS[a].label:a).join(", "):""}`;
-  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
+  if(e.app==="uhr" || e.app==="sach" || e.app==="geld" || e.app==="laengen" || e.app==="platz" || ["gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen"].includes(e.app)) return `Stufe ${e.zr||"–"} · ${e.stufeName||""}`.trim();
   if(e.modus==="Test") return (e.stufe||"–") + (e.zr?` · bis ${e.zr}`:"");
   const r=String(e.reihe||"");
   if(r==="mine") return "Meine Aufgaben";
@@ -919,7 +920,7 @@ function renderHA(){
 let UHR_FREI=false, ZU={};
 let KLASSE=null;       // Namen der eigenen Klasse für den Projektor (einstellungen/freigabe.klasse) – gilt auf jedem Gerät
 const PROGRAMME=[["zerlegen","🧩 Zerlegen"],["halbschriftlich","🪜 Rechenwege"],["plus","➕ Plus"],["minus","➖ Minus"],["einmaleins","✖️ Einmaleins"],["einsdurcheins","➗ Einsdurcheins"],
-                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["schrift","✍️ Schriftlich rechnen"],["kalender","📅 Kalender und Zeit"],["mix","🎲 Bunte Mischung (alle Themen gemischt)"],["zoo","🦁 Mein Zoo (Spiel)"],["blitz","⚡ Blitzrechnen"],["sach2","📚 Sachaufgaben in zwei Schritten"],["zahlen","🔢 Zahlen bis 1000"],["strahl","📍 Zahlenstrahl"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["turm","🏙️ Mein Wolkenkratzer (Spiel)"],["rallye","🏎️ Rechen-Rallye"],
+                 ["platz","🔍 Fehlende Zahl (Fachwörter)"],["sach","📖 Sachaufgaben"],["uhr","🕒 Uhr-Trainer"],["geld","💶 Geld"],["laengen","📏 Längen"],["gewichte","⚖️ Gewichte"],["schrift","✍️ Schriftlich rechnen"],["kalender","📅 Kalender und Zeit"],["mix","🎲 Bunte Mischung (alle Themen gemischt)"],["zoo","🦁 Mein Zoo (Spiel)"],["blitz","⚡ Blitzrechnen"],["sach2","📚 Sachaufgaben in zwei Schritten"],["zahlen","🔢 Zahlen bis 1000"],["strahl","📍 Zahlenstrahl"],["stellen","🧱 Stellenwerte"],["geo","📐 Formen und Körper"],["daten","📊 Daten und Zufall"],["turm","🏙️ Mein Wolkenkratzer (Spiel)"],["rallye","🏎️ Rechen-Rallye"],
                  ["einstufung","🧪 Einstufung (Eingangstest)"],["eltern","👨‍👩‍👧 Elternseite"]];
 function istGesperrt(app){ return app==="uhr" ? !UHR_FREI : ZU[app]===true; }
 function zeigeFreigabe(){

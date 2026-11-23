@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -19,8 +19,9 @@
     sach2:["📚","Sachaufgaben in zwei Schritten","Erst überlegen, was zuerst gerechnet wird – dann der zweite Schritt."],
     strahl:["📍","Zahlenstrahl","Erst den Schritt finden – dann die Zahl."],
     zoo:["🦁","Mein Zoo","Löse Aufgaben aus allen Themen – wer gut rechnet, bekommt neue Tiere."],
-    blitz:["⚡","Blitzrechnen","Kopfrechnen, bis es blitzschnell geht – jeden Tag ein, zwei Minuten."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"], zoo:["#a3e635","#1a2e05"], blitz:["#fbbf24","#422006"] }[WAS];
+    blitz:["⚡","Blitzrechnen","Kopfrechnen, bis es blitzschnell geht – jeden Tag ein, zwei Minuten."],
+    stellen:["🧱","Stellenwerte","Mit Hundertern, Zehnern und Einern legen – und sehen, wie die Zahl entsteht."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"], zoo:["#a3e635","#1a2e05"], blitz:["#fbbf24","#422006"], stellen:["#4ade80","#14532d"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -271,6 +272,17 @@
     {id:6, name:"Schritt finden bis 1000", kurz:"10er, 20er, 25er, 50er, 100er", typen:["t_schritt","t_pfeil","t_pfeil","t_wo"]},
     {id:7, name:"Zahlenstrahl bis 1 Million", kurz:"Klasse 4 · große Schritte", typen:["m_strahl"], sek:70}
   ];
+  // Stellenwerte (23.11.2026, nach den Kriterien von Walter & Schwätzer): Zahlen mit Material legen – Handlung, Stellentafel und Zahl hängen zusammen
+  const STELLENWERTE=[
+    {id:1, name:"Zahlen legen bis 100", kurz:"Lege 47 mit Zehnerstangen und Einerwürfeln", typen:["st_legen2","st_legen2","st_wortLegen2"], sek:60},
+    {id:2, name:"Welche Zahl ist das?", kurz:"Zehner und Einer zählen – auch durcheinander", typen:["st_lesen2","st_lesen2","st_zerlegt2"]},
+    {id:3, name:"Zahlendreher: 45 oder 54?", kurz:"Wir sprechen die Einer zuerst – wir schreiben die Zehner zuerst", typen:["st_dreherBild","st_dreherWort","st_dreherBild"]},
+    {id:4, name:"Bündeln: 10 Einer sind 1 Zehner", kurz:"3 Zehner und 14 Einer = 44 · Lege 52 nur mit 4 Zehnern", typen:["st_buendelLesen2","st_buendelLegen2","st_buendelLesen2"], sek:60},
+    {id:5, name:"Plus und minus 1 und 10", kurz:"Leg eine Stange dazu – oder nimm einen Würfel weg", typen:["st_plus2","st_plus2","st_plus2"], sek:60},
+    {id:6, name:"Zahlen legen bis 1000", kurz:"Hunderterplatten, Zehnerstangen, Einerwürfel · auch 305", typen:["st_legen3","st_null3","st_legen3"], sek:70},
+    {id:7, name:"Bis 1000: lesen und bündeln", kurz:"2 H 13 Z 5 E = 335", typen:["st_lesen3","st_buendelLesen3","st_lesen3","st_buendelLegen3"], sek:70},
+    {id:8, name:"Plus und minus 1, 10 und 100", kurz:"299 + 1 · 400 − 1 – hier wird gebündelt und entbündelt", typen:["st_plus3","st_plus3","st_plus3"], sek:80}
+  ];
   // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
     // zooF: im Zoo machen schwerere Runden seltene Tiere wahrscheinlicher (zoo.js) · chance: so steht es bei der Runde
@@ -358,7 +370,7 @@
   let BL=2; const BL_WAHL={}, LVN=["","Anfänger","Fortgeschritten","Profi"];
   function zielFuer(st, lv){ return lv===1 ? st.ziel+3 : lv===3 ? Math.max(6, st.ziel-3) : st.ziel; }
   let BLITZ_KL=0; try{ BLITZ_KL=+(localStorage.getItem("blitz_klasse") || localStorage.getItem("mathe_klasse") || 0) || 0; }catch(e){}
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ}[WAS];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ, stellen:STELLENWERTE}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -1327,8 +1339,75 @@
         erkl:`${a} mm + ${b} mm = ${s} mm. Je 10 mm sind 1 cm: <b>${Math.floor(s/10)} cm ${s%10} mm</b>.`}); },
     l_seil(){ const m=rnd(2,6), ab=rnd(2,m*10-3)*10-aus([0,0,5]), rest=m*100-ab;
       return eingabe(`Ein Seil ist <span class="ziel">${m} m</span> lang. Es werden <span class="ziel">${ab} cm</span> abgeschnitten.<br>Wie lang ist das Seil jetzt?`, [F.m,F.cmM], rest, {tag:"rechnen", sollText:euroLaenge(rest), streng:true,
-        erkl:`Wandle um: ${m} m = ${m*100} cm. Dann ${m*100} cm − ${ab} cm = ${rest} cm. Das sind <b>${euroLaenge(rest)}</b>.`}); }
+        erkl:`Wandle um: ${m} m = ${m*100} cm. Dann ${m*100} cm − ${ab} cm = ${rest} cm. Das sind <b>${euroLaenge(rest)}</b>.`}); },
+    // ===== Stellenwerte: legen, lesen, Zahlendreher, bündeln, plus/minus mit Material =====
+    st_legen2(){ const n=rnd(11,99); return stLegen(n, ST2, `Lege die Zahl <span class="ziel">${n}</span>.`); },
+    st_wortLegen2(){ let n; do{ n=rnd(21,99); }while(n%10===0 || n%11===0);
+      return stLegen(n, ST2, `Lege: <span class="ziel">${Stellen.zahlwort(n)}</span>`, {erkl:dreherErkl(n)+`<br>${Stellen.bild(stTeile(n),ST2)}`}); },
+    st_lesen2(){ const z=rnd(1,9), e=rnd(0,9), n=z*10+e;
+      return eingabe("Welche Zahl liegt hier?", [F.zahl], n, {bild:Stellen.bild({Z:z,E:e},ST2), tag:"stlesen", sollText:String(n), falle:e&&e!==z?e*10+z:null, falleArt:"dreher",
+        erkl:`${z} Zehnerstangen sind ${z*10}${e?`, dazu ${e} Einerwürfel: ${z*10} + ${e} = <b>${n}</b>`:` – Einer liegen keine da: <b>${n}</b>`}.`}); },
+    st_zerlegt2(){ const z=rnd(1,9), e=rnd(1,9), n=z*10+e;
+      const t=aus([`${z} Zehner und ${e} Einer`, `${e} Einer und ${z} Zehner`, `${z*10} + ${e}`, `${e} + ${z*10}`, `${e} E ${z} Z`]);
+      return eingabe(`Welche Zahl ist <span class="ziel">${t}</span>?`, [F.zahl], n, {tag:"stlesen", sollText:String(n), falle:e!==z?e*10+z:null, falleArt:"dreher",
+        erkl:`Egal, in welcher Reihenfolge es dasteht: <b>${z} Zehner</b> und <b>${e} Einer</b>. In der Zahl steht der Zehner vorne: <b>${n}</b>.<br>${Stellen.bild({Z:z,E:e},ST2)}`}); },
+    st_dreherBild(){ let z,e; do{ z=rnd(2,9); e=rnd(1,9); }while(z===e); const n=z*10+e, z3=z===9?8:z+1;
+      const paare=mische([[Stellen.bild({Z:z,E:e},ST2),`${z} Z ${e} E`],[Stellen.bild({Z:e,E:z},ST2),`${e} Z ${z} E`],[Stellen.bild({Z:z3,E:e},ST2),`${z3} Z ${e} E`]]);
+      return {art:"wahl", frage:`Welches Bild zeigt <span class="ziel">${n}</span>?<br><span style="font-size:15px;color:var(--muted);font-weight:600">${Stellen.zahlwort(n)}</span>`, optionen:paare.map(p=>p[0]), optText:paare.map(p=>p[1]),
+        ok:Stellen.bild({Z:z,E:e},ST2), spalten:1, tag:"dreher", sollText:`${n} = ${z} Zehner ${e} Einer`, erkl:dreherErkl(n)}; },
+    st_dreherWort(){ let z,e; do{ z=rnd(2,9); e=rnd(1,9); }while(z===e); const n=z*10+e;
+      return {art:"wahl", frage:`Wie schreibt man <span class="ziel">${Stellen.zahlwort(n)}</span>?`, optionen:mische([String(n),String(e*10+z),`${z}0${e}`]), ok:String(n), tag:"dreher", sollText:String(n), erkl:dreherErkl(n)}; },
+    st_buendelLesen2(){ const z=rnd(1,7), e=rnd(10,19), n=z*10+e;
+      return eingabe("Welche Zahl liegt hier? Achtung: Es sind mehr als 9 Einer!", [F.zahl], n, {bild:Stellen.bild({Z:z,E:e},ST2), tag:"buendeln", sollText:String(n), falle:+`${z}${e}`, falleArt:"buendeln",
+        erkl:`${e} Einer – davon sind <b>10 Einer ein Zehner</b>. Bündeln: ${z} + 1 = <b>${z+1} Zehner</b> und ${e-10} Einer = <b>${n}</b>.<br>Oder gerechnet: ${z*10} + ${e} = ${n}. (Nicht ${z}${e}: an jeder Stelle steht nur <b>eine</b> Ziffer.)`}); },
+    st_buendelLegen2(){ let n; do{ n=rnd(31,89); }while(n%10===0); const k=Math.floor(n/10)-1;
+      return stLegen(n, ST2, `Lege <span class="ziel">${n}</span> – aber nimm nur <b>${k} Zehnerstangen</b>!`, {nur:{Z:k}, tag:"buendeln",
+        erkl:`Mit ${k} Zehnerstangen hast du ${k*10}. Bis ${n} fehlen noch ${n-k*10} – das sind <b>${n-k*10} Einerwürfel</b>. Denn 10 Einer sind so viel wie 1 Zehner.<br>${Stellen.bild({Z:k,E:n-k*10},ST2)}`}); },
+    st_plus2(){ return stPlus(aus(["+1","+1","-1","-1","+10","-10"]), ST2); },
+    st_legen3(){ const n=rnd(101,999); return stLegen(n, ST3, `Lege die Zahl <span class="ziel">${n}</span>.`); },
+    st_null3(){ const h=rnd(1,9), x=rnd(1,9), n=aus([h*100+x, h*100+x*10]), ohne=+String(n).replace("0","");
+      return stLegen(n, ST3, `Lege <span class="ziel">${n}</span>. Schau genau auf die Null!`, {falle:ohne, falleArt:"null"}); },
+    st_lesen3(){ const h=rnd(1,9), z=rnd(0,9), e=rnd(0,9), n=h*100+z*10+e;
+      return eingabe("Welche Zahl liegt hier?", [F.zahl], n, {bild:Stellen.bild({H:h,Z:z,E:e},ST3), tag:"stlesen", sollText:String(n), falle:(!z||!e)?+String(n).replace("0",""):null, falleArt:"null",
+        erkl:`${h} Hunderterplatten = ${h*100}, ${z} Zehnerstangen = ${z*10}, ${e} Einerwürfel = ${e}. Zusammen: <b>${n}</b>.`+(!z||!e?` Wo nichts liegt, schreibt man eine <b>0</b>.`:"")}); },
+    st_buendelLesen3(){ const h=rnd(1,7), viel=aus(["Z","E"]), z=viel==="Z"?rnd(10,14):rnd(1,8), e=viel==="E"?rnd(10,15):rnd(0,9), n=h*100+z*10+e;
+      return eingabe(`Welche Zahl liegt hier? Achtung: mehr als 9 ${viel==="Z"?"Zehner":"Einer"}!`, [F.zahl], n, {bild:Stellen.bild({H:h,Z:z,E:e},ST3), tag:"buendeln", sollText:String(n),
+        falle:viel==="Z"?+`${h}${z}${e}`:+`${h}${z}${e}`, falleArt:"buendeln",
+        erkl:`${h*100} + ${z*10} + ${e} = <b>${n}</b>. ${viel==="Z"?`10 Zehner sind 1 Hunderter: ${z} Zehner = 1 Hunderter und ${z-10} Zehner.`:`10 Einer sind 1 Zehner: ${e} Einer = 1 Zehner und ${e-10} Einer.`}`}); },
+    st_buendelLegen3(){ let n; do{ n=rnd(2,9)*100+rnd(0,9)*10+rnd(0,9); }while(n%100===0); const k=Math.floor(n/100)-1;
+      return stLegen(n, ST3, `Lege <span class="ziel">${n}</span> – aber nimm nur <b>${k} Hunderterplatten</b>!`, {nur:{H:k}, tag:"buendeln",
+        erkl:`Mit ${k} Hunderterplatten hast du ${k*100}. Der fehlende Hunderter wird zu <b>10 Zehnerstangen</b>: also ${k} H, ${stTeile(n).Z+10} Z, ${stTeile(n).E} E.<br>${Stellen.bild({H:k,Z:stTeile(n).Z+10,E:stTeile(n).E},ST3)}`}); },
+    st_plus3(){ return stPlus(aus(["+1","-1","+10","-10","+100","-100","+1","-1"]), ST3); }
   };
+  // ---------- Stellenwerte: Hilfen ----------
+  const ST2=["Z","E"], ST3=["H","Z","E"];
+  function stTeile(n){ return {H:Math.floor(n/100), Z:Math.floor(n/10)%10, E:n%10}; }
+  function stSatz(n, sp){ const t=stTeile(n), l=[]; if(sp.includes("H")&&t.H) l.push(`<b>${t.H} Hunderter</b>`); if(t.Z) l.push(`<b>${t.Z} Zehner</b>`); if(t.E) l.push(`<b>${t.E} Einer</b>`);
+    return l.length>1 ? l.slice(0,-1).join(", ")+" und "+l[l.length-1] : l.join(""); }
+  function stLegen(n, sp, frage, o){
+    const t=stTeile(n), nullText = sp.includes("H") && (t.Z===0 || t.E===0) ? ` Die <b>0</b> zeigt: An dieser Stelle liegt nichts – aber die Null muss man schreiben.` : "";
+    return Object.assign({art:"stellen", frage, soll:n, sp, tag:"stellen", sollText:String(n), erkl:`<b>${n}</b> hat ${stSatz(n,sp)}.${nullText}<br>${Stellen.bild(t,sp)}`}, o||{}); }
+  function dreherErkl(n){ const z=Math.floor(n/10)%10, e=n%10;
+    return `Wir <b>sprechen</b> zuerst die Einer: <b>${Stellen.zahlwort(e).replace(/^eins$/,"ein")}</b>-und-<b>${Stellen.zahlwort(z*10)}</b>.<br>Wir <b>schreiben</b> aber zuerst die Zehner: <b>${z}</b> Zehner, dann <b>${e}</b> Einer → <b>${n}</b>.`; }
+  // Plus/minus am Material: Es liegt schon eine Zahl da, das Kind verändert sie (oft mit Übergang = bündeln oder entbündeln)
+  function stPlus(op, sp){
+    const d=+op, gross=sp.includes("H"), max=gross?999:99;
+    let n, versuch=0;
+    do{ versuch++;
+      if(d===1)    n = gross ? aus([rnd(1,8)*100+99, rnd(10,98)*10+9, rnd(100,998)]) : aus([rnd(1,8)*10+9, rnd(1,8)*10+9, rnd(11,98)]);
+      if(d===-1)   n = gross ? aus([rnd(2,9)*100, rnd(11,99)*10, rnd(101,999)]) : aus([rnd(2,9)*10, rnd(2,9)*10, rnd(12,99)]);
+      if(d===10)   n = gross ? aus([rnd(1,8)*100+90+rnd(0,9), rnd(100,889)]) : rnd(10,89);
+      if(d===-10)  n = gross ? aus([rnd(2,9)*100+rnd(0,9), rnd(120,999)]) : rnd(20,99);
+      if(d===100)  n = rnd(100,899);
+      if(d===-100) n = rnd(200,999);
+    }while((n+d<1 || n+d>max) && versuch<50);
+    const ziel=n+d, t=stTeile(n), w=Math.abs(d), stueck = w===1?"einen Einerwürfel":w===10?"eine Zehnerstange":"eine Hunderterplatte",
+          stelle = w===1?"E":w===10?"Z":"H", ueber = d>0 ? stTeile(ziel)[stelle]<t[stelle] || (w===1 && t.E===9) : t[stelle]===0;
+    let erkl;
+    if(d>0) erkl = `Lege ${stueck} dazu.`+(ueber ? ` Jetzt sind es <b>10 ${w===1?"Einer":w===10?"Zehner":"Hunderter"}</b> – bündle sie: Sie werden zu einem ${w===1?"Zehner":"Hunderter"}.${w===1&&t.Z===9&&gross?" Und wenn es dann 10 Zehner sind, bündelst du noch einmal zu einem Hunderter.":""}` : ` Die anderen Stellen bleiben gleich.`)+` Aus ${n} wird <b>${ziel}</b>.`;
+    else erkl = (ueber ? `Es liegt ${w===1?"kein Einerwürfel":w===10?"keine Zehnerstange":"keine Hunderterplatte"} da. <b>Entbündle</b> zuerst: ${w===1?"1 Zehner wird zu 10 Einern":"1 Hunderter wird zu 10 Zehnern"}${w===1&&t.Z===0&&gross?" (und vorher 1 Hunderter zu 10 Zehnern)":""}. Dann nimm ${stueck} weg.` : `Nimm ${stueck} weg. Die anderen Stellen bleiben gleich.`)+` Aus ${n} wird <b>${ziel}</b>.`;
+    return {art:"stellen", sp, start:t, frage:`Hier liegt <b>${n}</b>. Mach daraus <span class="ziel">${n} ${d>0?"+":"−"} ${w}</span>.`, soll:ziel, tag:"plusminus", sollText:String(ziel),
+      erkl:erkl+`<br>${Stellen.bild(stTeile(ziel),sp)}`}; }
   function euroLaenge(c){ const m=Math.floor(c/100), r=c%100; return m&&r ? `${m} m ${r} cm` : m ? `${m} m` : `${r} cm`; }
   function baueAufgabe(st, typ){ typ=typ||aus(st.typen); UHR_MIN=st.uhr||null; const a=BAU[typ](); a.st=st; a.typ=typ; a.key=`${st.id}|${typ}`; return a; }
   function baueRunde(st, typen){
@@ -1424,6 +1503,27 @@
       alle.forEach(x=>{ x.addEventListener("keydown", e=>{ if(e.key==="Enter") pruef(); }); if(x.dataset.u!==undefined) x.addEventListener("input", ()=>{ x.value=x.value.replace(/\D/g,"").slice(-1); }); });
       $("okBtn").addEventListener("click", pruef);
       try{ erg[erg.length-1].focus({preventScroll:true}); }catch(e){}
+    }else if(a.art==="stellen"){
+      // Zahl mit Material legen: Hunderterplatten, Zehnerstangen, Einerwürfel. Die Stellentafel erscheint erst nach „Fertig" – sonst legt man nur, bis die Zahl passt.
+      $("buehne").innerHTML=`<div id="stHier"></div><div class="reihe"><button class="ghost klein" id="leerBtn">${a.start?"Von vorn":"Alles zurück"}</button><button id="okBtn">Fertig ✓</button></div>`;
+      const br=Stellen.brett($("stHier"), {spalten:a.sp, start:a.start, live:false});
+      $("leerBtn").addEventListener("click",()=>{ if(!wartet) br.setze(a.start||{}); });
+      $("okBtn").addEventListener("click",()=>{
+        if(wartet) return;
+        const s=br.stand, w=br.wert(); if(!w && !a.start) return;
+        const nurOk=!a.nur || Object.keys(a.nur).every(k=>s[k]===a.nur[k]), ok=w===a.soll && nurOk;
+        a.zusatz=""; a.artFehler=""; a.okText="";
+        if(ok && !Stellen.gebuendelt(s)) a.okText=`Richtig, das ist ${w}! In der Stellentafel steht an jeder Stelle nur eine Ziffer – so sieht es gebündelt aus: ${Stellen.kurz(stTeile(w),a.sp)}.`;
+        if(!ok){
+          const dreh = w>9 && w<100 ? (w%10)*10+Math.floor(w/10) : null;
+          if(w===a.soll && !nurOk){ const k=Object.keys(a.nur)[0]; a.zusatz=` Die Zahl stimmt – aber du solltest genau <b>${a.nur[k]} ${k==="Z"?"Zehnerstangen":"Hunderterplatten"}</b> nehmen, nicht ${s[k]}.`; a.artFehler="buendeln"; }
+          else{ a.zusatz=` Du hast ${Stellen.kurz(s,a.sp)} gelegt – das ist <b>${w}</b>.`;
+            if(a.soll<100 && dreh===a.soll && dreh!==w) a.artFehler="dreher";
+            else if(a.falle && w===a.falle) a.artFehler=a.falleArt; }
+        }
+        br.sperren(); br.zeigeSync(); $("okBtn").disabled=true; $("leerBtn").disabled=true;
+        auswerten(a, ok, `${Stellen.kurz(s,a.sp)} = ${w}`, w, false);
+      });
     }else{   // legen
       haufen=[];
       $("buehne").innerHTML=`<div class="haufen" id="haufen">Tippe unten auf Münzen und Scheine.</div>
@@ -1471,8 +1571,8 @@
     if(ok){
       runde.richtig++; r.style.color="var(--good)";
       if(a.zweiter) runde.fehler.push(a.key); else runde.sofort++;      // im zweiten Versuch richtig: zählt, kommt aber zum Wiederholen
-      r.textContent = nichtGetauscht ? `Richtig! Man schreibt es so: ${a.sollText}` : "Richtig! 👍";
-      wartet=false; spaeter(runde.blitz?220:nichtGetauscht?2200:950); return;
+      r.textContent = nichtGetauscht ? `Richtig! Man schreibt es so: ${a.sollText}` : a.okText || "Richtig! 👍";
+      wartet=false; spaeter(runde.blitz?220:nichtGetauscht?2200:a.okText?3200:a.art==="stellen"?1600:950); return;
     }
     runde.fehler.push(a.key); runde.fehlerTexte.push(a.sollText);
     // Denkfehler erkennen: Umrechnungszahl verwechselt (10 statt 100) oder beim Lineal das Ende abgelesen
@@ -1481,6 +1581,7 @@
     if(a.falle && summe===a.falle){ art="groesse_"+(a.falleArt||"ablesen"); }
     if(a.streng && summe===a.soll && !nichtGetauscht===false) zusatz="";
     if(a.art==="legen" && summe!==null) zusatz=` Du hast ${komma(summe)} gelegt – das ist ${summe>a.soll?"zu viel":"zu wenig"}.`;
+    if(a.art==="stellen"){ zusatz=a.zusatz||""; if(a.artFehler) art="groesse_"+a.artFehler; }
     if(a.zweiFalsch){ zusatz=`<br><b>Achtung:</b> Hinter dem Komma stehen immer <b>zwei</b> Ziffern – 5 ct schreibt man als „05“, 50 ct als „50“.`; art="groesse_komma"; }
     runde.antworten.push(`${a.typ.slice(2)}|${a.sollText}|${gegebenText}|${art}`);
     r.style.color="var(--bad)"; r.textContent=`Das stimmt noch nicht. Richtig ist ${a.sollText}.`;
@@ -1618,6 +1719,20 @@
       // der Zoo steht oben; ein Knopf springt gleich zu den Runden, damit niemand lange blättern muss
       $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:14px">▶ Neue Tiere holen</button>`+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
       $("zooLos").addEventListener("click", ()=>{ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){ $("stufen").scrollIntoView(); } });
+    }
+    if(WAS==="stellen" && window.Stellen && !$("entdeckenBtn")){
+      // Entdecken: freies Legen ohne Bewertung – Material, Stellentafel, Zahl und Zahlwort ändern sich gleichzeitig
+      $("zooFeld").innerHTML=`<div class="stufe" style="border-color:#fde68a"><span class="nr">🔎</span><span class="tx"><b>Entdecken</b><span>Lege, bündle und entbündle, wie du willst – die Zahl wächst mit. Hier gibt es keine Fehler.</span></span>
+        <span class="kn"><button class="klein" id="entdeckenBtn">Ausprobieren</button></span></div><div id="entdecken" class="hide" style="margin-bottom:14px"></div>`;
+      let kl=0; try{ kl=+(localStorage.getItem("mathe_klasse")||0); }catch(e){}
+      const baue=bis=>{ const e=$("entdecken");
+        e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${[100,1000].map(b=>`<button class="klein${b===bis?"":" ghost"}" data-bis="${b}">bis ${b}</button>`).join("")}<button class="ghost klein" id="entLeer">Alles weg</button></div><div id="entBrett"></div>`;
+        const br=Stellen.brett($("entBrett"), {spalten:bis===100?ST2:ST3, live:true});
+        e.querySelectorAll("[data-bis]").forEach(b=>b.addEventListener("click",()=>baue(+b.dataset.bis)));
+        $("entLeer").addEventListener("click",()=>br.setze({})); };
+      $("entdeckenBtn").addEventListener("click",()=>{ const e=$("entdecken"), zu=!e.classList.contains("hide");
+        e.classList.toggle("hide", zu); $("entdeckenBtn").textContent=zu?"Ausprobieren":"Schließen";
+        if(!zu && !e.dataset.an){ e.dataset.an="1"; baue(kl && kl<=2 ? 100 : 1000); } });
     }
     const z=meineTypen(), n=z.offen.length+z.faellig.length;
     $("meineText").textContent = n ? `${z.offen.length?z.offen.length+(z.offen.length===1?" Aufgabenart sitzt":" Aufgabenarten sitzen")+" noch nicht":""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`

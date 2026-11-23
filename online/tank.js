@@ -27,6 +27,7 @@ window.Tank=(function(){
     {app:"sach2",           ic:"📚", name:"Sachaufgaben in zwei Schritten", datei:"sach2-trainer.html"},
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
     {app:"strahl",          ic:"📍", name:"Zahlenstrahl", datei:"strahl-trainer.html"},
+    {app:"stellen",         ic:"🧱", name:"Stellenwerte", datei:"stellen-trainer.html"},
     {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
     {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
   ];

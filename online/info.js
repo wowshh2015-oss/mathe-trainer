@@ -138,6 +138,15 @@
     "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
     "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
+    // Stellenwerte (Legen mit Material)
+    "Zahlen legen bis 100":"Lege die Zahl mit Zehnerstangen und Einerwürfeln. Ziehen oder antippen. Die erste Ziffer sagt, wie viele Zehner. Erst nach „Fertig“ siehst du die Stellentafel. <b>Klasse 2.</b>",
+    "Welche Zahl ist das?":"Zähle die Zehnerstangen und die Einerwürfel. Auch wenn es durcheinander dasteht: Die Zehner stehen in der Zahl vorne. <b>Klasse 2.</b>",
+    "Zahlendreher: 45 oder 54?":"Wir sagen zuerst die Einer (fünf-und-vierzig), schreiben aber zuerst die Zehner (45). Hier übst du, nichts zu verdrehen. <b>Klasse 2.</b>",
+    "Bündeln: 10 Einer sind 1 Zehner":"Mehr als 9 Einer? Dann bündelst du 10 Einer zu einem Zehner. 3 Zehner und 14 Einer sind 44 – nicht 314. <b>Klasse 2.</b>",
+    "Plus und minus 1 und 10":"Es liegt schon eine Zahl da. Leg etwas dazu oder nimm etwas weg. Bei 39 + 1 musst du bündeln, bei 40 − 1 entbündeln. <b>Klasse 2.</b>",
+    "Zahlen legen bis 1000":"Jetzt mit Hunderterplatten. Bei 305 liegt an der Zehnerstelle nichts – trotzdem schreibt man die 0. <b>Klasse 3.</b>",
+    "Bis 1000: lesen und bündeln":"Hunderter, Zehner, Einer zählen – auch wenn es mehr als 9 Zehner sind: 10 Zehner sind 1 Hunderter. <b>Klasse 3.</b>",
+    "Plus und minus 1, 10 und 100":"299 + 1, 400 − 1, 305 − 10: Hier wird gebündelt und entbündelt – manchmal sogar zweimal. <b>Klasse 3.</b>",
     // Zahlenstrahl (eigene Kachel)
     "Zahlenstrahl bis 100 ablesen":"Jeder Zehner ist beschriftet, die kleinen Striche sind Einer. Such den Zehner davor und zähl weiter. <b>Klasse 2.</b>",
     "Wie viele Schritte sind es?":"Zähle die Sprünge von Strich zu Strich – nicht die Striche selbst. Den ersten Strich zählst du nicht mit. <b>Klasse 2.</b>",
@@ -208,6 +217,7 @@
     zoo:"<b>Mein Zoo:</b> ein Spiel mit Aufgaben aus allen Themen. Ab 5 von 10 richtigen Aufgaben zieht ein Tier ein, bei 10 von 10 sogar zwei – es gibt häufige, seltene ⭐ und legendäre 🌟 Tiere. Der Zoo kostet keinen Sprit.",
     mix:"<b>Bunte Mischung:</b> 15 Aufgaben aus ganz verschiedenen Themen – Zahlen, Uhr, Geld, Formen, Gewichte … Du wählst deine Klasse. Gut zum Wiederholen.",
     kalender:"<b>Kalender und Zeit:</b> Wochentage und Monate, wie viele Tage ein Monat hat, und Stunden, Minuten, Sekunden umrechnen. <b>Klasse 1 bis 3.</b>",
+    stellen:"<b>Stellenwerte:</b> Lege Zahlen mit Hunderterplatten, Zehnerstangen und Einerwürfeln. Die Stellentafel und die Zahl ändern sich mit. Unter „Entdecken“ darfst du alles frei ausprobieren. <b>Klasse 2 und 3.</b>",
     strahl:"<b>Zahlenstrahl:</b> Am Zahlenstrahl stehen nur der Anfang und das Ende. Du zählst die Schritte, rechnest aus, wie groß ein Schritt ist, und findest dann die Zahl. <b>Klasse 2 bis 4.</b>",
     zahlen:"<b>Zahlen bis 1000:</b> wie Zahlen aufgebaut sind – Zehner und Einer, der Zahlenstrahl, größer und kleiner, runden und Teilen mit Rest. <b>Klasse 2:</b> bis 100. <b>Klasse 3:</b> bis 1000.",
     geo:"<b>Formen und Körper:</b> Kreis, Dreieck, Würfel, Kugel … erkennen, Ecken und Kanten zählen, Spiegelachsen finden, Umfang und Fläche. <b>Klasse 1 bis 3.</b>",
@@ -308,6 +318,7 @@
     zoo:[["#menue > h3, #start h3", "<b>Neue Tiere holen:</b> Such dir deine Klasse aus und spiel eine Runde mit 10 Aufgaben. <b>5 oder 6 richtige:</b> ein häufiges Tier. <b>7 bis 9:</b> ein Tier – vielleicht ein seltenes ⭐. <b>10 von 10:</b> zwei Tiere, eines davon selten. Wer Aufgaben löst, die ihm früher schwerfielen, hat bessere Chancen auf seltene und legendäre 🌟 Tiere. <b>Je schwerer die Runde, desto öfter kommen seltene Tiere</b> – bei jeder Runde steht, wie groß die Chance ist. <b>Leicht</b> = das Wichtigste aus dem letzten Jahr, <b>Mittel</b> = was man im Winter können sollte, <b>Profi</b> = alles aus der Klasse."],
           [".zooKopf b", "<b>Dein Zoo:</b> Hier leben alle Tiere, die du schon gewonnen hast. Ein Fragezeichen heißt: Dieses Tier hast du noch nicht entdeckt. Blau umrandet = selten, golden = legendär."]],
     mix:[["#menue > h3, #start h3", "<b>Bunte Mischung – dein Check:</b> Such dir deine Klasse aus. Jede Runde hat 15 Aufgaben aus ganz verschiedenen Themen – jedes Mal andere. Danach siehst du Thema für Thema, was sitzt und was du noch üben kannst. <b>Üben:</b> ohne Zeit, mit Erklärung. <b>Check:</b> auf Zeit. Der erste Check am Tag bringt <b>doppelte Sterne und doppelt Sprit</b> – schon ab der Hälfte richtiger Aufgaben."]],
+    stellen:[["#menue > h3, #start h3", T.stufen], ["#zooFeld .stufe .tx b", "<b>Entdecken:</b> Hier gibt es keine Aufgaben und keine Fehler. Zieh Teile auf das Brett oder tippe sie an – die Zahl wächst mit. Probier aus: Was passiert, wenn du 10 Einer bündelst?"]],
     strahl:[["#menue > h3, #start h3", T.stufen+" <b>So geht jeder Zahlenstrahl:</b> 1. Wie weit ist es vom Anfang bis zum Ende? 2. Schritte zählen. 3. Teilen – so groß ist ein Schritt."]],
     zahlen:[["#menue > h3, #start h3", T.stufen]], geo:[["#menue > h3, #start h3", T.stufen]], daten:[["#menue > h3, #start h3", T.stufen]],
     rallye:[
