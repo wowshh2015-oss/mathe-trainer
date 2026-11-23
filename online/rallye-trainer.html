@@ -406,6 +406,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="tank.js"></script>
+<script src="weltraum-reise.js?v=20261123a"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -1154,7 +1155,8 @@ function reiseKarteHTML(){
   const punkte=ZIELE.map((z,k)=>`<span class="rp${k<=r.i?" da":""}${k===r.i+1?" naechst":""}" title="${z.name}">${k===r.i?"🚀":""}</span>`).join("");
   return `<div class="reise"><div class="rkopf">🗺️ <b>Deine Reise</b> · ${r.ende?"Du bist am Ziel der Reise!":`Du fliegst ${mitPraep("von",r.hier.dat)} ${mitPraep("zu",r.ziel.dat)}`}</div>
     <div class="rleiste">${punkte}</div>
-    <div class="rfakt">💡 <b>Wusstest du?</b> ${r.hier.fakt}</div></div>`;
+    <div class="rfakt">💡 <b>Wusstest du?</b> ${r.hier.fakt}</div>
+    <button class="ghost" id="karteBtn" style="width:100%;margin-top:9px">🗺️ Sternenkarte öffnen – alles über die Orte, an denen du warst</button></div>`;
 }
 function himmelFuer(i){ const n = i<5 ? 1 : i<12 ? 2 : 3; for(const k of ["raum"+n,"raum1","raum2","raum3"]) if(HIMMEL[k]) return k; return null; }
 function zielHTML(){
@@ -1286,6 +1288,8 @@ function zeigeStart(){
   zeigeWelten(); zeigeStrecken();
   zeichneBahn($("vorschau"));
   $("reiseKarte").innerHTML = welt==="rakete" ? reiseKarteHTML() : "";
+  if(welt==="rakete"){ const k=$("reiseKarte").querySelector(".reise");
+    k.style.cursor="pointer"; k.onclick=()=>{ if(window.Reise) Reise.oeffnen(reiseStand()); }; }
   const h=$("vorschau").querySelector(".hind");
   if(h){ h.classList.remove("hide"); h.innerHTML="7 + 8"; }
   zeigeTank();
