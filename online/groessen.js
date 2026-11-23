@@ -121,6 +121,13 @@
   .sgZ.sgErg{color:#86efac} .sgZ s{color:#94a3b8;text-decoration-color:#ef4444;text-decoration-thickness:3px}
   .sgE{height:18px;font-size:15px;font-weight:800;color:#fca5a5} .sgU{height:20px;font-size:16px;font-weight:800;color:#fde047}
   .sgLinie{height:3px;background:var(--text);border-radius:2px}
+  .soPool{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:60px;padding:8px;border:2px dashed var(--card2);border-radius:14px}
+  .soBoxen{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .soBox{background:#0b1220;border:2px solid #475569;border-radius:14px;padding:6px;min-height:120px} .soT{font-size:13.5px;font-weight:800;text-align:center;color:#fde68a;margin-bottom:6px}
+  .soIn{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+  .soK{touch-action:none;background:#1e293b;border:2px solid #475569;border-radius:12px;padding:4px 6px;display:flex;flex-direction:column;align-items:center;color:var(--text);font-size:11.5px;font-weight:700;cursor:grab}
+  .soK.an{border-color:#fde68a;background:rgba(253,230,138,.15)} .soK.gut{border-color:#22c55e} .soK.falsch{border-color:#ef4444;background:rgba(239,68,68,.15)}
+  .soB svg{display:block} .soGeist{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%);opacity:.9}
   .entT{opacity:0;animation:entEin .35s forwards} @keyframes entEin{to{opacity:1}}
   .entSvg{display:block;width:100%;height:auto;touch-action:none;background:#0b1220;border:1px solid var(--card2);border-radius:14px;cursor:pointer}
   .entChips{display:flex;flex-direction:column;gap:6px} .entChips button{background:#1e293b;color:#e2e8f0;border:1px solid #475569;font-size:14.5px;font-weight:600;text-align:left;padding:9px 12px}
@@ -221,14 +228,16 @@
     {id:7, name:"Mit Kommazahlen rechnen", kurz:"2,80 € + 3,70 € · 10,00 € − 3,60 € · Reicht das Geld?", typen:["g_kPlus","g_kMinus","g_reicht","g_kPlus","g_kMinus"], sek:70},
     {id:8, name:"Malnehmen und Teilen mit Geld", kurz:"3 · 1,40 € · vier kosten 8,24 € – was kostet eines?", typen:["g_mal","g_teil","g_wieviele","g_dreisatz","g_mal","g_teil"], sek:90},
     {id:9, name:"Schriftlich rechnen mit Komma", kurz:"Komma steht immer unter Komma", typen:["gs_plus","gs_minus","gs_plus3","gs_minus"], sek:120},
-    {id:10, name:"Große Geldbeträge", kurz:"Scheine bis 200 € zählen und legen", typen:["g_gross","g_gross","g_grossLegen"]}
+    {id:10, name:"Große Geldbeträge", kurz:"Scheine bis 200 € zählen und legen", typen:["g_gross","g_gross","g_grossLegen"]},
+    {id:11, name:"Fehler-Detektiv: Geld", kurz:"Was hat Flo falsch gemacht? Komma, Cent und Rückgeld", typen:["g_detektiv"], sek:60}
   ];
   const LAENGEN=[
     {id:1, name:"Mit dem Lineal messen", kurz:"Wie viele Zentimeter?", typen:["l_messen","l_messen","l_messenVersetzt"]},
     {id:2, name:"Zentimeter und Millimeter", kurz:"genau messen · 3 cm = 30 mm", typen:["l_messenMm","l_cmInMm","l_mmAus","l_cmMmInMm"]},
     {id:3, name:"Meter und Zentimeter", kurz:"2 m = 200 cm · 1,50 m", typen:["l_mInCm","l_cmAus","l_mCmInCm","l_kommaWahl"]},
     {id:4, name:"Welche Einheit passt?", kurz:"mm, cm, m oder km – schätzen", typen:["l_einheit"]},
-    {id:5, name:"Mit Längen rechnen", kurz:"1 m − 35 cm · 45 cm + 80 cm", typen:["l_rechneMinus","l_rechnePlus","l_rechneMm","l_seil"]}
+    {id:5, name:"Mit Längen rechnen", kurz:"1 m − 35 cm · 45 cm + 80 cm", typen:["l_rechneMinus","l_rechnePlus","l_rechneMm","l_seil"]},
+    {id:6, name:"Linien zeichnen", kurz:"Zieh den Stift genau auf 6 cm – oder auf 4 cm 7 mm", typen:["l_zeichneCm","l_zeichneMm","l_zeichneCm","l_zeichneMm"], sek:60}
   ];
   const GEWICHTE=[
     {id:1, name:"Leicht oder schwer?", kurz:"Was ist schwerer? · Gramm oder Kilogramm?", typen:["w_schwerer","w_schaetzen","w_schwerer","w_schaetzen"]},
@@ -259,14 +268,16 @@
     {id:3, name:"Körper erkennen", kurz:"Würfel · Quader · Kugel · Zylinder · Kegel · Pyramide", typen:["f_koerper","f_alltag","f_koerper"]},
     {id:4, name:"Ecken, Kanten, Flächen", kurz:"Ein Würfel hat 8 Ecken", typen:["f_eck","f_eck","f_rund"]},
     {id:5, name:"Symmetrie", kurz:"Ist das eine Spiegelachse?", typen:["f_sym"]},
-    {id:6, name:"Umfang und Fläche", kurz:"Kästchen zählen · einmal außen herum", typen:["f_flaeche","f_umfang"]}
+    {id:6, name:"Umfang und Fläche", kurz:"Kästchen zählen · einmal außen herum", typen:["f_flaeche","f_umfang"]},
+    {id:7, name:"Sortieren", kurz:"Fläche oder Körper? Kann er rollen? Genau 4 Ecken?", typen:["f_sortFlaeche","f_sortRollen","f_sortEcken"], sek:60}
   ];
   const DATEN=[
     {id:1, name:"Strichlisten", kurz:"immer fünf im Bündel", typen:["d_strich"]},
     {id:2, name:"Diagramme lesen", kurz:"Wie viele? Was ist am beliebtesten?", typen:["d_diaLesen","d_diaMax","d_diaLesen"]},
     {id:3, name:"Mit Diagrammen rechnen", kurz:"Wie viele mehr? Wie viele insgesamt?", typen:["d_diaUnterschied","d_diaSumme"]},
     {id:4, name:"Sicher, möglich, unmöglich", kurz:"Kugeln aus dem Beutel ziehen", typen:["d_sicher","d_sicher","d_wahrsch"]},
-    {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]}
+    {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]},
+    {id:6, name:"Säulen zeichnen", kurz:"Strichliste lesen – Säule auf die richtige Höhe ziehen", typen:["d_saeule"], sek:60}
   ];
   const SCHRIFT=[
     {id:1, name:"Plus ohne Übertrag", kurz:"342 + 215 – Stelle für Stelle", typen:["sp_ohne"], sek:90},
@@ -278,7 +289,8 @@
     {id:7, name:"Malnehmen", kurz:"47 · 6 · 238 · 4 – für Klasse 4", typen:["sx_zwei","sx_drei","sx_zwei","sx_drei"], sek:120},
     {id:8, name:"Teilen: jede Stelle geht auf", kurz:"848 : 4 – Stelle für Stelle von links", typen:["sd_ohne"], sek:100},
     {id:9, name:"Teilen mit Herunterholen", kurz:"936 : 4 – der Rest wandert zur nächsten Ziffer", typen:["sd_mit","sd_mit","sd_gross"], sek:150},
-    {id:10, name:"Teilen mit Rest", kurz:"938 : 4 = 234 Rest 2", typen:["sd_rest"], sek:150}
+    {id:10, name:"Teilen mit Rest", kurz:"938 : 4 = 234 Rest 2", typen:["sd_rest"], sek:150},
+    {id:11, name:"Fehler-Detektiv: schriftlich", kurz:"Was ist bei Flo schiefgelaufen? Übertrag, Entbündeln …", typen:["sp_detektiv","sm_detektiv","sx_detektiv"], sek:90}
   ];
   const KALENDER=[
     {id:1, name:"Wochentage und Monate", kurz:"Was kommt nach Mittwoch? Was kommt vor März?", typen:["k_tag","k_monat","k_tag","k_monatNr"]},
@@ -307,7 +319,8 @@
     {id:4, name:"Die Zahl am Pfeil finden", kurz:"erst den Schritt, dann die Zahl", typen:["s_pfeil","s_pfeil","s_wo"]},
     {id:5, name:"Zahlenstrahl bis 1000 ablesen", kurz:"jeder Hunderter ist beschriftet", typen:["z_strahl1000"]},
     {id:6, name:"Schritt finden bis 1000", kurz:"10er, 20er, 25er, 50er, 100er", typen:["t_schritt","t_pfeil","t_pfeil","t_wo"]},
-    {id:7, name:"Zahlenstrahl bis 1 Million", kurz:"Klasse 4 · große Schritte", typen:["m_strahl"], sek:70}
+    {id:7, name:"Zahlenstrahl bis 1 Million", kurz:"Klasse 4 · große Schritte", typen:["m_strahl"], sek:70},
+    {id:8, name:"Zahlen einzeichnen", kurz:"Schritt finden – dann den Pfeil an die richtige Stelle ziehen", typen:["s_setze","s_setze","t_setze"], sek:70}
   ];
   // Stellenwerte (23.11.2026, nach den Kriterien von Walter & Schwätzer): Zahlen mit Material legen – Handlung, Stellentafel und Zahl hängen zusammen
   const STELLENWERTE=[
@@ -1426,6 +1439,35 @@
       return stLegen(n, ST3, `Lege <span class="ziel">${n}</span> – aber nimm nur <b>${k} Hunderterplatten</b>!`, {nur:{H:k}, tag:"buendeln",
         erkl:`Mit ${k} Hunderterplatten hast du ${k*100}. Der fehlende Hunderter wird zu <b>10 Zehnerstangen</b>: also ${k} H, ${stTeile(n).Z+10} Z, ${stTeile(n).E} E.<br>${Stellen.bild({H:k,Z:stTeile(n).Z+10,E:stTeile(n).E},ST3)}`}); },
     st_plus3(){ return stPlus(aus(["+1","-1","+10","-10","+100","-100","+1","-1"]), ST3); },
+    // ===== Punkt 4 (24.11.2026): Aufgaben zum Ziehen und Fehler-Detektiv =====
+    s_setze(){ return setzeStrahl(aus(STRAHL100)); }, t_setze(){ return setzeStrahl(aus(STRAHL1000)); },
+    l_zeichneCm(){ const cm=rnd(3,11); return {art:"ziehen", zieh:"lineal", soll:cm*10, raster:10, frage:`Zieh den Stift: Er soll genau <span class="ziel">${cm} cm</span> lang sein.`, tag:"messen", sollText:`${cm} cm`,
+      erkl:`Der Stift beginnt bei der <b>0</b>. Er muss genau bis zur <b>${cm}</b> reichen.`}; },
+    l_zeichneMm(){ let mm; do{ mm=rnd(25,115); }while(mm%10===0); const c=Math.floor(mm/10), r=mm%10;
+      return {art:"ziehen", zieh:"lineal", soll:mm, raster:1, frage:`Zieh den Stift: Er soll genau <span class="ziel">${c} cm ${r} mm</span> lang sein.`, tag:"messen", sollText:`${c} cm ${r} mm`,
+        erkl:`Erst bis zur <b>${c}</b> (das sind ${c} cm), dann noch <b>${r}</b> kleine Striche weiter – jeder kleine Strich ist 1 mm. Zusammen ${mm} mm.`}; },
+    d_saeule(){ const th=aus([[["🍎","Apfel"],["🍌","Banane"],["🍓","Erdbeere"],["🍇","Trauben"]],[["🐶","Hund"],["🐱","Katze"],["🐰","Hase"],["🐟","Fisch"]],[["⚽","Fußball"],["🏊","Schwimmen"],["🚲","Radfahren"],["🎨","Malen"]]]);
+      const werte=th.map(()=>rnd(1,11)), i=rnd(0,3);
+      return {art:"ziehen", zieh:"saeule", th, werte, i, soll:werte[i], raster:1, frage:`In der Strichliste stehen bei ${th[i][0]} <b>${th[i][1]}</b> diese Striche. Zieh die Säule auf die richtige Höhe!`, tag:"diagramm", sollText:String(werte[i]),
+        erkl:`Zähle die Striche: Jedes Bündel mit dem Querstrich sind <b>5</b>. Bei ${th[i][1]} sind es <b>${werte[i]}</b> – die Säule muss bis zur ${werte[i]} reichen.`}; },
+    f_sortFlaeche(){ const fl=mische(["Kreis","Dreieck","Quadrat","Rechteck","Fünfeck","Sechseck"]).slice(0,3), ko=mische(Object.keys(KOERPER)).slice(0,3);
+      return sortierAufgabe("Sortiere: Was ist eine <b>Fläche</b>, was ist ein <b>Körper</b>?", ["Fläche (flach)","Körper (man kann ihn anfassen)"],
+        mische(fl.map(n=>[n,formBild(n),0]).concat(ko.map(n=>[n,koerperBild(n),1]))), "Eine <b>Fläche</b> ist flach wie ein Blatt Papier. Ein <b>Körper</b> hat Höhe, Breite und Tiefe – wie ein Würfel oder eine Dose."); },
+    f_sortRollen(){ const r=["Kugel","Zylinder","Kegel"], n=["Würfel","Quader","Pyramide"];
+      return sortierAufgabe("Sortiere: Welcher Körper kann <b>rollen</b>?", ["kann rollen","kann nicht rollen"], mische(r.map(k=>[k,koerperBild(k),0]).concat(n.map(k=>[k,koerperBild(k),1]))),
+        "Rollen kann ein Körper nur, wenn er eine <b>gebogene Fläche</b> hat: Kugel, Zylinder und Kegel. Würfel, Quader und Pyramide haben nur flache Flächen und Ecken."); },
+    f_sortEcken(){ const vier=["Quadrat","Rechteck"], andere=mische(["Kreis","Dreieck","Fünfeck","Sechseck"]).slice(0,3), alle=vier.concat(aus([["Quadrat"],["Rechteck"]])).slice(0,3);
+      return sortierAufgabe("Sortiere: Welche Form hat <b>genau 4 Ecken</b>?", ["genau 4 Ecken","nicht 4 Ecken"], mische(alle.map(k=>[k,formBild(k),0]).concat(andere.map(k=>[k,formBild(k),1]))),
+        "Quadrat und Rechteck haben <b>4 Ecken</b>. Ein Dreieck hat 3, ein Fünfeck 5, ein Sechseck 6 – und ein Kreis gar keine."); },
+    sp_detektiv(){ return schriftDetektiv("+"); }, sm_detektiv(){ return schriftDetektiv("-"); }, sx_detektiv(){ return schriftDetektiv("*"); },
+    g_detektiv(){ const art=aus(["komma","stelle","rueck","komma"]);
+      const FEHLER={komma:"Hinter dem Komma stehen immer zwei Ziffern für die Cent.", stelle:"Das Komma steht an der falschen Stelle: 100 ct sind 1 €.", rueck:"Beim Rückgeld wurde falsch gerechnet.", ok:"Es ist alles richtig."};
+      let frage, erkl, ok=FEHLER[art];
+      if(art==="komma"){ const e=rnd(1,9), c=rnd(1,9); frage=`Flo schreibt: <span class="ziel">${e} € ${c} ct = ${e},${c} €</span>`; erkl=`${c} ct schreibt man mit zwei Ziffern: „0${c}“. Richtig ist <b>${e},0${c} €</b>. ${e},${c} € wären ${e} € ${c}0 ct!`; }
+      else if(art==="stelle"){ const c=rnd(101,899); frage=`Flo schreibt: <span class="ziel">${c} ct = ${Math.floor(c/10)},${c%10} €</span>`; erkl=`100 ct sind 1 €. In ${c} ct stecken ${Math.floor(c/100)} €. Richtig ist <b>${komma(c)}</b>.`; }
+      else { const preis=rnd(11,89)*10, falsch=1000-preis+aus([100,-100]); frage=`Flo bezahlt <b>${komma(preis)}</b> mit 10 €. Sie sagt: <span class="ziel">Ich bekomme ${komma(falsch)} zurück.</span>`; erkl=`10,00 € − ${komma(preis)} = <b>${komma(1000-preis)}</b>. Tipp: Ergänze bis zum nächsten Euro und dann bis 10 €.`; }
+      const opts=mische([ok].concat(mische(Object.values(FEHLER).filter(x=>x!==ok)).slice(0,2)));
+      return {art:"wahl", frage:`🕵️ ${frage}<br>Was ist hier falsch?`, optionen:opts, ok, spalten:1, tag:"komma", sollText:`„${ok.replace(/\.$/,"")}“`, erkl}; },
     // ===== Entdecker-Päckchen =====
     pk_weiter20(){ return pkWeiter("+", 20); }, pk_weiter100(){ return pkWeiter("+", 100); },
     pk_weiterMinus(){ return pkWeiter("-", 100); }, pk_weiterMal(){ return pkWeiter("*", 100); },
@@ -1456,6 +1498,48 @@
       return eingabe(`Welche Zahl muss unten in die Mitte, damit oben <span class="ziel">${o}</span> steht?`, [F.zahl], u[1], {bild:zmBild({u:[u[0],0,u[2]],m:[0,0],o},["u1","m0","m1"]), tag:"zmauer", sollText:String(u[1]),
         erkl:`Die beiden Steine am Rand zählen im Deckstein <b>einmal</b>: ${u[0]} + ${u[2]} = ${s}. Der mittlere Stein zählt <b>doppelt</b>. Bis ${o} fehlen ${o} − ${s} = ${o-s}. Die Hälfte davon ist <b>${u[1]}</b>.<br>${zmBild(w,[])}`}); }
   };
+  // ---------- Punkt 4: Ziehen, Sortieren, Fehler-Detektiv ----------
+  function setzeStrahl(z){ const [von,bis,n]=z, s=(bis-von)/n, k=rnd(1,n-1), ziel=von+k*s;
+    return {art:"ziehen", zieh:"strahl", von, bis, n, soll:ziel, frage:`Zieh den Pfeil auf die <span class="ziel">${ziel}</span>.`, tag:"strahl", sollText:String(ziel),
+      erkl:`<b>1.</b> Von ${von} bis ${bis} sind es ${bis-von}. <b>2.</b> Es sind ${n} Schritte. <b>3.</b> Ein Schritt ist ${bis-von} : ${n} = <b>${s}</b>.<br><b>4.</b> Bis zur ${ziel} sind es (${ziel} − ${von}) : ${s} = <b>${k} Schritte</b> vom Anfang.`}; }
+  function sortierAufgabe(frage, boxen, items, erkl){ return {art:"sortieren", frage, boxen, items, tag:"form", sollText:"so wie im Bild", erkl}; }
+  function schriftDetektiv(op){
+    const FEHLER={ueb:"Die gemerkte Zahl (der Übertrag) wurde vergessen.", kg:"Es wurde „unten minus oben“ gerechnet, weil oben die kleinere Zahl stand.",
+      ent:"Nach dem Entbündeln wurde links nicht 1 weniger gerechnet.", mal:"Beim Malnehmen wurde die gemerkte Zahl nicht dazugezählt.", ok:"Es ist alles richtig gerechnet."};
+    let a,b,soll,falsch,art,info;
+    for(let v=0; v<200; v++){
+      if(op==="+"){ a=rnd(150,689); b=rnd(120,309); soll=a+b; const W=String(soll).length, da=ziffern(a,W), db=ziffern(b,W); falsch=+da.map((x,i)=>(x+db[i])%10).join(""); art="ueb"; info=schriftPlus([a,b]); }
+      else if(op==="-"){ a=rnd(300,950); b=rnd(105,a-60); soll=a-b; const W=String(a).length, da=ziffern(a,W), db=ziffern(b,W); art=aus(["kg","ent"]);
+        if(art==="kg") falsch=+da.map((x,i)=>Math.abs(x-db[i])).join("");
+        else { let s=""; for(let i=W-1;i>=0;i--){ s=String(da[i]>=db[i]?da[i]-db[i]:da[i]+10-db[i])+s; } falsch=+s; }
+        info=schriftMinus(a,b); }
+      else { a=rnd(23,189); b=rnd(3,9); soll=a*b; const d=String(a).split("").map(Number); falsch=+d.map((x,i)=>i===0?String(x*b):String((x*b)%10)).join(""); art="mal"; info=schriftMal(a,b); }
+      if(falsch!==soll) break;
+    }
+    const W=Math.max(String(a).length, String(soll).length, String(falsch).length);
+    const bild = op==="*" ? `<div class="frage" style="margin:4px 0">${a} · ${b} = <span style="color:#fca5a5">${falsch}</span></div>`
+                          : schriftGitter({breite:W, komma:false, zeilen:[a,b], zeichen:op==="+"?"+":"−", soll:falsch}, true);
+    const ok=FEHLER[art], opts=mische([ok].concat(mische(Object.keys(FEHLER).filter(k=>k!==art && (op==="-"||k!=="ent") && (op==="-"||k!=="kg")).map(k=>FEHLER[k])).slice(0,2)));
+    return {art:"wahl", frage:`🕵️ Flo hat so gerechnet. Das Ergebnis ist falsch. <b>Was ist schiefgelaufen?</b>`, bild, optionen:opts, ok, spalten:1, tag:op==="+"?"schriftP":op==="-"?"schriftM":"schriftMal",
+      sollText:`„${ok.replace(/\.$/,"")}“`, erkl:`Richtig ist <b>${soll}</b>.<br>${(info.schritte||[]).join("<br>")}`};
+  }
+  function linealSvg(mm){ const X=m=>14+m*2.4; let s=`<rect x="6" y="40" width="304" height="46" rx="5" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>`;
+    for(let m=0;m<=120;m++){ const l=m%10===0?16:m%5===0?11:7; s+=`<line x1="${X(m)}" y1="40" x2="${X(m)}" y2="${40+l}" stroke="#1f2937" stroke-width="${m%10===0?1.6:0.9}"/>`;
+      if(m%10===0) s+=`<text x="${X(m)}" y="72" text-anchor="middle" font-size="12" font-weight="800" fill="#1f2937">${m/10}</text>`; }
+    const e=X(mm); s+=`<rect x="${X(0)}" y="12" width="${Math.max(0,e-X(0)-12)}" height="16" rx="3" fill="#f59e0b"/><path d="M${e-12} 12 L${e} 20 L${e-12} 28 Z" fill="#fde68a"/><path d="M${e-4} 17.3 L${e} 20 L${e-4} 22.7 Z" fill="#1f2937"/><circle cx="${e}" cy="20" r="11" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>`;
+    return s; }
+  function strahlZiehSvg(a, v){ const X0=16, X1=304, X=w=>X0+(X1-X0)*(w-a.von)/(a.bis-a.von), s=(a.bis-a.von)/a.n;
+    let o=`<line x1="${X0-6}" y1="46" x2="${X1+8}" y2="46" stroke="#e2e8f0" stroke-width="2"/><path d="M${X1+8} 41 L${X1+14} 46 L${X1+8} 51 Z" fill="#e2e8f0"/>`;
+    for(let k=0;k<=a.n;k++){ const x=X(a.von+k*s); o+=`<line x1="${x}" y1="38" x2="${x}" y2="54" stroke="#94a3b8" stroke-width="1.4"/>`; }
+    o+=`<text x="${X0}" y="74" text-anchor="middle" font-size="13" font-weight="800" fill="#e2e8f0">${a.von}</text><text x="${X1}" y="74" text-anchor="middle" font-size="13" font-weight="800" fill="#e2e8f0">${a.bis}</text>`;
+    if(v!==null){ const x=X(v); o+=`<path d="M${x} 34 L${x-7} 18 L${x+7} 18 Z" fill="#ef4444"/><rect x="${x-1.5}" y="18" width="3" height="28" fill="#ef4444"/><circle cx="${x}" cy="12" r="10" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>`; }
+    return o; }
+  function saeuleSvg(a, h){ const H=150, oben=12, schritt=H/oben, FARB=["#f87171","#fbbf24","#f472b6","#a78bfa"];
+    let s=Array.from({length:oben/2+1},(_,i)=>{ const y=12+H-i*2*schritt; return `<line x1="34" y1="${y}" x2="292" y2="${y}" stroke="#334155"/><text x="28" y="${y+4}" text-anchor="end" font-size="11" fill="#94a3b8">${i*2}</text>`; }).join("");
+    a.werte.forEach((w,i)=>{ const wert=i===a.i?h:w, x=48+i*62, hh=wert*schritt;
+      s+=`<rect x="${x}" y="${12+H-hh}" width="46" height="${Math.max(hh,0)}" rx="4" fill="${FARB[i]}" ${i===a.i?'stroke="#fde68a" stroke-width="2.5" stroke-dasharray="5 3"':""}/>`+
+         `<text x="${x+23}" y="${H+34}" text-anchor="middle" font-size="20">${a.th[i][0]}</text>`+(i===a.i?`<text x="${x+23}" y="${6+H-hh}" text-anchor="middle" font-size="12" font-weight="800" fill="#fde68a">↕</text>`:""); });
+    return s; }
   // ---------- Entdecker-Päckchen: Hilfen ----------
   const OPZ={"+":"+","-":"−","*":"·"};
   const pkRechne=(op,a,b)=>op==="+"?a+b:op==="-"?a-b:a*b;
@@ -1642,6 +1726,51 @@
       alle.forEach(x=>{ x.addEventListener("keydown", e=>{ if(e.key==="Enter") pruef(); }); if(x.dataset.u!==undefined) x.addEventListener("input", ()=>{ x.value=x.value.replace(/\D/g,"").slice(-1); }); });
       $("okBtn").addEventListener("click", pruef);
       try{ erg[erg.length-1].focus({preventScroll:true}); }catch(e){}
+    }else if(a.art==="ziehen"){
+      // Ziehen: Pfeil am Zahlenstrahl, Stift am Lineal, Säule im Diagramm
+      let v = a.zieh==="lineal" ? 10 : a.zieh==="strahl" ? null : 0;
+      const VB = a.zieh==="saeule" ? [300,200] : a.zieh==="lineal" ? [316,92] : [320,84];
+      const zeichne=()=>{ $("ziehSvg").innerHTML = a.zieh==="lineal" ? linealSvg(v) : a.zieh==="strahl" ? strahlZiehSvg(a, v) : saeuleSvg(a, v); };
+      $("buehne").innerHTML=(a.zieh==="saeule"?`<div class="bild">${a.th[a.i][0]} ${a.th[a.i][1]}: ${strichSvg(a.soll)}</div>`:"")+
+        `<svg class="entSvg" id="ziehSvg" viewBox="0 0 ${VB[0]} ${VB[1]}" role="img" aria-label="zum Ziehen" style="margin-top:8px"></svg>
+        <div class="stTipp">${a.zieh==="saeule"?"Zieh die gestrichelte Säule nach oben oder unten.":a.zieh==="lineal"?"Zieh die Spitze des Stifts.":"Tippe auf den Zahlenstrahl oder zieh den Pfeil."}</div>
+        <div class="reihe"><button id="okBtn">Fertig ✓</button></div>`;
+      const svg=$("ziehSvg"); zeichne();
+      if(a.zieh==="saeule"){
+        const y=ev=>{ const r=svg.getBoundingClientRect(); return (ev.clientY-r.top)/r.height*VB[1]; };
+        const setz=ev=>{ const w=Math.max(0,Math.min(12,Math.round((162-y(ev))/(150/12)))); if(w!==v){ v=w; zeichne(); } };
+        svg.addEventListener("pointerdown", ev=>{ if(wartet) return; ev.preventDefault(); try{ svg.setPointerCapture(ev.pointerId); }catch(e){} setz(ev);
+          const mv=e2=>setz(e2), up=()=>{ svg.removeEventListener("pointermove",mv); svg.removeEventListener("pointerup",up); svg.removeEventListener("pointercancel",up); };
+          svg.addEventListener("pointermove",mv); svg.addEventListener("pointerup",up); svg.addEventListener("pointercancel",up); });
+      } else ziehSvg(svg, VB[0], x=>{ if(wartet) return;
+        if(a.zieh==="lineal"){ let m=Math.round((x-14)/2.4); m=Math.max(1,Math.min(120,m)); if(a.raster===10) m=Math.max(10,Math.round(m/10)*10); if(m!==v){ v=m; zeichne(); } }
+        else { const s=(a.bis-a.von)/a.n, k=Math.max(0,Math.min(a.n,Math.round((x-16)/(288)*a.n))), w=a.von+k*s; if(w!==v){ v=w; zeichne(); } } });
+      $("okBtn").addEventListener("click",()=>{ if(wartet || v===null) return; $("okBtn").disabled=true;
+        const text = a.zieh==="lineal" ? (v%10?`${Math.floor(v/10)} cm ${v%10} mm`:`${v/10} cm`) : String(v);
+        if(v!==a.soll){ if(a.zieh==="lineal") a.zusatz2=` Dein Stift ist ${text} lang.`; else if(a.zieh==="strahl") a.zusatz2=` Dein Pfeil steht bei ${v}.`; else a.zusatz2=` Deine Säule geht bis ${v}.`; }
+        auswerten(a, v===a.soll, text, v, false); });
+    }else if(a.art==="sortieren"){
+      // Sortieren: Karten in zwei Kästen ziehen (oder antippen und dann den Kasten antippen)
+      const ort=a.items.map(()=>-1); let gewaehlt=null;
+      const karte=(it,i,kl)=>`<button class="soK${gewaehlt===i?" an":""}${kl||""}" data-k="${i}" aria-label="${it[0]}"><span class="soB">${it[1].replace(/width="\d+" height="\d+"/,'width="56" height="56"')}</span><span>${it[0]}</span></button>`;
+      const mal=(pruef)=>{
+        $("buehne").innerHTML=`<div class="soPool" data-box="-1">${a.items.map((it,i)=>ort[i]===-1?karte(it,i):"").join("")||'<span class="stTipp">Alles einsortiert.</span>'}</div>
+          <div class="soBoxen">${a.boxen.map((b,j)=>`<div class="soBox" data-box="${j}"><div class="soT">${b}</div><div class="soIn">${a.items.map((it,i)=>ort[i]===j?karte(it,i,pruef?(it[2]===j?" gut":" falsch"):""):"").join("")}</div></div>`).join("")}</div>
+          <div class="stTipp">Zieh jede Karte in den richtigen Kasten – oder tippe erst die Karte und dann den Kasten an.</div>
+          <div class="reihe"><button id="okBtn"${ort.includes(-1)||pruef?" disabled":""}>Fertig ✓</button></div>`;
+        if(pruef) return;
+        $("buehne").querySelectorAll("[data-k]").forEach(k=>{ const i=+k.dataset.k;
+          k.addEventListener("pointerdown", ev=>{ if(wartet) return; ev.preventDefault(); const sx=ev.clientX, sy=ev.clientY; let geist=null;
+            const mv=e=>{ if(!geist && Math.hypot(e.clientX-sx,e.clientY-sy)>8){ geist=k.cloneNode(true); geist.className="soK soGeist"; document.body.appendChild(geist); } if(geist){ geist.style.left=e.clientX+"px"; geist.style.top=e.clientY+"px"; } };
+            const up=e=>{ document.removeEventListener("pointermove",mv); document.removeEventListener("pointerup",up);
+              if(geist){ geist.remove(); const t=document.elementFromPoint(e.clientX,e.clientY), box=t&&t.closest?t.closest("[data-box]"):null; if(box){ ort[i]=+box.dataset.box; gewaehlt=null; mal(); } }
+              else { gewaehlt = gewaehlt===i ? null : i; mal(); } };
+            document.addEventListener("pointermove",mv); document.addEventListener("pointerup",up); }); });
+        $("buehne").querySelectorAll("[data-box]").forEach(b=>b.addEventListener("click",ev=>{ if(gewaehlt===null || ev.target.closest("[data-k]")) return; ort[gewaehlt]=+b.dataset.box; gewaehlt=null; mal(); }));
+        $("okBtn").addEventListener("click",()=>{ if(wartet || ort.includes(-1)) return; const falsch=a.items.filter((it,i)=>ort[i]!==it[2]).map(it=>it[0]);
+          mal(true); if(falsch.length) a.zusatz2=` Nicht richtig: ${[...new Set(falsch)].join(", ")}.`; auswerten(a, !falsch.length, falsch.length?`falsch: ${falsch.join(", ")}`:"alles richtig", null, false); });
+      };
+      mal();
     }else if(a.art==="stellen"){
       // Zahl mit Material legen: Hunderterplatten, Zehnerstangen, Einerwürfel. Die Stellentafel erscheint erst nach „Fertig" – sonst legt man nur, bis die Zahl passt.
       $("buehne").innerHTML=`<div id="stHier"></div><div class="reihe"><button class="ghost klein" id="leerBtn">${a.start?"Von vorn":"Alles zurück"}</button><button id="okBtn">Fertig ✓</button></div>`;
@@ -1721,6 +1850,7 @@
     if(a.streng && summe===a.soll && !nichtGetauscht===false) zusatz="";
     if(a.art==="legen" && summe!==null) zusatz=` Du hast ${komma(summe)} gelegt – das ist ${summe>a.soll?"zu viel":"zu wenig"}.`;
     if(a.art==="stellen"){ zusatz=a.zusatz||""; if(a.artFehler) art="groesse_"+a.artFehler; }
+    if(a.zusatz2) zusatz=a.zusatz2;
     if(a.zweiFalsch){ zusatz=`<br><b>Achtung:</b> Hinter dem Komma stehen immer <b>zwei</b> Ziffern – 5 ct schreibt man als „05“, 50 ct als „50“.`; art="groesse_komma"; }
     runde.antworten.push(`${a.typ.slice(2)}|${a.sollText}|${gegebenText}|${art}`);
     r.style.color="var(--bad)"; r.textContent=`Das stimmt noch nicht. Richtig ist ${a.sollText}.`;

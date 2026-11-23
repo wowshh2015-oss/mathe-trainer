@@ -138,6 +138,13 @@
     "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
     "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
+    // Punkt 4: Ziehen und Fehler-Detektiv
+    "Linien zeichnen":"Zieh die Spitze des Stifts genau auf die richtige Länge. Bei Millimetern zählst du die kleinen Striche hinter dem Zentimeter. <b>Klasse 2 und 3.</b>",
+    "Fehler-Detektiv: Geld":"Flo hat beim Geld etwas falsch gemacht. Findest du heraus, was? Hinter dem Komma stehen immer zwei Ziffern! <b>Klasse 3.</b>",
+    "Sortieren":"Zieh jede Karte in den richtigen Kasten: Fläche oder Körper? Kann er rollen? Hat die Form genau 4 Ecken? <b>Klasse 1 und 2.</b>",
+    "Säulen zeichnen":"Zähl die Striche in der Strichliste – jedes Bündel sind 5. Dann zieh die Säule genau auf diese Höhe. <b>Klasse 2.</b>",
+    "Fehler-Detektiv: schriftlich":"Flo hat schriftlich gerechnet – und es ist falsch. War es der vergessene Übertrag? Oder unten minus oben? <b>Klasse 3.</b>",
+    "Zahlen einzeichnen":"Nur Anfang und Ende stehen da. Finde zuerst, wie groß ein Schritt ist – dann zieh den Pfeil an die richtige Stelle. <b>Klasse 2 und 3.</b>",
     // Entdecker-Päckchen
     "Päckchen fortsetzen bis 20":"Die Aufgaben hängen zusammen: Was ändert sich von Zeile zu Zeile? Dann weißt du, wie es weitergeht. <b>Klasse 1.</b>",
     "Plus-Päckchen bis 100":"13 + 5, 23 + 5, 33 + 5: Die erste Zahl wird um 10 größer – das Ergebnis auch. Setze fort und finde die nächste Aufgabe. <b>Klasse 2.</b>",
