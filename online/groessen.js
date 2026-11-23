@@ -114,6 +114,14 @@
   .entSumme{font-size:34px;font-weight:900;color:#fde68a} .entBeutel button{background:transparent;border:none;padding:0}
   .stTipp{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:6px}
   .entT{opacity:0;animation:entEin .35s forwards} @keyframes entEin{to{opacity:1}}
+  .entSvg{display:block;width:100%;height:auto;touch-action:none;background:#0b1220;border:1px solid var(--card2);border-radius:14px;cursor:pointer}
+  .entChips{display:flex;flex-direction:column;gap:6px} .entChips button{background:#1e293b;color:#e2e8f0;border:1px solid #475569;font-size:14.5px;font-weight:600;text-align:left;padding:9px 12px}
+  .entChips button b{color:#fde68a;margin-right:6px}
+  .entStrich{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--card2)} .entStrich .ek{flex:none;width:96px;font-size:14px;font-weight:700}
+  .entStrich .es{flex:1;min-width:0;overflow:hidden} .entStrich .en{width:26px;text-align:right;font-size:17px} .entStrich button{padding:6px 12px;font-size:17px}
+  .entKal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px} .entKal .kk{text-align:center;font-size:12.5px;font-weight:800;color:var(--muted)} .entKal .kk.we{color:#fca5a5}
+  .entKal button{padding:9px 0;font-size:15px;background:#0b1220;color:var(--text);border:1px solid var(--card2);border-radius:9px}
+  .entKal button.we{color:#fca5a5} .entKal button.heute{border-color:#38bdf8} .entKal button.an{background:#fde68a;color:#1c1917;border-color:#fde68a}
   .pk{display:inline-grid;gap:3px;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;margin:2px auto}
   .pkZ{display:grid;grid-template-columns:2.6ch 1.3ch 2.6ch 1.3ch 3.4ch;gap:6px;text-align:right;padding:2px 10px;border-radius:9px}
   .pkZ span:nth-child(2),.pkZ span:nth-child(4){text-align:center;color:var(--muted)}
@@ -1829,7 +1837,12 @@
   const ENTDECKEN={
     stellen:{text:"Lege, bündle und entbündle, wie du willst – die Zahl wächst mit. Hier gibt es keine Fehler.", baue:entdeckeStellen},
     geo:{text:"Tippe eine Form oder einen Körper an: Du hörst, wie sie heißt, und kannst Ecken und Seiten zählen lassen.", baue:entdeckeFormen},
-    geld:{text:"Tippe Münzen und Scheine an – sie kommen in deinen Geldbeutel. Wie viel ist es zusammen? Du kannst auch wechseln.", baue:entdeckeGeld}
+    geld:{text:"Tippe Münzen und Scheine an – sie kommen in deinen Geldbeutel. Wie viel ist es zusammen? Du kannst auch wechseln.", baue:entdeckeGeld},
+    laengen:{text:"Zieh den Stift am Lineal länger oder kürzer – du siehst sofort, wie lang er ist: in Zentimetern und Millimetern.", baue:entdeckeLaengen},
+    strahl:{text:"Schieb den roten Pfeil über den Zahlenstrahl – du siehst die Zahl, ihre Nachbarn und die Nachbarzehner.", baue:entdeckeStrahl},
+    zahlen:{text:"Schieb den roten Pfeil über den Zahlenstrahl – du siehst die Zahl, ihre Nachbarn und die Nachbarzehner.", baue:entdeckeStrahl},
+    daten:{text:"Mach eine Strichliste: Mit jedem Strich wächst die Säule im Diagramm mit.", baue:entdeckeDaten},
+    kalender:{text:"Blättere durch die Monate und tippe einen Tag an – du hörst, welcher Wochentag es ist.", baue:entdeckeKalender}
   };
   function entdeckenKarte(){
     if(!ENTDECKEN[WAS] || $("entdeckenBtn")) return;
@@ -1929,6 +1942,116 @@
       $("entWenig").addEventListener("click",()=>{ if(!s) return; beutel=zerlege(s); mal(); sprich(`Mit möglichst wenigen Stücken: ${beutel.map(geldWort).join(", ")}.`); });
       $("entWeg").addEventListener("click",()=>{ beutel=[]; mal(); });
       $("entLaut").addEventListener("click",()=>sprich(s ? `Zusammen sind es ${betragWort(s)}.` : "Der Geldbeutel ist leer."));
+    };
+    mal();
+  }
+  // ----- Ziehen in einem SVG: liefert die x-Position im viewBox-Maß -----
+  function ziehSvg(svg, breite, beiZug, beiEnde){
+    const x=ev=>{ const r=svg.getBoundingClientRect(); return (ev.clientX-r.left)/r.width*breite; };
+    svg.addEventListener("pointerdown", ev=>{ ev.preventDefault(); try{ svg.setPointerCapture(ev.pointerId); }catch(e){} beiZug(x(ev));
+      const mv=e=>beiZug(x(e)), up=()=>{ svg.removeEventListener("pointermove",mv); svg.removeEventListener("pointerup",up); svg.removeEventListener("pointercancel",up); if(beiEnde) beiEnde(); };
+      svg.addEventListener("pointermove",mv); svg.addEventListener("pointerup",up); svg.addEventListener("pointercancel",up); });
+  }
+  // ----- Längen: Stift am Lineal mit dem Finger verlängern -----
+  function entdeckeLaengen(e){
+    let mm=74, nurCm=false; const X=m=>14+m*2.4;
+    const text=()=>{ const c=Math.floor(mm/10), r=mm%10; return r ? (c?`${c} cm ${r} mm = <b>${mm} mm</b>`:`<b>${mm} mm</b>`) : `<b>${c} cm</b> = ${mm} mm`; };
+    const wort=()=>{ const c=Math.floor(mm/10), r=mm%10; return (c?`${c===1?"ein":zahlwort(c)} Zentimeter`:"")+(c&&r?" und ":"")+(r?`${r===1?"ein":zahlwort(r)} Millimeter`:""); };
+    const svgInnen=()=>{ let s=`<rect x="6" y="40" width="304" height="46" rx="5" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>`;
+      for(let m=0;m<=120;m++){ const l=m%10===0?16:m%5===0?11:7; s+=`<line x1="${X(m)}" y1="40" x2="${X(m)}" y2="${40+l}" stroke="#1f2937" stroke-width="${m%10===0?1.6:0.9}"/>`;
+        if(m%10===0) s+=`<text x="${X(m)}" y="72" text-anchor="middle" font-size="12" font-weight="800" fill="#1f2937">${m/10}</text>`; }
+      const ende=X(mm);
+      s+=`<rect x="${X(0)}" y="12" width="${Math.max(0,ende-X(0)-12)}" height="16" rx="3" fill="#f59e0b"/><path d="M${ende-12} 12 L${ende} 20 L${ende-12} 28 Z" fill="#fde68a"/><path d="M${ende-4} 17.3 L${ende} 20 L${ende-4} 22.7 Z" fill="#1f2937"/>`;
+      s+=`<line x1="${ende}" y1="28" x2="${ende}" y2="40" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2 2"/><circle cx="${ende}" cy="20" r="11" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>`;
+      return s; };
+    e.innerHTML=`<svg class="entSvg" id="entLineal" viewBox="0 0 316 92" role="img" aria-label="Lineal mit Stift"></svg>
+      <div class="stTipp">Zieh die Spitze des Stifts nach rechts oder links.</div>
+      <div class="reihe"><button class="ghost klein" id="entCm">nur ganze Zentimeter: aus</button></div>
+      <div class="entPanel"><div class="entSumme" id="entLang"></div><div class="entInfo2" id="entLangW"></div><button class="ghost klein" id="entLaut">🔈 Vorlesen</button></div>
+      <div class="entPanel"><div class="entInfo"><b>So lang ist ungefähr …</b></div><div class="entChips">${[["1 mm","so dick wie eine Bleistiftmine"],["1 cm","so breit wie ein Fingernagel"],["10 cm","so breit wie deine Hand"],["1 m","ein großer Schritt"]].map(x=>`<button data-sag="${x[0]} ist ${x[1]}."><b>${x[0]}</b> ${x[1]}</button>`).join("")}</div></div>`;
+    const svg=$("entLineal"), mal=()=>{ svg.innerHTML=svgInnen(); $("entLang").innerHTML=text(); $("entLangW").textContent=wort(); };
+    ziehSvg(svg, 316, x=>{ let m=Math.round((x-14)/2.4); m=Math.max(1,Math.min(120,m)); if(nurCm) m=Math.max(10,Math.round(m/10)*10); if(m!==mm){ mm=m; mal(); } }, ()=>sprich(`Der Stift ist ${wort()} lang.`));
+    $("entCm").addEventListener("click",()=>{ nurCm=!nurCm; $("entCm").textContent=`nur ganze Zentimeter: ${nurCm?"an":"aus"}`; $("entCm").classList.toggle("ghost",!nurCm); if(nurCm){ mm=Math.max(10,Math.round(mm/10)*10); mal(); } });
+    $("entLaut").addEventListener("click",()=>sprich(`Der Stift ist ${wort()} lang. Das sind ${zahlwort(mm)} Millimeter.`));
+    e.querySelectorAll("[data-sag]").forEach(b=>b.addEventListener("click",()=>sprich(b.dataset.sag)));
+    mal();
+  }
+  // ----- Zahlenstrahl: Pfeil mit dem Finger verschieben -----
+  function entdeckeStrahl(e){
+    let kl=0; try{ kl=+(localStorage.getItem("mathe_klasse")||0); }catch(x){}
+    let bis = kl===1 ? 20 : kl && kl<=2 ? 100 : 1000, v = bis===20?13:bis===100?47:350;
+    const W=320, X0=14, X1=306, X=n=>X0+(X1-X0)*n/bis;
+    const svgInnen=()=>{ let s=`<line x1="${X0-6}" y1="44" x2="${X1+8}" y2="44" stroke="#e2e8f0" stroke-width="2"/><path d="M${X1+8} 39 L${X1+14} 44 L${X1+8} 49 Z" fill="#e2e8f0"/>`;
+      const klein=bis===1000?10:1, mittel=bis===20?5:bis===100?5:50, gross=bis===20?5:bis===100?10:100;
+      for(let n=0;n<=bis;n+=klein){ const l=n%gross===0?12:n%mittel===0?8:5; s+=`<line x1="${X(n).toFixed(2)}" y1="${44-l}" x2="${X(n).toFixed(2)}" y2="${44+l}" stroke="#94a3b8" stroke-width="${n%gross===0?1.6:0.8}"/>`;
+        if(n%gross===0) s+=`<text x="${X(n).toFixed(2)}" y="72" text-anchor="middle" font-size="${bis===1000?9.5:11}" font-weight="700" fill="#cbd5e1">${n}</text>`; }
+      const z=bis===1000?100:10, a=Math.floor(v/z)*z, b=Math.min(bis, a+z);
+      s+=`<rect x="${X(a)}" y="30" width="${X(b)-X(a)}" height="28" fill="rgba(253,230,138,.12)"/>`;
+      s+=`<path d="M${X(v)} 30 L${X(v)-7} 14 L${X(v)+7} 14 Z" fill="#ef4444"/><rect x="${X(v)-1.5}" y="14" width="3" height="30" fill="#ef4444"/><circle cx="${X(v)}" cy="10" r="10" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>`;
+      return s; };
+    const info=()=>{ const z=bis===1000?100:10, a=Math.floor(v/z)*z, b=a+z, ne=v%10===0?null:[Math.floor(v/10)*10, Math.floor(v/10)*10+10];
+      return `<div class="entSumme">${v}</div><div class="entInfo2">${zahlwort(v)}</div>
+        <div class="entInfo">Vorgänger <b>${v-1>=0?v-1:"–"}</b> · Nachfolger <b>${v+1}</b></div>
+        ${ne?`<div class="entInfo">Nachbarzehner <b>${ne[0]}</b> und <b>${ne[1]}</b></div>`:`<div class="entInfo">${v} ist selbst ein Zehner.</div>`}
+        ${bis===1000?`<div class="entInfo">Nachbarhunderter <b>${a}</b> und <b>${b}</b></div>`:""}`; };
+    const baue=()=>{
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${[20,100,1000].map(b=>`<button class="klein${b===bis?"":" ghost"}" data-bis="${b}">bis ${b}</button>`).join("")}</div>
+        <svg class="entSvg" id="entStrahl" viewBox="0 0 ${W} 80" role="img" aria-label="Zahlenstrahl"></svg>
+        <div class="stTipp">Zieh den roten Pfeil – oder tippe auf eine Stelle.</div>
+        <div class="reihe">${(bis===1000?[-100,-10,-1,1,10,100]:[-10,-1,1,10]).map(d=>`<button class="ghost klein" data-d="${d}">${d>0?"+":"−"}${Math.abs(d)}</button>`).join("")}</div>
+        <div class="entPanel" id="entStrahlInfo"></div><div class="reihe"><button class="ghost klein" id="entLaut">🔈 Vorlesen</button></div>`;
+      const svg=$("entStrahl"), mal=()=>{ svg.innerHTML=svgInnen(); $("entStrahlInfo").innerHTML=info(); };
+      ziehSvg(svg, W, x=>{ let n=Math.round((x-X0)/(X1-X0)*bis); n=Math.max(0,Math.min(bis,n)); if(n!==v){ v=n; mal(); } }, ()=>sprich(zahlwort(v)));
+      e.querySelectorAll("[data-bis]").forEach(b=>b.addEventListener("click",()=>{ bis=+b.dataset.bis; v=Math.min(v,bis); baue(); }));
+      e.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("click",()=>{ v=Math.max(0,Math.min(bis,v+ +b.dataset.d)); mal(); sprich(zahlwort(v)); }));
+      $("entLaut").addEventListener("click",()=>{ const ne=v%10?` Die Nachbarzehner sind ${zahlwort(Math.floor(v/10)*10)} und ${zahlwort(Math.floor(v/10)*10+10)}.`:""; sprich(`${zahlwort(v)}.${ne}`); });
+      mal(); };
+    baue();
+  }
+  // ----- Daten: Strichliste und Säulendiagramm wachsen gleichzeitig -----
+  function strichSvg(n){ if(!n) return `<span style="color:#475569">–</span>`; let s="", x=2; const g=Math.floor(n/5), r=n%5;
+    for(let i=0;i<g;i++){ for(let k=0;k<4;k++) s+=`<line x1="${x+k*5}" y1="3" x2="${x+k*5}" y2="21" stroke="#e2e8f0" stroke-width="2.2" stroke-linecap="round"/>`; s+=`<line x1="${x-3}" y1="18" x2="${x+18}" y2="6" stroke="#fde68a" stroke-width="2.2" stroke-linecap="round"/>`; x+=27; }
+    for(let k=0;k<r;k++) s+=`<line x1="${x+k*5}" y1="3" x2="${x+k*5}" y2="21" stroke="#e2e8f0" stroke-width="2.2" stroke-linecap="round"/>`;
+    return `<svg width="${Math.max(10,x+r*5+4)}" height="24" viewBox="0 0 ${Math.max(10,x+r*5+4)} 24">${s}</svg>`; }
+  function entdeckeDaten(e){
+    const THEMEN=[["Lieblingsobst",[["🍎","Apfel"],["🍌","Banane"],["🍓","Erdbeere"],["🍇","Trauben"]]],["Haustiere",[["🐶","Hund"],["🐱","Katze"],["🐰","Hase"],["🐟","Fisch"]]],["Wie kommst du zur Schule?",[["🚶","zu Fuß"],["🚲","Fahrrad"],["🚌","Bus"],["🚗","Auto"]]]];
+    const FARB=["#f87171","#fbbf24","#f472b6","#a78bfa"];
+    let t=0, z=[3,5,2,4];
+    const mal=()=>{ const [titel,kat]=THEMEN[t], max=Math.max(5, ...z), oben=Math.ceil(max/5)*5, summe=z.reduce((a,b)=>a+b,0), best=Math.max(...z), beste=kat.filter((k,i)=>z[i]===best&&best>0).map(k=>k[1]);
+      const H=120, sw=46, dia=`<svg class="entSvg" viewBox="0 0 260 ${H+40}" role="img" aria-label="Säulendiagramm">`+
+        Array.from({length:oben/5+1},(_,i)=>{ const y=10+H-H*(i*5)/oben; return `<line x1="30" y1="${y}" x2="252" y2="${y}" stroke="#334155" stroke-width="1"/><text x="24" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${i*5}</text>`; }).join("")+
+        z.map((n,i)=>{ const h=H*n/oben, x=42+i*54; return `<rect x="${x}" y="${10+H-h}" width="${sw}" height="${h}" rx="4" fill="${FARB[i]}" style="transition:all .25s"/><text x="${x+sw/2}" y="${H+30}" text-anchor="middle" font-size="18">${kat[i][0]}</text>${n?`<text x="${x+sw/2}" y="${6+H-h}" text-anchor="middle" font-size="11" font-weight="800" fill="#e2e8f0">${n}</text>`:""}`; }).join("")+`</svg>`;
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${THEMEN.map((x,i)=>`<button class="klein${i===t?"":" ghost"}" data-t="${i}">${x[0]}</button>`).join("")}</div>
+        <div class="entPanel" style="text-align:left"><div class="entInfo" style="text-align:center"><b>Strichliste: ${titel}</b></div>
+          ${kat.map((k,i)=>`<div class="entStrich"><span class="ek">${k[0]} ${k[1]}</span><span class="es">${strichSvg(z[i])}</span><b class="en">${z[i]}</b><button class="ghost klein" data-m="${i}" aria-label="einen weniger">−</button><button class="klein" data-p="${i}" aria-label="einen mehr">+</button></div>`).join("")}</div>
+        <div class="stTipp">Tippe auf +: Ein Strich kommt dazu – und die Säule wird höher. Jeder fünfte Strich geht quer: So zählt man schneller.</div>
+        <div class="entPanel"><div class="entInfo"><b>Säulendiagramm</b></div>${dia}
+          <div class="entInfo">Zusammen: <b>${summe}</b> · Am meisten: <b>${beste.length?beste.join(" und "):"–"}</b></div></div>`;
+      e.querySelectorAll("[data-t]").forEach(b=>b.addEventListener("click",()=>{ t=+b.dataset.t; z=[0,0,0,0]; mal(); }));
+      e.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{ const i=+b.dataset.p; if(z[i]>=25) return; z[i]++; mal(); sprich(`${kat[i][1]}: ${zahlwort(z[i])}`); }));
+      e.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{ const i=+b.dataset.m; if(z[i]<=0) return; z[i]--; mal(); }));
+    };
+    mal();
+  }
+  // ----- Kalender: Monat ansehen, Tag antippen -----
+  function entdeckeKalender(e){
+    const TAGE=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"], MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+    const heute=new Date(); let j=heute.getFullYear(), m=heute.getMonth(), wahl=heute.getDate();
+    const mal=()=>{ const n=new Date(j,m+1,0).getDate(), start=(new Date(j,m,1).getDay()+6)%7, istHeute=d=>j===heute.getFullYear()&&m===heute.getMonth()&&d===heute.getDate();
+      if(wahl>n) wahl=n; const wt=TAGE[new Date(j,m,wahl).getDay()];
+      let zellen=Array.from({length:start},()=>`<span></span>`).join("");
+      for(let d=1; d<=n; d++){ const w=(start+d-1)%7; zellen+=`<button class="${d===wahl?"an":""}${istHeute(d)?" heute":""}${w>=5?" we":""}" data-d="${d}">${d}</button>`; }
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 8px;align-items:center"><button class="ghost klein" id="kVor" aria-label="Monat davor">◀</button><b style="font-size:19px;min-width:150px;text-align:center">${MON[m]} ${j}</b><button class="ghost klein" id="kNach" aria-label="nächster Monat">▶</button><button class="ghost klein" id="kHeute">Heute</button></div>
+        <div class="entKal">${["Mo","Di","Mi","Do","Fr","Sa","So"].map((x,i)=>`<span class="kk${i>=5?" we":""}">${x}</span>`).join("")}${zellen}</div>
+        <div class="entPanel"><div class="entSumme" style="font-size:24px">${wt}, ${wahl}. ${MON[m]} ${j}</div>
+          <div class="entInfo">Der ${MON[m]} hat <b>${n} Tage</b>. Er ist der <b>${m+1}.</b> Monat im Jahr.</div>
+          <div class="entInfo2">${istHeute(wahl)?"Das ist <b>heute</b>.":(()=>{ const t=Math.round((new Date(j,m,wahl)-new Date(heute.getFullYear(),heute.getMonth(),heute.getDate()))/86400000); return t>0?`Das ist in <b>${t}</b> ${t===1?"Tag":"Tagen"}.`:`Das war vor <b>${-t}</b> ${t===-1?"Tag":"Tagen"}.`; })()}</div>
+          <button class="ghost klein" id="entLaut">🔈 Vorlesen</button></div>`;
+      e.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("click",()=>{ wahl=+b.dataset.d; mal(); sprich(`${TAGE[new Date(j,m,wahl).getDay()]}, der ${wahl}. ${MON[m]}`); }));
+      $("kVor").addEventListener("click",()=>{ m--; if(m<0){ m=11; j--; } mal(); sprich(`${MON[m]}. Er hat ${zahlwort(new Date(j,m+1,0).getDate())} Tage.`); });
+      $("kNach").addEventListener("click",()=>{ m++; if(m>11){ m=0; j++; } mal(); sprich(`${MON[m]}. Er hat ${zahlwort(new Date(j,m+1,0).getDate())} Tage.`); });
+      $("kHeute").addEventListener("click",()=>{ j=heute.getFullYear(); m=heute.getMonth(); wahl=heute.getDate(); mal(); });
+      $("entLaut").addEventListener("click",()=>sprich(`${wt}, der ${wahl}. ${MON[m]} ${j}. Der ${MON[m]} hat ${zahlwort(n)} Tage.`));
     };
     mal();
   }
