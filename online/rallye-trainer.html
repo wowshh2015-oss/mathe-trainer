@@ -141,6 +141,13 @@
   @media (max-width:520px){ .bahn.bildHind .hindernis{--hb:160px;font-size:22px} }
   @media (max-width:400px){ .bahn.bildHind .hindernis{--hb:142px;font-size:21px} }
   /* Pferde: die Tafel im Springhindernis ist schmaler – das Hindernis etwas größer, damit lange Aufgaben lesbar bleiben */
+  /* Weltraum-Reise: das Ziel steht rechts im Hintergrund und wächst mit jeder Runde (--zg = Anteil der Bahnhöhe) */
+  .zielobj{position:absolute;z-index:0;pointer-events:none;height:calc(var(--zg) * 100%);width:auto;max-width:70%;object-fit:contain;
+    top:50%;right:4%;transform:translateY(-50%);transition:height 1.2s ease;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
+  .zielobj.licht{mix-blend-mode:screen;filter:none}
+  .zielobj.zurueck{right:auto;left:-6%;opacity:.9}
+  .bahn.rakete .fahrzeug{width:116px;height:66px;bottom:64px}
+  @media (max-width:520px){ .bahn.rakete .fahrzeug{width:96px;height:56px} }
   .bahn.pferd.bildHind .hindernis{--hb:256px}
   @media (max-width:520px){ .bahn.pferd.bildHind .hindernis{--hb:216px} }
   @media (max-width:400px){ .bahn.pferd.bildHind .hindernis{--hb:170px} }
@@ -444,7 +451,8 @@ function streckeOffen(n){ return n<5 ? true : f1Offen(); }
 const STUFEN=[0,20,40,60,80,100,120,140,160,180];
 const AUTO_NAMEN  =["Käfer","Stadtflitzer","Familienbus","Geländewagen","Pick-up","Sportwagen","Cabrio","Rallye-Wagen","Formel-Wagen","Super-Formel"];
 const PFERD_NAMEN =["Pony","Fohlen","Reitpferd","Haflinger","Pferd mit Decke","Springpferd","Rennpferd","Ritterpferd","Einhorn","Pegasus"];
-const RAKETE_NAMEN=["Mini-Rakete","Forschungsschiff","Raumgleiter","Space-Shuttle","Frachter","Sternenjäger","Rennkapsel","Fliegende Untertasse","Sternenkreuzer","Komet"];
+// 23.11.2026 (mit der Lehrkraft): echte Raumschiffe in der Garage, eigene Entwürfe für Profi/Legende – keine Film-Schiffe
+const RAKETE_NAMEN=["Apollo","Crew Dragon","Cygnus","Orion","Mondfähre","Dream Chaser","Starship","Space Shuttle","Ufo","Expeditionsschiff"];
 const FAHRZEUGE=[];
 STUFEN.forEach((ab,i)=>{
   FAHRZEUGE.push({id:"a"+(i+1), welt:"auto",   name:AUTO_NAMEN[i],   ab:ab});
@@ -460,7 +468,7 @@ const PROFI_STUFEN=[20,50,90,130,180];
 // Limousine zuerst (der Monster-Truck ist spannender und kommt danach), Mondauto zu Profi, Raketenauto und Schwebeauto zu Legende.
 const AUTO_PROFI  =["Limousine","Monster-Truck","Renn-Laster","Dünen-Buggy","Mondauto"];
 const PFERD_PROFI =["Zebra-Pferd","Feuerpferd","Regenbogen-Einhorn","Drachenpferd","Sternen-Pegasus"];
-const RAKETE_PROFI=["Mondfähre","Weltraum-Wal","Drachenschiff","Ringschiff","Galaxie-Kreuzer"];
+const RAKETE_PROFI=["Pfeilgleiter","Mantaschiff","Hexa-Frachter","Doppelfrachter","Ringschiff"];
 PROFI_STUFEN.forEach((pab,i)=>{
   FAHRZEUGE.push({id:"a"+(i+11), welt:"auto",   name:AUTO_PROFI[i],   ab:GARAGE_VOLL, pab:pab});
   FAHRZEUGE.push({id:"p"+(i+11), welt:"pferd",  name:PFERD_PROFI[i],  ab:GARAGE_VOLL, pab:pab});
@@ -471,7 +479,7 @@ PROFI_STUFEN.forEach((pab,i)=>{
 const LEGENDE_STUFEN=[220,260,300,350,400];
 const AUTO_LEGENDE  =["Schwebeauto","Amphibienauto","Flügelauto","Raketenauto","Legenden-Bolide"];
 const PFERD_LEGENDE =["Wolkenpferd","Eispferd","Ritter-Einhorn","Blitzpferd","Königspferd"];
-const RAKETE_LEGENDE=["Sternen-Segler","Asteroiden-Bohrer","Raumstation","Phönix-Schiff","Legenden-Kreuzer"];
+const RAKETE_LEGENDE=["Sonnensegler","Kometenjäger","Generationsschiff","Kristallschiff","Legenden-Kreuzer"];
 LEGENDE_STUFEN.forEach((pab,i)=>{
   FAHRZEUGE.push({id:"a"+(i+16), welt:"auto",   name:AUTO_LEGENDE[i],   ab:GARAGE_VOLL, pab:pab, legende:true});
   FAHRZEUGE.push({id:"p"+(i+16), welt:"pferd",  name:PFERD_LEGENDE[i],  ab:GARAGE_VOLL, pab:pab, legende:true});
@@ -938,7 +946,8 @@ function mitTuning(svg, id, tune, gold){
 // ===== Gemalte Modelle (vom Lehrer gemalt, Teil zum Umfärben in Magenta) =====
 // bilder/rallye/<id>_s.webp = Schatten des Lack-Teils in Grau (128 = genau die gewählte Farbe), <id>_r.webp = alles andere.
 // Die Farbe (auch Verläufe wie Gold oder Regenbogen) liegt unter den Schatten, Mischung „hard-light".
-const BILD_FZ={r1:1};
+const BILD_FZ={};
+for(let i=1;i<=16;i++) BILD_FZ["r"+i]=1;      // 23.11.2026: Raketen 1–16 gemalt (17–20 kommen noch)
 for(let i=1;i<=20;i++) BILD_FZ["p"+i]=1;                 // alle 20 Pferde realistisch (22.11.2026) (Pony, Reitpferd, Einhorn, Pegasus)
 for(let i=1;i<=20;i++) BILD_FZ["a"+i]=1;      // 22.11.2026: alle 20 Autos gemalt (realistischer Stil)
 let bildNr=0;
@@ -1070,9 +1079,40 @@ const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417}, pferd1:{strasse:0.3224, se
 // Gemalte Hindernisse: seite = Höhe/Breite, tafel = leere Tafel (links, oben, rechts, unten als Anteil) – dort steht die Aufgabe
 const HIND_BILD={ auto:{seite:0.49, tafel:[0.124,0.095,0.877,0.57]}, pferd:{seite:0.5, tafel:[0.236,0.274,0.765,0.719]} };
 function bgFuer(){ if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
+
+//// ===== Weltraum-Reise (23.11.2026, Idee der Lehrkraft) =====
+// Jedes neue Raumschiff = ein neues Reiseziel: von der Sonne an allen Planeten vorbei bis zur Andromeda-Galaxie.
+// Gezählt werden nur Runden im Weltraum. Das nächste Ziel wird mit jeder Runde größer, beim neuen Schiff ist man da.
+// Bilder: bilder/rallye/ziel_<id>.webp (licht = auf Schwarz, wird mit „screen" eingeblendet), Himmel bg_raum1–3.webp
+const ZIELE=[
+  {id:"sonne",name:"die Sonne",licht:1},{id:"merkur",name:"Merkur"},{id:"venus",name:"Venus"},{id:"erde_mond",name:"Erde und Mond"},
+  {id:"mars",name:"Mars"},{id:"asteroiden",name:"der Asteroidengürtel"},{id:"jupiter",name:"Jupiter"},{id:"saturn",name:"Saturn"},
+  {id:"uranus",name:"Uranus"},{id:"neptun",name:"Neptun"},{id:"pluto_charon",name:"Pluto und Charon"},{id:"kuiperguertel",name:"der Kuipergürtel"},
+  {id:"heliopause",name:"der Rand des Sonnensystems",licht:1},{id:"oortsche_wolke",name:"die Oortsche Wolke",licht:1},
+  {id:"alpha_centauri",name:"Alpha Centauri",licht:1},{id:"orionnebel",name:"der Orionnebel",licht:1},{id:"plejaden",name:"die Plejaden",licht:1},
+  {id:"schwarzes_loch",name:"ein Schwarzes Loch",licht:1},{id:"milchstrasse",name:"die Milchstraße",licht:1},{id:"andromeda",name:"die Andromeda-Galaxie",licht:1}];
+const ZIEL_DA={saturn:1, orionnebel:1};                       // schon gemalt
+const HIMMEL={raum1:6.0};                                      // seite = Kachelbreite / Höhe; raum1 Ziele 1–5, raum2 6–12, raum3 13–20
+// Wo ist die Reise? i = Nummer des Raumschiffs (0–19), t = 0…1 Weg zum nächsten Ziel
+function reiseStand(){
+  const L=FAHRZEUGE.filter(f=>f.welt==="rakete"), g=weltRunden("rakete"), p=weltProfi("rakete");
+  let i=0; L.forEach((f,k)=>{ if(istOffen(f,g,p)) i=k; });
+  const cur=L[i], nxt=L[i+1]; let t=1;
+  if(nxt) t = !nxt.pab ? (g-cur.ab)/(nxt.ab-cur.ab) : g<GARAGE_VOLL ? 0 : (p-(cur.pab||0))/(nxt.pab-(cur.pab||0));
+  return {i, t:Math.max(0,Math.min(1,t)), ziel:ZIELE[Math.min(i+1,ZIELE.length-1)], hier:ZIELE[i], ende:!nxt};
+}
+function himmelFuer(i){ const n = i<5 ? 1 : i<12 ? 2 : 3; for(const k of ["raum"+n,"raum1","raum2","raum3"]) if(HIMMEL[k]) return k; return null; }
+function zielHTML(){
+  const r=reiseStand(); let h="";
+  const bild=(z,cls,gr)=>ZIEL_DA[z.id] ? `<img class="zielobj ${cls}${z.licht?" licht":""}" src="bilder/rallye/ziel_${z.id}.webp" alt="" style="--zg:${gr.toFixed(3)}">` : "";
+  if(r.i===0 && !r.ende) h+=bild(ZIELE[0],"zurueck",1.1-0.8*r.t);   // die Sonne bleibt hinten zurück
+  h+=bild(r.ende?r.hier:r.ziel,"vorn",r.ende?1:0.28+0.67*r.t);      // das nächste Ziel kommt näher
+  return h;
+}
 const BAND_TEMPO={oben:26, strasse:120};      // Pixel pro Sekunde: Kulisse langsam, Straße schnell (Tiefe)
 function baendStellen(box){
-  const k=bgFuer(); if(!k) return; const H=box.clientHeight||200, w=BG_BILD[k].seite*H;
+  const hm = welt==="rakete" ? himmelFuer(reiseStand().i) : null;
+  const k=bgFuer(); if(!k && !hm) return; const H=box.clientHeight||200, w=(hm?HIMMEL[hm]:BG_BILD[k].seite)*H;
   box.querySelectorAll(".bgBand").forEach(b=>{ b.style.setProperty("--k", w.toFixed(1)+"px");
     b.style.animationDuration=(w/BAND_TEMPO[b.dataset.e]).toFixed(2)+"s"; });
 }
@@ -1084,6 +1124,14 @@ function aufTafel(h){
   while(h.scrollWidth>h.clientWidth+1 && fs>12){ fs-=1; h.style.fontSize=fs+"px"; }
 }
 function bahnHTML(){
+  const hm = welt==="rakete" ? himmelFuer(reiseStand().i) : null;
+  if(hm){   // Weltraum: Sternenhimmel über die ganze Höhe, davor das Reiseziel
+    return `<div class="bgOben" style="bottom:0"><div class="bgBand" data-e="oben" style="background-image:url(bilder/rallye/bg_${hm}.webp)"></div></div>
+      ${zielHTML()}
+      <div class="fahrzeug fz" style="left:6%">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, tune(), meinGold())}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
+      <div class="hindernis hide hind"></div>
+      <div class="ziel zielflagge">🏁</div>`;
+  }
   const bg=bgFuer();
   if(bg){
     const p=(BG_BILD[bg].strasse*100).toFixed(2), q="bilder/rallye/bg_"+bg;
@@ -1217,7 +1265,8 @@ function zeigeTitelUndProfi(){
   }
   if(wg<GARAGE_VOLL){
     const nd=naechstesDing(wg,wp);
-    $("profiZeile").innerHTML = nd ? `<div class="info" style="margin:-2px 0 12px">${weltName()}: <b>${wg}</b> Runde${wg===1?"":"n"} in dieser Welt · noch <b>${nd.fehlt}</b> bis <b>${nd.x.name}</b></div>` : "";
+    const reise = welt==="rakete" ? ` · 🪐 nächstes Reiseziel: <b>${reiseStand().ziel.name}</b>` : "";
+    $("profiZeile").innerHTML = nd ? `<div class="info" style="margin:-2px 0 12px">${weltName()}: <b>${wg}</b> Runde${wg===1?"":"n"} in dieser Welt · noch <b>${nd.fehlt}</b> bis <b>${nd.x.name}</b>${reise}</div>` : "";
     return;
   }
   const nd=naechstesDing(wg,wp);
@@ -1484,7 +1533,7 @@ function rundeFertig(){
   sitzungRunden++;
   sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
   const vorher=gesamtRunden(), pVorher=profiRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
-  const wVorher=weltRunden(), wpVorher=weltProfi();
+  const wVorher=weltRunden(), wpVorher=weltProfi(), reiseVorher=reiseStand().i;
   const tVorher=titelStand(vorher,pVorher);
   let sternVor=null; try{ sternVor=Sterne.stand(tankRows()); }catch(e){}
   speichere(dauer);
@@ -1494,6 +1543,7 @@ function rundeFertig(){
   $("rueck").style.color="var(--gold)";
   $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`+(wpNachher>wpVorher?` · ⭐ Profi-Runde ${wpNachher}`:"");
   const neuFrei = freigeschaltetZwischen({g:vorher,p:pVorher,wg:wVorher,wp:wpVorher}, {g:nachher,p:pNachher,wg:wNachher,wp:wpNachher});
+  if(welt==="rakete" && reiseStand().i>reiseVorher) neuFrei.unshift(`🪐 Angekommen: ${reiseStand().hier.name}!`);
   if(!f1Vorher && f1Offen()) neuFrei.push("🏆 Strecke Formel 1");
   if(levelFuer(strecke)>levelVorher) neuFrei.push(`⬆️ ${st(strecke).name}: Level ${levelFuer(strecke)+1} – jetzt wird es schwerer`);
   if(wVorher<GARAGE_VOLL && wNachher>=GARAGE_VOLL) neuFrei.push(`⭐ Die Profi-Garage ${weltName()} ist offen!`);
