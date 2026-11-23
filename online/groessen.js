@@ -1830,7 +1830,7 @@
   }
   // ---------- 🔎 Entdecken: freies Ausprobieren vor dem Üben (Aufbau von Grundvorstellungen) – ohne Bewertung, mit Vorlesen ----------
   function sprich(text){
-    try{ if(!("speechSynthesis" in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,"")); u.lang="de-DE"; u.rate=0.9;
+    try{ if(!("speechSynthesis" in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,"").replace(/­/g,"")); u.lang="de-DE"; u.rate=0.9;
       const v=(window.Komfort && Komfort.stimme) ? Komfort.stimme() : null; if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
   }
   const ohneTags=s=>String(s).replace(/<[^>]+>/g,"");
@@ -1842,6 +1842,7 @@
     strahl:{text:"Schieb den roten Pfeil über den Zahlenstrahl – du siehst die Zahl, ihre Nachbarn und die Nachbarzehner.", baue:entdeckeStrahl},
     zahlen:{text:"Schieb den roten Pfeil über den Zahlenstrahl – du siehst die Zahl, ihre Nachbarn und die Nachbarzehner.", baue:entdeckeStrahl},
     daten:{text:"Mach eine Strichliste: Mit jedem Strich wächst die Säule im Diagramm mit.", baue:entdeckeDaten},
+    gewichte:{text:"Leg einen Gegenstand auf die Waage und such passende Gewichtsstücke – bis die Waage gerade steht.", baue:entdeckeWaage},
     kalender:{text:"Blättere durch die Monate und tippe einen Tag an – du hörst, welcher Wochentag es ist.", baue:entdeckeKalender}
   };
   function entdeckenKarte(){
@@ -2052,6 +2053,39 @@
       $("kNach").addEventListener("click",()=>{ m++; if(m>11){ m=0; j++; } mal(); sprich(`${MON[m]}. Er hat ${zahlwort(new Date(j,m+1,0).getDate())} Tage.`); });
       $("kHeute").addEventListener("click",()=>{ j=heute.getFullYear(); m=heute.getMonth(); wahl=heute.getDate(); mal(); });
       $("entLaut").addEventListener("click",()=>sprich(`${wt}, der ${wahl}. ${MON[m]} ${j}. Der ${MON[m]} hat ${zahlwort(n)} Tage.`));
+    };
+    mal();
+  }
+  // ----- Gewichte: Balkenwaage – Gegenstand links, Gewichtsstücke rechts -----
+  function entdeckeWaage(e){
+    const DINGE=[["🍎","Apfel","der",150],["🍌","Banane","die",120],["🥚","Ei","das",60],["🍫","Tafel Schokolade","die",100],["📕","Buch","das",600],["🥛","Liter Milch","der",1000],["🍍","Ananas","die",900],["🧈","Stück Butter","das",250]];
+    const STK=[1000,500,200,100,50,20,10];
+    let d=0, rechts=[];
+    const gw=g=>g>=1000 ? (g%1000 ? `${Math.floor(g/1000)} kg ${g%1000} g` : `${g/1000} kg`) : `${g} g`;
+    const gwWort=g=>g>=1000 ? `${Math.floor(g/1000)===1?"ein":zahlwort(Math.floor(g/1000))} Kilogramm${g%1000?" "+zahlwort(g%1000)+" Gramm":""}` : `${zahlwort(g)} Gramm`;
+    const stueck=g=>{ const r=g>=500?26:g>=100?20:g>=50?17:14; return `<g><rect x="${-r/2}" y="${-r}" width="${r}" height="${r}" rx="3" fill="#94a3b8" stroke="#0f172a" stroke-width="1.5"/><text x="0" y="${-r/2+3.5}" text-anchor="middle" font-size="${r>=20?7.5:6}" font-weight="800" fill="#0f172a">${g>=1000?"1kg":g}</text></g>`; };
+    const mal=()=>{
+      const [ic,name,art,soll]=DINGE[d], ist=rechts.reduce((a,b)=>a+b,0), diff=ist-soll, w=Math.max(-12,Math.min(12, diff/Math.max(soll,100)*24)), gleich=diff===0;
+      const rad=w*Math.PI/180, L=[150-90*Math.cos(rad), 60-90*Math.sin(rad)], R=[150+90*Math.cos(rad), 60+90*Math.sin(rad)];
+      let rs=""; rechts.slice().sort((a,b)=>b-a).forEach((g,i)=>{ const x=R[0]-30+(i%5)*15, y=R[1]+46-Math.floor(i/5)*24; rs+=`<g transform="translate(${x},${y})">${stueck(g)}</g>`; });
+      e.innerHTML=`<div class="entGal" style="grid-template-columns:repeat(4,1fr)">${DINGE.map((x,i)=>`<button class="${i===d?"an":""}" data-d="${i}"><span style="font-size:26px">${x[0]}</span><span>${x[1]}</span></button>`).join("")}</div>
+        <svg class="entSvg" viewBox="0 0 300 170" role="img" aria-label="Waage" style="margin-top:10px;touch-action:auto;cursor:default">
+          <rect x="135" y="150" width="30" height="8" rx="2" fill="#64748b"/><rect x="146" y="60" width="8" height="92" fill="#64748b"/><circle cx="150" cy="60" r="6" fill="#cbd5e1"/>
+          <line x1="${L[0]}" y1="${L[1]}" x2="${R[0]}" y2="${R[1]}" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round"/>
+          <path d="M${L[0]-34} ${L[1]+48} L${L[0]} ${L[1]} L${L[0]+34} ${L[1]+48}" fill="none" stroke="#94a3b8" stroke-width="1.2"/><path d="M${L[0]-38} ${L[1]+48} H${L[0]+38}" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+          <path d="M${R[0]-38} ${R[1]+48} L${R[0]} ${R[1]} L${R[0]+38} ${R[1]+48}" fill="none" stroke="#94a3b8" stroke-width="1.2"/><path d="M${R[0]-42} ${R[1]+48} H${R[0]+42}" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+          <text x="${L[0]}" y="${L[1]+44}" text-anchor="middle" font-size="30">${ic}</text>${rs}
+          <path d="M150 52 L146 40 L154 40 Z" fill="${gleich?"#22c55e":"#f59e0b"}"/></svg>
+        <div class="stTipp">Tippe unten auf ein Gewichtsstück – es kommt rechts auf die Waage. Antippen in der Liste nimmt es wieder herunter.</div>
+        <div class="kasse">${STK.map(g=>`<button data-g="${g}" style="min-width:62px;font-weight:800;color:#e2e8f0">${gw(g)}</button>`).join("")}</div>
+        <div class="haufen" id="entRechts">${rechts.length ? rechts.slice().sort((a,b)=>b-a).map((g,i)=>`<button data-r="${g}" style="background:#334155;color:#e2e8f0;border-radius:9px;padding:6px 9px;font-weight:800">${gw(g)}</button>`).join("") : "Rechts liegt noch nichts."}</div>
+        <div class="entPanel"><div class="entInfo">Rechts: <b>${gw(ist)}</b>${ist>=1000&&ist%1000?` = ${ist} g`:""}</div>
+          <div class="entSumme" style="font-size:22px;color:${gleich?"#86efac":"#fde68a"}">${gleich ? `⚖️ Gleichgewicht! ${art==="der"?"Der":art==="die"?"Die":"Das"} ${name} wiegt ${gw(soll)}.` : ist===0 ? `${ic} Wie schwer ist ${art} ${name}?` : diff<0 ? "Rechts ist es noch zu leicht." : "Rechts ist es zu schwer."}</div>
+          ${gleich && soll>=1000 ? `<div class="entInfo2">1 kg = 1000 g</div>`:""}</div>`;
+      e.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("click",()=>{ d=+b.dataset.d; rechts=[]; mal(); }));
+      e.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ if(rechts.length>=15) return; rechts.push(+b.dataset.g); const vor=gleich; mal();
+        const s=rechts.reduce((a,c)=>a+c,0); if(s===DINGE[d][3]) sprich(`Gleichgewicht! ${DINGE[d][2]==="der"?"Der":DINGE[d][2]==="die"?"Die":"Das"} ${DINGE[d][1]} wiegt ${gwWort(s)}.`); }));
+      e.querySelectorAll("[data-r]").forEach(b=>b.addEventListener("click",()=>{ const i=rechts.indexOf(+b.dataset.r); if(i>=0) rechts.splice(i,1); mal(); }));
     };
     mal();
   }
