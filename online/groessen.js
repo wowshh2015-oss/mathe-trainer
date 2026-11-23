@@ -105,6 +105,15 @@
   .schrift span.su{font-size:16px;color:#fde68a;min-height:20px} .schrift .slinie{height:3px;background:var(--text);border-radius:2px;min-height:3px} .schrift .sl{color:#86efac}
   .schrift .skomma{font-size:26px;align-self:end;line-height:1.5;min-width:0} .schrift input.sz{max-width:100%}
   .schriftTipp{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
+  .entGal{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .entGal button{background:#0b1220;border:2px solid var(--card2);border-radius:14px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text);font-size:13px;font-weight:700}
+  .entGal button.an{border-color:#fde68a;background:rgba(253,230,138,.1)}
+  .entPanel{margin-top:10px;background:#0b1220;border:1px solid var(--card2);border-radius:16px;padding:12px;text-align:center}
+  .entBild{display:flex;justify-content:center} .entName{font-size:22px;margin:4px 0} .entName b{color:#fde68a}
+  .entInfo{font-size:16px;color:#e2e8f0;margin:4px 0} .entInfo2{font-size:14px;color:var(--muted);line-height:1.5;margin:4px 0}
+  .entSumme{font-size:34px;font-weight:900;color:#fde68a} .entBeutel button{background:transparent;border:none;padding:0}
+  .stTipp{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:6px}
+  .entT{opacity:0;animation:entEin .35s forwards} @keyframes entEin{to{opacity:1}}
   .pk{display:inline-grid;gap:3px;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;margin:2px auto}
   .pkZ{display:grid;grid-template-columns:2.6ch 1.3ch 2.6ch 1.3ch 3.4ch;gap:6px;text-align:right;padding:2px 10px;border-radius:9px}
   .pkZ span:nth-child(2),.pkZ span:nth-child(4){text-align:center;color:var(--muted)}
@@ -1811,6 +1820,118 @@
     facts.forEach(k=>{ const s=Wdh.status(MEINE,k); if(s.offen) offen.push(k); else if(s.faellig) faellig.push(k); });
     return {offen, faellig};
   }
+  // ---------- 🔎 Entdecken: freies Ausprobieren vor dem Üben (Aufbau von Grundvorstellungen) – ohne Bewertung, mit Vorlesen ----------
+  function sprich(text){
+    try{ if(!("speechSynthesis" in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,"")); u.lang="de-DE"; u.rate=0.9;
+      const v=(window.Komfort && Komfort.stimme) ? Komfort.stimme() : null; if(v) u.voice=v; speechSynthesis.speak(u); }catch(e){}
+  }
+  const ohneTags=s=>String(s).replace(/<[^>]+>/g,"");
+  const ENTDECKEN={
+    stellen:{text:"Lege, bündle und entbündle, wie du willst – die Zahl wächst mit. Hier gibt es keine Fehler.", baue:entdeckeStellen},
+    geo:{text:"Tippe eine Form oder einen Körper an: Du hörst, wie sie heißt, und kannst Ecken und Seiten zählen lassen.", baue:entdeckeFormen},
+    geld:{text:"Tippe Münzen und Scheine an – sie kommen in deinen Geldbeutel. Wie viel ist es zusammen? Du kannst auch wechseln.", baue:entdeckeGeld}
+  };
+  function entdeckenKarte(){
+    if(!ENTDECKEN[WAS] || $("entdeckenBtn")) return;
+    $("zooFeld").innerHTML=`<div class="stufe" style="border-color:#fde68a"><span class="nr">🔎</span><span class="tx"><b>Entdecken</b><span>${ENTDECKEN[WAS].text}</span></span>
+      <span class="kn"><button class="klein" id="entdeckenBtn">Ausprobieren</button></span></div><div id="entdecken" class="hide" style="margin-bottom:14px"></div>`;
+    $("entdeckenBtn").addEventListener("click",()=>{ const e=$("entdecken"), zu=!e.classList.contains("hide");
+      e.classList.toggle("hide", zu); $("entdeckenBtn").textContent=zu?"Ausprobieren":"Schließen";
+      if(zu) try{ speechSynthesis.cancel(); }catch(x){}
+      if(!zu && !e.dataset.an){ e.dataset.an="1"; ENTDECKEN[WAS].baue(e); } });
+  }
+  function entdeckeStellen(e){
+    if(!window.Stellen) return;
+    let kl=0; try{ kl=+(localStorage.getItem("mathe_klasse")||0); }catch(x){}
+    const baue=bis=>{
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${[100,1000].map(b=>`<button class="klein${b===bis?"":" ghost"}" data-bis="${b}">bis ${b}</button>`).join("")}<button class="ghost klein" id="entLeer">Alles weg</button></div><div id="entBrett"></div>`;
+      const br=Stellen.brett($("entBrett"), {spalten:bis===100?ST2:ST3, live:true});
+      e.querySelectorAll("[data-bis]").forEach(b=>b.addEventListener("click",()=>baue(+b.dataset.bis)));
+      $("entLeer").addEventListener("click",()=>br.setze({})); };
+    baue(kl && kl<=2 ? 100 : 1000);
+  }
+  // ----- Formen und Körper -----
+  const eckP=(n,r,dreh)=>Array.from({length:n},(_,i)=>{ const w=(dreh===undefined?-90:dreh)*Math.PI/180+i*2*Math.PI/n; return [+(50+r*Math.cos(w)).toFixed(1), +(50+r*Math.sin(w)).toFixed(1)]; });
+  const FORM_E={ Kreis:{art:"der", farbe:"#60a5fa"}, Dreieck:{art:"das", farbe:"#f472b6", p:[[50,10],[90,86],[10,86]]}, Quadrat:{art:"das", farbe:"#34d399", p:[[16,16],[84,16],[84,84],[16,84]]},
+    Rechteck:{art:"das", farbe:"#fbbf24", p:[[6,26],[94,26],[94,74],[6,74]]}, "Fünfeck":{art:"das", farbe:"#a78bfa", p:eckP(5,42)}, Sechseck:{art:"das", farbe:"#fb923c", p:eckP(6,42,0)} };
+  const KOERPER_E={ "Würfel":{art:"der", ecken:[[20,34],[68,34],[68,82],[20,82],[36,18],[84,18],[84,66]], versteckt:[36,66], alltag:"🎲 Spielwürfel · Zuckerwürfel"},
+    "Quader":{art:"der", ecken:[[6,44],[76,44],[76,80],[6,80],[22,28],[92,28],[92,64]], versteckt:[22,64], alltag:"📦 Schuhkarton · 🧱 Ziegelstein"},
+    "Kugel":{art:"die", alltag:"⚽ Fußball · 🍊 Orange · Murmel", rund:"1 gebogene Fläche · keine Ecken · keine Kanten"},
+    "Zylinder":{art:"der", alltag:"🥫 Dose · 🕯️ Kerze", rund:"3 Flächen: 2 Kreise und 1 gebogene Fläche · keine Ecken"},
+    "Kegel":{art:"der", spitze:[50,10], alltag:"🍦 Eistüte · 🥳 Partyhut", rund:"2 Flächen: 1 Kreis und 1 gebogene Fläche · 1 Spitze"},
+    "Pyramide":{art:"die", ecken:[[50,10],[14,74],[62,88],[90,66]], versteckt:[42,56], alltag:"⛺ Zelt mit Spitze"} };
+  const groß=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  function formSvg(name, o){ o=o||{}; const f=FORM_E[name], st=`fill="${f.farbe}" stroke="#0f172a" stroke-width="3" stroke-linejoin="round"`;
+    let s = f.p ? `<polygon points="${f.p.map(q=>q.join(",")).join(" ")}" ${st}/>` : `<circle cx="50" cy="50" r="38" ${st}/>`;
+    if(o.seiten && f.p) f.p.forEach((q,i)=>{ const r=f.p[(i+1)%f.p.length], mx=(q[0]+r[0])/2, my=(q[1]+r[1])/2, dx=mx-50, dy=my-50, l=Math.hypot(dx,dy)||1;
+      s+=`<line x1="${q[0]}" y1="${q[1]}" x2="${r[0]}" y2="${r[1]}" stroke="#fde047" stroke-width="6" stroke-linecap="round" class="entT" style="animation-delay:${i*0.45}s"/>`+
+         `<text x="${(mx+dx/l*9).toFixed(1)}" y="${(my+dy/l*9+3.5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="#fde047" class="entT" style="animation-delay:${i*0.45}s">${i+1}</text>`; });
+    if(o.ecken && f.p) f.p.forEach((q,i)=>{ const dx=q[0]-50, dy=q[1]-50, l=Math.hypot(dx,dy)||1;
+      s+=`<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" class="entT" style="animation-delay:${i*0.45}s"/>`+
+         `<text x="${(q[0]+dx/l*11).toFixed(1)}" y="${(q[1]+dy/l*11+3.5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="#fca5a5" class="entT" style="animation-delay:${i*0.45}s">${i+1}</text>`; });
+    return `<svg viewBox="-12 -12 124 124" width="${o.gross?210:64}" height="${o.gross?210:64}" role="img" aria-label="${name}">${s}</svg>`; }
+  function koerperSvg(name, o){ o=o||{}; let s=koerperBild(name).replace(/^<svg[^>]*>/,"").replace(/<\/svg>$/,""); const k=KOERPER_E[name];
+    if(o.ecken && k.ecken){ const v=k.versteckt; if(v && name!=="Pyramide"){ const n=[[v[0]-16,v[1]+16],[v[0]+48+(name==="Quader"?22:0),v[1]],[v[0],v[1]-48+(name==="Quader"?12:0)]];
+        n.forEach(q=>{ s+=`<line x1="${v[0]}" y1="${v[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="4 4"/>`; }); }
+      k.ecken.concat(v?[v]:[]).forEach((q,i)=>{ const hinten=v&&i===k.ecken.length;
+        s+=`<circle cx="${q[0]}" cy="${q[1]}" r="4.5" fill="${hinten?"none":"#ef4444"}" stroke="${hinten?"#ef4444":"#fff"}" stroke-width="${hinten?2:1.5}" ${hinten?'stroke-dasharray="2 2"':""} class="entT" style="animation-delay:${i*0.4}s"/>`; }); }
+    if(o.ecken && k.spitze) s+=`<circle cx="${k.spitze[0]}" cy="${k.spitze[1]}" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" class="entT"/>`;
+    return `<svg viewBox="-4 -4 108 108" width="${o.gross?200:64}" height="${o.gross?200:64}" role="img" aria-label="${name}">${s}</svg>`; }
+  function entdeckeFormen(e){
+    let teil="f", wahl="Dreieck";
+    const satzForm=n=>{ const f=FORM_E[n]; return f.p ? `${groß(f.art)} ${n} hat ${zahlwort(f.p.length)} Ecken und ${zahlwort(f.p.length)} Seiten.` : "Der Kreis ist ganz rund. Er hat keine Ecken und keine Seiten."; };
+    const satzKoerper=n=>{ const k=KOERPER_E[n], w=KOERPER[n].ekf; return w ? `${groß(k.art)} ${n} hat ${zahlwort(w[0])} Ecken, ${zahlwort(w[1])} Kanten und ${zahlwort(w[2])} Flächen.` : ohneTags(KOERPER[n].info); };
+    const mal=(zeige)=>{
+      const liste = teil==="f" ? Object.keys(FORM_E) : Object.keys(KOERPER_E), istF=teil==="f";
+      if(!liste.includes(wahl)) wahl=liste[0];
+      const k=KOERPER_E[wahl], w=!istF && KOERPER[wahl].ekf;
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 10px"><button class="klein${istF?"":" ghost"}" data-teil="f">Flächen</button><button class="klein${istF?" ghost":""}" data-teil="k">Körper</button></div>
+        <div class="entGal">${liste.map(n=>`<button class="${n===wahl?"an":""}" data-n="${n}">${istF?formSvg(n):koerperSvg(n)}<span>${n}</span></button>`).join("")}</div>
+        <div class="entPanel"><div class="entBild">${istF?formSvg(wahl,{gross:true, ecken:zeige==="ecken", seiten:zeige==="seiten"}):koerperSvg(wahl,{gross:true, ecken:zeige==="ecken"})}</div>
+          <div class="entName">${istF?FORM_E[wahl].art:k.art} <b>${wahl}</b> <button class="ghost klein" id="entLaut" aria-label="Vorlesen">🔈</button></div>
+          <div class="entInfo">${istF ? (FORM_E[wahl].p ? `<b>${FORM_E[wahl].p.length}</b> Ecken · <b>${FORM_E[wahl].p.length}</b> Seiten` : "keine Ecken · keine Seiten · ganz rund") : w ? `<b>${w[0]}</b> Ecken · <b>${w[1]}</b> Kanten · <b>${w[2]}</b> Flächen` : k.rund}</div>
+          <div class="entInfo2">${istF ? FORMINFO[wahl] : KOERPER[wahl].info+`<br>So sieht das aus: ${k.alltag}`}</div>
+          <div class="reihe">${(istF ? FORM_E[wahl].p : (k.ecken||k.spitze)) ? `<button class="klein" id="entEcken">🔴 ${istF||k.ecken?"Ecken zählen":"Spitze zeigen"}</button>`:""}${istF && FORM_E[wahl].p ? `<button class="klein" id="entSeiten">📏 Seiten zählen</button>`:""}</div>
+          ${!istF && k.versteckt && zeige==="ecken" ? `<div class="entInfo2">Die gestrichelte Ecke ist <b>hinten</b> – man sieht sie nicht, aber sie ist da.</div>`:""}</div>`;
+      e.querySelectorAll("[data-teil]").forEach(b=>b.addEventListener("click",()=>{ teil=b.dataset.teil; wahl=teil==="f"?"Dreieck":"Würfel"; mal(); }));
+      e.querySelectorAll("[data-n]").forEach(b=>b.addEventListener("click",()=>{ wahl=b.dataset.n; mal(); const a=istF?FORM_E[wahl].art:KOERPER_E[wahl].art; sprich(`${groß(a)} ${wahl}.`); }));
+      $("entLaut").addEventListener("click",()=>sprich(`${groß(istF?FORM_E[wahl].art:k.art)} ${wahl}. `+(istF?satzForm(wahl):satzKoerper(wahl))));
+      const zaehl=(was,n)=>{ const z=Array.from({length:n},(_,i)=>zahlwort(i+1)).join(", ");
+        sprich(`${groß(z)}. `+(istF ? `${groß(FORM_E[wahl].art)} ${wahl} hat ${zahlwort(n)} ${was}.` : satzKoerper(wahl))); };
+      if($("entEcken")) $("entEcken").addEventListener("click",()=>{ mal("ecken"); const n=istF?FORM_E[wahl].p.length:(k.ecken?k.ecken.length+(k.versteckt?1:0):1); if(!istF && !k.ecken) sprich("Der Kegel hat eine Spitze."); else zaehl("Ecken", n); });
+      if($("entSeiten")) $("entSeiten").addEventListener("click",()=>{ mal("seiten"); zaehl("Seiten", FORM_E[wahl].p.length); });
+    };
+    mal();
+  }
+  // ----- Geld -----
+  const WECHSEL={20000:[10000,10000],10000:[5000,5000],5000:[2000,2000,1000],2000:[1000,1000],1000:[500,500],500:[200,200,100],200:[100,100],100:[50,50],50:[20,20,10],20:[10,10],10:[5,5],5:[2,2,1],2:[1,1]};
+  const geldWort=v=>v>=100 ? `${v===100?"ein":zahlwort(v/100)} Euro` : `${v===1?"ein":zahlwort(v)} Cent`;
+  function betragWort(c){ const e=Math.floor(c/100), r=c%100; if(!c) return "null Euro";
+    return e ? `${e===1?"ein":zahlwort(e)} Euro${r?" "+(r===1?"eins":zahlwort(r)):""}` : `${r===1?"ein":zahlwort(r)} Cent`; }
+  function entdeckeGeld(e){
+    let beutel=[], tauschen=false; const MAX=40;
+    const mal=()=>{
+      beutel.sort((a,b)=>b-a); const s=beutel.reduce((x,y)=>x+y,0);
+      e.innerHTML=`<div class="kasse">${STUECKE.slice().reverse().map(v=>`<button data-v="${v}" aria-label="${geldWort(v)}">${geldBild(v,true)}</button>`).join("")}</div>
+        <div class="reihe"><button class="klein${tauschen?"":" ghost"}" id="entTausch">🔄 Wechseln ${tauschen?"an":"aus"}</button><button class="ghost klein" id="entWenig">✨ Möglichst wenige Stücke</button><button class="ghost klein" id="entWeg">Alles weg</button></div>
+        <div class="haufen entBeutel" id="entBeutel">${beutel.length ? beutel.map((v,i)=>`<button data-i="${i}" aria-label="${geldWort(v)}">${geldBild(v,true)}</button>`).join("") : "👛 Dein Geldbeutel ist leer. Tippe oben auf Münzen und Scheine."}</div>
+        <div class="stTipp">${tauschen ? "Wechseln ist an: Tippe ein Stück im Geldbeutel an – du bekommst kleinere Stücke, die genauso viel wert sind." : "Ein Stück im Geldbeutel antippen legt es zurück."}</div>
+        <div class="entPanel"><div class="entInfo">${beutel.length} ${beutel.length===1?"Stück":"Stücke"}</div>
+          <div class="entSumme">${komma(s)} <button class="ghost klein" id="entLaut" aria-label="Vorlesen">🔈</button></div>
+          <div class="entInfo">${s>=100 ? `= ${euroCent(s)} = ${s} ct` : `= ${s} ct`}</div><div class="entInfo2">${betragWort(s)}</div>
+          ${beutel.length>1?`<div class="entInfo2">${summenKette(beutel)}</div>`:""}</div>`;
+      e.querySelectorAll(".kasse [data-v]").forEach(b=>b.addEventListener("click",()=>{ if(beutel.length>=MAX) return; const v=+b.dataset.v; beutel.push(v); mal(); sprich(geldWort(v)); }));
+      e.querySelectorAll("#entBeutel [data-i]").forEach(b=>b.addEventListener("click",()=>{ const i=+b.dataset.i, v=beutel[i];
+        if(tauschen){ const w=WECHSEL[v]; if(!w){ sprich("Ein Cent ist das kleinste Stück. Den kann man nicht wechseln."); return; } if(beutel.length-1+w.length>MAX) return;
+          beutel.splice(i,1,...w); mal(); sprich(`${geldWort(v)} sind ${w.map(geldWort).join(" und ")}.`); }
+        else { beutel.splice(i,1); mal(); } }));
+      $("entTausch").addEventListener("click",()=>{ tauschen=!tauschen; mal(); });
+      $("entWenig").addEventListener("click",()=>{ if(!s) return; beutel=zerlege(s); mal(); sprich(`Mit möglichst wenigen Stücken: ${beutel.map(geldWort).join(", ")}.`); });
+      $("entWeg").addEventListener("click",()=>{ beutel=[]; mal(); });
+      $("entLaut").addEventListener("click",()=>sprich(s ? `Zusammen sind es ${betragWort(s)}.` : "Der Geldbeutel ist leer."));
+    };
+    mal();
+  }
   function zeigeMenue(){
     const dran=STUFEN.find(s=>!stufenStand(s.id).bestanden);
     $("stufen").innerHTML=STUFEN.map(s=>{ const z=stufenStand(s.id);
@@ -1834,20 +1955,7 @@
       $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:14px">▶ Neue Tiere holen</button>`+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
       $("zooLos").addEventListener("click", ()=>{ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){ $("stufen").scrollIntoView(); } });
     }
-    if(WAS==="stellen" && window.Stellen && !$("entdeckenBtn")){
-      // Entdecken: freies Legen ohne Bewertung – Material, Stellentafel, Zahl und Zahlwort ändern sich gleichzeitig
-      $("zooFeld").innerHTML=`<div class="stufe" style="border-color:#fde68a"><span class="nr">🔎</span><span class="tx"><b>Entdecken</b><span>Lege, bündle und entbündle, wie du willst – die Zahl wächst mit. Hier gibt es keine Fehler.</span></span>
-        <span class="kn"><button class="klein" id="entdeckenBtn">Ausprobieren</button></span></div><div id="entdecken" class="hide" style="margin-bottom:14px"></div>`;
-      let kl=0; try{ kl=+(localStorage.getItem("mathe_klasse")||0); }catch(e){}
-      const baue=bis=>{ const e=$("entdecken");
-        e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${[100,1000].map(b=>`<button class="klein${b===bis?"":" ghost"}" data-bis="${b}">bis ${b}</button>`).join("")}<button class="ghost klein" id="entLeer">Alles weg</button></div><div id="entBrett"></div>`;
-        const br=Stellen.brett($("entBrett"), {spalten:bis===100?ST2:ST3, live:true});
-        e.querySelectorAll("[data-bis]").forEach(b=>b.addEventListener("click",()=>baue(+b.dataset.bis)));
-        $("entLeer").addEventListener("click",()=>br.setze({})); };
-      $("entdeckenBtn").addEventListener("click",()=>{ const e=$("entdecken"), zu=!e.classList.contains("hide");
-        e.classList.toggle("hide", zu); $("entdeckenBtn").textContent=zu?"Ausprobieren":"Schließen";
-        if(!zu && !e.dataset.an){ e.dataset.an="1"; baue(kl && kl<=2 ? 100 : 1000); } });
-    }
+    entdeckenKarte();
     const z=meineTypen(), n=z.offen.length+z.faellig.length;
     $("meineText").textContent = n ? `${z.offen.length?z.offen.length+(z.offen.length===1?" Aufgabenart sitzt":" Aufgabenarten sitzen")+" noch nicht":""}${z.offen.length&&z.faellig.length?" · ":""}${z.faellig.length?"🔁 "+z.faellig.length+(z.faellig.length===1?" Wiederholung ist":" Wiederholungen sind")+" heute dran":""}`
                                    : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";

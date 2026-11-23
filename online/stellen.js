@@ -3,7 +3,7 @@
 // Darstellungen sind synchron vernetzt (Material ↔ Stellentafel ↔ Zahl ↔ Zahlwort), Bündeln/Entbündeln als Strukturierungshilfe.
 // Benutzt von groessen.js (window.GROESSE="stellen"): Aufgabenart {art:"stellen"} und „Entdecken".
 window.Stellen=(function(){
-  const FARBE={H:"#4ade80",Z:"#f87171",E:"#60a5fa"}, NAME={H:"Hunderter",Z:"Zehner",E:"Einer"}, EINZ={H:"Hunderterplatte",Z:"Zehnerstange",E:"Einerwürfel"},
+  const FARBE={H:"#f87171",Z:"#60a5fa",E:"#4ade80"}, NAME={H:"Hunderter",Z:"Zehner",E:"Einer"}, EINZ={H:"Hunderterplatte",Z:"Zehnerstange",E:"Einerwürfel"},
         WERT={H:100,Z:10,E:1}, MAX={H:9,Z:20,E:20}, ZUR={E:"Z",Z:"H"}, VON={Z:"E",H:"Z"};
   const wert=s=>(s.H||0)*100+(s.Z||0)*10+(s.E||0);
   const WE=["","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"],
