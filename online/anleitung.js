@@ -21,6 +21,7 @@ window.Anleitung=(function(){
     zoo:             {ic:"🦁", name:"Mein Zoo", 1:"Zoo-Runde Klasse 1", 2:"Zoo-Runde Klasse 2 · Leicht, Mittel, Profi", 3:"Zoo-Runde Klasse 3 · Leicht, Mittel, Profi", 4:"Zoo-Runde Klasse 4"},
     mix:             {ic:"🎲", name:"Bunte Mischung", 1:"alle Themen der Klasse 1 gemischt", 2:"Klasse 2 gemischt · Leicht, Mittel, Profi", 3:"Klasse 3 gemischt · Leicht, Mittel, Profi", 4:"Vorschau auf Klasse 4"},
     kalender:        {ic:"📅", name:"Kalender und Zeit", 1:"Wochentage und Monate", 2:"Tage im Monat · Stunden und Minuten", 3:"Sekunden · Datum · Zeitspannen auf die Minute · Fahrplan"},
+    paeckchen:       {ic:"🕵️", name:"Entdecker-Päckchen", 1:"Päckchen fortsetzen bis 20", 2:"Plus und Minus · Was fällt dir auf? · Zahlenmauern", 3:"Mal-Päckchen · Zahlenmauern erforschen"},
     stellen:         {ic:"🧱", name:"Stellenwerte", 2:"bis 100 legen · Zahlendreher · bündeln", 3:"bis 1000 legen · die Null · plus/minus 1, 10, 100"},
     strahl:          {ic:"📍", name:"Zahlenstrahl", 2:"bis 100: Schritte zählen · Schritt finden", 3:"bis 1000: 10er, 20er, 25er, 50er", 4:"bis 1 Million"},
     zahlen:          {ic:"🔢", name:"Zahlen bis 1000", 2:"Zehner und Einer · Zahlenstrahl · vergleichen · verdoppeln", 3:"bis 1000 · runden · Teilen mit Rest", 4:"bis 1 Million"},
@@ -72,6 +73,7 @@ window.Anleitung=(function(){
      <li><b>📚 Sachaufgaben in zwei Schritten</b> – „Was war am Anfang?“ und Aufgaben, bei denen man zweimal rechnen muss. Nach einem Fehler zeigt das Programm beide Schritte.</li>
      <li><b>🎲 Bunte Mischung</b> – 15 Aufgaben quer durch alle Themen, passend zur Klasse. Der <b>Test</b> dort ist der Wochen-Check: Danach sieht Ihr Kind Thema für Thema, was sitzt und was es vergessen hat – und der Mathe-Trainer schlägt genau das zum Üben vor.</li>
      <li><b>📅 Kalender und Zeit</b> – Wochentage, Monate, Tage im Monat; Stunden, Minuten und Sekunden umrechnen.</li>
+     <li><b>🕵️ Entdecker-Päckchen</b> – Aufgaben, die nach einem Muster zusammenhängen (13 + 5, 23 + 5, 33 + 5 …). Ihr Kind setzt sie fort, wählt die richtige Begründung („Was fällt dir auf?“), findet die Aufgabe, die nicht passt, und den Rechenfehler. Dazu Zahlenmauern mit Forscherfragen. So wird nicht nur gerechnet, sondern auch nachgedacht und begründet.</li>
      <li><b>🧱 Stellenwerte</b> – Zahlen mit Hunderterplatten, Zehnerstangen und Einerwürfeln legen (ziehen oder antippen). Die Stellentafel, die Zahl und das Zahlwort ändern sich mit. Bündeln (10 Einer = 1 Zehner), Zahlendreher (45 oder 54), die Null (305). Unter „Entdecken“ kann Ihr Kind frei ausprobieren.</li>
      <li><b>📍 Zahlenstrahl</b> – nur Anfang und Ende sind beschriftet: erst die Schritte zählen, dann ausrechnen, wie groß ein Schritt ist, dann die Zahl finden.</li>
      <li><b>🔢 Zahlen bis 1000</b> – Zehner und Einer, Zahlenstrahl, vergleichen, runden, Teilen mit Rest.</li>

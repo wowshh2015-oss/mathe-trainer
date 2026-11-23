@@ -28,6 +28,7 @@ window.Tank=(function(){
     {app:"zahlen",          ic:"🔢", name:"Zahlen bis 1000", datei:"zahlen-trainer.html"},
     {app:"strahl",          ic:"📍", name:"Zahlenstrahl", datei:"strahl-trainer.html"},
     {app:"stellen",         ic:"🧱", name:"Stellenwerte", datei:"stellen-trainer.html"},
+    {app:"paeckchen",       ic:"🕵️", name:"Entdecker-Päckchen", datei:"paeckchen-trainer.html"},
     {app:"geo",             ic:"📐", name:"Formen und Körper", datei:"geo-trainer.html"},
     {app:"daten",           ic:"📊", name:"Daten und Zufall", datei:"daten-trainer.html"}
   ];

@@ -5,7 +5,7 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen","paeckchen"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -20,8 +20,9 @@
     strahl:["📍","Zahlenstrahl","Erst den Schritt finden – dann die Zahl."],
     zoo:["🦁","Mein Zoo","Löse Aufgaben aus allen Themen – wer gut rechnet, bekommt neue Tiere."],
     blitz:["⚡","Blitzrechnen","Kopfrechnen, bis es blitzschnell geht – jeden Tag ein, zwei Minuten."],
-    stellen:["🧱","Stellenwerte","Mit Hundertern, Zehnern und Einern legen – und sehen, wie die Zahl entsteht."] }[WAS];
-  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"], zoo:["#a3e635","#1a2e05"], blitz:["#fbbf24","#422006"], stellen:["#4ade80","#14532d"] }[WAS];
+    stellen:["🧱","Stellenwerte","Mit Hundertern, Zehnern und Einern legen – und sehen, wie die Zahl entsteht."],
+    paeckchen:["🕵️","Entdecker-Päckchen","Päckchen fortsetzen, Muster entdecken, begründen – und Zahlenmauern erforschen."] }[WAS];
+  const FARBE = { geld:["#facc15","#4a3a0c"], gewichte:["#2dd4bf","#0f3d3a"], laengen:["#60a5fa","#172554"], zahlen:["#a78bfa","#2e1065"], geo:["#38bdf8","#0c4a6e"], daten:["#fb923c","#431407"], schrift:["#f472b6","#500724"], kalender:["#4ade80","#14532d"], mix:["#f87171","#450a0a"], sach2:["#34d399","#064e3b"], strahl:["#22d3ee","#083344"], zoo:["#a3e635","#1a2e05"], blitz:["#fbbf24","#422006"], stellen:["#4ade80","#14532d"], paeckchen:["#c084fc","#3b0764"] }[WAS];
   const $=id=>document.getElementById(id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const capName=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase());
@@ -104,6 +105,17 @@
   .schrift span.su{font-size:16px;color:#fde68a;min-height:20px} .schrift .slinie{height:3px;background:var(--text);border-radius:2px;min-height:3px} .schrift .sl{color:#86efac}
   .schrift .skomma{font-size:26px;align-self:end;line-height:1.5;min-width:0} .schrift input.sz{max-width:100%}
   .schriftTipp{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
+  .pk{display:inline-grid;gap:3px;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;margin:2px auto}
+  .pkZ{display:grid;grid-template-columns:2.6ch 1.3ch 2.6ch 1.3ch 3.4ch;gap:6px;text-align:right;padding:2px 10px;border-radius:9px}
+  .pkZ span:nth-child(2),.pkZ span:nth-child(4){text-align:center;color:var(--muted)}
+  .pkZ.mark{background:rgba(250,204,21,.16);outline:2px solid #facc15}
+  .pkL{display:inline-block;min-width:2.2ch;border-bottom:4px solid #38bdf8;color:#7dd3fc;text-align:center}
+  .erkl .pk{font-size:19px} .pkStep{font-size:13px;color:#fde68a;font-weight:800}
+  .wahl button .pkO{font-variant-numeric:tabular-nums;font-weight:800}
+  .zm{display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin:4px auto}
+  .zm div{display:flex;gap:4px} .zm i{font-style:normal;width:62px;height:40px;display:flex;align-items:center;justify-content:center;background:#7c2d12;border:2px solid #c2410c;border-radius:6px;font-size:20px;font-weight:800;color:#fff7ed}
+  .zm i.leer{background:#0b1220;border-style:dashed;color:#7dd3fc}
+  .zmPaar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-end} .zmPaar small{display:block;text-align:center;color:var(--muted);font-size:12.5px;margin-top:2px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
   document.head.appendChild(css);
   document.body.insertAdjacentHTML("afterbegin", `<div class="app">
@@ -283,6 +295,17 @@
     {id:7, name:"Bis 1000: lesen und bündeln", kurz:"2 H 13 Z 5 E = 335", typen:["st_lesen3","st_buendelLesen3","st_lesen3","st_buendelLegen3"], sek:70},
     {id:8, name:"Plus und minus 1, 10 und 100", kurz:"299 + 1 · 400 − 1 – hier wird gebündelt und entbündelt", typen:["st_plus3","st_plus3","st_plus3"], sek:80}
   ];
+  // Entdecker-Päckchen (24.11.2026): strukturiertes Üben nach Wittmann/Winter – Muster fortsetzen, erklären, Störungen und Fehler finden, Zahlenmauern
+  const PAECKCHEN=[
+    {id:1, name:"Päckchen fortsetzen bis 20", kurz:"3 + 4, 4 + 4, 5 + 4 … wie geht es weiter?", typen:["pk_weiter20","pk_naechste20","pk_weiter20"]},
+    {id:2, name:"Plus-Päckchen bis 100", kurz:"13 + 5, 23 + 5, 33 + 5 … und warum?", typen:["pk_weiter100","pk_naechste100","pk_weiter100","pk_warumPlus"]},
+    {id:3, name:"Was fällt dir auf?", kurz:"Muster erklären · Welche Aufgabe passt nicht?", typen:["pk_warumPlus","pk_stoerPlus","pk_warumPlus","pk_stoerPlus"], sek:70},
+    {id:4, name:"Minus-Päckchen", kurz:"Wenn ich mehr wegnehme, bleibt weniger übrig", typen:["pk_weiterMinus","pk_warumMinus","pk_stoerMinus","pk_warumMinus"], sek:70},
+    {id:5, name:"Fehler-Detektiv", kurz:"Das Muster hilft: Welches Ergebnis ist falsch?", typen:["pk_fehlerPlus","pk_fehlerMinus","pk_fehlerMal"], sek:70},
+    {id:6, name:"Mal-Päckchen", kurz:"3 · 6, 4 · 6, 5 · 6 – immer 6 mehr", typen:["pk_weiterMal","pk_warumMal","pk_weiterMal","pk_stoerMal"], sek:70},
+    {id:7, name:"Zahlenmauern", kurz:"Zwei Steine zusammen ergeben den Stein darüber", typen:["zm_deck","zm_unten","zm_deck","zm_mitte"], sek:70},
+    {id:8, name:"Zahlenmauern erforschen", kurz:"Was passiert mit dem Deckstein, wenn …?", typen:["zm_warum","zm_unten","zm_warum","zm_ziel"], sek:90}
+  ];
   // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
     // zooF: im Zoo machen schwerere Runden seltene Tiere wahrscheinlicher (zoo.js) · chance: so steht es bei der Runde
@@ -370,7 +393,7 @@
   let BL=2; const BL_WAHL={}, LVN=["","Anfänger","Fortgeschritten","Profi"];
   function zielFuer(st, lv){ return lv===1 ? st.ziel+3 : lv===3 ? Math.max(6, st.ziel-3) : st.ziel; }
   let BLITZ_KL=0; try{ BLITZ_KL=+(localStorage.getItem("blitz_klasse") || localStorage.getItem("mathe_klasse") || 0) || 0; }catch(e){}
-  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ, stellen:STELLENWERTE}[WAS];
+  const STUFEN = {geld:GELD, gewichte:GEWICHTE, laengen:LAENGEN, zahlen:ZAHLEN, geo:GEO, daten:DATEN, schrift:SCHRIFT, kalender:KALENDER, mix:MIX, sach2:SACH2, strahl:STRAHL, zoo:ZOO, blitz:BLITZ, stellen:STELLENWERTE, paeckchen:PAECKCHEN}[WAS];
   const stufe=id=>STUFEN.find(s=>s.id===id);
   // [wen/was kaufst du, Preis in Cent, wer/was kostet]
   const WAREN=[["ein Heft",120,"Ein Heft"],["einen Stift",80,"Ein Stift"],["einen Radiergummi",50,"Ein Radiergummi"],["ein Lineal",150,"Ein Lineal"],["einen Kleber",195,"Ein Kleber"],["eine Schere",260,"Eine Schere"],
@@ -1377,8 +1400,99 @@
     st_buendelLegen3(){ let n; do{ n=rnd(2,9)*100+rnd(0,9)*10+rnd(0,9); }while(n%100===0); const k=Math.floor(n/100)-1;
       return stLegen(n, ST3, `Lege <span class="ziel">${n}</span> – aber nimm nur <b>${k} Hunderterplatten</b>!`, {nur:{H:k}, tag:"buendeln",
         erkl:`Mit ${k} Hunderterplatten hast du ${k*100}. Der fehlende Hunderter wird zu <b>10 Zehnerstangen</b>: also ${k} H, ${stTeile(n).Z+10} Z, ${stTeile(n).E} E.<br>${Stellen.bild({H:k,Z:stTeile(n).Z+10,E:stTeile(n).E},ST3)}`}); },
-    st_plus3(){ return stPlus(aus(["+1","-1","+10","-10","+100","-100","+1","-1"]), ST3); }
+    st_plus3(){ return stPlus(aus(["+1","-1","+10","-10","+100","-100","+1","-1"]), ST3); },
+    // ===== Entdecker-Päckchen =====
+    pk_weiter20(){ return pkWeiter("+", 20); }, pk_weiter100(){ return pkWeiter("+", 100); },
+    pk_weiterMinus(){ return pkWeiter("-", 100); }, pk_weiterMal(){ return pkWeiter("*", 100); },
+    pk_naechste20(){ return pkNaechste("+", 20); }, pk_naechste100(){ return pkNaechste("+", 100); },
+    pk_warumPlus(){ return pkWarum("+"); }, pk_warumMinus(){ return pkWarum("-"); }, pk_warumMal(){ return pkWarum("*"); },
+    pk_stoerPlus(){ return pkStoer("+"); }, pk_stoerMinus(){ return pkStoer("-"); }, pk_stoerMal(){ return pkStoer("*"); },
+    pk_fehlerPlus(){ return pkFehler("+"); }, pk_fehlerMinus(){ return pkFehler("-"); }, pk_fehlerMal(){ return pkFehler("*"); },
+    // ===== Zahlenmauern (drei Steine unten) =====
+    zm_deck(){ const u=zmUnten(100), w=zmWerte(u);
+      return eingabe("Welche Zahl steht oben im Deckstein?", [F.zahl], w.o, {bild:zmBild(w,["o","m0","m1"]), tag:"zmauer", sollText:String(w.o),
+        erkl:`Immer zwei Steine nebeneinander ergeben zusammen den Stein darüber.<br>${w.u[0]} + ${w.u[1]} = <b>${w.m[0]}</b> · ${w.u[1]} + ${w.u[2]} = <b>${w.m[1]}</b> · ${w.m[0]} + ${w.m[1]} = <b>${w.o}</b><br>${zmBild(w,[])}`}); },
+    zm_unten(){ const u=zmUnten(100), w=zmWerte(u);
+      return eingabe("Welche Zahl fehlt unten in der Mitte?", [F.zahl], u[1], {bild:zmBild(w,["u1","m1","o"]), tag:"zmauer", sollText:String(u[1]),
+        erkl:`Über dem fehlenden Stein steht ${w.m[0]}. Daneben unten steht ${u[0]}. Also: ${u[0]} + ☐ = ${w.m[0]} → ${w.m[0]} − ${u[0]} = <b>${u[1]}</b>.<br>${zmBild(w,[])}`}); },
+    zm_mitte(){ const u=zmUnten(100), w=zmWerte(u);
+      return eingabe("Welche Zahl fehlt in der Mitte rechts?", [F.zahl], w.m[1], {bild:zmBild(w,["u1","u2","m1"]), tag:"zmauer", sollText:String(w.m[1]),
+        erkl:`Der Deckstein ist ${w.o}. Links darunter steht ${w.m[0]}. ${w.m[0]} + ☐ = ${w.o} → ${w.o} − ${w.m[0]} = <b>${w.m[1]}</b>.<br>${zmBild(w,[])}`}); },
+    zm_warum(){ const u=zmUnten(60), wo=aus(["mitte","mitte","rand"]), k=aus([1,1,2,5,10]), i=wo==="mitte"?1:aus([0,2]), u2=u.slice(); u2[i]+=k;
+      const w=zmWerte(u), w2=zmWerte(u2), d=w2.o-w.o, stein = wo==="mitte" ? "mittlere Stein unten" : (i===0?"linke Stein unten":"rechte Stein unten");
+      const ok=`Er wird um ${d} größer.`, opts=[...new Set([ok, `Er wird um ${k} größer.`, `Er wird um ${k*3} größer.`, "Er bleibt gleich."])].slice(0,3);
+      return {art:"wahl", frage:`Der <span class="ziel">${stein}</span> wird um <span class="ziel">${k}</span> größer.<br>Was passiert mit dem Deckstein?`, optionen:mische(opts), ok, spalten:1, tag:"begruenden",
+        bild:zmBild(w,[]), sollText:`„${ok.replace(/\.$/,"")}“`,
+        erkl:(wo==="mitte" ? `Der mittlere Stein wird <b>zweimal</b> gebraucht: für den linken und für den rechten Stein in der Mitte. Darum zählt er im Deckstein <b>doppelt</b>: ${k} + ${k} = ${d}.`
+                           : `Ein Stein am Rand wird nur <b>einmal</b> gebraucht. Darum wird der Deckstein auch nur um ${k} größer.`)+
+          `<div class="zmPaar"><div>${zmBild(w,[])}<small>vorher</small></div><div>${zmBild(w2,[])}<small>nachher</small></div></div>`}; },
+    zm_ziel(){ let u, o; do{ u=zmUnten(100); o=zmWerte(u).o; }while(o%10!==0 && rnd(0,3));
+      const w=zmWerte(u), s=u[0]+u[2];
+      return eingabe(`Welche Zahl muss unten in die Mitte, damit oben <span class="ziel">${o}</span> steht?`, [F.zahl], u[1], {bild:zmBild({u:[u[0],0,u[2]],m:[0,0],o},["u1","m0","m1"]), tag:"zmauer", sollText:String(u[1]),
+        erkl:`Die beiden Steine am Rand zählen im Deckstein <b>einmal</b>: ${u[0]} + ${u[2]} = ${s}. Der mittlere Stein zählt <b>doppelt</b>. Bis ${o} fehlen ${o} − ${s} = ${o-s}. Die Hälfte davon ist <b>${u[1]}</b>.<br>${zmBild(w,[])}`}); }
   };
+  // ---------- Entdecker-Päckchen: Hilfen ----------
+  const OPZ={"+":"+","-":"−","*":"·"};
+  const pkRechne=(op,a,b)=>op==="+"?a+b:op==="-"?a-b:a*b;
+  const PK_MUSTER={ p20:[[1,0],[0,1],[1,1],[1,-1],[2,0],[0,2]], "+":[[10,0],[0,10],[1,0],[0,1],[10,1],[1,-1],[10,-10],[1,1],[10,10],[5,0]],
+                    "-":[[10,0],[1,0],[0,1],[0,10],[1,1],[10,10],[-1,0],[-10,0]], "*":[[1,0],[0,1]] };
+  // Ein Päckchen mit n Aufgaben: erste Zahl ändert sich um da, zweite um db
+  function pkReihe(op, max, n){
+    for(let v=0; v<600; v++){
+      const [da,db]=aus(PK_MUSTER[op==="+"&&max<=20?"p20":op]);
+      const a0 = op==="*" ? rnd(1,10) : rnd(1,max), b0 = op==="*" ? rnd(2,10) : rnd(1,max), rows=[]; let ok=true;
+      for(let i=0;i<n;i++){ const a=a0+i*da, b=b0+i*db, r=pkRechne(op,a,b);
+        if(a<1||b<1||r<0||r>max||(op==="*"&&(a>10||b>10))||(op==="-"&&r<1)){ ok=false; break; } rows.push([a,b,r]); }
+      if(ok) return {op,da,db,rows};
+    }
+    return {op, da:1, db:0, rows:op==="*"?[[1,3,3],[2,3,6],[3,3,9],[4,3,12],[5,3,15]].slice(0,n):[[1,2,3],[2,2,4],[3,2,5],[4,2,6],[5,2,7]].slice(0,n)};
+  }
+  const pkZeile=(op,x)=>`${x[0]} ${OPZ[op]} ${x[1]} = ${x[2]}`;
+  function pkBild(op, rows, o){ o=o||{};
+    return `<div class="pk">${rows.map((x,i)=>`<div class="pkZ${o.mark===i?" mark":""}"><span>${x[0]}</span><span>${OPZ[op]}</span><span>${x[1]}</span><span>=</span><span>${o.leer&&i===rows.length-1?'<b class="pkL">☐</b>':x[2]}</span></div>`).join("")}</div>`; }
+  const pkDr=p=>p.rows[1][2]-p.rows[0][2];
+  function pkVer(d, wer){ return d>0?`${wer} wird immer um ${d} größer`:d<0?`${wer} wird immer um ${-d} kleiner`:`${wer} bleibt gleich`; }
+  function pkSchluss(dr){ return dr>0?`Darum wird das Ergebnis immer um ${dr} größer.`:dr<0?`Darum wird das Ergebnis immer um ${-dr} kleiner.`:`Darum bleibt das Ergebnis immer gleich.`; }
+  function pkSatz(p, dr, html){ const vor=`${pkVer(p.da,"Die erste Zahl")}. ${pkVer(p.db, p.op==="-"?"Die Zahl, die man wegnimmt,":"Die zweite Zahl")}.`, schluss=pkSchluss(dr===undefined?pkDr(p):dr);
+    return html ? `<span style="display:block;font-size:15.5px;line-height:1.4;font-weight:500">${vor}</span><span style="display:block;font-size:17px;margin-top:4px">${schluss}</span>` : `${vor} ${schluss}`; }
+  // Warum? – für Kinder in einem Satz
+  function pkWeil(p){ const dr=pkDr(p);
+    if(p.op==="*") return p.da ? `Es kommt immer <b>ein ${p.rows[0][1]}er mehr</b> dazu.` : `Es kommt immer noch <b>einmal ${p.rows[0][0]}</b> dazu.`;
+    if(p.op==="-" && p.db>0 && p.da===0) return `Wenn ich <b>mehr wegnehme</b>, bleibt <b>weniger übrig</b>.`;
+    if(p.op==="-" && p.da===p.db) return `Beide Zahlen werden gleich viel größer – der <b>Abstand</b> zwischen ihnen bleibt gleich.`;
+    if(p.op==="+" && dr===0) return `Was die eine Zahl <b>abgibt</b>, bekommt die andere <b>dazu</b> – zusammen bleibt es gleich viel.`;
+    return ""; }
+  function pkWeiter(op, max){ const p=pkReihe(op,max,5), z=p.rows[4];
+    return eingabe("Setze das Päckchen fort. Was kommt heraus?", [F.zahl], z[2], {bild:pkBild(op,p.rows,{leer:true}), tag:"muster", sollText:pkZeile(op,z),
+      erkl:`${pkSatz(p)} ${pkWeil(p)}<br>${pkBild(op,p.rows,{mark:4})}`}); }
+  function pkNaechste(op, max){ const p=pkReihe(op,max,5), r=p.rows, z=r[4], l=r[3];
+    const kand=[[l[0]+p.da,l[1]],[l[0],l[1]+p.db],[l[0]+2*p.da,l[1]+2*p.db],[l[0]+p.db,l[1]+p.da],[l[0]+p.da+1,l[1]+p.db],[l[0]-p.da,l[1]-p.db],[l[0]+p.da,l[1]+p.db+1]]
+      .filter(x=>x[0]>=1&&x[1]>=1&&!(x[0]===z[0]&&x[1]===z[1])).map(x=>[x[0],x[1],pkRechne(op,x[0],x[1])]).filter(x=>x[2]>=0);
+    const falsch=[...new Map(kand.map(x=>[pkZeile(op,x),x])).keys()].slice(0,2), ok=pkZeile(op,z);
+    return {art:"wahl", frage:"Welche Aufgabe kommt als Nächstes?", bild:pkBild(op,r.slice(0,4)), optionen:mische([ok].concat(falsch)), ok, spalten:1, tag:"muster", sollText:ok,
+      erkl:`${pkSatz(p)} ${pkWeil(p)}<br>${pkBild(op,r,{mark:4})}`}; }
+  function pkWarum(op){ const p=pkReihe(op, 100, 4), dr=pkDr(p);
+    // falsche Schlüsse zuerst nach typischen Denkfehlern: „mal: nur um 1 größer", „mehr wegnehmen = mehr Ergebnis", „gegensinnig = größer"
+    const schritt=p.da||p.db, falsch=[...new Set([op==="*"?schritt:-dr, schritt, 0, dr*2, -dr, dr+1, 1, -1].map(x=>x+0))].filter(x=>x!==dr).slice(0,2);
+    const ok=pkSatz(p,undefined,true), paare=mische([[ok,pkSchluss(dr)]].concat(falsch.map(x=>[pkSatz(p,x,true),pkSchluss(x)])));
+    return {art:"wahl", frage:"Was fällt dir auf? Welcher Satz stimmt?", bild:pkBild(op,p.rows), optionen:paare.map(x=>x[0]), optText:paare.map(x=>x[1]), ok, spalten:1, tag:"begruenden",
+      sollText:`der grün markierte Satz`, erkl:`${pkSatz(p)} ${pkWeil(p)}<br>Ergebnisse: ${p.rows.map(x=>x[2]).join(" → ")}`}; }
+  function pkStoer(op){ const p=pkReihe(op, 100, 5), k=rnd(1,3), r=p.rows.map(x=>x.slice());
+    let neu; for(let v=0;v<40;v++){ const wer=rnd(0,1), d=aus([1,-1,2,-2]); neu=r[k].slice(); neu[wer]+=d; neu[2]=pkRechne(op,neu[0],neu[1]);
+      if(neu[0]>=1&&neu[1]>=1&&neu[2]>=0&&(op!=="*"||neu[0]<=10&&neu[1]<=10)&&!r.some(x=>x[0]===neu[0]&&x[1]===neu[1])) break; }
+    const rows=r.slice(); rows[k]=neu; const ok=pkZeile(op,neu);
+    return {art:"wahl", frage:"In diesem Päckchen passt <b>eine Aufgabe</b> nicht ins Muster. Welche?", optionen:rows.map(x=>pkZeile(op,x)), ok, spalten:1, tag:"muster", sollText:`„${ok}“ – sie passt nicht ins Muster`,
+      erkl:`Das Muster: ${pkSatz(p).split(". Darum")[0]}.<br>An dieser Stelle würde passen: <b>${pkZeile(op,r[k])}</b>.<br>${pkBild(op,rows,{mark:k})}`}; }
+  function pkFehler(op){ const p=pkReihe(op, 100, 5), k=rnd(1,4), rows=p.rows.map(x=>x.slice()), dr=pkDr(p);
+    const d=aus([1,-1,10,-10,2]); rows[k][2]=Math.max(0, rows[k][2]+d); if(rows[k][2]===p.rows[k][2]) rows[k][2]+=1;
+    const ok=pkZeile(op,rows[k]);
+    return {art:"wahl", frage:"🕵️ Ein Kind hat dieses Päckchen gerechnet. <b>Ein Ergebnis</b> ist falsch. Welches?", optionen:rows.map(x=>pkZeile(op,x)), ok, spalten:1, tag:"muster", sollText:`„${ok}“ – hier steckt der Fehler`,
+      erkl:`Das Muster hilft beim Kontrollieren: Das Ergebnis ${dr>0?`wird immer um ${dr} größer`:dr<0?`wird immer um ${-dr} kleiner`:"bleibt immer gleich"}: ${p.rows.map(x=>x[2]).join(", ")}.<br>Richtig ist: <b>${pkZeile(op,p.rows[k])}</b>.`}; }
+  // Zahlenmauer: drei Steine unten, Summe oben höchstens max
+  function zmUnten(max){ let u; do{ u=[rnd(2,30),rnd(2,25),rnd(2,30)]; }while(u[0]+2*u[1]+u[2]>max); return u; }
+  function zmWerte(u){ const m=[u[0]+u[1],u[1]+u[2]]; return {u, m, o:m[0]+m[1]}; }
+  function zmBild(w, leer){ const s=(k,v)=>leer.includes(k)?`<i class="leer">?</i>`:`<i>${v}</i>`;
+    return `<div class="zm"><div>${s("o",w.o)}</div><div>${s("m0",w.m[0])}${s("m1",w.m[1])}</div><div>${s("u0",w.u[0])}${s("u1",w.u[1])}${s("u2",w.u[2])}</div></div>`; }
   // ---------- Stellenwerte: Hilfen ----------
   const ST2=["Z","E"], ST3=["H","Z","E"];
   function stTeile(n){ return {H:Math.floor(n/100), Z:Math.floor(n/10)%10, E:n%10}; }

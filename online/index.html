@@ -206,6 +206,7 @@
     <a class="tile t8" data-page="halbschriftlich-trainer.html"><div class="ic">🪜</div><div class="t">Rechen&shy;wege</div><div class="d">Schritt für Schritt · plus · minus · mal</div></a>
     <a class="tile t5" data-page="platz-trainer.html"><div class="ic">🔍</div><div class="t">Fehlende Zahl</div><div class="d">Fachwörter lernen · die verlorene Zahl finden: ☐ + 5 = 13</div></a>
     <a class="tile t3" data-page="schrift-trainer.html"><div class="ic">✍️</div><div class="t">Schrift&shy;lich rechnen</div><div class="d">untereinander · plus · minus · mal</div></a>
+    <a class="tile t7 breit" data-page="paeckchen-trainer.html"><div class="ic">🕵️</div><div class="t">Entdecker-Päckchen</div><div class="d">Muster entdecken · Was fällt dir auf? · Fehler-Detektiv · Zahlenmauern</div></a>
     <!-- Zahlen und Sachaufgaben -->
     <a class="tile t3 breit" data-page="stellen-trainer.html"><div class="ic">🧱</div><div class="t">Stellenwerte</div><div class="d">mit Hundertern, Zehnern und Einern legen · bündeln · 45 oder 54?</div></a>
     <a class="tile t8" data-page="zahlen-trainer.html"><div class="ic">🔢</div><div class="t">Zahlen bis 1000</div><div class="d">Stellenwerte · Zahlenstrahl · runden</div></a>
@@ -239,7 +240,7 @@
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
-<script src="hausaufgabe.js?v=20261124b"></script>
+<script src="hausaufgabe.js?v=20261124c"></script>
 <script>
 const $=id=>document.getElementById(id);
 const KEYS=["einmaleins_log_v1","einsdurcheins_log_v1","plus_log_v1","minus_log_v1","zerlegen_log_v1"];
@@ -377,6 +378,7 @@ const SEITEN={
   sach2:          {datei:"sach2-trainer.html",           ic:"📚", name:"Sachaufgaben in zwei Schritten"},
   strahl:         {datei:"strahl-trainer.html",          ic:"📍", name:"Zahlenstrahl"},
   stellen:        {datei:"stellen-trainer.html",         ic:"🧱", name:"Stellenwerte"},
+  paeckchen:      {datei:"paeckchen-trainer.html",       ic:"🕵️", name:"Entdecker-Päckchen"},
   geo:            {datei:"geo-trainer.html",             ic:"📐", name:"Formen und Körper"},
   daten:          {datei:"daten-trainer.html",           ic:"📊", name:"Daten und Zufall"},
   sach:           {datei:"sach-trainer.html",            ic:"📖", name:"Sachaufgaben"},
@@ -671,6 +673,7 @@ const NEUES=[
   {d:"2026-11-20", ic:"🏙️", t:"Mein Wolkenkratzer",            x:"Der Rechen-Marathon wird umgebaut! Neu: Bau dein eigenes Hochhaus, such dir für jede Etage ein Zimmer aus – und reise dabei um die Welt.", app:"turm"},
   {d:"2026-11-19", ic:"⚡", t:"Blitzrechnen",                  x:"Eine Minute – wie viele Aufgaben schaffst du? Zählen in Schritten, ergänzen, verdoppeln, Einmaleins. Jeden Tag ein Blitz, und du wirst immer schneller!", app:"blitz"},
   {d:"2026-11-18", ic:"🦁", t:"Mein Zoo – ein neues Spiel",   x:"Löse Aufgaben und sammle Tiere für deinen eigenen Zoo. Es gibt häufige, seltene und legendäre Tiere!", app:"zoo"},
+  {d:"2026-11-24", ic:"🕵️", t:"Entdecker-Päckchen",            x:"Päckchen fortsetzen, Muster entdecken und erklären, Fehler finden – und Zahlenmauern erforschen.", app:"paeckchen"},
   {d:"2026-11-24", ic:"🧱", t:"Stellenwerte",                  x:"Lege Zahlen mit Hunderterplatten, Zehnerstangen und Einerwürfeln – und sieh zu, wie die Zahl entsteht. Mit Bündeln und Entbündeln.", app:"stellen"},
   {d:"2026-11-18", ic:"📍", t:"Zahlenstrahl",                  x:"Eine eigene Kachel für den Zahlenstrahl: erst den Schritt finden, dann die Zahl.", app:"strahl"},
   {d:"2026-11-18", ic:"🎒", t:"Klassen-Marken",                x:"In allen Trainern steht jetzt dabei, für welche Klasse eine Übung ist: Kl. 1, Kl. 2, Kl. 3 oder Kl. 4."},
