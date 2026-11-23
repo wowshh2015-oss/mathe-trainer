@@ -113,6 +113,14 @@
   .entInfo{font-size:16px;color:#e2e8f0;margin:4px 0} .entInfo2{font-size:14px;color:var(--muted);line-height:1.5;margin:4px 0}
   .entSumme{font-size:34px;font-weight:900;color:#fde68a} .entBeutel button{background:transparent;border:none;padding:0}
   .stTipp{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:6px}
+  .sgGitter{display:grid;justify-content:center;gap:4px 4px;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+  .sgGitter span{display:flex;align-items:center;justify-content:center}
+  .sgK{font-size:13px;font-weight:800} .sgO{font-size:26px;font-weight:800;color:var(--muted)}
+  .sgZ{height:48px;font-size:30px;font-weight:800;border-radius:10px;border:2px solid transparent;color:var(--text)}
+  .sgZ.an{border-color:var(--f);background:rgba(148,163,184,.16);background:color-mix(in srgb,var(--f) 18%,transparent)}
+  .sgZ.sgErg{color:#86efac} .sgZ s{color:#94a3b8;text-decoration-color:#ef4444;text-decoration-thickness:3px}
+  .sgE{height:18px;font-size:15px;font-weight:800;color:#fca5a5} .sgU{height:20px;font-size:16px;font-weight:800;color:#fde047}
+  .sgLinie{height:3px;background:var(--text);border-radius:2px}
   .entT{opacity:0;animation:entEin .35s forwards} @keyframes entEin{to{opacity:1}}
   .entSvg{display:block;width:100%;height:auto;touch-action:none;background:#0b1220;border:1px solid var(--card2);border-radius:14px;cursor:pointer}
   .entChips{display:flex;flex-direction:column;gap:6px} .entChips button{background:#1e293b;color:#e2e8f0;border:1px solid #475569;font-size:14.5px;font-weight:600;text-align:left;padding:9px 12px}
@@ -1843,6 +1851,7 @@
     zahlen:{text:"Schieb den roten Pfeil über den Zahlenstrahl – du siehst die Zahl, ihre Nachbarn und die Nachbarzehner.", baue:entdeckeStrahl},
     daten:{text:"Mach eine Strichliste: Mit jedem Strich wächst die Säule im Diagramm mit.", baue:entdeckeDaten},
     gewichte:{text:"Leg einen Gegenstand auf die Waage und such passende Gewichtsstücke – bis die Waage gerade steht.", baue:entdeckeWaage},
+    schrift:{text:"Schau zu, wie man untereinander rechnet – Schritt für Schritt, Stelle für Stelle. Plus, Minus und Mal.", baue:entdeckeSchrift},
     kalender:{text:"Blättere durch die Monate und tippe einen Tag an – du hörst, welcher Wochentag es ist.", baue:entdeckeKalender}
   };
   function entdeckenKarte(){
@@ -2086,6 +2095,65 @@
       e.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ if(rechts.length>=15) return; rechts.push(+b.dataset.g); const vor=gleich; mal();
         const s=rechts.reduce((a,c)=>a+c,0); if(s===DINGE[d][3]) sprich(`Gleichgewicht! ${DINGE[d][2]==="der"?"Der":DINGE[d][2]==="die"?"Die":"Das"} ${DINGE[d][1]} wiegt ${gwWort(s)}.`); }));
       e.querySelectorAll("[data-r]").forEach(b=>b.addEventListener("click",()=>{ const i=rechts.indexOf(+b.dataset.r); if(i>=0) rechts.splice(i,1); mal(); }));
+    };
+    mal();
+  }
+  // ----- Schriftlich rechnen: Schritt für Schritt, Stelle für Stelle (Einer zu Einern, Zehner zu Zehnern …) -----
+  function entdeckeSchrift(e){
+    const KURZ=["E","Z","H","T"], LANG=["Einer","Zehner","Hunderter","Tausender"], FARB=["#4ade80","#60a5fa","#f87171","#fbbf24"];
+    let op="+", a=347, b=285, schritt=0;
+    const neu=()=>{ if(op==="+"){ a=rnd(120,689); b=rnd(110,309); } else if(op==="-"){ a=rnd(300,950); b=rnd(105,a-60); if(aus([0,1])){ a=rnd(3,9)*100+rnd(0,1)*10+rnd(0,9); b=rnd(110,a-50); } } else { a=rnd(23,389); b=rnd(3,9); } schritt=0; };
+    // alle Schritte vorausberechnen: je Stelle {stelle, schreibe, merke, text, sag, oben(Änderungen beim Entbündeln)}
+    function plane(){
+      const erg = op==="+"?a+b:op==="-"?a-b:a*b, W=Math.max(String(a).length, op==="*"?String(erg).length:String(Math.max(a,b,erg)).length);
+      const da=String(a).padStart(W,"0").split("").map(Number), db=op==="*"?[]:String(b).padStart(W,"0").split("").map(Number), S=[], oben=da.slice(), neuOben={};
+      let c=0;
+      for(let k=0;k<W;k++){ const i=W-1-k, st=LANG[k];
+        if(op==="+"){ const s=da[i]+db[i]+c; if(i<W-String(erg).length && !s) continue;
+          S.push({k, schreibe:s%10, merke:Math.floor(s/10), text:`<b>${st}:</b> ${da[i]} + ${db[i]}${c?` + ${c} (gemerkt)`:""} = ${s}${s>9?` → schreibe <b>${s%10}</b>, merke <b>${Math.floor(s/10)}</b>`:` → schreibe <b>${s}</b>`}`,
+            sag:`${st}: ${zahlwort(da[i])} plus ${zahlwort(db[i])}${c?` plus ${zahlwort(c)}`:""} ist ${zahlwort(s)}. ${s>9?`Schreibe ${zahlwort(s%10)}, merke ${zahlwort(Math.floor(s/10))}.`:`Schreibe ${zahlwort(s)}.`}`}); c=Math.floor(s/10); }
+        else if(op==="-"){ let t=oben[i], text, sag, kette=[];
+          if(t<db[i]){ let j=i-1; while(j>=0 && oben[j]===0) j--;                // links den nächsten Stellenwert suchen, der nicht 0 ist
+            for(let x=j;x<i;x++){ oben[x]=oben[x]-1+(x>j?10:0); kette.push(x); neuOben[x]=oben[x]; }
+            t+=10; oben[i]=t; neuOben[i]=t;
+            const von=LANG[W-1-j];
+            const ueber = i-j>1 ? ` Bei den ${LANG[W-1-(j+1)]}n steht 0 – darum: 1 ${von} wird zu 10 ${LANG[W-1-(j+1)]}n, davon wird 1 zu 10 ${st}n. Bei den ${LANG[W-1-(j+1)]}n bleiben 9.` : "";
+            text=`<b>${st}:</b> ${t-10} − ${db[i]} geht nicht. <b>Entbündle</b> 1 ${von}${i-j>1?` (über die 0)`:""}.${ueber} Jetzt sind es ${t} ${st}. ${t} − ${db[i]} = <b>${t-db[i]}</b>`;
+            sag=`${st}: ${zahlwort(t-10)} minus ${zahlwort(db[i])} geht nicht. Entbündle einen ${von}. ${zahlwort(t)} minus ${zahlwort(db[i])} ist ${zahlwort(t-db[i])}.`; }
+          else { text=`<b>${st}:</b> ${t} − ${db[i]} = <b>${t-db[i]}</b>`; sag=`${st}: ${zahlwort(t)} minus ${zahlwort(db[i])} ist ${zahlwort(t-db[i])}.`; }
+          if(i<W-String(erg).length && t-db[i]===0 && !kette.length){ oben[i]=t; continue; }
+          S.push({k, schreibe:t-db[i], merke:0, text, sag, oben:Object.assign({},neuOben)}); oben[i]=t-db[i]+db[i]; }
+        else { const n=String(a).length; if(k>=n){ if(c){ S.push({k, schreibe:c, merke:0, text:`Die gemerkte <b>${c}</b> kommt ganz nach vorn.`, sag:`Die gemerkte ${zahlwort(c)} kommt ganz nach vorn.`}); c=0; } continue; }
+          const p=da[i]*b+c;
+          S.push({k, schreibe:p%10, merke:Math.floor(p/10), text:`<b>${st}:</b> ${b} · ${da[i]} = ${da[i]*b}${c?` + ${c} (gemerkt) = ${p}`:""}${p>9?` → schreibe <b>${p%10}</b>, merke <b>${Math.floor(p/10)}</b>`:` → schreibe <b>${p}</b>`}`,
+            sag:`${st}: ${zahlwort(b)} mal ${zahlwort(da[i])} ist ${zahlwort(da[i]*b)}${c?`, plus ${zahlwort(c)} ist ${zahlwort(p)}`:""}. ${p>9?`Schreibe ${zahlwort(p%10)}, merke ${zahlwort(Math.floor(p/10))}.`:`Schreibe ${zahlwort(p)}.`}`}); c=Math.floor(p/10); }
+      }
+      return {W, da, db, erg, S};
+    }
+    const mal=()=>{
+      const P=plane(), W=P.W, fertig=schritt>=P.S.length, aktiv=!fertig&&schritt>0 ? P.S[schritt-1].k : (schritt>0?P.S[schritt-1].k:-1);
+      const getan=P.S.slice(0,schritt), erg={}, merk={}; let oben={};
+      getan.forEach(s=>{ erg[s.k]=s.schreibe; if(s.merke) merk[s.k+1]=s.merke; if(s.oben) oben=Object.assign(oben, s.oben); });
+      const zelle=(k, inhalt, kl)=>`<span class="sgZ${k===aktiv?" an":""}${kl?" "+kl:""}" style="--f:${FARB[k]||"#e2e8f0"}">${inhalt}</span>`;
+      const reihe=(zeichen, ziffern, kl)=>`<span class="sgO">${zeichen}</span>`+Array.from({length:W},(_,i)=>{ const k=W-1-i; return zelle(k, ziffern[i]===undefined||ziffern[i]===null?"":ziffern[i], kl); }).join("");
+      const fuehr=(arr, n)=>arr.map((z,i)=> i<W-n ? null : z);
+      let html=`<span class="sgO"></span>`+Array.from({length:W},(_,i)=>`<span class="sgK" style="color:${FARB[W-1-i]||"#e2e8f0"}">${KURZ[W-1-i]||""}</span>`).join("");
+      if(op==="-") html+=`<span class="sgO"></span>`+Array.from({length:W},(_,i)=>{ const k=W-1-i, i2=i; return `<span class="sgE">${oben[i2]!==undefined?oben[i2]:""}</span>`; }).join("");
+      if(op==="*"){ html+=reihe("", fuehr(P.da, String(a).length).map(z=>z===null?"":z)); html+=reihe("·", Array.from({length:W},(_,i)=>i===W-1?b:"")); }
+      else { html+=reihe("", fuehr(P.da, String(a).length).map((z,i)=>z===null?"":(oben[i]!==undefined?`<s>${z}</s>`:z))); html+=reihe(op==="+"?"+":"−", fuehr(P.db, String(b).length).map(z=>z===null?"":z)); }
+      html+=`<span class="sgO"></span>`+Array.from({length:W},(_,i)=>`<span class="sgU">${merk[W-1-i]||""}</span>`).join("");
+      html+=`<span class="sgLinie" style="grid-column:1/-1"></span>`+reihe("=", Array.from({length:W},(_,i)=>erg[W-1-i]!==undefined?erg[W-1-i]:""), "sgErg");
+      e.innerHTML=`<div class="reihe" style="margin:4px 0 10px">${[["+","Plus"],["-","Minus"],["*","Mal"]].map(x=>`<button class="klein${x[0]===op?"":" ghost"}" data-op="${x[0]}">${x[1]}</button>`).join("")}<button class="ghost klein" id="sgNeu">🎲 Neue Aufgabe</button></div>
+        <div class="sgGitter" style="grid-template-columns:26px repeat(${W},44px)">${html}</div>
+        <div class="entPanel"><div class="entInfo" id="sgText">${schritt===0 ? (op==="*"?"Beim Malnehmen fängst du auch bei den <b>Einern</b> an – jede Ziffer wird mit der Zahl malgenommen.":"Wir rechnen <b>Stelle für Stelle</b>, von rechts nach links: zuerst die <b>Einer</b>, dann die <b>Zehner</b>, dann die <b>Hunderter</b>.") : P.S[schritt-1].text}</div>
+          ${fertig?`<div class="entSumme" style="font-size:24px">✅ ${a} ${op==="+"?"+":op==="-"?"−":"·"} ${b} = ${P.erg}</div>`:""}
+          <div class="reihe"><button class="ghost klein" id="sgZur"${schritt?"":" disabled"}>◀ Zurück</button><button class="klein" id="sgWeiter"${fertig?" disabled":""}>${schritt?"Nächster Schritt ▶":"Los geht's ▶"}</button><button class="ghost klein" id="sgLaut">🔈</button></div></div>
+        <div class="stTipp">${op==="+"?"Die kleine gelbe Zahl ist die <b>gemerkte</b> Zahl (der Übertrag). Sie kommt zur nächsten Stelle dazu.":op==="-"?"Reicht es oben nicht, wird links <b>entbündelt</b>: 1 Zehner = 10 Einer. Die neue Zahl steht klein darüber.":"Die kleine gelbe Zahl ist die <b>gemerkte</b> Zahl – sie kommt nach dem Malnehmen dazu."}</div>`;
+      e.querySelectorAll("[data-op]").forEach(x=>x.addEventListener("click",()=>{ op=x.dataset.op; neu(); mal(); }));
+      $("sgNeu").addEventListener("click",()=>{ neu(); mal(); });
+      $("sgWeiter").addEventListener("click",()=>{ if(schritt<P.S.length){ schritt++; mal(); sprich(P.S[schritt-1].sag+(schritt===P.S.length?` Fertig: ${zahlwort(P.erg)}.`:"")); } });
+      $("sgZur").addEventListener("click",()=>{ if(schritt>0){ schritt--; mal(); } });
+      $("sgLaut").addEventListener("click",()=>sprich(schritt?P.S[schritt-1].sag:"Wir rechnen Stelle für Stelle, von rechts nach links: zuerst die Einer, dann die Zehner, dann die Hunderter."));
     };
     mal();
   }

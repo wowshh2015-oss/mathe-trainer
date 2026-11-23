@@ -3,7 +3,7 @@
 // Hängt eine Karte „Entdecken" unten in die Startkarte #home. Malfeld (·, :) oder Zwanzigerfeld/Hunderterfeld mit Wendeplättchen (+, −, Zerlegen).
 (function(){
   const seite=(location.pathname.split("/").pop()||"").replace("-trainer.html","");
-  const ART={einmaleins:"mal", einsdurcheins:"teil", plus:"plus", minus:"minus", zerlegen:"zerlegen"}[seite];
+  const ART={einmaleins:"mal", einsdurcheins:"teil", plus:"plus", minus:"minus", zerlegen:"zerlegen", platz:"platz"}[seite];
   if(!ART) return;
   const $=id=>document.getElementById(id);
   const WE=["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"],
@@ -24,19 +24,31 @@
   .edPanel{margin-top:10px;background:#0b1220;border:1px solid #334155;border-radius:14px;padding:12px}
   .edGross{font-size:30px;font-weight:900;color:#fde68a;font-variant-numeric:tabular-nums} .edZeile{font-size:16px;color:#e2e8f0;margin:4px 0} .edKlein{font-size:13.5px;color:#94a3b8;line-height:1.45}
   .edTipp{font-size:12.5px;color:#94a3b8;margin-top:6px}
+  .edGl{display:flex;align-items:flex-start;justify-content:center;gap:6px;margin:10px 0 4px;flex-wrap:nowrap}
+  .edZahl{font-family:inherit;cursor:pointer;background:#0b1220;border:2px solid #334155;border-radius:12px;padding:6px 6px 5px;min-width:78px;display:flex;flex-direction:column;align-items:center;gap:2px;color:#f1f5f9}
+  .edZahl .z{font-size:28px;font-weight:900;line-height:1.1} .edZahl .w{font-size:11.5px;font-weight:800;color:#fde68a;white-space:nowrap}
+  .edZahl.fehlt{border-color:#fbbf24} .edZahl.gut{border-color:#22c55e;background:rgba(34,197,94,.15)} .edZahl.falsch{border-color:#ef4444;background:rgba(239,68,68,.15)}
+  .edOp{font-size:26px;font-weight:900;color:#94a3b8;align-self:center;margin-top:-14px}
+  .edFrag{color:#fbbf24} .edBar{display:block;width:100%;max-width:440px;margin:8px auto 2px;height:auto}
+  .edMerk{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:8px;margin-top:8px;text-align:left} .edMerkKopf{font-size:14px;color:#cbd5e1;margin-bottom:6px}
+  .edKarte2{font-family:inherit;cursor:pointer;display:block;width:100%;text-align:left;background:#1e293b;border:1px solid #475569;border-radius:10px;padding:8px 10px;margin-top:5px;color:#e2e8f0}
+  .edKarte2 b{display:block;font-size:16px;color:#fde68a} .edKarte2 span{font-size:13.5px;color:#cbd5e1}
+  @media (max-width:430px){ .edZahl{min-width:66px} .edZahl .z{font-size:24px} .edZahl .w{font-size:10.5px} }
   @media (max-width:520px){ .edKarte{flex-wrap:wrap} .edKarte .tx{flex-basis:calc(100% - 50px)} .edKarte button{margin-left:46px} }`;
   document.head.appendChild(css);
   const TEXT={mal:"Tippe im Punktefeld auf einen Punkt – so groß wird deine Malaufgabe. Dann kannst du sie zerlegen wie 7 · 6 = 5 · 6 + 2 · 6.",
               teil:"Wie oft passt die 6 in 42? Tippe auf einen Punkt – das Punktefeld zeigt Reihen. So siehst du Mal- und Geteiltaufgabe zusammen.",
               plus:"Leg Wendeplättchen ins Zwanzigerfeld: rot und blau. Mit „Ordnen“ siehst du, wie du über die 10 rechnest.",
               minus:"Leg Plättchen ins Feld und streiche welche weg. Mit „Ordnen“ siehst du, wie viele übrig bleiben.",
-              zerlegen:"Leg Plättchen ins Feld – rot und blau. So siehst du, wie man eine Zahl in zwei Teile zerlegt."}[ART];
+              zerlegen:"Leg Plättchen ins Feld – rot und blau. So siehst du, wie man eine Zahl in zwei Teile zerlegt.",
+              platz:"Wie findest du die fehlende Zahl? Und wie heißen die Zahlen? Mit Merkkarten und einem Fachwörter-Spiel."}[ART];
   function einbauen(){
-    const home=$("home"); if(!home || $("edBtn")) return;
-    home.insertAdjacentHTML("beforeend", `<div class="edKarte"><span class="nr">🔎</span><span class="tx"><b>Entdecken</b><span>${TEXT} Hier gibt es keine Fehler.</span></span><button id="edBtn">Ausprobieren</button></div><div id="edFeld" class="edFeld" style="display:none"></div>`);
+    const home=$("home")||$("menue"); if(!home || $("edBtn")) return;
+    const merk = ART==="platz" ? home.querySelector("details.merk") : null;
+    (merk ? (h=>merk.insertAdjacentHTML("afterend",h)) : (h=>home.insertAdjacentHTML("beforeend",h)))(`<div class="edKarte"><span class="nr">🔎</span><span class="tx"><b>Entdecken</b><span>${TEXT} Hier gibt es keine Fehler.</span></span><button id="edBtn">Ausprobieren</button></div><div id="edFeld" class="edFeld" style="display:none"></div>`);
     $("edBtn").addEventListener("click",()=>{ const f=$("edFeld"), zu=f.style.display!=="none"; f.style.display=zu?"none":""; $("edBtn").textContent=zu?"Ausprobieren":"Schließen";
       if(zu) try{ speechSynthesis.cancel(); }catch(e){}
-      if(!zu && !f.dataset.an){ f.dataset.an="1"; (ART==="mal"||ART==="teil" ? malfeld : plaettchen)(f); } });
+      if(!zu && !f.dataset.an){ f.dataset.an="1"; (ART==="mal"||ART==="teil" ? malfeld : ART==="platz" ? platz : plaettchen)(f); } });
   }
   // ---------- Malfeld: 10 × 10 Punkte, ein Rechteck auswählen, zerlegen, tauschen ----------
   function malfeld(f){
@@ -106,6 +118,91 @@
       $("edLeer").addEventListener("click",()=>{ feld=feld.map(()=>0); mal(); });
       $("edLaut").addEventListener("click",()=>{ const r=feld.filter(v=>v===1).length, bl=feld.filter(v=>v===2).length, al=r+bl;
         sprich(ART==="plus" ? `${wort(r)} plus ${wort(bl)} ist ${wort(al)}.` : ART==="minus" ? `${wort(al)} minus ${wort(bl)} ist ${wort(r)}.` : `${wort(al)} ist ${wort(r)} und ${wort(bl)}.`); });
+    };
+    mal();
+  }
+  // ---------- Fehlende Zahl: Teil-Teil-Ganzes, die Regeln aus dem Unterricht, Fachwörter (Merkkarten + Spiel) ----------
+  const ZCH={"+":"+","-":"−","*":"×","/":"÷"};
+  const FW={"+":["Summand","Summand","Summe"],"-":["Minuend","Subtrahend","Differenz"],"*":["Faktor","Faktor","Produkt"],"/":["Dividend","Divisor","Quotient"]};
+  const FWART={Summand:"der",Summe:"die",Minuend:"der",Subtrahend:"der",Differenz:"die",Faktor:"der",Produkt:"das",Dividend:"der",Divisor:"der",Quotient:"der"};
+  const AKK={Summand:"einen Summanden",Summe:"die Summe",Minuend:"den Minuenden",Subtrahend:"den Subtrahenden",Differenz:"die Differenz",Faktor:"einen Faktor",Produkt:"das Produkt",Dividend:"den Dividenden",Divisor:"den Divisor",Quotient:"den Quotienten"};
+  const MERK={Summand:"Die Summanden werden <b>zusammengezählt</b>. Sie sind die Teile.", Summe:"Die Summe ist das <b>Ergebnis bei Plus</b> – das Ganze.",
+    Minuend:"Der Minuend steht <b>vorn</b>. Von ihm wird etwas weggenommen.", Subtrahend:"Der Subtrahend wird <b>abgezogen</b> – er steht hinter dem Minus.", Differenz:"Die Differenz ist das <b>Ergebnis bei Minus</b> – der Unterschied.",
+    Faktor:"Die Faktoren werden <b>malgenommen</b>.", Produkt:"Das Produkt ist das <b>Ergebnis bei Mal</b>.",
+    Dividend:"Der Dividend steht <b>vorn</b>. Er wird geteilt.", Divisor:"Der Divisor <b>teilt</b> – er steht hinter dem Geteiltzeichen.", Quotient:"Der Quotient ist das <b>Ergebnis beim Teilen</b>."};
+  const REGEL={"+0":"Bei <b>Plus</b> fehlt ein Summand. Rechne: <b>Summe minus die Zahl, die du kennst</b>.","+1":"Bei <b>Plus</b> fehlt ein Summand. Rechne: <b>Summe minus die Zahl, die du kennst</b>.",
+    "-0":"Bei <b>Minus</b> fehlt die <b>erste, große Zahl</b> (der Minuend). Rechne: <b>Ergebnis plus die zweite Zahl</b>.","-1":"Bei <b>Minus</b> fehlt die <b>zweite Zahl</b> (der Subtrahend). Rechne: <b>erste Zahl minus Ergebnis</b>.",
+    "*0":"Bei <b>Mal</b> fehlt ein Faktor. Rechne: <b>Produkt geteilt durch die Zahl, die du kennst</b>.","*1":"Bei <b>Mal</b> fehlt ein Faktor. Rechne: <b>Produkt geteilt durch die Zahl, die du kennst</b>.",
+    "/0":"Bei <b>Geteilt</b> fehlt die <b>erste, große Zahl</b> (der Dividend). Rechne: <b>Ergebnis mal die zweite Zahl</b>.","/1":"Bei <b>Geteilt</b> fehlt die <b>zweite Zahl</b> (der Divisor). Rechne: <b>erste Zahl geteilt durch das Ergebnis</b>."};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1)), aus=l=>l[rnd(0,l.length-1)];
+  const groß=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  function zahlen(op){ let a,b; for(let i=0;i<200;i++){
+      if(op==="+"){ a=rnd(5,60); b=rnd(3,Math.min(39,99-a)); } else if(op==="-"){ a=rnd(20,99); b=rnd(3,a-4); } else if(op==="*"){ a=rnd(2,9); b=rnd(2,9); } else { b=rnd(2,9); a=b*rnd(2,9); }
+      const c=op==="+"?a+b:op==="-"?a-b:op==="*"?a*b:a/b; if(a!==b&&a!==c&&b!==c) return [a,b,c]; } return op==="+"?[8,5,13]:op==="-"?[13,5,8]:op==="*"?[7,4,28]:[28,4,7]; }
+  function platz(f){
+    let op="+", p=1, z=[8,5,13], gezeigt=false, ansicht="feld", spiel=null, serie=0;
+    const loesung=()=>{ const [a,b,c]=z; if(p===2) return [`${a} ${ZCH[op]} ${b}`, c];
+      if(op==="+") return [`${c} − ${z[1-p]}`, z[p]]; if(op==="*") return [`${c} ÷ ${z[1-p]}`, z[p]];
+      if(op==="-") return p===0 ? [`${c} + ${b}`, a] : [`${a} − ${c}`, b];
+      return p===0 ? [`${c} × ${b}`, a] : [`${a} ÷ ${c}`, b]; };
+    const zeigZ=i=> i===p && !gezeigt ? `<b class="edFrag">☐</b>` : z[i];
+    function bild(){
+      const W=300, w=FW[op];
+      if(op==="+"||op==="-"){ const ganz = op==="+"?2:0, t=op==="+"?[0,1]:[1,2], G=z[ganz], x1=Math.max(78,Math.min(W-78,W*z[t[0]]/G));      // beide Teile breit genug für ihr Fachwort
+        const box=(x,y,bw,i,farbe)=>{ const fehlt=i===p&&!gezeigt; return `<rect x="${x+1}" y="${y}" width="${Math.max(bw-2,24)}" height="40" rx="6" fill="${fehlt?"url(#edStreif)":farbe}" stroke="#0f172a" stroke-width="1.5"/>
+          <text x="${x+Math.max(bw,26)/2}" y="${y+18}" text-anchor="middle" font-size="16" font-weight="900" fill="#0f172a">${fehlt?"?":z[i]}</text><text x="${x+Math.max(bw,26)/2}" y="${y+33}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">${w[i]}</text>`; };
+        return `<svg viewBox="-4 -4 ${W+8} 112" class="edBar"><defs><pattern id="edStreif" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#fde68a"/><rect width="4" height="8" fill="#fbbf24"/></pattern></defs>
+          ${box(0,0,W,ganz,"#a78bfa")}${box(0,58,x1,t[0],"#60a5fa")}${box(x1,58,W-x1,t[1],"#4ade80")}
+          <text x="${W}" y="54" text-anchor="end" font-size="9" fill="#94a3b8">das Ganze ↑ · die Teile ↓</text></svg>
+          <div class="edKlein">${p===ganz ? "Das <b>Ganze</b> fehlt → beide Teile <b>zusammenzählen</b>." : "Ein <b>Teil</b> fehlt → vom Ganzen den anderen Teil <b>abziehen</b>."}</div>`; }
+      // Mal und Geteilt: f0 gleich große Teile zu je f1 ergeben f2
+      const f = op==="*" ? [z[0],z[1],z[2]] : [z[2],z[1],z[0]], fehlt = op==="*" ? (p===0?"anzahl":p===1?"groesse":"ganz") : (p===0?"ganz":p===1?"groesse":"anzahl");
+      const n=f[0], bw=W/n; let s="";
+      for(let i=0;i<n;i++) s+=`<rect x="${i*bw+1}" y="58" width="${bw-2}" height="40" rx="5" fill="${fehlt==="anzahl"&&!gezeigt?"url(#edStreif)":"#60a5fa"}" stroke="#0f172a" stroke-width="1.2" ${fehlt==="anzahl"&&!gezeigt?'stroke-dasharray="4 3"':""}/>
+        <text x="${i*bw+bw/2}" y="83" text-anchor="middle" font-size="${n>7?12:15}" font-weight="900" fill="#0f172a">${fehlt==="groesse"&&!gezeigt?"?":f[1]}</text>`;
+      return `<svg viewBox="-4 -4 ${W+8} 112" class="edBar"><defs><pattern id="edStreif" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#fde68a"/><rect width="4" height="8" fill="#fbbf24"/></pattern></defs>
+        <rect x="1" y="0" width="${W-2}" height="40" rx="6" fill="${fehlt==="ganz"&&!gezeigt?"url(#edStreif)":"#a78bfa"}" stroke="#0f172a" stroke-width="1.5"/><text x="${W/2}" y="26" text-anchor="middle" font-size="17" font-weight="900" fill="#0f172a">${fehlt==="ganz"&&!gezeigt?"?":f[2]}</text>${s}</svg>
+        <div class="edKlein">${fehlt==="anzahl" ? `Wie oft passt die <b>${f[1]}</b> in die <b>${f[2]}</b>? Zähle in ${f[1]}er-Schritten: ${Array.from({length:Math.min(n,10)},(_,i)=>(i+1)*f[1]).join(", ")} → ${gezeigt?`<b>${n}</b>-mal`:"…"}`
+          : fehlt==="groesse" ? `<b>${f[2]}</b> in <b>${n}</b> gleich große Teile – wie groß ist ein Teil?` : `<b>${n}</b> Teile zu je <b>${f[1]}</b> – wie viel ist das zusammen?`}<br>Mal und Geteilt gehören zusammen: ${f[0]} × ${f[1]} = ${f[2]} ↔ ${f[2]} ÷ ${f[1]} = ${f[0]}</div>`;
+    }
+    function feldHTML(){ const w=FW[op], [rech, erg]=loesung();
+      return `<div class="edReihe">${["+","-","*","/"].map(o=>`<button class="edK${o===op?"":" ghost"}" data-op="${o}">${ZCH[o]}</button>`).join("")}<button class="edK ghost" id="edNeu">🎲</button></div>
+        <div class="edReihe"><span class="edKlein" style="align-self:center">Was fehlt?</span>${["1. Zahl","2. Zahl","Ergebnis"].map((t,i)=>`<button class="edK${i===p?"":" ghost"}" data-p="${i}">${t}</button>`).join("")}</div>
+        <div class="edGl">${[0,1,2].map(i=>`<button class="edZahl${i===p?" fehlt":""}" data-w="${i}"><span class="z">${zeigZ(i)}</span><span class="w">${FWART[w[i]]} ${w[i]}</span></button>`+(i===0?`<span class="edOp">${ZCH[op]}</span>`:i===1?`<span class="edOp">=</span>`:"")).join("")}</div>
+        <div class="edTipp">Tippe auf eine Zahl – du hörst ihr Fachwort.</div>
+        ${bild()}
+        <div class="edPanel">${p<2?`<div class="edZeile">${REGEL[op+p]}</div>`:`<div class="edZeile">Das Ergebnis (${FWART[w[2]]} ${w[2]}) fehlt – einfach ausrechnen.</div>`}
+          <div class="edGross" style="font-size:24px">☐ = ${rech}${gezeigt?` = ${erg}`:""}</div>
+          ${gezeigt?`<div class="edZeile">✅ Probe: ${z[0]} ${ZCH[op]} ${z[1]} = ${z[2]}</div>`:""}
+          <div class="edReihe"><button class="edK" id="edLos"${gezeigt?" disabled":""}>Lösung zeigen</button><button class="edK ghost" id="edLaut">🔈 Vorlesen</button></div></div>`; }
+    function karteHTML(){ return `<div class="edKlein" style="margin-bottom:6px">Tippe auf eine Karte – du hörst das Wort und den Merksatz.</div>`+
+      ["+","-","*","/"].map(o=>`<div class="edMerk"><div class="edMerkKopf">${{"+":"➕ Plus","-":"➖ Minus","*":"✖️ Mal","/":"➗ Geteilt"}[o]}: <b>${{"+":"8 + 5 = 13","-":"13 − 5 = 8","*":"7 × 4 = 28","/":"28 ÷ 4 = 7"}[o]}</b></div>`+
+        [...new Set(FW[o])].map(w=>`<button class="edKarte2" data-k="${w}"><b>${FWART[w]} ${w}</b><span>${MERK[w]}</span></button>`).join("")+`</div>`).join(""); }
+    function neueSpielFrage(){ const o=aus(["+","-","*","/"]), zz=zahlen(o), w=FW[o], i=rnd(0,2); spiel={o, zz, ziel:w[i], i, antwort:null}; }
+    function spielHTML(){ if(!spiel) neueSpielFrage(); const s=spiel, w=FW[s.o];
+      return `<div class="edGross" style="font-size:20px">🎯 Tippe auf ${AKK[s.ziel]}!</div>
+        <div class="edGl">${[0,1,2].map(i=>`<button class="edZahl${s.antwort!==null&&(w[i]===s.ziel?" gut":i===s.antwort?" falsch":"")||""}" data-sp="${i}"><span class="z">${s.zz[i]}</span><span class="w">${s.antwort!==null?`${FWART[w[i]]} ${w[i]}`:"&nbsp;"}</span></button>`+(i===0?`<span class="edOp">${ZCH[s.o]}</span>`:i===1?`<span class="edOp">=</span>`:"")).join("")}</div>
+        <div class="edZeile">${s.antwort===null?"":w[s.antwort]===s.ziel?`✅ Richtig! ${groß(FWART[s.ziel])} ${s.ziel}: ${MERK[s.ziel]}`:`❌ Das war ${FWART[w[s.antwort]]} ${w[s.antwort]}. ${groß(FWART[s.ziel])} ${s.ziel} ist die <b>${s.zz[s.i]}</b>.`}</div>
+        <div class="edZeile">🔥 ${serie} richtig hintereinander</div>${s.antwort!==null?`<div class="edReihe"><button class="edK" id="edNaechste">Nächste ▶</button></div>`:""}`; }
+    const mal=()=>{
+      f.innerHTML=`<div class="edReihe">${[["feld","🔍 Fehlende Zahl"],["karten","📘 Merkkarten"],["spiel","🎯 Fachwörter-Spiel"]].map(x=>`<button class="edK${x[0]===ansicht?"":" ghost"}" data-a="${x[0]}">${x[1]}</button>`).join("")}</div>`+
+        (ansicht==="feld"?feldHTML():ansicht==="karten"?karteHTML():spielHTML());
+      f.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>{ ansicht=b.dataset.a; mal(); }));
+      if(ansicht==="feld"){
+        f.querySelectorAll("[data-op]").forEach(b=>b.addEventListener("click",()=>{ op=b.dataset.op; z=zahlen(op); gezeigt=false; mal(); }));
+        f.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{ p=+b.dataset.p; gezeigt=false; mal(); }));
+        $("edNeu").addEventListener("click",()=>{ z=zahlen(op); gezeigt=false; mal(); });
+        f.querySelectorAll("[data-w]").forEach(b=>b.addEventListener("click",()=>{ const w=FW[op][+b.dataset.w]; sprich(`${groß(FWART[w])} ${w}. ${MERK[w].replace(/<[^>]+>/g,"")}`); }));
+        $("edLos").addEventListener("click",()=>{ gezeigt=true; mal(); const [rech,erg]=loesung(), w=FW[op];
+          sprich(`${p<2?REGEL[op+p].replace(/<[^>]+>/g,""):"Einfach ausrechnen."} ${rech.replace("−"," minus ").replace("+"," plus ").replace("×"," mal ").replace("÷"," geteilt durch ")} ist ${erg}. ${groß(FWART[w[p]])} ${w[p]} ist ${erg}.`); });
+        $("edLaut").addEventListener("click",()=>{ const w=FW[op]; sprich(p<2 ? `${groß(FWART[w[p]])} ${w[p]} fehlt. ${REGEL[op+p].replace(/<[^>]+>/g,"")}` : "Das Ergebnis fehlt."); });
+      } else if(ansicht==="karten"){
+        f.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("click",()=>{ const w=b.dataset.k; sprich(`${groß(FWART[w])} ${w}. ${MERK[w].replace(/<[^>]+>/g,"")}`); }));
+      } else {
+        f.querySelectorAll("[data-sp]").forEach(b=>b.addEventListener("click",()=>{ if(spiel.antwort!==null) return; spiel.antwort=+b.dataset.sp; const ok=FW[spiel.o][spiel.antwort]===spiel.ziel; serie=ok?serie+1:0; mal();
+          sprich(ok ? `Richtig! ${groß(FWART[spiel.ziel])} ${spiel.ziel}.` : `Nein. ${groß(FWART[spiel.ziel])} ${spiel.ziel} ist die ${spiel.zz[spiel.i]}.`); }));
+        const n=$("edNaechste"); if(n) n.addEventListener("click",()=>{ neueSpielFrage(); mal(); });
+      }
     };
     mal();
   }

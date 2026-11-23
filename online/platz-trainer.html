@@ -11,6 +11,7 @@
 <script src="komfort.js"></script>
 <script src="wiederholung.js"></script>
 <script src="sterne.js"></script>
+<script src="entdecken.js?v=20261124d"></script>
 <style>
   :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8;
     --accent:#fbbf24; --good:#22c55e; --bad:#ef4444; --gold:#fbbf24; --shadow:0 10px 30px rgba(0,0,0,.35); }
@@ -374,7 +375,7 @@ function platzWahl(a){
     merkeFehler(a, rText(a.gut), rText(o.r), "platz_umkehr");
     schlecht("Diese Rechnung hilft hier nicht.");
     wartet=true;
-    $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So findest du sie</div>${REGEL[a.op+a.p]}${teilGanzes(a)}<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
+    $("erkl").innerHTML=`<div class="erkl"><div class="t">💡 So findest du sie</div>${beschriftet(a.op,[0,1,2].map(i=>i===a.p?"?":a.z[i]),WORT[a.op][a.p])}<div>Gesucht ist <b>${ARTIKEL[WORT[a.op][a.p]]} ${WORT[a.op][a.p]}</b>.</div>${REGEL[a.op+a.p]}${teilGanzes(a)}<div class="reihe"><button id="weiterBtn">Weiter ▶</button></div></div>`;
     $("weiterBtn").addEventListener("click",()=>{ wartet=false; $("rueck").textContent=""; $("erkl").innerHTML=""; platzRechnen(a); });
     fokus();
   }));
