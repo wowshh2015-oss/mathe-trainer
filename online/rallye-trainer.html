@@ -530,9 +530,17 @@ function gesamtRunden(){ return MEINE.reduce((s,e)=>s+(+e.runden||0),0); }
 function rundenAuf(n){ return MEINE.filter(e=>+e.strecke===n).reduce((s,e)=>s+(+e.runden||0),0); }
 function boost(){ return gesamtRunden()>=BOOST_AB; }
 function profiRunden(){ return MEINE.reduce((s,e)=>s+(+e.profi||0),0); }
+// 23.11.2026 (mit der Lehrkraft): Jede Welt hat ihre eigene Garage. Fahrzeuge gibt es nur für Runden
+// in dieser Welt – so wartet in jeder neuen Welt wieder etwas Neues. Alles, was mit Mathe zu tun hat
+// (Strecken-Level, Formel 1), Farben, Pokale und Boost zählen weiter über alle Welten zusammen.
+function weltVon(e){ return e.welt||"auto"; }
+function weltRunden(w){ w=w||welt; return MEINE.filter(e=>weltVon(e)===w).reduce((s,e)=>s+(+e.runden||0),0); }
+function weltProfi(w){ w=w||welt; return MEINE.filter(e=>weltVon(e)===w).reduce((s,e)=>s+(+e.profi||0),0); }
+function weltName(w){ const x=WELTEN.find(x=>x.id===(w||welt)); return x ? x.ic+" "+x.name : ""; }
 // Ist ein Fahrzeug / eine Farbe bei g Runden und p Profi-Runden offen?
+// Ohne Zahlen: Fahrzeuge nach den Runden ihrer Welt, Farben nach allen Runden.
 function istOffen(x,g,p){
-  if(g===undefined){ g=gesamtRunden(); p=profiRunden(); }
+  if(g===undefined){ if(x.welt){ g=weltRunden(x.welt); p=weltProfi(x.welt); } else { g=gesamtRunden(); p=profiRunden(); } }
   return x.pab ? (g>=GARAGE_VOLL && p>=x.pab) : x.ab<=g;
 }
 function sperrText(x,g){
@@ -1144,7 +1152,7 @@ function zeigeWelten(){
   }));
 }
 function zeigeStrecken(){
-  const g=gesamtRunden();
+  const g=weltRunden();
   $("strecken").innerHTML=STRECKEN.map(s=>{
     const offen=streckeOffen(s.nr), r=rundenAuf(s.nr), bz=bestzeit(s.nr);
     const rechts = offen
@@ -1161,7 +1169,14 @@ function zeigeStrecken(){
     strecke=n; merken(); zeigeStart();
   }));
 }
+// Das gemerkte Fahrzeug muss in seiner Welt auch wirklich offen sein (seit es eigene Garagen pro Welt gibt)
+function pruefeFahrzeug(){
+  if(db && !cloudOk) return;   // erst wenn die Runden geladen sind – sonst ginge das gewählte Fahrzeug verloren
+  const liste=FAHRZEUGE.filter(f=>f.welt===welt && istOffen(f));
+  if(liste.length && !liste.some(f=>f.id===fahrzeugId)){ fahrzeugId=liste[liste.length-1].id; merken(); }
+}
 function zeigeStart(){
+  pruefeFahrzeug();
   const g=gesamtRunden();
   $("gesamtRunden").textContent=g;
   zeigeTitelUndProfi();
@@ -1174,10 +1189,10 @@ function zeigeStart(){
                                            : `${st(strecke).ic} ${st(strecke).name} – losfahren ▶`;
   $("startBox").classList.remove("hide");
 }
-// Was kommt als Nächstes in die Garage – und wie viele (Profi-)Runden fehlen noch?
+// Was kommt als Nächstes in die Garage dieser Welt – und wie viele Profi-Runden fehlen noch?
 function naechstesDing(g,p){
   let best=null;
-  FAHRZEUGE.concat(FARBEN).forEach(x=>{
+  FAHRZEUGE.filter(f=>f.welt===welt).forEach(x=>{
     if(istOffen(x,g,p)) return;
     const fehlt = !x.pab ? x.ab-g : (g<GARAGE_VOLL ? null : x.pab-p);
     if(fehlt===null) return;
@@ -1192,13 +1207,25 @@ function zeigeTitelUndProfi(){
     ? `<div class="titelzeile"><span class="pk">${t.akt.ic}</span><span class="tt"><b>${titelName(t.akt,t.sterne)}</b>
         Noch <b style="display:inline;font-size:13px">${n.zahl}</b> ${n.was}</span></div>`
     : `<div class="info" style="margin:-2px 0 12px">🏆 Noch <b>${n.zahl}</b> ${n.was} – deinem ersten Pokal!</div>`;
-  if(g<GARAGE_VOLL){ $("profiZeile").innerHTML=""; return; }
-  const nd=naechstesDing(g,p);
+  const wg=weltRunden(), wp=weltProfi();
+  if(wg===0 && g>0){
+    const erstes=FAHRZEUGE.find(f=>f.welt===welt);
+    const wort={auto:["auf der Rennstrecke","dein erstes Auto"],pferd:["auf dem Reitweg","dein erstes Pferd"],rakete:["im Weltraum","dein erstes Raumschiff"]}[welt]||["hier","dein erstes Fahrzeug"];
+    $("profiZeile").innerHTML=`<div class="profiinfo">✨ <b>Willkommen ${wort[0]}!</b> Hier beginnt eine neue Reise – ${wort[1]} (${erstes.name}) wartet schon.
+      Jede Runde in dieser Welt bringt dich zum nächsten neuen Fahrzeug. Deine Pokale, Farben und Strecken bleiben dir.</div>`;
+    return;
+  }
+  if(wg<GARAGE_VOLL){
+    const nd=naechstesDing(wg,wp);
+    $("profiZeile").innerHTML = nd ? `<div class="info" style="margin:-2px 0 12px">${weltName()}: <b>${wg}</b> Runde${wg===1?"":"n"} in dieser Welt · noch <b>${nd.fehlt}</b> bis <b>${nd.x.name}</b></div>` : "";
+    return;
+  }
+  const nd=naechstesDing(wg,wp);
   const naechst = nd ? `Als Nächstes: <b>${nd.x.name}</b> – noch <b>${nd.fehlt}</b> Profi-Runde${nd.fehlt===1?"":"n"}.`
                      : `Die Profi-Garage ist komplett – jetzt geht es um die Sterne der Legende!`;
   const warnung = PROFI_STRECKEN.includes(strecke) ? ""
     : `<br>⚠️ Auf ${st(strecke).ic} ${st(strecke).name} zählen <b>keine</b> Profi-Runden. Dafür auf ⛰️ Bergpass, 🏁 Rennstrecke oder 🏆 Formel 1 fahren.`;
-  $("profiZeile").innerHTML=`<div class="profiinfo">⭐ <b>Profi-Runden: ${p}</b> · ${naechst}${warnung}</div>`;
+  $("profiZeile").innerHTML=`<div class="profiinfo">⭐ <b>Profi-Runden ${weltName()}: ${wp}</b> · ${naechst}${warnung}</div>`;
 }
 // ===== Tank: eine Runde kostet 1, aufgefüllt wird auf dem Lernweg (tank.js) =====
 const TANKWORT={ auto:["⛽","Der Tank"], pferd:["🥕","Der Futtersack"], rakete:["🔋","Der Akku"] };
@@ -1251,20 +1278,24 @@ function bestzeit(n){
 function zeigeGarage(){
   const g=gesamtRunden(), p=profiRunden(), t=titelStand(g,p);
   $("garRunden").textContent=g;
-  let h="";
+  let h=`<div class="info">🏠 <b>Jede Welt hat ihre eigene Garage.</b> Neue Fahrzeuge gibt es nur für Runden in ihrer Welt.
+    Farben, Pokale, Strecken und Tuning gelten überall.</div>`;
   h += g>=GARAGE_VOLL
-    ? `<div class="profiinfo">⭐ <b>Profi-Garage offen!</b> Du hast <b>${p} Profi-Runde${p===1?"":"n"}</b>.
-        Neue Fahrzeuge und Sonderlackierungen gibt es jetzt nur noch für Runden auf ⛰️ Bergpass, 🏁 Rennstrecke und 🏆 Formel 1.
-        ${p>=LEGENDE_STUFEN[0] ? "<br>👑 <b>Die Legenden-Garage ist offen!</b>" : `<br>👑 Ab <b>${LEGENDE_STUFEN[0]} Profi-Runden</b> öffnet die <b>Legenden-Garage</b> mit 15 weiteren Fahrzeugen.`}</div>`
-    : `<div class="profiinfo">⭐ Bei <b>${GARAGE_VOLL} Runden</b> öffnet die <b>Profi-Garage</b> – mit 15 neuen Fahrzeugen und 8 Sonderlackierungen. Noch <b>${GARAGE_VOLL-g}</b> Runden!</div>`;
+    ? `<div class="profiinfo">⭐ Du hast <b>${p} Profi-Runde${p===1?"":"n"}</b> für die Sonderlackierungen.
+        Profi-Runden gibt es nur auf ⛰️ Bergpass, 🏁 Rennstrecke und 🏆 Formel 1 – in einer Welt, deren Garage schon voll ist.</div>`
+    : `<div class="profiinfo">⭐ Bei <b>${GARAGE_VOLL} Runden</b> in einer Welt öffnet dort die <b>Profi-Garage</b> – mit 5 Profi- und 5 Legenden-Fahrzeugen.</div>`;
   WELTEN.forEach(w=>{
-    h+=`<h3>${w.ic} ${w.name}</h3><div class="gitter">`;
+    const wg=weltRunden(w.id), wp=weltProfi(w.id);
+    const stand = wg<GARAGE_VOLL ? `${wg} Runde${wg===1?"":"n"} · noch ${GARAGE_VOLL-wg} bis zur Profi-Garage`
+      : wp>=LEGENDE_STUFEN[0] ? `${wg} Runden · ${wp} Profi-Runden · 👑 Legenden-Garage offen`
+      : `${wg} Runden · ⭐ ${wp} Profi-Runde${wp===1?"":"n"} · 👑 ab ${LEGENDE_STUFEN[0]}`;
+    h+=`<h3>${w.ic} ${w.name} <span style="font-weight:400;font-size:13px;text-transform:none;letter-spacing:0">· ${stand}</span></h3><div class="gitter">`;
     FAHRZEUGE.filter(f=>f.welt===w.id).forEach(f=>{
-      const offen=istOffen(f,g,p);
+      const offen=istOffen(f,wg,wp);
       h+=`<div class="ding${f.pab?" profi":""}${f.legende?" legende":""}${f.id===fahrzeugId?" an":""}${offen?"":" zu"}" data-f="${f.id}" data-w="${w.id}">
             <div class="bild">${fahrzeugSVG(f.id, offen?farbe:"#64748b")}</div>
             <div class="nm">${f.name}</div>
-            <div class="ab">${offen?"bereit":sperrText(f,g)}</div></div>`;
+            <div class="ab">${offen?"bereit":sperrText(f,wg)}</div></div>`;
     });
     h+=`</div>`;
   });
@@ -1453,19 +1484,20 @@ function rundeFertig(){
   sitzungRunden++;
   sauberSerie = rundeOhneFehler ? sauberSerie+1 : 0;
   const vorher=gesamtRunden(), pVorher=profiRunden(), f1Vorher=f1Offen(), levelVorher=levelFuer(strecke);
+  const wVorher=weltRunden(), wpVorher=weltProfi();
   const tVorher=titelStand(vorher,pVorher);
   let sternVor=null; try{ sternVor=Sterne.stand(tankRows()); }catch(e){}
   speichere(dauer);
   try{ if(sternVor) Sterne.zeigeUnterschied(sternVor, Sterne.stand(tankRows()), playerName, true); }catch(e){}
-  const nachher=gesamtRunden(), pNachher=profiRunden();
+  const nachher=gesamtRunden(), pNachher=profiRunden(), wNachher=weltRunden(), wpNachher=weltProfi();
   const tNachher=titelStand(nachher,pNachher);
   $("rueck").style.color="var(--gold)";
-  $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`+(pNachher>pVorher?` · ⭐ Profi-Runde ${pNachher}`:"");
-  const neuFrei = freigeschaltetZwischen(vorher, pVorher, nachher, pNachher);
+  $("rueck").textContent=`🏁 Runde ${rundeNr} geschafft – ${dauer} s`+(wpNachher>wpVorher?` · ⭐ Profi-Runde ${wpNachher}`:"");
+  const neuFrei = freigeschaltetZwischen({g:vorher,p:pVorher,wg:wVorher,wp:wpVorher}, {g:nachher,p:pNachher,wg:wNachher,wp:wpNachher});
   if(!f1Vorher && f1Offen()) neuFrei.push("🏆 Strecke Formel 1");
   if(levelFuer(strecke)>levelVorher) neuFrei.push(`⬆️ ${st(strecke).name}: Level ${levelFuer(strecke)+1} – jetzt wird es schwerer`);
-  if(vorher<GARAGE_VOLL && nachher>=GARAGE_VOLL) neuFrei.push("⭐ Die Profi-Garage ist offen!");
-  if(pVorher<LEGENDE_STUFEN[0] && pNachher>=LEGENDE_STUFEN[0]) neuFrei.push("👑 Die Legenden-Garage ist offen!");
+  if(wVorher<GARAGE_VOLL && wNachher>=GARAGE_VOLL) neuFrei.push(`⭐ Die Profi-Garage ${weltName()} ist offen!`);
+  if(wpVorher<LEGENDE_STUFEN[0] && wpNachher>=LEGENDE_STUFEN[0]) neuFrei.push(`👑 Die Legenden-Garage ${weltName()} ist offen!`);
   // neuer Pokal (oder neuer Legenden-Stern)?
   const neuerPokal = tNachher.anzahl>tVorher.anzahl || tNachher.sterne>tVorher.sterne ? tNachher : null;
   if(neuFrei.length || neuerPokal) konfetti();
@@ -1477,11 +1509,12 @@ function rundeFertig(){
     starteRunde();
   }, 1300);
 }
-function freigeschaltetZwischen(a,pa,b,pb){
+// v/n = Stand vorher/nachher: g,p über alle Welten (Farben, Boost), wg,wp nur in der aktuellen Welt (Fahrzeuge)
+function freigeschaltetZwischen(v,n){
   const neu=[];
-  FAHRZEUGE.forEach(f=>{ if(!istOffen(f,a,pa) && istOffen(f,b,pb)) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
-  FARBEN.forEach(f=>{ if(!istOffen(f,a,pa) && istOffen(f,b,pb)) neu.push(`🎨 ${f.pab?"Sonderlackierung":"Farbe"} ${f.name}`); });
-  if(BOOST_AB>a && BOOST_AB<=b) neu.push("🔧 Boost");
+  FAHRZEUGE.filter(f=>f.welt===welt).forEach(f=>{ if(!istOffen(f,v.wg,v.wp) && istOffen(f,n.wg,n.wp)) neu.push(`${f.welt==="auto"?"🏎️":f.welt==="pferd"?"🐴":"🚀"} ${f.name}`); });
+  FARBEN.forEach(f=>{ if(!istOffen(f,v.g,v.p) && istOffen(f,n.g,n.p)) neu.push(`🎨 ${f.pab?"Sonderlackierung":"Farbe"} ${f.name}`); });
+  if(BOOST_AB>v.g && BOOST_AB<=n.g) neu.push("🔧 Boost");
   return neu;
 }
 function zeigeAngebotPokal(t, liste){
@@ -1505,9 +1538,9 @@ function streckeWechselMoeglich(){
 function zeigeAngebotNeu(liste){
   zeige("angebot");
   $("angTitel").textContent="🎁 Neu in deiner Garage!";
-  const g=gesamtRunden(), p=profiRunden();
-  $("angText").innerHTML=(g>GARAGE_VOLL ? `Du hast jetzt <b>${p} Profi-Runde${p===1?"":"n"}</b> gefahren. Freigeschaltet:<br><br>`
-                                        : `Du hast jetzt <b>${g} Runden</b> gefahren. Freigeschaltet:<br><br>`)+
+  const g=weltRunden(), p=weltProfi();
+  $("angText").innerHTML=(g>GARAGE_VOLL ? `Du hast jetzt <b>${p} Profi-Runde${p===1?"":"n"}</b> in der Welt ${weltName()} gefahren. Freigeschaltet:<br><br>`
+                                        : `Du hast jetzt <b>${g} Runden</b> in der Welt ${weltName()} gefahren. Freigeschaltet:<br><br>`)+
     liste.map(x=>`<b>${x}</b>`).join("<br>");
   $("angJa").textContent="🔧 Zur Garage";
   $("angJa").onclick=()=>{ zeige("garage"); zeigeGarage(); };
@@ -1534,8 +1567,9 @@ function heute(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
 function jetzt(){ const n=new Date(), p=x=>String(x).padStart(2,"0");
   return `${p(n.getHours())}:${p(n.getMinutes())}`; }
 function speichere(dauer){
-  const datum=heute(), gVorher=gesamtRunden();
-  let e=MEINE.find(x=>x.datum===datum && +x.strecke===strecke);
+  const datum=heute(), gVorher=weltRunden();
+  // Pro Welt ein eigener Eintrag, damit jede Garage ihre Runden behält
+  let e=MEINE.find(x=>x.datum===datum && +x.strecke===strecke && weltVon(x)===welt);
   if(!e){
     e={ key:KEY, app:APP, name:playerName, datum:datum, modus:"Rallye",
         strecke:strecke, stufe:st(strecke).name, welt:welt,
@@ -1545,7 +1579,7 @@ function speichere(dauer){
   }
   e.zeit=jetzt();
   e.runden=(+e.runden||0)+1;
-  // Profi-Runde: erst wenn die Grund-Garage voll ist, und nur auf den schweren Strecken
+  // Profi-Runde: erst wenn die Grund-Garage DIESER Welt voll ist, und nur auf den schweren Strecken
   if(gVorher>=GARAGE_VOLL && PROFI_STRECKEN.includes(strecke)) e.profi=(+e.profi||0)+1;
   e.richtig=(+e.richtig||0)+richtig;
   e.falsch=(+e.falsch||0)+falsch.length;
@@ -1557,7 +1591,13 @@ function speichere(dauer){
   const ges=(+e.richtig)+(+e.falsch);
   e.prozent = ges ? Math.round(e.richtig/ges*100) : 0;
   if(!db) return;
-  const id=`${APP}_${datum}_${playerName}_s${strecke}`.replace(/[\/\s.]/g,"_");
+  // Autos behalten die alte ID (alte Einträge bleiben gültig), Pferde und Raketen bekommen ihre eigene.
+  // Ein alter Eintrag von heute (vor der Umstellung) kann die Auto-ID schon für eine andere Welt belegen – nie überschreiben
+  let id=e._id;
+  if(!id){
+    id=`${APP}_${datum}_${playerName}_s${strecke}${welt==="auto"?"":"_"+welt}`.replace(/[\/\s.]/g,"_");
+    if(MEINE.some(x=>x!==e && x._id===id)) id+="_"+welt;
+  }
   e._id=id;
   const daten=Object.assign({},e); delete daten._id;
   db.collection("ergebnisse").doc(id).set(daten)
