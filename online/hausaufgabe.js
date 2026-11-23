@@ -83,14 +83,26 @@ window.HA=(function(){
   function aktuell(a){ return !!a && !!a.bis && heute()<=plusTage(a.bis,3); }
   function fuerKind(liste, name){ return (liste||[]).filter(a=>aktuell(a) && gilt(a,name)).sort((x,y)=>x.bis.localeCompare(y.bis)); }
   function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-  // Kasten für die Startseite des Kindes
-  function kastenHTML(liste, name, rows){
-    const l=fuerKind(liste, name); if(!l.length) return "";
+  // Startseite des Kindes (24.11.2026): nur noch eine schmale Zeile – die Liste öffnet sich als Fenster
+  let LETZT=null;
+  function stil(){
     if(!document.getElementById("haStil")){
       const s=document.createElement("style"); s.id="haStil";
       s.textContent=`
-      .haBox{background:rgba(56,189,248,.10);border:2px solid rgba(56,189,248,.5);border-radius:16px;padding:12px 14px;margin:0 0 14px;text-align:left}
+      .haBox{display:flex;align-items:center;gap:10px;background:rgba(56,189,248,.10);border:2px solid rgba(56,189,248,.5);border-radius:14px;padding:9px 13px;margin:0 0 14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+      .haBox:hover{border-color:#38bdf8}
+      .haBox .haT{flex:1;margin:0}
+      .haBox .haZ{flex:none;font-weight:800;font-size:13.5px;border-radius:999px;padding:4px 11px;white-space:nowrap;background:#38bdf8;color:#042433}
+      .haBox.spaet .haZ{background:#f59e0b;color:#3b2300}
+      .haBox.fertig .haZ{background:#22c55e;color:#04220f}
+      .haBox .haPf{flex:none;color:#7dd3fc;font-size:20px;line-height:1}
       .haT{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#7dd3fc;margin-bottom:8px}
+      .haHg{position:fixed;inset:0;z-index:9000;background:rgba(2,6,23,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+      .haFe{background:#111a2e;border:2px solid rgba(56,189,248,.55);border-radius:18px;padding:16px;width:100%;max-width:520px;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:left}
+      .haKopf{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+      .haKopf .haT{flex:1;margin:0;font-size:14px}
+      .haZu{flex:none;background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:999px;width:36px;height:36px;font-size:18px;cursor:pointer}
+      .haZu:hover{border-color:#38bdf8}
       a.haP{display:flex;align-items:center;gap:11px;background:#0b1220;border:1px solid #334155;border-radius:13px;padding:11px 13px;margin-top:7px;text-decoration:none;color:#f1f5f9}
       a.haP:hover{border-color:#38bdf8}
       .haP .h1{font-size:26px;flex:none;line-height:1}
@@ -101,14 +113,35 @@ window.HA=(function(){
       .haP.spaet .h3{background:#f59e0b;color:#3b2300}`;
       document.head.appendChild(s);
     }
+  }
+  function kastenHTML(liste, name, rows){
+    const l=fuerKind(liste, name); if(!l.length){ LETZT=null; return ""; }
+    stil(); LETZT={liste, name, rows};
+    const st=l.map(a=>stand(a,rows)), offen=st.filter(s=>!s.fertig).length, spaet=st.some(s=>!s.fertig && s.ueberfaellig);
+    const zahl = !offen ? "✅ alles erledigt" : (spaet?"⏰ ":"")+(offen===1?"1 offen":`${offen} offen`);
+    return `<div class="haBox${!offen?" fertig":spaet?" spaet":""}" role="button" tabindex="0" onclick="HA.oeffnen()" onkeydown="if(event.key==='Enter')HA.oeffnen()">`+
+      `<span class="haT">📌 ${l.length===1?"Hausaufgabe":"Hausaufgaben"}</span><span class="haZ">${zahl}</span><span class="haPf">›</span></div>`;
+  }
+  function schliessen(){ const h=document.getElementById("haHg"); if(h) h.remove(); document.removeEventListener("keydown", esc_); }
+  function esc_(e){ if(e.key==="Escape") schliessen(); }
+  addEventListener("pagehide", ()=>schliessen());    // sonst kommt das Fenster mit „Zurück" offen aus dem Cache
+  function oeffnen(){
+    if(!LETZT) return; schliessen(); stil();
+    const {liste, name, rows}=LETZT, l=fuerKind(liste, name);
     const offen=l.filter(a=>!stand(a,rows).fertig).length;
-    return `<div class="haBox"><div class="haT">📌 ${l.length===1?"Hausaufgabe":"Hausaufgaben"} von deiner Lehrkraft${offen?"":" – alles erledigt 🎉"}</div>`+
-      l.map(a=>{ const b=bereich(a.app), s=stand(a,rows);
+    const h=document.createElement("div"); h.className="haHg"; h.id="haHg";
+    h.innerHTML=`<div class="haFe" role="dialog" aria-modal="true"><div class="haKopf"><span class="haT">📌 ${l.length===1?"Hausaufgabe":"Hausaufgaben"} von deiner Lehrkraft${offen?"":" – alles erledigt 🎉"}</span>`+
+      `<button class="haZu" aria-label="Schließen">✕</button></div>`+listeHTML(l, name, rows)+`</div>`;
+    h.addEventListener("click", e=>{ if(e.target===h || e.target.closest(".haZu")) schliessen(); });
+    document.body.appendChild(h); document.addEventListener("keydown", esc_);
+  }
+  function listeHTML(l, name, rows){
+    return l.map(a=>{ const b=bereich(a.app), s=stand(a,rows);
         const pille = s.fertig ? "✅ erledigt" : s.ueberfaellig ? `⏰ ${s.gemacht} von ${s.noetig}` : `${s.gemacht} von ${s.noetig}`;
         return `<a class="haP${s.fertig?" fertig":s.ueberfaellig?" spaet":""}" data-emp="${b.app}" href="${b.datei}#name=${encodeURIComponent(name)}">
           <span class="h1">${b.ic}</span>
           <span class="h2"><b>${esc(titel(a))}</b>${s.fertig?"Geschafft – super!":s.ueberfaellig?`war bis ${schoen(a.bis)} auf – hol es noch nach!`:`bis ${schoen(a.bis)}`}${a.text?` · ${esc(a.text)}`:""}</span>
-          <span class="h3">${pille}</span></a>`; }).join("")+`</div>`;
+          <span class="h3">${pille}</span></a>`; }).join("");
   }
-  return {BEREICHE, TEILE, teilName, bereich, titel, stand, gilt, aktuell, fuerKind, kastenHTML, heute, plusTage, schoen};
+  return {BEREICHE, TEILE, teilName, bereich, titel, stand, gilt, aktuell, fuerKind, kastenHTML, oeffnen, schliessen, heute, plusTage, schoen};
 })();

@@ -240,7 +240,7 @@
       [".stBand .stKnopf", "<b>Mein Album:</b> Hier klebst du deine Sticker ein. Es gibt fünf Alben und ein Glitzer-Album für Gold-Sterne. Nur du siehst dein Album.", "nach"],
       [".stSerie", "<b>Lernflammen:</b> Jeder Tag, an dem du übst, bringt eine Flamme 🔥. Ein verpasster Schultag nimmt eine weg, das Wochenende kostet nichts. 10 Flammen = 🥉, 20 = 🥈, 30 = 🥇, 40 = 💎, 50 = 👑."],
       ["#schild", "<b>Dein Namensschild:</b> Die Farbe deines Namens zeigt, wie viele Lernflammen du hast: weiß am Anfang, dann Bronze, Silber, Gold, Diamantblau und Königslila.", "ecke"],
-      [".haBox .haT", "<b>Hausaufgabe:</b> Das hat dir deine Lehrkraft aufgegeben. Tippe darauf, dann öffnet sich der richtige Trainer. Sie ist erledigt, sobald du die Runden gemacht hast – abhaken musst du nichts."],
+      [".haBox .haT", "<b>Hausaufgabe:</b> Das hat dir deine Lehrkraft aufgegeben. Tippe auf die Zeile, dann öffnet sich die Liste. Tippst du dort auf eine Aufgabe, kommst du zum richtigen Trainer. Sie ist erledigt, sobald du die Runden gemacht hast – abhaken musst du nichts."],
       [".meldung b", "<b>Nachricht:</b> Das hat deine Lehrkraft an die ganze Klasse geschrieben."],
       [".hallo h4", "<b>Das lohnt sich heute:</b> Das Programm schlägt dir vor, was dir gerade am meisten hilft. Wenn du einem Vorschlag mit „⭐ +50 %“ folgst, bekommst du die Hälfte mehr Sterne."],
       [".erfolg", el=>txt(el).includes("Tank") ? T.tank : txt(el).includes("Test bestanden") ? "So viele <b>Tests</b> hast du schon bestanden. Für jeden gab es eine Urkunde und Gold-Sterne." : ""],
