@@ -2470,7 +2470,7 @@
   function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
   function ladeMeine(){
     if(!db || !playerName){ zeigeMenue(); return; }
-    db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+    (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
       .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
         $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
         if(!$("start").classList.contains("hide")) zeigeMenue(); })

@@ -261,7 +261,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -478,7 +478,7 @@ function tsKey(e){
 }
 function ladeMeine(){
   if(!db || !playerName) return;
-  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
     .then(s=>{
       MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
       MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));

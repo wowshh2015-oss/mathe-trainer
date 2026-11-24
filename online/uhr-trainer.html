@@ -194,7 +194,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -838,7 +838,7 @@ if(!("speechSynthesis" in window)) $("entLaut").classList.add("hide");
 function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
 function ladeMeine(){
   if(!db || !playerName){ zeigeMenue(); return; }
-  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get()
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
     .then(s=>{
       const lokal=MEINE.filter(e=>e._neu);
       MEINE=[]; s.forEach(d=>MEINE.push(d.data()));

@@ -138,7 +138,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script>
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
@@ -655,7 +655,7 @@ function sprich(text){ if(!("speechSynthesis" in window)) return;
   $("menuLink").href=$("ergLink").href="index.html"+(playerName?"#name="+encodeURIComponent(playerName):"");
   zeigeAuswahl();
   if(!db || !playerName){ $("status").textContent="⚠️ Keine Verbindung – der Test geht trotzdem, wird aber nicht gespeichert."; return; }
-  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get()).then(s=>{
     MEINE=[]; s.forEach(d=>MEINE.push(d.data())); $("status").textContent="☁️ Verbunden"; zeigeAuswahl();
   }).catch(()=>{ $("status").textContent="⚠️ Keine Verbindung – der Test geht trotzdem, wird aber nicht gespeichert."; });
 })();

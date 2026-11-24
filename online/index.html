@@ -235,7 +235,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script src="anmeldung.js?v=20261124a"></script>
 <script src="komfort.js"></script>
 <script src="anleitung.js"></script>
@@ -894,8 +894,8 @@ function starteHallo(){
   if(!hdb){ box.classList.add("hide"); return; }
   box.classList.remove("hide");
   box.innerHTML=`<div class="laden">☁️ Einen Moment, ich schaue nach, was du schon geschafft hast …</div>`;
-  hdb.collection("ergebnisse").where("key","==",KEY).where("name","==",name).get()
-    .then(s=>{ const rows=[]; s.forEach(d=>rows.push(d.data()));
+  (window.Vorrat ? Vorrat.lade(hdb, KEY, name) : hdb.collection("ergebnisse").where("key","==",KEY).where("name","==",name).get().then(s=>{ const l=[]; s.forEach(d=>l.push(d.data())); return l; }))
+    .then(rows=>{
       // kurz auf die Hausaufgaben warten (höchstens 4 Sekunden), dann begrüßen
       const warte=new Promise(r=>setTimeout(r,4000));
       return Promise.race([FREIGABE, warte]).then(()=>{ if(capName($("name").value)===name) zeigeHallo(rows,name); }); })

@@ -97,7 +97,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script>
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
@@ -219,7 +219,7 @@ $("losBtn").addEventListener("click", ()=>{
   $("menuLink").href=$("ergLink").href="index.html#name="+encodeURIComponent(playerName);
   if(!db){ $("status").textContent="⚠️ Keine Verbindung."; return; }
   // alle Durchgänge des Kindes: für die Sterne und um zu sehen, ob heute schon eingestuft wurde
-  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get()).then(s=>{
     MEINE=[]; s.forEach(d=>MEINE.push(d.data()));
     $("status").textContent="☁️ Verbunden";
     const dd=new Date(), p=x=>String(x).padStart(2,"0"), heute=`${p(dd.getDate())}.${p(dd.getMonth()+1)}.${dd.getFullYear()}`;

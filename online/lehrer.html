@@ -385,7 +385,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
@@ -1572,13 +1572,18 @@ $("tSchlBtn").addEventListener("click",()=>{
                                       if(entsperrt) renderTests(); } });
       if(entsperrt) renderTiere();
     }, ()=>{});
-    db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{
+    // (25.11.2026) Nicht mehr bei jedem Öffnen alle Einträge lesen: Vorrat (sicher.js) merkt sie sich und holt nur Neues.
+    const nimm=liste=>{
       ALLE=[]; GESCHENKE=[];
-      snap.forEach(d=>{ const x=d.data(); x.name=capName(x.name); x._id=d.id; delete x.key; ((x.app==="tankgeschenk"||x.app==="sterngeschenk")?GESCHENKE:ALLE).push(x); });
+      liste.sort((a,b)=>a._id<b._id?-1:a._id>b._id?1:0);   // gleiche Reihenfolge wie früher vom Server (nach Dokument-ID)
+      liste.forEach(y=>{ const x=Object.assign({}, y); x.name=capName(x.name); delete x.key; delete x.geaendert; ((x.app==="tankgeschenk"||x.app==="sterngeschenk")?GESCHENKE:ALLE).push(x); });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
       if(entsperrt) render();
-    }, err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); });
+    };
+    const fehlt=err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); };
+    if(window.Vorrat) Vorrat.beobachte(db, KEY, nimm, fehlt);
+    else db.collection("ergebnisse").where("key","==",KEY).onSnapshot(snap=>{ const l=[]; snap.forEach(d=>l.push(Object.assign({_id:d.id}, d.data()))); nimm(l); }, fehlt);
   }catch(e){ $("status").textContent="⚠️ Fehler: "+e; }
 })();
 </script>

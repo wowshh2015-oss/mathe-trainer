@@ -200,7 +200,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script src="tank.js"></script>
 <script src="turm.js"></script>
 <script src="turm-info.js"></script>
@@ -526,7 +526,7 @@ function hoereGeschenke(){ if(!db || !playerName) return; if(unsubGabe){ try{ un
     ANDERE=ANDERE.filter(e=>e.app!=="tankgeschenk"); snap.forEach(d=>ANDERE.push(d.data()));
     if(tankBereit && !$("start").classList.contains("hide")) zeigeStart(); }, ()=>{}); }
 function ladeAndere(){ if(!db || !playerName) return;
-  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{ ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); }); tankBereit=true;
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get()).then(s=>{ ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); }); tankBereit=true;
     if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart(); }).catch(()=>{}); }
 addEventListener("pageshow", e=>{ if(e.persisted) ladeAndere(); });
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && $("spiel").classList.contains("hide")) ladeAndere(); });

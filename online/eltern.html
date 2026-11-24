@@ -40,7 +40,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script>
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
 const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
@@ -163,7 +163,7 @@ function zeige(name, alle){
   try{ firebase.initializeApp(CONF); db=firebase.firestore(); }catch(e){}
   // Kein Offline-Cache: auf iPad/iPhone (Safari) blockiert enablePersistence jede Verbindung zur Datenbank
   if(!db){ $("seite").innerHTML='<div class="leer">⚠️ Keine Verbindung. Bitte später noch einmal versuchen.</div>'; return; }
-  db.collection("ergebnisse").where("key","==",KEY).where("name","==",n).get().then(s=>{
+  (window.Vorrat ? Vorrat.snap(db,KEY,n,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",n).get()).then(s=>{
     const alle=[]; s.forEach(x=>alle.push(x.data())); zeige(n, alle);
   }).catch(()=>{ $("seite").innerHTML='<div class="leer">⚠️ Keine Verbindung. Bitte später noch einmal versuchen.</div>'; });
 })();

@@ -181,7 +181,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="sicher.js?v=20261124a"></script>
+<script src="sicher.js?v=20261125a"></script>
 <script src="tank.js"></script>
 <script>
 //// ===== Verbindung =====
@@ -429,7 +429,7 @@ function hoereGeschenke(){
 }
 function ladeAndere(){
   if(!db || !playerName) return;
-  db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>{
+  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get()).then(s=>{
     ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); });
     tankBereit=true;
     if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart();
