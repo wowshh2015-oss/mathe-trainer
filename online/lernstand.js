@@ -62,8 +62,30 @@ window.Lernstand=(function(){
     m_leicht:["muster","Zahlenfolgen mit kleinen Schritten"], m_plus:["muster","Zahlenfolgen vorwärts"], m_minus:["muster","Zahlenfolgen rückwärts"], m_schwer:["muster","Zahlenfolgen mit großen Schritten"],
     d_ablesen:["daten","Diagramm ablesen"], d_unterschied:["daten","Diagramm: Unterschied"], d_kombi:["daten","Kombinieren"], d_zufall:["daten","sicher / möglich / unmöglich"],
     s_1plus:["sach","Sachaufgabe plus bis 20"], s_1minus:["sach","Sachaufgabe minus bis 20"], s_2plus:["sach","Sachaufgabe plus bis 100"], s_2minus:["sach","Sachaufgabe minus bis 100"],
-    s_3mal:["sach","Sachaufgabe mal"], s_3geteilt:["sach","Sachaufgabe geteilt"], s_4zwei:["sach","Sachaufgabe in zwei Schritten"], s_4minus:["sach","Sachaufgabe minus bis 1000"], s_4mal:["sach","Sachaufgabe mal (zweistellig)"]
+    s_3mal:["sach","Sachaufgabe mal"], s_3geteilt:["sach","Sachaufgabe geteilt"], s_4zwei:["sach","Sachaufgabe in zwei Schritten"], s_4minus:["sach","Sachaufgabe minus bis 1000"], s_4mal:["sach","Sachaufgabe mal (zweistellig)"],
+    // Klasse 1
+    k1_anzahl:["zahlraum","Anzahlen bis 10 erfassen"], k1_anzahl20:["zahlraum","Anzahlen bis 20 erfassen"], k1_vergleich10:["zahlraum","Zahlen vergleichen bis 10"], k1_nachbar10:["zahlraum","Nachbarzahlen bis 10"],
+    k1_plus10:["plusminus","Plus bis 10"], k1_minus10:["plusminus","Minus bis 10"], k1_zerlegen10:["zerlegen","Zahlen bis 10 zerlegen"], k1_doppelt5:["verdoppeln","Verdoppeln bis 10"],
+    k1_geld:["geld","Euro zählen bis 10 €"], k1_uhr_voll:["uhr","Uhr ablesen: volle Stunden"], k1_formen1:["formen","Formen erkennen (Dreieck, Quadrat, Rechteck)"], k1_lage:["formen","Links und rechts"],
+    k1_folge:["muster","Zahlenfolgen bis 20"], k1_strich:["daten","Strichliste zählen"], k1_sach10plus:["sach","Sachaufgabe plus bis 10"], k1_sach10minus:["sach","Sachaufgabe minus bis 10"],
+    // Klasse 4
+    k4_mio_zahl:["zahlraum","Stellenwerte bis 1 Million → Zahl"], k4_mio_wert:["zahlraum","Wert einer Ziffer (bis 1 Million)"], k4_mio_vergleich:["zahlraum","Zahlen vergleichen bis 1 Million"],
+    k4_mio_nachbar:["zahlraum","Nachfolger über den Tausender"], k4_mio_runden:["zahlraum","Auf Tausender runden"],
+    k4_mio_plus:["rechenwege","Plus mit großen Zahlen (Zehntausender)"], k4_mio_minus:["rechenwege","Minus mit großen Zahlen (Zehntausender)"], k4_mio_mal:["rechenwege","Mal mit Tausenderzahlen"],
+    k4_ueberschlag:["rechenwege","Überschlag"], k4_schr_plus4:["schriftlich","Schriftlich plus (vierstellig)"], k4_schr_minus4:["schriftlich","Schriftlich minus (vierstellig, mit Null)"],
+    k4_schr_mal:["schriftlich","Schriftlich mal (· einstellig)"], k4_schr_div:["schriftlich","Schriftlich teilen (: einstellig)"],
+    k4_geld_komma:["geld","Rechnen mit Kommazahlen (Geld)"], k4_t_kg:["gewichte","t und kg"], k4_l_ml:["gewichte","l und ml"], k4_zeit_min:["uhr","h und min umwandeln"],
+    k4_f_netz:["formen","Würfelnetze"], k4_f_umfang:["formen","Umfang Rechteck"], k4_f_flaeche:["formen","Flächeninhalt Rechteck"], k4_d_wahrsch:["daten","Wahrscheinlichkeit vergleichen"],
+    k4_s_4geld:["sach","Sachaufgabe mit Geld (zwei Schritte)"], k4_s_4urlaub:["sach","Sachaufgabe in mehreren Schritten"]
   };
+  // Grundlagen („basale Kompetenzen"): Aufgabenarten, die jedes Kind am Ende der Klasse sicher können sollte.
+  // Orientierung an den Mindeststandards der KMK-Bildungsstandards und am SWK-Gutachten 2022 – Auswahl der Lehrkraft, änderbar.
+  const BASIS=new Set(["k1_anzahl","k1_anzahl20","k1_vergleich10","k1_nachbar10","k1_plus10","k1_minus10","k1_zerlegen10","k1_doppelt5","k1_sach10plus","k1_sach10minus",
+    "nachbar20","vergleich20","plus20_ohne","plus20","minus20_ohne","minus20","erg10","erg20","doppelt","halb","s_1plus","s_1minus",
+    "stellen100_zahl","stellen100_zehner","nachbar100","vergleich100","plus100_ohne","plus100_mit","minus100_ohne","minus100_mit","erg100","mal_kern","mal_alle","geteilt","geld2","mcm_cm","uhr_viertel","s_2plus","s_2minus","s_3mal","s_3geteilt",
+    "stellen1000_null","vergleich1000","t_hunderter","t_plus","t_minus","erg1000","mal_zehner","schr_plus","schr_minus","kgg_g","m0cm",
+    "k4_mio_zahl","k4_mio_vergleich","k4_mio_runden","k4_schr_plus4","k4_schr_minus4","k4_schr_mal","k4_ueberschlag","k4_geld_komma","k4_zeit_min","s_4zwei"]);
+  function grundlagen(liste){ const g=(liste||[]).filter(x=>x.k && BASIS.has(x.k)); return {r:g.filter(x=>x.ok).length, n:g.length}; }
   function fertigStand(liste){ const st={}; (liste||[]).forEach(x=>{ if(!x.k) return; (st[x.k]=st[x.k]||[0,0]); st[x.k][1]++; if(x.ok) st[x.k][0]++; }); return st; }
 
   // Das Druckblatt – wie ein Rückmeldebogen zur Klassenarbeit. Note nur, wenn opt.note gesetzt ist (Exemplar der Lehrkraft).
@@ -83,6 +105,7 @@ window.Lernstand=(function(){
     return `<div class="lsBlatt${lang?" lang":""}"><h1>Lernstand Mathematik</h1>
       <div class="kz"><span><b>Name:</b> ${esc(e.name)}</span><span><b>Test:</b> Klasse ${esc(k)} · ${ZEIT_LANG[z]||esc(z)}</span><span><b>Datum:</b> ${esc(e.datum)}</span></div>
       <div class="sumz"><span class="sum">Erreicht: ${e.richtig} von ${e.max} Punkten (${e.prozent} %)</span>${note}</div>
+      ${(()=>{ const g=grundlagen(e.aufgaben); return g.n>=4 ? `<div class="sumz"><span>Grundlagen (Basiskompetenzen): <b>${g.r} von ${g.n}</b> ${g.r/g.n>=0.75?"– gesichert":"– hier gezielt fördern"}</span></div>` : ""; })()}
       <table><tr><th>Leitidee / Thema / Aufgabenart</th><th style="width:22mm">Punkte</th><th style="width:38mm">Einschätzung</th></tr>${zeilen}</table>
       ${lang?`<div class="unterschrift"><div>Unterschrift Erziehungsberechtigte</div><div>Bemerkung der Lehrkraft</div></div><div class="seite2"></div><h2>Alle Aufgaben · ${esc(e.name)} · ${esc(e.datum)}</h2>`:""}
       <table class="aufg"><tr><th style="width:8mm">Nr.</th><th>Aufgabe</th><th style="width:22mm">Antwort</th><th style="width:22mm">Richtig</th><th style="width:7mm"></th></tr>
@@ -154,5 +177,5 @@ window.Lernstand=(function(){
   document.head.appendChild(css);
 
   return {LEITIDEEN, THEMEN, ZEIT, ZEIT_LANG, testName, themenStand, ampel, AMPEL, SCHLUESSEL_STD, NOTEN_WORT, noteAus, blattHTML, esc,
-          FERTIGKEITEN, fertigStand, verlaufDaten, verlaufHTML, monatVon};
+          FERTIGKEITEN, BASIS, grundlagen, fertigStand, verlaufDaten, verlaufHTML, monatVon};
 })();

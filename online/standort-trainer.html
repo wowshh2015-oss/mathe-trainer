@@ -9,7 +9,7 @@
 <title>Wo stehe ich?</title>
 <script src="anmeldung.js?v=20261122a"></script>
 <script src="komfort.js"></script>
-<script src="lernstand.js"></script>
+<script src="lernstand.js?v=20261124a"></script>
 <style>
   :root{ --bg:#0f172a; --card:#1e293b; --card2:#334155; --text:#f1f5f9; --muted:#94a3b8; --accent:#a3e635; --good:#22c55e; --mid:#facc15; --bad:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.35); }
   *{box-sizing:border-box} html,body{margin:0;min-height:100%}
@@ -44,7 +44,7 @@
   .fortschritt i.da{background:var(--accent);border-color:var(--accent)} .fortschritt i.jetzt{background:#fff}
   .thema{font-size:13.5px;color:var(--muted);font-weight:700;text-align:center;margin-bottom:6px}
   .frage{text-align:center;font-size:24px;font-weight:800;margin:6px 0 14px;line-height:1.4}
-  .frage .gross{font-size:38px;white-space:nowrap} .frage .blank{display:inline-block;min-width:1.3em;border:3px dashed #fde68a;border-radius:12px;color:#fde68a;padding:0 .15em}
+  .grundl{font-size:16px;font-weight:600;margin-top:6px;color:#fde68a} .frage .gross{font-size:38px;white-space:nowrap} .frage .mittel{font-size:26px;font-weight:800;display:inline-block;max-width:100%} .frage .blank{display:inline-block;min-width:1.3em;border:3px dashed #fde68a;border-radius:12px;color:#fde68a;padding:0 .15em}
   .frage .klein{font-size:19px;font-weight:700;color:#e2e8f0}
   .frage svg{max-width:100%;height:auto;display:block;margin:6px auto 0}
   .lautKn{font-size:18px;padding:4px 10px;margin-left:6px;vertical-align:middle;background:#0b1220;color:var(--text);border:2px solid var(--card2)}
@@ -397,7 +397,79 @@ function gSach(art){
   const t=rnd(3,6), s=rnd(12,25); return Z("sach", `Eine Klasse fährt <b>${t} Tage</b> auf Klassenfahrt. Jeden Tag wandern sie <b>${s} km</b>. Wie viele km sind das zusammen?`, t*s, null, {einheit:"km"});
 }
 
-//// ===== Die Tests: Klasse × Zeitpunkt (Klasse 1 und 4 folgen) =====
+// ===== Klasse 1 (24.11.2026) =====
+function punkteSVG(n){ let s=""; for(let i=0;i<n;i++){ const r=Math.floor(i/10), c=i%10, x=16+c*26+(c>=5?10:0), y=18+r*28; s+=`<circle cx="${x}" cy="${y}" r="10" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/>`; }
+  for(let i=n;i<(n>10?20:10);i++){ const r=Math.floor(i/10), c=i%10, x=16+c*26+(c>=5?10:0), y=18+r*28; s+=`<circle cx="${x}" cy="${y}" r="10" fill="none" stroke="#475569" stroke-width="1.5"/>`; }
+  return `<svg viewBox="0 0 282 ${n>10?64:36}" width="282" height="${n>10?64:36}">${s}</svg>`; }
+const LAGE1=[["🐶","Hund"],["🐱","Katze"],["🐰","Hase"],["🐻","Bär"],["🐸","Frosch"],["🦊","Fuchs"]];
+const ARTIKEL1={Hund:"der",Katze:"die",Hase:"der",Bär:"der",Frosch:"der",Fuchs:"der"};
+function gKlasse1(art){
+  if(art==="anzahl"){ const n=rnd(6,10); return Z("zahlraum", `Wie viele <b>Punkte</b> sind rot?<br>${punkteSVG(n)}`, n, `Punkte zählen (${n})`); }
+  if(art==="anzahl20"){ const n=rnd(11,19); return Z("zahlraum", `Wie viele <b>Punkte</b> sind rot?<br>${punkteSVG(n)}`, n, `Punkte zählen bis 20 (${n})`); }
+  if(art==="vergleich10"){ const [a,b]=versuche(()=>{ const a=rnd(1,10), b=rnd(1,10); return a!==b?[a,b]:null; });
+    return W("zahlraum", `Setze das richtige Zeichen ein:<br><span class="gross">${a} ${B} ${b}</span>`, ["<",">"], a<b?"<":">", `${a} ? ${b} – setze < oder > ein`); }
+  if(art==="nachbar10"){ const nach=Math.random()<0.5, x=nach?rnd(2,9):rnd(2,10); return Z("zahlraum", `Welche Zahl kommt <b>${nach?"nach":"vor"}</b> <span class="gross">${x}</span>?`, nach?x+1:x-1, `Welche Zahl kommt ${nach?"nach":"vor"} ${x}? (bis 10)`); }
+  if(art==="plus10"){ const [a,b]=versuche(()=>{ const a=rnd(2,7), b=rnd(2,7); return a+b<=10?[a,b]:null; }); return Z("plusminus", `<span class="gross">${a} + ${b} = ${B}</span>`, a+b, `${a} + ${b}`); }
+  if(art==="minus10"){ const a=rnd(5,10), b=rnd(2,a-1); return Z("plusminus", `<span class="gross">${a} − ${b} = ${B}</span>`, a-b, `${a} − ${b}`); }
+  if(art==="zerlegen10"){ const n=rnd(5,10), a=rnd(1,n-1); return Z("zerlegen", `Zerlege:<br><span class="gross">${n} = ${a} + ${B}</span>`, n-a, `${n} = ${a} + ?`); }
+  if(art==="doppelt5"){ const x=rnd(2,5); return Z("verdoppeln", `Verdopple: <span class="gross">${x} + ${x} = ${B}</span>`, 2*x, `${x} + ${x} (verdoppeln)`); }
+  if(art==="geld"){ const l=versuche(()=>{ const l=Array.from({length:rnd(3,4)},()=>waehle(["1 €","2 €","5 €"])); const s=l.reduce((a,x)=>a+geldWert(x),0); return s<=1000 && new Set(l).size>=2 ? l : null; });
+    return Z("geld", `Wie viel <b>Euro</b> sind das?<br>${geldHTML(l.sort((a,b)=>geldWert(b)-geldWert(a)))}`, l.reduce((a,x)=>a+geldWert(x),0)/100, `Geld zählen bis 10 €: ${l.join(" + ")}`, {einheit:"€"}); }
+  if(art==="uhr_voll"){ const h=rnd(1,12), opts=[...new Set([`${h} Uhr`,`${h%12+1} Uhr`,`${(h+5)%12+1} Uhr`,`halb ${h%12+1}`])];
+    return W("uhr", `Wie spät ist es?${uhrSVG(h,0)}`, opts, `${h} Uhr`, `Uhr ablesen: volle Stunde (${h} Uhr)`); }
+  if(art==="formen1"){ const n=waehle(["Dreieck","Quadrat","Rechteck"]); const p=FORMEN[n].map(([x,y])=>{ const w=rnd(-15,15)*Math.PI/180; return [x*Math.cos(w)-y*Math.sin(w), x*Math.sin(w)+y*Math.cos(w)]; });
+    return W("formen", `Wie heißt diese Form?${figurSVG(p)}`, ["Kreis","Dreieck","Quadrat","Rechteck"], n, `Form erkennen (${n})`); }
+  if(art==="lage"){ const t=mische(LAGE1).slice(0,3), links=Math.random()<0.5, z=links?t[0]:t[2];
+    return W("formen", `Welches Tier ist ganz <b>${links?"links":"rechts"}</b>?<br><span class="gross">${t.map(x=>x[0]).join(" ")}</span>`, t.map(x=>x[1]), z[1], `Welches Tier ist ganz ${links?"links":"rechts"}? (${t.map(x=>x[1]).join(", ")})`); }
+  if(art==="folge"){ const d=waehle([1,2,2]), s=rnd(1,6); const l=Array.from({length:5},(_,i)=>s+i*d); return Z("muster", `Wie geht es weiter?<br><span class="gross">${l.slice(0,4).join(", ")}, ${B}</span>`, l[4], `Zahlenfolge: ${l.slice(0,4).join(", ")}, ?`); }
+  if(art==="strich"){ const n=rnd(6,14); return Z("daten", `Wie viele <b>Striche</b> sind das?<br><span class="gross">${"𝍸 ".repeat(Math.floor(n/5))}${"|".repeat(n%5)}</span>`, n, `Strichliste zählen (${n})`); }
+  const n=waehle(NAMEN);
+  if(art==="sach10plus"){ const a=rnd(2,6), b=rnd(2,10-a); return Z("sach", `${n} hat <b>${a} Äpfel</b>. ${n} bekommt <b>${b}</b> dazu. Wie viele Äpfel hat ${n} jetzt?`, a+b); }
+  const a=rnd(6,10), b=rnd(2,a-2); return Z("sach", `Im Bus sitzen <b>${a} Kinder</b>. <b>${b}</b> steigen aus. Wie viele Kinder sitzen noch im Bus?`, a-b);
+}
+// ===== Klasse 4 (24.11.2026) – Zahlen bis 1 Million mit schmalem Leerzeichen in Dreiergruppen =====
+const gr=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+function gKlasse4(art){
+  if(art==="mio_zahl"){ const s=[rnd(1,9),rnd(1,9),rnd(1,9),rnd(1,9),rnd(1,9),rnd(1,9)]; s[waehle([1,2,4])]=0; const n=+s.join(""), N=["HT","ZT","T","H","Z","E"];
+    return Z("zahlraum", `Welche Zahl ist das?<br><span class="mittel">${s.map((x,i)=>`${x} ${N[i]}`).join(" · ")}</span>`, n, `${s.map((x,i)=>`${x} ${N[i]}`).join(" ")} = ?`); }
+  if(art==="mio_wert"){ const n=versuche(()=>{ const n=rnd(102345,987654); return new Set(String(n)).size===6?n:null; }), i=rnd(0,3), d=String(n)[i], w=+d*10**(5-i);
+    return Z("zahlraum", `Welchen <b>Wert</b> hat die Ziffer <b>${d}</b> in der Zahl<br><span class="mittel">${gr(n)}</span>?`, w, `Wert der Ziffer ${d} in ${gr(n)}`); }
+  if(art==="mio_vergleich"){ const [a,b]=versuche(()=>{ const a=rnd(100000,989999), s=String(a), i=rnd(1,4), b=+(s.slice(0,i)+s[i+1]+s[i]+s.slice(i+2)); return a!==b?[a,b]:null; });
+    return W("zahlraum", `Setze das richtige Zeichen ein:<br><span class="mittel">${gr(a)} ${B} ${gr(b)}</span>`, ["<",">"], a<b?"<":">", `${gr(a)} ? ${gr(b)}`); }
+  if(art==="mio_nachbar"){ const x=rnd(10,98)*1000+999; return Z("zahlraum", `Welche Zahl kommt <b>nach</b> <span class="mittel">${gr(x)}</span>?`, x+1, `Nachfolger von ${gr(x)}`); }
+  if(art==="mio_runden"){ const x=versuche(()=>{ const x=rnd(10000,98999); return x%1000!==500?x:null; }); return Z("zahlraum", `Runde auf <b>Tausender</b>:<br><span class="mittel">${gr(x)} ≈ ${B}</span>`, Math.round(x/1000)*1000, `${gr(x)} auf Tausender runden`); }
+  if(art==="mio_plus"){ const a=rnd(12,58)*10000, b=rnd(11,39)*10000; return Z("rechenwege", `<span class="mittel">${gr(a)} + ${gr(b)} = ${B}</span>`, a+b, `${gr(a)} + ${gr(b)}`); }
+  if(art==="mio_minus"){ const [a,b]=versuche(()=>{ const a=rnd(40,95)*10000, b=rnd(12,38)*10000; return (a/10000)%10<(b/10000)%10?[a,b]:null; }); return Z("rechenwege", `<span class="mittel">${gr(a)} − ${gr(b)} = ${B}</span>`, a-b, `${gr(a)} − ${gr(b)}`); }
+  if(art==="mio_mal"){ const a=rnd(3,9), b=rnd(2,9)*1000; return Z("rechenwege", `<span class="mittel">${a} · ${gr(b)} = ${B}</span>`, a*b, `${a} · ${gr(b)}`); }
+  if(art==="schr_plus4"){ const [a,b]=versuche(()=>{ const a=rnd(2345,6789), b=rnd(1234,2999); return ueber(a,b)&&Math.floor(a/100)%10+Math.floor(b/100)%10>=9?[a,b]:null; });
+    return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">  ${a}\n<u>+ ${b}</u></span>`, a+b, `schriftlich: ${a} + ${b}`); }
+  if(art==="schr_minus4"){ const [a,b]=versuche(()=>{ const a=rnd(30,90)*100+rnd(1,9), b=rnd(1234,2899); return a%10<b%10?[a,b]:null; });
+    return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">  ${a}\n<u>− ${b}</u></span>`, a-b, `schriftlich: ${a} − ${b} (mit Null)`); }
+  if(art==="schr_mal"){ const a=versuche(()=>{ const a=rnd(213,689); return a%10>2?a:null; }), b=rnd(3,8);
+    return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">${a} · ${b}</span>`, a*b, `schriftlich: ${a} · ${b}`); }
+  if(art==="schr_div"){ const b=rnd(3,8), q=rnd(112,198); return Z("schriftlich", `Rechne schriftlich:<br><span class="schr">${q*b} : ${b}</span>`, q, `schriftlich: ${q*b} : ${b}`); }
+  if(art==="ueberschlag"){ const a=rnd(31,79)*10+rnd(1,9), b=rnd(21,59)*10+rnd(1,9), u=Math.round(a/100)*100+Math.round(b/100)*100;
+    return W("rechenwege", `Welcher <b>Überschlag</b> passt zu <span class="mittel">${a} + ${b}</span>?`, [`${u}`,`${u+200}`,`${u-200}`,`${Math.round(a/10)*10+Math.round(b/10)*10+1000}`].filter((x,i,l)=>l.indexOf(x)===i).slice(0,3), `${u}`, `Überschlag: ${a} + ${b} ≈ ?`); }
+  if(art==="geld_komma"){ const a=rnd(105,695), b=rnd(105,395), k=x=>(x/100).toFixed(2).replace(".",",");
+    return Z("geld", `<span class="mittel">${k(a)} € + ${k(b)} € = ${B} ct</span>`, a+b, `${k(a)} € + ${k(b)} € = ? ct`, {einheit:"ct"}); }
+  if(art==="t_kg"){ const t=rnd(2,9), kg=waehle([0,500,250]); return Z("gewichte", `<span class="mittel">${t} t ${kg?kg+" kg ":""}= ${B} kg</span>`, t*1000+kg, `${t} t ${kg?kg+" kg ":""}= ? kg`); }
+  if(art==="l_ml"){ const l=rnd(1,4), ml=waehle([0,250,500,750]); return Z("gewichte", `<span class="mittel">${l} l ${ml?ml+" ml ":""}= ${B} ml</span>`, l*1000+ml, `${l} l ${ml?ml+" ml ":""}= ? ml`); }
+  if(art==="zeit_min"){ const h=rnd(1,3), m=rnd(1,11)*5; return Z("uhr", `<span class="mittel">${h} h ${m} min = ${B} min</span>`, h*60+m, `${h} h ${m} min = ? min`); }
+  if(art==="f_netz"){ const ok=Math.random()<0.5, Z6=ok?waehle([[[1,0],[0,1],[1,1],[2,1],[3,1],[1,2]],[[0,0],[1,0],[1,1],[2,1],[3,1],[3,2]],[[0,0],[1,0],[1,1],[2,1],[2,2],[3,2]]])
+      : waehle([[[0,0],[1,0],[0,1],[1,1],[2,1],[3,1]],[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]],[[0,0],[0,1],[1,1],[2,1],[3,1],[4,1]]]);
+    const W0=Math.max(...Z6.map(p=>p[0]))+1, H0=Math.max(...Z6.map(p=>p[1]))+1, svg=`<svg viewBox="0 0 ${W0*30+4} ${H0*30+4}" width="${(W0*30+4)*1.3}" height="${(H0*30+4)*1.3}">${Z6.map(([x,y])=>`<rect x="${2+x*30}" y="${2+y*30}" width="30" height="30" fill="#a3e635" stroke="#1a2e05" stroke-width="2"/>`).join("")}</svg>`;
+    return W("formen", `Kann man aus diesem Netz einen <b>Würfel</b> falten?<br>${svg}`, ["Ja","Nein"], ok?"Ja":"Nein", `Würfelnetz: ${ok?"geht":"geht nicht"}`); }
+  if(art==="f_umfang"){ const a=rnd(3,9), b=rnd(2,6); return Z("formen", `Ein Rechteck ist <b>${a} cm</b> lang und <b>${b} cm</b> breit. Wie lang ist sein <b>Umfang</b>?`, 2*(a+b), `Umfang Rechteck ${a} cm × ${b} cm`, {einheit:"cm"}); }
+  if(art==="f_flaeche"){ const a=rnd(3,9), b=rnd(2,6); return Z("formen", `Ein Rechteck ist <b>${a} cm</b> lang und <b>${b} cm</b> breit. Wie viele <b>Zentimeterquadrate</b> passen hinein?`, a*b, `Fläche Rechteck ${a} cm × ${b} cm`, {einheit:"cm²"}); }
+  if(art==="d_wahrsch"){ const [s,e,o]=waehle([["Was ist beim Würfeln wahrscheinlicher: eine <b>gerade Zahl</b> oder eine <b>6</b>?","gerade Zahl",["gerade Zahl","6","gleich wahrscheinlich"]],
+      ["Was ist beim Würfeln wahrscheinlicher: eine <b>1</b> oder eine <b>6</b>?","gleich wahrscheinlich",["1","6","gleich wahrscheinlich"]],
+      ["Was ist beim Würfeln wahrscheinlicher: eine Zahl <b>kleiner als 5</b> oder eine Zahl <b>größer als 4</b>?","kleiner als 5",["kleiner als 5","größer als 4","gleich wahrscheinlich"]]]);
+    return W("daten", s, o, e, nurText(s)); }
+  const n=waehle(NAMEN);
+  if(art==="s_4geld"){ const st=rnd(3,6), pr=rnd(12,Math.floor(1900/st/10))*10, k=x=>(x/100).toFixed(2).replace(".",","); return Z("sach", `${n} kauft <b>${st} Hefte</b> zu je <b>${k(pr)} €</b> und bezahlt mit <b>20 €</b>. Wie viel <b>Rückgeld</b> bekommt ${n}? (in ct)`, 2000-st*pr, `${st} Hefte zu ${k(pr)} €, bezahlt mit 20 € – Rückgeld in ct`, {einheit:"ct"}); }
+  const km=rnd(120,380), t=rnd(2,4); return Z("sach", `Familie ${waehle(["Yilmaz","Schmidt","Nguyen","Mensah","Ahmadi","Kowalski"])} fährt in den Urlaub: <b>${km} km</b> hin und genauso weit zurück. Dort machen sie noch <b>${t} Ausflüge</b> von je <b>45 km</b>. Wie viele km fahren sie insgesamt?`, 2*km+t*45, `Urlaubsfahrt: 2 · ${km} km + ${t} · 45 km`, {einheit:"km"});
+}
+//// ===== Die Tests: Klasse × Zeitpunkt =====
 // Jede Zeile: [Erzeuger, Anzahl]
 // Jede Aufgabenart hat einen festen Schlüssel (Namen in lernstand.js) – zufällig sind nur die Zahlen/Sätze.
 // So bekommt jedes Kind andere Aufgaben, aber alle gleich schwer – und der Lernverlauf vergleicht nur Gleiches mit Gleichem.
@@ -421,7 +493,9 @@ const GEN={
   m_leicht:()=>gMuster("leicht"), m_plus:()=>gMuster("plus"), m_minus:()=>gMuster("minus"), m_schwer:()=>gMuster("schwer"),
   d_ablesen:()=>gDaten("ablesen"), d_unterschied:()=>gDaten("unterschied"), d_kombi:()=>gDaten("kombi"), d_zufall:()=>gDaten("zufall"),
   s_1plus:()=>gSach("1plus"), s_1minus:()=>gSach("1minus"), s_2plus:()=>gSach("2plus"), s_2minus:()=>gSach("2minus"), s_3mal:()=>gSach("3mal"), s_3geteilt:()=>gSach("3geteilt"),
-  s_4zwei:()=>gSach("4zwei"), s_4minus:()=>gSach("4minus"), s_4mal:()=>gSach("4mal")
+  s_4zwei:()=>gSach("4zwei"), s_4minus:()=>gSach("4minus"), s_4mal:()=>gSach("4mal"),
+  k1_anzahl:()=>gKlasse1("anzahl"), k1_anzahl20:()=>gKlasse1("anzahl20"), k1_vergleich10:()=>gKlasse1("vergleich10"), k1_nachbar10:()=>gKlasse1("nachbar10"), k1_plus10:()=>gKlasse1("plus10"), k1_minus10:()=>gKlasse1("minus10"), k1_zerlegen10:()=>gKlasse1("zerlegen10"), k1_doppelt5:()=>gKlasse1("doppelt5"), k1_geld:()=>gKlasse1("geld"), k1_uhr_voll:()=>gKlasse1("uhr_voll"), k1_formen1:()=>gKlasse1("formen1"), k1_lage:()=>gKlasse1("lage"), k1_folge:()=>gKlasse1("folge"), k1_strich:()=>gKlasse1("strich"), k1_sach10plus:()=>gKlasse1("sach10plus"), k1_sach10minus:()=>gKlasse1("sach10minus"),
+  k4_mio_zahl:()=>gKlasse4("mio_zahl"), k4_mio_wert:()=>gKlasse4("mio_wert"), k4_mio_vergleich:()=>gKlasse4("mio_vergleich"), k4_mio_nachbar:()=>gKlasse4("mio_nachbar"), k4_mio_runden:()=>gKlasse4("mio_runden"), k4_mio_plus:()=>gKlasse4("mio_plus"), k4_mio_minus:()=>gKlasse4("mio_minus"), k4_mio_mal:()=>gKlasse4("mio_mal"), k4_schr_plus4:()=>gKlasse4("schr_plus4"), k4_schr_minus4:()=>gKlasse4("schr_minus4"), k4_schr_mal:()=>gKlasse4("schr_mal"), k4_schr_div:()=>gKlasse4("schr_div"), k4_ueberschlag:()=>gKlasse4("ueberschlag"), k4_geld_komma:()=>gKlasse4("geld_komma"), k4_t_kg:()=>gKlasse4("t_kg"), k4_l_ml:()=>gKlasse4("l_ml"), k4_zeit_min:()=>gKlasse4("zeit_min"), k4_f_netz:()=>gKlasse4("f_netz"), k4_f_umfang:()=>gKlasse4("f_umfang"), k4_f_flaeche:()=>gKlasse4("f_flaeche"), k4_d_wahrsch:()=>gKlasse4("d_wahrsch"), k4_s_4geld:()=>gKlasse4("s_4geld"), k4_s_4urlaub:()=>gKlasse4("s_4urlaub")
 };
 // Wie eine Klassenarbeit: Thema für Thema, Hauptthemen mit 4–6 Aufgaben (nach Arten getrennt), Nebenthemen mit 2–3. Etwa 20–25 Minuten.
 const TESTS={
@@ -440,7 +514,23 @@ const TESTS={
                ["uhr_minute",2],["spanne_dauer",1], ["f_wuerfel",1],["f_koerper",1], ["m_schwer",2], ["s_3mal",1],["s_4minus",2] ],
   "3-ende":[ ["stellen1000_null",1],["vergleich1000",1],["erg1000",1], ["t_plus",2],["t_minus",2], ["schr_plus",3],["schr_minus",3], ["mal_zehner",2],["mal_mehr",3],["rest",2],
                ["kgg_g",1],["g_kg",1], ["m0cm",1],["cmmm_mm",1],["km_m",1], ["spanne_ende",2],["spanne_dauer",1], ["f_quader",1],["f_koerper",1],["f_wuerfel",1],
-               ["d_unterschied",1],["d_kombi",2],["d_zufall",1], ["s_4zwei",2],["s_4mal",1] ]
+               ["d_unterschied",1],["d_kombi",2],["d_zufall",1], ["s_4zwei",2],["s_4mal",1] ],
+  // Klasse 1: Anfang = mündlich (Kinder lesen noch nicht) – darum erst Halbjahr und Ende
+  "1-halbjahr":[ ["k1_anzahl",2],["k1_vergleich10",2],["k1_nachbar10",2], ["k1_plus10",4],["k1_minus10",4], ["k1_zerlegen10",3],["erg10",2], ["k1_doppelt5",2],
+               ["k1_geld",2], ["k1_formen1",2],["k1_lage",2], ["k1_folge",2], ["k1_sach10plus",1],["k1_sach10minus",1] ],
+  "1-ende":[ ["k1_anzahl20",2],["nachbar20",2],["vergleich20",2],["strahl20",2], ["plus20_ohne",2],["plus20",3],["minus20_ohne",2],["minus20",3], ["erg20",2],["ergplatz20",2],
+               ["doppelt",2],["halb",1], ["k1_geld",2], ["k1_uhr_voll",2], ["k1_formen1",1],["k1_lage",1], ["k1_folge",2], ["k1_strich",1], ["s_1plus",1],["s_1minus",1] ],
+  // Klasse 4: Anfang = Stoff der Klasse 3, Halbjahr = Zahlen bis 1 Million + schriftlich, Ende = alles
+  "4-anfang":[ ["stellen1000_null",1],["vergleich1000",1],["strahl1000",1], ["t_plus",2],["t_minus",2],["erg1000",1], ["schr_plus",2],["schr_minus",2],
+               ["mal_alle",3],["geteilt",2],["mal_zehner",2],["mal_mehr",2],["rest",1], ["geld3",1],["kgg_g",1],["m0cm",1],["km_m",1], ["spanne_dauer",1],["uhr_minute",1],
+               ["f_quader",1],["f_koerper",1], ["m_schwer",1], ["d_kombi",1],["d_unterschied",1], ["s_4zwei",1],["s_4minus",1] ],
+  "4-halbjahr":[ ["k4_mio_zahl",2],["k4_mio_wert",2],["k4_mio_vergleich",2],["k4_mio_nachbar",1],["k4_mio_runden",2], ["k4_mio_plus",2],["k4_mio_minus",2],["k4_mio_mal",2],
+               ["k4_schr_plus4",3],["k4_schr_minus4",3],["k4_schr_mal",2], ["k4_ueberschlag",2], ["mal_alle",2],["geteilt",1],
+               ["k4_geld_komma",1],["k4_t_kg",1],["k4_l_ml",1],["k4_zeit_min",1], ["k4_f_netz",1],["k4_f_umfang",1], ["k4_d_wahrsch",1], ["s_4zwei",1],["k4_s_4geld",1] ],
+  "4-ende":[ ["k4_mio_zahl",1],["k4_mio_wert",1],["k4_mio_vergleich",1],["k4_mio_runden",1], ["k4_mio_plus",1],["k4_mio_minus",1],["k4_mio_mal",1],
+               ["k4_schr_plus4",2],["k4_schr_minus4",2],["k4_schr_mal",3],["k4_schr_div",2], ["k4_ueberschlag",2], ["mal_mehr",1],["rest",1],
+               ["k4_geld_komma",2],["k4_t_kg",1],["k4_l_ml",1],["k4_zeit_min",1],["spanne_dauer",1], ["k4_f_netz",2],["k4_f_umfang",1],["k4_f_flaeche",1],
+               ["k4_d_wahrsch",2],["d_kombi",1], ["k4_s_4geld",1],["k4_s_4urlaub",1],["s_4zwei",1] ]
 };
 const anzahl=id=>TESTS[id].reduce((a,x)=>a+x[1],0);
 function baueTest(id){
@@ -461,7 +551,7 @@ function zeigeAuswahl(){
   for(let k=1;k<=4;k++){ h+=`<span class="kl">Klasse ${k}</span>`;
     Object.keys(ZEIT).forEach(z=>{ const id=`${k}-${z}`, da=!!TESTS[id], letzt=MEINE.find(e=>e.app===APP && e.test===id);
       h+= da ? `<button data-id="${id}" class="${letzt?"gemacht":""}">${ZEIT[z]}<small>${letzt?`zuletzt ${letzt.richtig}/${letzt.max}`:`${anzahl(id)} Aufgaben`}</small></button>`
-             : `<button disabled>${ZEIT[z]}<small>kommt bald</small></button>`; }); }
+             : `<button disabled>${ZEIT[z]}<small>${id==="1-anfang"?"mündlich in der Klasse":"kommt bald"}</small></button>`; }); }
   $("wahlTab").innerHTML=h;
   $("wahlTab").querySelectorAll("button[data-id]").forEach(b=>b.addEventListener("click",()=>starte(b.dataset.id)));
   const meine=MEINE.filter(e=>e.app===APP && e.aufgaben).sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -523,6 +613,7 @@ function zeigeErgebnis(e, neu){
   const st=e.themen||themenStand(e.aufgaben), p=e.prozent;
   $("ergTitel").textContent=`${testName(e.test)} · ${e.datum}`;
   $("ergPunkte").innerHTML=`${e.richtig} <small>von ${e.max} Punkten</small>`;
+  { const g=Lernstand.grundlagen(e.aufgaben); if(g.n>=4) $("ergPunkte").insertAdjacentHTML("beforeend", `<div class="grundl">🧱 Grundlagen: <b>${g.r} von ${g.n}</b> ${g.r/g.n>=0.75?"sitzen sicher":"– die solltest du zuerst üben"}</div>`); }
   const gruen=Object.keys(st).filter(t=>ampel(st[t])==="g"), rot=Object.keys(st).filter(t=>ampel(st[t])!=="g");
   $("ergText").innerHTML = (neu ? (p>=90?"🌟 Super! Fast alles sitzt.":p>=70?"👍 Gut gemacht! Das meiste sitzt schon.":p>=50?"💪 Ein guter Anfang. Einiges musst du noch üben.":"💪 Gut, dass du den Test gemacht hast. Jetzt weißt du, was du üben kannst.")+"<br>" : "")+
     (rot.length ? `Üben lohnt sich bei: <b>${rot.map(t=>THEMEN[t].n).join(", ")}</b>.` : "Alle Themen sitzen sicher. 🎉");
