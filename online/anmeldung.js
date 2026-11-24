@@ -136,6 +136,12 @@
     @media (max-width:400px){ .anmTier{font-size:34px;padding:8px 0} .anmTiere{gap:8px} }`;
     document.head.appendChild(s);
   }
+  // Neues Format (ab 24.11.2026): Das Tier steht NICHT mehr im lesbaren Dokument, sondern in geheim/<id> (nur die Lehrkraft liest es).
+  // Geprüft wird auf dem Server: Das Gerät schreibt einen „Beweis" – die Datenbank nimmt ihn nur an, wenn das Tier stimmt.
+  const hat=k=>!!(k && (k.tier || k.hatTier));
+  function warteAuth(){ return (window.Sicher && Sicher.bereit) ? Promise.race([Sicher.bereit, new Promise(r=>setTimeout(r,8000))]) : Promise.resolve(); }
+  function beweis(db, name, tier){ const u=window.Sicher&&Sicher.uid(); if(!u) return Promise.reject({code:"keine-anmeldung"});
+    return db.collection("beweis").doc(docId(name)+"__"+u).set({key:KEY, t:docId(name), name:cap(name), tier, uid:u, am:Date.now()}); }
   function mitZeit(p,ms){ return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("zeit")),ms))]); }
   function gesperrtBis(id){ try{ return +localStorage.getItem("sperre_"+id)||0; }catch(e){ return 0; } }
 
@@ -168,7 +174,7 @@
       }catch(e){
         if(!(e && e.code==="permission-denied")) throw e;   // verweigert = es gibt noch kein Konto
       }
-      if(!(konto && konto.tier)){
+      if(!hat(konto)){
         const s=await mitZeit(db.collection("ergebnisse").where("key","==",KEY).where("name","==",name).limit(1).get(), ms);
         bekannt=!s.empty;
       }
@@ -210,7 +216,16 @@
         ov.querySelector("#anmJa").addEventListener("click", async ()=>{
           ov.querySelector("#anmJa").disabled=true;
           try{
-            await mitZeit(ref.set({key:KEY, name:name, tier:id, fehl:0, seit:new Date().toISOString().slice(0,10)}), 10000);
+            const seit=new Date().toISOString().slice(0,10);
+            await warteAuth();
+            let neuOk=false;
+            try{ await mitZeit(db.collection("geheim").doc(docId(name)).set({key:KEY, tier:id}), 10000);
+                 // merge: „zurückgesetzt am" bleibt erhalten (Hinweis für das echte Kind, falls es das nicht selbst war)
+                 await mitZeit(ref.set({key:KEY, name:name, hatTier:true, fehl:0, seit, hilfe:firebase.firestore.FieldValue.delete(), hilfeAm:firebase.firestore.FieldValue.delete()}, {merge:true}), 10000); neuOk=true;
+                 beweis(db, name, id).catch(()=>{}); }
+            catch(e){ if(!(e && e.code==="permission-denied")) throw e; }
+            // alte Datenbank-Regeln (vor der Umstellung): Tier wie bisher im Dokument speichern
+            if(!neuOk) await mitZeit(ref.set({key:KEY, name:name, tier:id, fehl:0, seit}), 10000);
             setOk(name, true); fertig(true);
           }catch(e){
             // nicht „geprüft": beim nächsten Besuch der Startseite wird das Tier noch einmal ausgesucht
@@ -220,6 +235,10 @@
         });
       }
       let fehl=0;
+      // Wurde das Tier in den letzten 14 Tagen zurückgesetzt? Dann soll das echte Kind merken, falls es das nicht selbst war.
+      function zurueckHinweis(){ const z=konto && +konto.zurueckAm; if(!z || Date.now()-z>14*86400000) return "";
+        const d=new Date(z).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+        return `<div style="margin-top:10px;color:#fde68a;font-weight:600;font-size:15px">Dein Geheimtier wurde am ${d} neu vergeben. Warst du das nicht? Dann sag es bitte deiner Lehrerin oder deinem Lehrer.</div>`; }
       function pruefen(meldung){
         const bis=gesperrtBis(docId(name));
         if(bis>Date.now()){
@@ -235,13 +254,21 @@
           <div class="anmMeld">${meldung||""}</div>
           <a class="anmLink" id="anmVerg" style="display:block;color:#fde68a;font-weight:700">🙋 Ich habe mein Tier vergessen</a>${andere}`);
         ov.querySelector("#anmVerg").addEventListener("click", vergessen);
-        ov.querySelectorAll(".anmTier").forEach(b=>b.addEventListener("click",()=>{
-          if(b.dataset.t===konto.tier){ setOk(name, true); fertig(true); return; }
+        ov.querySelectorAll(".anmTier").forEach(b=>b.addEventListener("click",async ()=>{
+          if(konto.tier){ if(b.dataset.t===konto.tier){ setOk(name, true); fertig(true); beweis(db, name, b.dataset.t).catch(()=>{}); return; } }
+          else{
+            ov.querySelectorAll(".anmTier").forEach(x=>x.disabled=true);
+            await warteAuth(); let r="falsch";
+            try{ await mitZeit(beweis(db, name, b.dataset.t), 10000); r="ok"; }
+            catch(e){ r = e && e.code==="permission-denied" ? "falsch" : "netz"; }
+            if(r==="ok"){ setOk(name, true); fertig(true); return; }
+            if(r==="netz"){ setOk(name); setOhneNetz(name); fertig(true); return; }   // keine Verbindung: hereinlassen, aber nicht „geprüft"
+          }
           fehl++;
           // Fehlversuche merken – die Lehrkraft sieht sie in der Klassenübersicht
           try{ ref.update({fehl:firebase.firestore.FieldValue.increment(1), fehlAm:new Date().toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}).catch(()=>{}); }catch(e){}
           if(fehl>=VERSUCHE){ try{ localStorage.setItem("sperre_"+docId(name), String(Date.now()+SPERRE_MIN*60000)); }catch(e){} pruefen(); }
-          else pruefen(`Das war nicht das richtige Tier. Noch ${VERSUCHE-fehl} ${VERSUCHE-fehl===1?"Versuch":"Versuche"}.`);
+          else pruefen(`Das war nicht das richtige Tier. Noch ${VERSUCHE-fehl} ${VERSUCHE-fehl===1?"Versuch":"Versuche"}.`+zurueckHinweis());
         }));
       }
       // ----- Tier vergessen: der Lehrkraft Bescheid sagen (Klassenübersicht + auf Wunsch Nachricht aufs Handy) -----
@@ -259,9 +286,10 @@
         ov.querySelector("#anmRuf").addEventListener("click", async ()=>{
           ov.querySelector("#anmRuf").disabled=true;
           const am=new Date().toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-          try{ await mitZeit(ref.update({hilfe:Date.now(), hilfeAm:am}), 7000); konto.hilfe=Date.now(); }
+          await warteAuth();
+          try{ await mitZeit(ref.update({hilfe:Date.now(), hilfeAm:am, hilfeUid:(window.Sicher&&Sicher.uid())||""}), 7000); konto.hilfe=Date.now(); }
           catch(e){ ov.querySelector("#anmMeld").textContent="Das hat nicht geklappt. Sag es bitte morgen in der Schule."; ov.querySelector("#anmRuf").disabled=false; return; }
-          try{ handy(); }catch(e){}
+          try{ handy().catch(()=>{}); }catch(e){}
           warten();
         });
       }
@@ -287,13 +315,16 @@
             const db=firebase.firestore(); let neu=null;
             const q=await mitZeit(db.collection("einstellungen").where("key","==",KEY).where("name","==",name).get(), 7000);
             q.forEach(d=>{ if(d.id===docId(name)) neu=d.data(); });
-            if(neu && !neu.tier){ stopp(); try{ localStorage.removeItem("sperre_"+docId(name)); }catch(e){} konto=neu; fehl=0; waehlen(); }
+            const vorher=konto;
+            if(neu && !hat(neu)){ stopp(); try{ localStorage.removeItem("sperre_"+docId(name)); }catch(e){} konto=neu; fehl=0; waehlen(); }
+            else if(neu && neu.festAm && neu.festAm!==(vorher&&vorher.festAm)){ stopp(); try{ localStorage.removeItem("sperre_"+docId(name)); }catch(e){} konto=neu; fehl=0;
+              pruefen(`<span style="color:#86efac">Deine Lehrerin oder dein Lehrer hat dir ein <b>neues Geheimtier</b> gegeben. Frag nach, welches es ist!</span>`); }
           }catch(e){}
         }, 8000);
       }
       function stopp(){ if(horcht){ clearInterval(horcht); horcht=null; } }
 
-      if(konto && konto.tier) pruefen();
+      if(hat(konto)) pruefen();
       else if(bekannt) waehlen();
       else neuFrage();
     });

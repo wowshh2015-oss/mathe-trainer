@@ -195,6 +195,7 @@
     </div>
     <div class="status" id="status">Verbinde …</div>
   </div>
+  <div class="card noprint hide" id="nurAnsehen" style="border:2px solid #f87171">🔓 Sie sind mit der PIN hier, nicht mit Ihrem Lehrkraft-Konto. Nach der Sicherheits-Umstellung werden Änderungen so <b>nicht gespeichert</b>. <a href="#" onclick="location.reload();return false" style="color:#fde68a">Neu anmelden</a></div>
   <div class="card noprint hide" id="hilfeOben" style="border:2px solid #f59e0b"></div>
 
   <div class="card">
@@ -383,6 +384,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="sicher.js?v=20261124a"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
 <script src="sterne.js"></script>
@@ -1025,23 +1028,72 @@ async function schenke(name, menge){
 //// ===== Geheimtiere =====
 const TIERBILD={hund:"🐶",katze:"🐱",hase:"🐰",fuchs:"🦊",baer:"🐻",panda:"🐼",loewe:"🦁",frosch:"🐸",affe:"🐵",pinguin:"🐧",einhorn:"🦄",schildkroete:"🐢",
   tiger:"🐯",koala:"🐨",elefant:"🐘",eule:"🦉",delfin:"🐬",pferd:"🐴",maus:"🐭",schwein:"🐷",schlange:"🐍",fisch:"🐠",tintenfisch:"🐙",marienkaefer:"🐞"};
-let KONTEN=[], RUF="";
+let KONTEN=[], RUF="", GEHEIM={}, GERAET={};
+// Ab 24.11.2026 liegt das Tier geschützt in geheim/<id> (nur die Lehrkraft liest es). Alte Konten haben es noch offen im Feld „tier".
+const hatTier=k=>!!(k && (k.tier || k.hatTier));
+const tierVon=k=>k.tier || GEHEIM[k._id] || "";
+function ladeGeheim(){ if(!(window.Sicher && Sicher.lehrer())) return;
+  db.collection("geheim").where("key","==",KEY).onSnapshot(snap=>{ GEHEIM={}; snap.forEach(d=>GEHEIM[d.id]=(d.data()||{}).tier||""); if(entsperrt) renderTiere(); }, ()=>{}); }
+// Kam der Hilferuf von einem Gerät, auf dem sich dieses Kind schon einmal richtig angemeldet hat?
+function pruefeGeraet(k){ const key=k._id+"__"+(k.hilfeUid||"");
+  if(!k.hilfeUid){ GERAET[key]="?"; return; } if(GERAET[key]) return; GERAET[key]="…";
+  db.collection("beweis").doc(key).get().then(d=>{ GERAET[key]=d.exists?"ja":"nein"; renderHilfe(); }).catch(()=>{ GERAET[key]="?"; renderHilfe(); }); }
+function geraetText(k){ const g=GERAET[k._id+"__"+(k.hilfeUid||"")];
+  return g==="ja" ? `<small style="color:#86efac">✅ von einem Gerät, auf dem ${esc(k.name)} schon angemeldet war</small>`
+       : g==="nein" ? `<small style="color:#fca5a5">⚠️ von einem <b>unbekannten</b> Gerät – lieber persönlich nachfragen</small>`
+       : g==="…" ? `<small>Gerät wird geprüft …</small>` : `<small>Gerät nicht prüfbar</small>`; }
+async function tierZuruecksetzen(id, name){
+  try{ await db.collection("geheim").doc(id).delete(); }catch(e){}
+  await db.collection("einstellungen").doc(id).set({key:KEY, name, hatTier:false, tier:"", fehl:0, zurueckAm:Date.now()});
+}
+// Die Lehrkraft gibt dem Kind selbst ein neues Tier und sagt es ihm persönlich – dann kann kein anderes Kind das Konto übernehmen.
+function tierFestlegen(id, name){
+  const m=$("pinModal");
+  m.innerHTML=`<h3>🐾 Neues Geheimtier für ${esc(name)}</h3><p>Wählen Sie ein Tier aus und sagen Sie es dem Kind persönlich.</p>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">${Object.keys(TIERBILD).map(t=>`<button class="ghost" data-fest="${t}" style="font-size:26px;padding:6px 0">${TIERBILD[t]}</button>`).join("")}</div>
+    <div style="margin-top:12px"><button class="ghost" id="festAb">Abbrechen</button></div>`;
+  $("pinOverlay").classList.remove("hide");
+  $("festAb").onclick=()=>$("pinOverlay").classList.add("hide");
+  m.querySelectorAll("button[data-fest]").forEach(b=>b.onclick=async ()=>{
+    const t=b.dataset.fest;
+    try{ await db.collection("geheim").doc(id).set({key:KEY, tier:t});
+         await db.collection("einstellungen").doc(id).set({key:KEY, name, hatTier:true, fehl:0, seit:new Date().toISOString().slice(0,10), zurueckAm:Date.now(), festAm:Date.now()});
+         m.innerHTML=`<h3>Neues Tier für ${esc(name)}</h3><div style="font-size:90px;line-height:1.1">${TIERBILD[t]}</div><p>Bitte sagen Sie es dem Kind persönlich. Auf dem Gerät des Kindes geht es von selbst weiter.</p><button id="festOk">Fertig</button>`;
+         $("festOk").onclick=()=>$("pinOverlay").classList.add("hide"); }
+    catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
+  });
+}
 // Kinder, die auf „Ich habe mein Tier vergessen" getippt haben – oben auf der Seite und in der Geheimtier-Karte
 function renderHilfe(){
-  const h=KONTEN.filter(k=>k.tier && k.hilfe).sort((a,b)=>a.hilfe-b.hilfe);
-  const zeile=k=>`<div class="hilfeZeile"><span>🙋 <b>${esc(k.name)}</b> hat das Geheimtier vergessen <small>· ${esc(k.hilfeAm||"")}</small></span>
-      <span><button data-hreset="${esc(k._id)}" data-name="${esc(k.name)}">↺ Zurücksetzen</button> <button class="ghost" data-hweg="${esc(k._id)}">nicht jetzt</button></span></div>`;
+  const h=KONTEN.filter(k=>hatTier(k) && k.hilfe).sort((a,b)=>a.hilfe-b.hilfe);
+  h.forEach(pruefeGeraet);
+  const zeile=k=>`<div class="hilfeZeile"><span>🙋 <b>${esc(k.name)}</b> hat das Geheimtier vergessen <small>· ${esc(k.hilfeAm||"")}</small><br>${geraetText(k)}</span>
+      <span><button data-hreset="${esc(k._id)}" data-name="${esc(k.name)}">↺ Kind wählt neu</button> <button data-hfest="${esc(k._id)}" data-name="${esc(k.name)}">🐾 Tier selbst festlegen</button> <button class="ghost" data-hweg="${esc(k._id)}">nicht jetzt</button></span></div>`;
   const html=h.length?h.map(zeile).join(""):"";
   $("hilfeListe").innerHTML=html; $("hilfeOben").innerHTML=html; $("hilfeOben").classList.toggle("hide", !h.length);
   document.querySelectorAll("button[data-hreset]").forEach(b=>b.onclick=async ()=>{
     b.disabled=true;
-    try{ await db.collection("einstellungen").doc(b.dataset.hreset).set({key:KEY, name:b.dataset.name, tier:"", fehl:0}); }
+    try{ await tierZuruecksetzen(b.dataset.hreset, b.dataset.name); }
     catch(err){ b.disabled=false; alert("⚠️ Fehler: "+(err.code||err)); }
   });
+  document.querySelectorAll("button[data-hfest]").forEach(b=>b.onclick=()=>tierFestlegen(b.dataset.hfest, b.dataset.name));
   document.querySelectorAll("button[data-hweg]").forEach(b=>b.onclick=async ()=>{
     try{ await db.collection("einstellungen").doc(b.dataset.hweg).update({hilfe:firebase.firestore.FieldValue.delete(), hilfeAm:firebase.firestore.FieldValue.delete()}); }
     catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
   });
+}
+// Einmalig: offene Tiere in den geschützten Bereich verschieben
+async function tiereSchuetzen(){
+  const alt=KONTEN.filter(k=>k.tier);
+  if(!alt.length) return;
+  if(!confirm(`${alt.length} Geheimtiere in den geschützten Bereich verschieben?\n\nFür die Kinder ändert sich nichts.`)) return;
+  try{
+    for(let i=0;i<alt.length;i+=200){ const b=db.batch();
+      alt.slice(i,i+200).forEach(k=>{ b.set(db.collection("geheim").doc(k._id), {key:KEY, tier:k.tier});
+        b.update(db.collection("einstellungen").doc(k._id), {hatTier:true, tier:firebase.firestore.FieldValue.delete()}); });
+      await b.commit(); }
+    alert("✅ Erledigt: Die Geheimtiere sind jetzt geschützt.");
+  }catch(err){ alert("⚠️ Fehler: "+(err.code||err)+"\n\nSind Sie mit Ihrem Lehrkraft-Konto angemeldet und sind die neuen Regeln veröffentlicht?"); }
 }
 async function neuesThema(){
   const a="abcdefghijkmnpqrstuvwxyz23456789"; let t="mathe-"; const r=new Uint32Array(14); crypto.getRandomValues(r); r.forEach(x=>t+=a[x%a.length]);
@@ -1071,16 +1123,21 @@ function renderRuf(){
 function renderTiere(){
   renderHilfe(); renderRuf();
   const box=$("tiere");
-  const mit=KONTEN.filter(k=>k.tier).sort((a,b)=>String(a.name).localeCompare(String(b.name),"de"));
+  const mit=KONTEN.filter(hatTier).sort((a,b)=>String(a.name).localeCompare(String(b.name),"de"));
+  const offen=KONTEN.filter(k=>k.tier).length;
   if(!mit.length){ box.innerHTML='<div class="empty">Noch kein Kind hat ein Geheimtier gewählt. Das passiert automatisch bei der nächsten Anmeldung.</div>'; return; }
   box.innerHTML=`<table><thead><tr><th>Kind</th><th>Geheimtier</th><th>gewählt am</th><th>Fehlversuche</th><th></th></tr></thead><tbody>`+
-    mit.map(k=>`<tr><td class="nm">${esc(k.name)}</td><td style="font-size:22px">${TIERBILD[k.tier]||"?"}</td><td>${esc(k.seit||"–")}</td>
+    mit.map(k=>`<tr><td class="nm">${esc(k.name)}</td><td style="font-size:22px">${TIERBILD[tierVon(k)]||"🔒"}</td><td>${esc(k.seit||"–")}</td>
       <td class="${k.fehl?"warn":""}">${k.fehl?`⚠️ ${k.fehl}× falsch getippt${k.fehlAm?" · zuletzt "+esc(k.fehlAm):""}`:"–"}</td>
-      <td><button class="ghost" data-reset="${esc(k._id)}" data-name="${esc(k.name)}">Zurücksetzen</button></td></tr>`).join("")+`</tbody></table>
-    <div class="status">Viele Fehlversuche bei einem Namen können bedeuten, dass ein anderes Kind hineinwollte.</div>`;
+      <td><button class="ghost" data-reset="${esc(k._id)}" data-name="${esc(k.name)}">Zurücksetzen</button> <button class="ghost" data-fest="${esc(k._id)}" data-name="${esc(k.name)}">festlegen</button></td></tr>`).join("")+`</tbody></table>
+    <div class="status">Viele Fehlversuche bei einem Namen können bedeuten, dass ein anderes Kind hineinwollte.</div>`+
+    (offen && window.Sicher && Sicher.lehrer() ? `<div style="margin-top:12px"><button id="tiereSchutz">🔐 ${offen} Geheimtiere schützen (einmalig)</button>
+      <div class="status">Verschiebt die Tiere in einen Bereich, den nur Sie lesen können. Erst nach dem Veröffentlichen der neuen Regeln drücken.</div></div>` : "");
+  if($("tiereSchutz")) $("tiereSchutz").onclick=tiereSchuetzen;
+  box.querySelectorAll("button[data-fest]").forEach(b=>b.addEventListener("click", ()=>tierFestlegen(b.dataset.fest, b.dataset.name)));
   box.querySelectorAll("button[data-reset]").forEach(b=>b.addEventListener("click", async ()=>{
     if(!confirm(`Geheimtier von „${b.dataset.name}" zurücksetzen?\n\nBeim nächsten Anmelden sucht sich das Kind ein neues Tier aus.`)) return;
-    try{ await db.collection("einstellungen").doc(b.dataset.reset).set({key:KEY, name:b.dataset.name, tier:"", fehl:0}); }
+    try{ await tierZuruecksetzen(b.dataset.reset, b.dataset.name); }
     catch(err){ alert("⚠️ Fehler: "+(err.code||err)); }
   }));
 }
@@ -1375,7 +1432,33 @@ function pinDialog(o){
     if(o.link) $("pinLink").addEventListener("click",()=>resolve({link:true}));
   });
 }
+// Anmeldung der Lehrkraft mit E-Mail und Passwort (Firebase). Nur so darf sie nach der Umstellung ändern, löschen, freischalten.
+function loginDialog(){
+  return new Promise(resolve=>{
+    const m=$("pinModal");
+    m.innerHTML=`<h3>🔒 Klassenübersicht</h3><p>Bitte melden Sie sich als Lehrkraft an. Auf diesem Gerät bleiben Sie danach angemeldet.</p>
+      <input id="lgMail" type="email" autocomplete="username" placeholder="E-Mail" style="width:100%;font-size:17px;padding:11px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text);margin-bottom:8px">
+      <input id="lgPass" type="password" autocomplete="current-password" placeholder="Passwort" style="width:100%;font-size:17px;padding:11px;border-radius:10px;border:2px solid var(--card2);background:#0b1220;color:var(--text)">
+      <div class="pinerr" id="lgErr"></div><button id="lgOk">Anmelden</button>
+      <div style="margin-top:14px;font-size:13px"><a id="lgVerg" style="color:var(--muted);cursor:pointer;text-decoration:underline">Passwort vergessen?</a> ·
+        <a id="lgPin" style="color:var(--muted);cursor:pointer;text-decoration:underline">mit PIN (nur ansehen)</a></div>`;
+    $("pinOverlay").classList.remove("hide");
+    const los=async ()=>{ const a=window.Sicher&&Sicher.auth(); if(!a){ $("lgErr").textContent="Anmeldung nicht verfügbar."; return; }
+      $("lgOk").disabled=true; $("lgErr").textContent="";
+      try{ await a.signInWithEmailAndPassword($("lgMail").value.trim(), $("lgPass").value); resolve("konto"); }
+      catch(e){ $("lgOk").disabled=false; $("lgErr").textContent = /wrong-password|invalid-credential|user-not-found|invalid-login/.test(e.code||"") ? "E-Mail oder Passwort stimmt nicht." : "Anmeldung nicht möglich ("+(e.code||e)+")."; } };
+    $("lgOk").onclick=los; $("lgPass").addEventListener("keydown",e=>{ if(e.key==="Enter") los(); });
+    $("lgVerg").onclick=async ()=>{ const a=window.Sicher&&Sicher.auth(), mail=$("lgMail").value.trim(); if(!mail){ $("lgErr").textContent="Bitte zuerst die E-Mail eintragen."; return; }
+      try{ await a.sendPasswordResetEmail(mail); $("lgErr").style.color="#86efac"; $("lgErr").textContent="E-Mail zum Zurücksetzen ist unterwegs."; }catch(e){ $("lgErr").textContent="Das hat nicht geklappt ("+(e.code||e)+")."; } };
+    $("lgPin").onclick=()=>resolve("pin");
+  });
+}
+function lehrerHinweis(){ const b=$("nurAnsehen"); if(b) b.classList.toggle("hide", !!(window.Sicher&&Sicher.lehrer())); }
 async function entsperren(){
+  if(window.Sicher){ await Promise.race([Sicher.bereit, new Promise(r=>setTimeout(r,6000))]); }
+  if(window.Sicher && Sicher.lehrer()){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); zuTieren(); return; }
+  if(window.Sicher && Sicher.auth()){ const w=await loginDialog(); if(w==="konto"){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); zuTieren(); return; } }
+  lehrerHinweis();
   while(true){
     const r=await pinDialog({ title:"🔒 Klassenübersicht", text:"Diese Seite ist nur für die Lehrkraft. Bitte die 4-stellige PIN eingeben.",
       check:v=> v===pin ? null : "Falsche PIN.", link:"PIN vergessen?" });
@@ -1479,7 +1562,7 @@ $("tSchlBtn").addEventListener("click",()=>{
       const p=d.exists?String((d.data()||{}).pin||""):"";
       pin=/^\d{4}$/.test(p)?p:"0000";
       if(!entsperrt && !$("pinModal").innerHTML) entsperren();
-    }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; });
+    }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; pin=pin||"0000"; if(!entsperrt && !$("pinModal").innerHTML) entsperren(); });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; KONTEN.push(x); }
                                     if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
