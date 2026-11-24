@@ -152,7 +152,9 @@
   .zKarten{display:flex;gap:10px;justify-content:center;margin:6px 0} .zKarten span{font-size:30px;font-weight:800;width:48px;height:62px;line-height:62px;text-align:center;background:#fef3c7;color:#111;border-radius:8px;box-shadow:0 2px 0 #b45309}
   .knHinw{text-align:left;display:inline-block;margin:6px 0 0;padding-left:22px;font-size:.95em} .knHinw li{margin:3px 0}
   .knTab{border-collapse:collapse;margin:6px auto} .knTab td,.knTab th{border:1px solid #475569;padding:2px 8px;text-align:center}
-  .wahl button svg{display:block;margin:auto} .wahl .emo{font-size:36px;line-height:1}
+  .wahl button svg{display:block;margin:auto}
+  .k3Wrap{text-align:center} .k3{width:100%;max-width:360px;height:auto;touch-action:none;cursor:grab;background:radial-gradient(circle at 50% 40%,#1e293b,#0b1220);border-radius:16px;display:block;margin:0 auto}
+  .k3Tipp{font-size:13px;color:var(--muted);margin:4px 0} .k3Info{min-height:22px;font-size:16px;margin:4px 0 8px;color:#fde68a} .k3Kn{justify-content:center;flex-wrap:wrap;gap:6px} .wahl .emo{font-size:36px;line-height:1}
   .zmPaar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-end} .zmPaar small{display:block;text-align:center;color:var(--muted);font-size:12.5px;margin-top:2px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
   document.head.appendChild(css);
@@ -2167,21 +2169,24 @@
     if(o.ecken && k.spitze) s+=`<circle cx="${k.spitze[0]}" cy="${k.spitze[1]}" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" class="entT"/>`;
     return `<svg viewBox="-4 -4 108 108" width="${o.gross?200:64}" height="${o.gross?200:64}" role="img" aria-label="${name}">${s}</svg>`; }
   function entdeckeFormen(e){
-    let teil="f", wahl="Dreieck";
+    let teil="f", wahl="Dreieck", dreh=null;
+    const mit3D=()=>teil==="k" && !!window.Koerper3D;
     const satzForm=n=>{ const f=FORM_E[n]; return f.p ? `${groß(f.art)} ${n} hat ${zahlwort(f.p.length)} Ecken und ${zahlwort(f.p.length)} Seiten.` : "Der Kreis ist ganz rund. Er hat keine Ecken und keine Seiten."; };
     const satzKoerper=n=>{ const k=KOERPER_E[n], w=KOERPER[n].ekf; return w ? `${groß(k.art)} ${n} hat ${zahlwort(w[0])} Ecken, ${zahlwort(w[1])} Kanten und ${zahlwort(w[2])} Flächen.` : ohneTags(KOERPER[n].info); };
     const mal=(zeige)=>{
       const liste = teil==="f" ? Object.keys(FORM_E) : Object.keys(KOERPER_E), istF=teil==="f";
       if(!liste.includes(wahl)) wahl=liste[0];
-      const k=KOERPER_E[wahl], w=!istF && KOERPER[wahl].ekf;
+      const k=KOERPER_E[wahl], w=!istF && KOERPER[wahl].ekf, d3=mit3D();
+      if(dreh){ try{ dreh.stopp(); }catch(x){} dreh=null; }
       e.innerHTML=`<div class="reihe" style="margin:4px 0 10px"><button class="klein${istF?"":" ghost"}" data-teil="f">Flächen</button><button class="klein${istF?" ghost":""}" data-teil="k">Körper</button></div>
         <div class="entGal">${liste.map(n=>`<button class="${n===wahl?"an":""}" data-n="${n}">${istF?formSvg(n):koerperSvg(n)}<span>${n}</span></button>`).join("")}</div>
-        <div class="entPanel"><div class="entBild">${istF?formSvg(wahl,{gross:true, ecken:zeige==="ecken", seiten:zeige==="seiten"}):koerperSvg(wahl,{gross:true, ecken:zeige==="ecken"})}</div>
+        <div class="entPanel"><div class="entBild" id="k3Box">${d3?"":istF?formSvg(wahl,{gross:true, ecken:zeige==="ecken", seiten:zeige==="seiten"}):koerperSvg(wahl,{gross:true, ecken:zeige==="ecken"})}</div>
           <div class="entName">${istF?FORM_E[wahl].art:k.art} <b>${wahl}</b> <button class="ghost klein" id="entLaut" aria-label="Vorlesen">🔈</button></div>
           <div class="entInfo">${istF ? (FORM_E[wahl].p ? `<b>${FORM_E[wahl].p.length}</b> Ecken · <b>${FORM_E[wahl].p.length}</b> Seiten` : "keine Ecken · keine Seiten · ganz rund") : w ? `<b>${w[0]}</b> Ecken · <b>${w[1]}</b> Kanten · <b>${w[2]}</b> Flächen` : k.rund}</div>
           <div class="entInfo2">${istF ? FORMINFO[wahl] : KOERPER[wahl].info+`<br>So sieht das aus: ${k.alltag}`}</div>
-          <div class="reihe">${(istF ? FORM_E[wahl].p : (k.ecken||k.spitze)) ? `<button class="klein" id="entEcken">🔴 ${istF||k.ecken?"Ecken zählen":"Spitze zeigen"}</button>`:""}${istF && FORM_E[wahl].p ? `<button class="klein" id="entSeiten">📏 Seiten zählen</button>`:""}</div>
+          <div class="reihe">${d3 ? "" : (istF ? FORM_E[wahl].p : (k.ecken||k.spitze)) ? `<button class="klein" id="entEcken">🔴 ${istF||k.ecken?"Ecken zählen":"Spitze zeigen"}</button>`:""}${istF && FORM_E[wahl].p ? `<button class="klein" id="entSeiten">📏 Seiten zählen</button>`:""}</div>
           ${!istF && k.versteckt && zeige==="ecken" ? `<div class="entInfo2">Die gestrichelte Ecke ist <b>hinten</b> – man sieht sie nicht, aber sie ist da.</div>`:""}</div>`;
+      if(d3) dreh=Koerper3D.baue($("k3Box"), wahl, {sprich, zahlwort, art:k.art});
       e.querySelectorAll("[data-teil]").forEach(b=>b.addEventListener("click",()=>{ teil=b.dataset.teil; wahl=teil==="f"?"Dreieck":"Würfel"; mal(); }));
       e.querySelectorAll("[data-n]").forEach(b=>b.addEventListener("click",()=>{ wahl=b.dataset.n; mal(); const a=istF?FORM_E[wahl].art:KOERPER_E[wahl].art; sprich(`${groß(a)} ${wahl}.`); }));
       $("entLaut").addEventListener("click",()=>sprich(`${groß(istF?FORM_E[wahl].art:k.art)} ${wahl}. `+(istF?satzForm(wahl):satzKoerper(wahl))));
