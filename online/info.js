@@ -138,6 +138,14 @@
     "Zeit in Sachaufgaben":"Wie lange dauert das Training? Wann muss ich losgehen? Wann fährt der nächste Bus? Auch einen Fahrplan lesen. <b>Klasse 3.</b>",
     "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
+    // 24.11.: Raum, Zufall, Knobeln
+    "Würfelgebäude":"Im Bauplan steht, wie viele Würfel übereinander stehen. Auch versteckte Würfel zählen mit – unter jedem Würfel muss einer stehen! <b>Klasse 2 und 3.</b>",
+    "Würfelnetze":"Falte das Netz in Gedanken. Klappt es zu einem Würfel, ohne dass zwei Flächen aufeinander liegen? <b>Klasse 3 und 4.</b>",
+    "Wo liegt was?":"Links, rechts, über, unter: Such zuerst das Ding und schau dann in die richtige Richtung. <b>Klasse 1.</b>",
+    "Glücksrad und Würfel":"Zähle, wie viele Felder oder Zahlen passen. Je mehr passen, desto wahrscheinlicher. <b>Klasse 3 und 4.</b>",
+    "Zwei Würfel":"Welche Summe kann auf die meisten Arten entstehen? Schreib alle Möglichkeiten geordnet auf. <b>Klasse 4.</b>",
+    "Knobeln: Zahlenrätsel":"Streiche Hinweis für Hinweis alle Zahlen weg, die nicht passen. Bei Ziffernkarten: geordnet legen! <b>Klasse 2 bis 4.</b>",
+    "Knobeln: geschickt probieren":"Probier geordnet mit einer Tabelle – dann vergisst du keine Möglichkeit. <b>Klasse 3 und 4.</b>",
     // Punkt 4: Ziehen und Fehler-Detektiv
     "Linien zeichnen":"Zieh die Spitze des Stifts genau auf die richtige Länge. Bei Millimetern zählst du die kleinen Striche hinter dem Zentimeter. <b>Klasse 2 und 3.</b>",
     "Fehler-Detektiv: Geld":"Flo hat beim Geld etwas falsch gemacht. Findest du heraus, was? Hinter dem Komma stehen immer zwei Ziffern! <b>Klasse 3.</b>",

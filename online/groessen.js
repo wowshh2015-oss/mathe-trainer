@@ -147,6 +147,12 @@
   .zm{display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin:4px auto}
   .zm div{display:flex;gap:4px} .zm i{font-style:normal;width:62px;height:40px;display:flex;align-items:center;justify-content:center;background:#7c2d12;border:2px solid #c2410c;border-radius:6px;font-size:20px;font-weight:800;color:#fff7ed}
   .zm i.leer{background:#0b1220;border-style:dashed;color:#7dd3fc}
+  .wbPaar{display:flex;justify-content:center;margin-top:8px} .lageGitter{display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center;margin:6px auto}
+  .lageGitter span{font-size:40px;line-height:64px;text-align:center;background:var(--card2,#1e293b);border:2px solid #334155;border-radius:12px}
+  .zKarten{display:flex;gap:10px;justify-content:center;margin:6px 0} .zKarten span{font-size:30px;font-weight:800;width:48px;height:62px;line-height:62px;text-align:center;background:#fef3c7;color:#111;border-radius:8px;box-shadow:0 2px 0 #b45309}
+  .knHinw{text-align:left;display:inline-block;margin:6px 0 0;padding-left:22px;font-size:.95em} .knHinw li{margin:3px 0}
+  .knTab{border-collapse:collapse;margin:6px auto} .knTab td,.knTab th{border:1px solid #475569;padding:2px 8px;text-align:center}
+  .wahl button svg{display:block;margin:auto} .wahl .emo{font-size:36px;line-height:1}
   .zmPaar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-end} .zmPaar small{display:block;text-align:center;color:var(--muted);font-size:12.5px;margin-top:2px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
   document.head.appendChild(css);
@@ -269,7 +275,10 @@
     {id:4, name:"Ecken, Kanten, Flächen", kurz:"Ein Würfel hat 8 Ecken", typen:["f_eck","f_eck","f_rund"]},
     {id:5, name:"Symmetrie", kurz:"Ist das eine Spiegelachse?", typen:["f_sym"]},
     {id:6, name:"Umfang und Fläche", kurz:"Kästchen zählen · einmal außen herum", typen:["f_flaeche","f_umfang"]},
-    {id:7, name:"Sortieren", kurz:"Fläche oder Körper? Kann er rollen? Genau 4 Ecken?", typen:["f_sortFlaeche","f_sortRollen","f_sortEcken"], sek:60}
+    {id:7, name:"Sortieren", kurz:"Fläche oder Körper? Kann er rollen? Genau 4 Ecken?", typen:["f_sortFlaeche","f_sortRollen","f_sortEcken"], sek:60},
+    {id:8, name:"Würfelgebäude", kurz:"Bauplan lesen · Wie viele Würfel sind es?", typen:["f_bauplan","f_gebaeude","f_bauplanWahl","f_gebaeude"], sek:70},
+    {id:9, name:"Würfelnetze", kurz:"Kann man daraus einen Würfel falten?", typen:["f_netz"], sek:45},
+    {id:10, name:"Wo liegt was?", kurz:"links · rechts · über · unter", typen:["f_lage","f_lageWo","f_lage"]}
   ];
   const DATEN=[
     {id:1, name:"Strichlisten", kurz:"immer fünf im Bündel", typen:["d_strich"]},
@@ -277,7 +286,9 @@
     {id:3, name:"Mit Diagrammen rechnen", kurz:"Wie viele mehr? Wie viele insgesamt?", typen:["d_diaUnterschied","d_diaSumme"]},
     {id:4, name:"Sicher, möglich, unmöglich", kurz:"Kugeln aus dem Beutel ziehen", typen:["d_sicher","d_sicher","d_wahrsch"]},
     {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]},
-    {id:6, name:"Säulen zeichnen", kurz:"Strichliste lesen – Säule auf die richtige Höhe ziehen", typen:["d_saeule"], sek:60}
+    {id:6, name:"Säulen zeichnen", kurz:"Strichliste lesen – Säule auf die richtige Höhe ziehen", typen:["d_saeule"], sek:60},
+    {id:7, name:"Glücksrad und Würfel", kurz:"Was ist wahrscheinlicher? Ist das Spiel fair?", typen:["d_rad","d_wuerfel","d_fair","d_wuerfel"], sek:60},
+    {id:8, name:"Zwei Würfel", kurz:"Klasse 4 · Welche Summe kommt am häufigsten?", typen:["d_zweiWuerfel"], sek:90}
   ];
   const SCHRIFT=[
     {id:1, name:"Plus ohne Übertrag", kurz:"342 + 215 – Stelle für Stelle", typen:["sp_ohne"], sek:90},
@@ -342,7 +353,9 @@
     {id:5, name:"Fehler-Detektiv", kurz:"Das Muster hilft: Welches Ergebnis ist falsch?", typen:["pk_fehlerPlus","pk_fehlerMinus","pk_fehlerMal"], sek:70},
     {id:6, name:"Mal-Päckchen", kurz:"3 · 6, 4 · 6, 5 · 6 – immer 6 mehr", typen:["pk_weiterMal","pk_warumMal","pk_weiterMal","pk_stoerMal"], sek:70},
     {id:7, name:"Zahlenmauern", kurz:"Zwei Steine zusammen ergeben den Stein darüber", typen:["zm_deck","zm_unten","zm_deck","zm_mitte"], sek:70},
-    {id:8, name:"Zahlenmauern erforschen", kurz:"Was passiert mit dem Deckstein, wenn …?", typen:["zm_warum","zm_unten","zm_warum","zm_ziel"], sek:90}
+    {id:8, name:"Zahlenmauern erforschen", kurz:"Was passiert mit dem Deckstein, wenn …?", typen:["zm_warum","zm_unten","zm_warum","zm_ziel"], sek:90},
+    {id:9, name:"Knobeln: Zahlenrätsel", kurz:"Hinweis für Hinweis die Zahl finden · Ziffernkarten", typen:["pk_raetsel","pk_ziffern","pk_raetsel","pk_ziffern"], sek:120},
+    {id:10, name:"Knobeln: geschickt probieren", kurz:"Köpfe und Beine · Alle Möglichkeiten finden", typen:["pk_tiere","pk_moeglich","pk_tiere","pk_moeglich"], sek:150}
   ];
   // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
@@ -1497,7 +1510,130 @@
       const w=zmWerte(u), s=u[0]+u[2];
       return eingabe(`Welche Zahl muss unten in die Mitte, damit oben <span class="ziel">${o}</span> steht?`, [F.zahl], u[1], {bild:zmBild({u:[u[0],0,u[2]],m:[0,0],o},["u1","m0","m1"]), tag:"zmauer", sollText:String(u[1]),
         erkl:`Die beiden Steine am Rand zählen im Deckstein <b>einmal</b>: ${u[0]} + ${u[2]} = ${s}. Der mittlere Stein zählt <b>doppelt</b>. Bis ${o} fehlen ${o} − ${s} = ${o-s}. Die Hälfte davon ist <b>${u[1]}</b>.<br>${zmBild(w,[])}`}); }
+    ,
+    // ===== 24.11.: Würfelgebäude, Würfelnetze, Lage =====
+    f_bauplan(){ const h=bauplanNeu(), n=wbSumme(h);
+      return eingabe("Das ist ein <span class=\"ziel\">Bauplan</span>. Wie viele Würfel brauchst du für das Gebäude?", [F.zahl], n, {bild:bauplanBild(h), tag:"wuerfelbau", sollText:String(n),
+        erkl:`Im Bauplan steht in jedem Feld, wie viele Würfel <b>übereinander</b> stehen. Zähle alle Zahlen zusammen: ${h.flat().filter(x=>x).join(" + ")} = <b>${n}</b>.<div class="wbPaar">${gebaeudeBild(h)}</div>`}); },
+    f_gebaeude(){ const h=bauplanNeu(), n=wbSumme(h);
+      return eingabe("Wie viele <span class=\"ziel\">Würfel</span> hat dieses Gebäude?", [F.zahl], n, {bild:gebaeudeBild(h), tag:"wuerfelbau", sollText:String(n),
+        erkl:`Manche Würfel siehst du nicht. Aber: Unter jedem Würfel muss ein Würfel stehen – sonst würde er herunterfallen. Der Bauplan zeigt, wie hoch jeder Turm ist: ${h.flat().filter(x=>x).join(" + ")} = <b>${n}</b>.<div class="wbPaar">${bauplanBild(h)}</div>`}); },
+    f_bauplanWahl(){ const h=bauplanNeu(), ok=bauplanBild(h,true), falsch=[];
+      for(let v=0; v<30 && falsch.length<2; v++){ const g=bauplanVariante(h), s=bauplanBild(g,true); if(s!==ok && !falsch.includes(s)) falsch.push(s); }
+      return {art:"wahl", frage:"Welcher <span class=\"ziel\">Bauplan</span> passt zu diesem Gebäude?", bild:gebaeudeBild(h), optionen:mische([ok].concat(falsch)), ok, tag:"wuerfelbau", sollText:"der Bauplan unten",
+        erkl:`Schau jeden Turm einzeln an: Wie hoch ist er? Hinten stehen die Türme oben im Bauplan, vorne unten.<div class="wbPaar">${bauplanBild(h)}</div>`}; },
+    f_netz(){ const n=netzNeu(), ok=n.geht?"Ja":"Nein";
+      return {art:"wahl", frage:"Kann man aus diesem Netz einen <span class=\"ziel\">Würfel</span> falten?", bild:netzBild(n.z), optionen:["Ja","Nein"], ok, tag:"netz", sollText:ok, erkl:n.erkl}; },
+    f_lage(){ const g=lageGitter(), R=[["rechts neben",0,1],["links neben",0,-1],["über",-1,0],["unter",1,0]];
+      let r, i, j; do{ r=aus(R); i=rnd(0,2); j=rnd(0,2); }while(i+r[1]<0||i+r[1]>2||j+r[2]<0||j+r[2]>2);
+      const wo=g[i][j], ok=g[i+r[1]][j+r[2]], geg=g[i-r[1]]&&g[i-r[1]][j-r[2]];
+      const opts=mische([...new Set([ok].concat(geg?[geg]:[], mische(g.flat().filter(x=>x!==ok&&x!==wo))))].slice(0,4));
+      const emo=x=>`<span class="emo">${x}</span>`;
+      return {art:"wahl", frage:`Was liegt <span class="ziel">${r[0]}</span> ${LAGE_ART[wo]}?`, bild:lageBild(g), optionen:opts.map(emo), ok:emo(ok), tag:"lage", sollText:ok,
+        erkl:`Such zuerst ${wo}. Dann schau ${r[0]==="über"?"genau darüber (nach oben)":r[0]==="unter"?"genau darunter (nach unten)":r[0]==="rechts neben"?"nach rechts":"nach links"}: Dort liegt <b>${ok}</b>.`}; },
+    f_lageWo(){ const g=lageGitter(), W=[[0,0,"oben links"],[0,2,"oben rechts"],[2,0,"unten links"],[2,2,"unten rechts"],[1,1,"in der Mitte"]], w=aus(W), d=g[w[0]][w[1]];
+      return {art:"wahl", frage:`Wo liegt <span class="ziel">${LAGE_NOM[d]}</span>?`, bild:lageBild(g), optionen:W.map(x=>x[2]), ok:w[2], spalten:1, tag:"lage", sollText:w[2],
+        erkl:`${LAGE_NOM[d][0].toUpperCase()+LAGE_NOM[d].slice(1)} liegt <b>${w[2]}</b>. Oben ist die erste Reihe, unten die letzte. Links und rechts: ${w[1]===0?"ganz links":w[1]===2?"ganz rechts":"in der Mitte"}.`}; },
+    // ===== 24.11.: Glücksrad und Würfel =====
+    d_rad(){ const f=mische(Object.keys(FARBEN)).slice(0,3), n=aus([[5,2,1],[4,3,1],[4,1,3],[3,1,4],[2,5,1],[1,2,5],[5,1,2]]), gross=Math.random()<0.65;
+      const felder=mische(f.flatMap((x,i)=>Array(n[i]).fill(x))), ziel=f[n.indexOf(gross?Math.max(...n):Math.min(...n))];
+      return {art:"wahl", frage:`Das Glücksrad wird gedreht. Auf welcher Farbe bleibt der Zeiger am <span class="ziel">${gross?"wahrscheinlichsten":"unwahrscheinlichsten"}</span> stehen?`, bild:radBild(felder), optionen:f.slice().sort(), ok:ziel, tag:"zufall", sollText:ziel,
+        erkl:`Zähle die Felder: ${f.map((x,i)=>`${n[i]} × ${x}`).join(", ")}. ${ziel[0].toUpperCase()+ziel.slice(1)} hat die ${gross?"meisten":"wenigsten"} Felder – also ist es am ${gross?"wahrscheinlichsten":"unwahrscheinlichsten"}. Sicher ist es aber nie!`}; },
+    d_fair(){ const f=mische(["rot","blau","gelb","grün"]), a=f[0], b=f[1], art=aus(["fair","fair","A","B"]);
+      let na=rnd(2,4), nb=na; if(art==="A") nb=na-rnd(1,na-1); if(art==="B") na=nb-rnd(1,nb-1); const rest=8-na-nb;
+      const felder=mische(Array(na).fill(a).concat(Array(nb).fill(b), Array(rest).fill(f[2])));
+      const opts=["Ja, das Spiel ist fair.","Nein, Mia hat bessere Chancen.","Nein, Ben hat bessere Chancen."], ok=opts[art==="fair"?0:art==="A"?1:2];
+      return {art:"wahl", frage:`Mia gewinnt bei <span class="ziel">${a}</span>, Ben bei <span class="ziel">${b}</span>. Bei ${f[2]} gewinnt keiner.<br>Ist das Spiel <span class="ziel">fair</span>?`, bild:radBild(felder), optionen:opts, ok, spalten:1, tag:"zufall", sollText:`„${ok.replace(/\.$/,"")}“`,
+        erkl:`${a[0].toUpperCase()+a.slice(1)}: <b>${na} ${na===1?"Feld":"Felder"}</b> · ${b}: <b>${nb} ${nb===1?"Feld":"Felder"}</b>. ${na===nb?"Beide haben gleich viele Felder – das Spiel ist <b>fair</b>.":`${na>nb?"Mia":"Ben"} hat mehr Felder und darum die besseren Chancen – das Spiel ist <b>nicht fair</b>.`}`}; },
+    d_wuerfel(){ let a, b; do{ a=aus(W_EREIGNIS); b=aus(W_EREIGNIS); }while(a===b);
+      const za=[1,2,3,4,5,6].filter(a[1]), zb=[1,2,3,4,5,6].filter(b[1]), gl="Beides ist gleich wahrscheinlich.";
+      const ok=za.length===zb.length?gl:za.length>zb.length?`${a[0]}`:`${b[0]}`, liste=z=>z.length?`${z.join(", ")} (${z.length===1?"1 Zahl":z.length+" Zahlen"})`:"keine Zahl – unmöglich";
+      return {art:"wahl", frage:`Du würfelst einmal. Was ist <span class="ziel">wahrscheinlicher</span>?`, optionen:[a[0],b[0],gl], ok, spalten:1, tag:"zufall", sollText:`„${ok.replace(/\.$/,"")}“`,
+        erkl:`Ein Würfel hat die Zahlen 1 bis 6. „${a[0]}“ passt bei: <b>${liste(za)}</b>. „${b[0]}“ passt bei: <b>${liste(zb)}</b>. ${za.length===zb.length?"Gleich viele – also gleich wahrscheinlich.":"Je mehr Zahlen passen, desto wahrscheinlicher."}`}; },
+    d_zweiWuerfel(){ const k=s=>6-Math.abs(7-s); let z; do{ z=mische([2,3,4,5,6,7,8,9,10,11,12]).slice(0,3); }while(z.filter(s=>k(s)===Math.max(...z.map(k))).length>1);
+      const ok=z.reduce((x,y)=>k(y)>k(x)?y:x), wege=s=>{ const w=[]; for(let i=1;i<=6;i++){ const j=s-i; if(j>=1&&j<=6) w.push(`${i}+${j}`); } return w; };
+      return {art:"wahl", frage:`Du würfelst mit <span class="ziel">zwei Würfeln</span> und zählst zusammen. Welche Summe kommt am <span class="ziel">häufigsten</span> vor?`, optionen:z.map(String).sort((x,y)=>x-y), ok:String(ok), tag:"zufall", sollText:String(ok),
+        erkl:z.slice().sort((x,y)=>x-y).map(s=>`<b>${s}</b>: ${wege(s).join(", ")} → ${wege(s).length} ${wege(s).length===1?"Möglichkeit":"Möglichkeiten"}`).join("<br>")+`<br>Die ${ok} kann auf die meisten Arten entstehen. (Erster Würfel + zweiter Würfel – 1+6 und 6+1 sind verschiedene Würfe.)`}; },
+    // ===== 24.11.: Knobeln =====
+    pk_raetsel(){ return zahlRaetsel(); },
+    pk_ziffern(){ const art=aus(["gross","klein","anzahl","anzahl"]);
+      if(art==="anzahl"){ const k=aus([3,3,4]), z=mische([1,2,3,4,5,6,7,8,9]).slice(0,k), n=k*(k-1), zeilen=z.map(a=>`${a} vorne: ${z.filter(b=>b!==a).map(b=>""+a+b).join(", ")}`);
+        return eingabe(`Du hast die Ziffernkarten <span class="ziel">${z.join("  ")}</span>.<br>Wie viele verschiedene <span class="ziel">zweistellige Zahlen</span> kannst du legen? (Jede Karte nur einmal pro Zahl)`, [F.zahl], n, {tag:"knobel", falle:k, falleArt:"knobel", sollText:String(n),
+          bild:kartenBild(z), erkl:`Geh <b>geordnet</b> vor – erst alle mit der ersten Ziffer vorne, dann mit der nächsten:<br>${zeilen.join("<br>")}<br>Das sind ${k} × ${k-1} = <b>${n}</b> Zahlen.`}); }
+      const mitNull=art==="klein"&&Math.random()<0.6, z=mische((mitNull?[0]:[]).concat(mische([1,2,3,4,5,6,7,8,9]).slice(0,mitNull?2:3)));
+      const s=z.slice().sort((a,b)=>b-a); let wert, erkl;
+      if(art==="gross"){ wert=+s.join(""); erkl=`Die größte Ziffer kommt nach vorne zu den Hundertern: ${s.join(", ")} → <b>${wert}</b>.`; }
+      else { const a=s.slice().reverse(); if(a[0]===0){ const i=a.findIndex(x=>x>0); [a[0],a[i]]=[a[i],a[0]]; } wert=+a.join("");
+        erkl=mitNull?`Die kleinste Ziffer ist 0 – aber vorne darf keine 0 stehen, sonst wäre die Zahl nicht dreistellig. Also kommt die kleinste andere Ziffer nach vorne, dann die 0: <b>${wert}</b>.`:`Die kleinste Ziffer kommt nach vorne: <b>${wert}</b>.`; }
+      return eingabe(`Lege mit den Ziffernkarten <span class="ziel">${z.join("  ")}</span> die <span class="ziel">${art==="gross"?"größte":"kleinste"}</span> dreistellige Zahl.`, [F.zahl], wert, {tag:"knobel", sollText:String(wert), bild:kartenBild(z), erkl}); },
+    pk_tiere(){ const n=rnd(3,9), k=rnd(1,n-1), L=2*n+2*k;
+      const t=[]; for(let x=0;x<=Math.min(n,4);x++) t.push(`<tr><td>${x}</td><td>${n-x}</td><td>${(n-x)*2} + ${x*4} = ${(n-x)*2+x*4}${(n-x)*2+x*4===L?" ✅":""}</td></tr>`);
+      if(k>4) t.push(`<tr><td>…</td><td></td><td></td></tr><tr><td>${k}</td><td>${n-k}</td><td>${(n-k)*2} + ${k*4} = ${L} ✅</td></tr>`);
+      return eingabe(`Auf dem Bauernhof sind Hühner 🐔 und Kaninchen 🐰.<br>Zusammen haben sie <span class="ziel">${n} Köpfe</span> und <span class="ziel">${L} Beine</span>.<br>Wie viele <span class="ziel">Kaninchen</span> sind es?`, [F.zahl], k, {tag:"knobel", falle:n-k, falleArt:"knobel", sollText:String(k),
+        erkl:`Probiere geordnet mit einer Tabelle (Huhn: 2 Beine, Kaninchen: 4 Beine):<table class="knTab"><tr><th>🐰</th><th>🐔</th><th>Beine</th></tr>${t.join("")}</table>Oder geschickt: Wären alle ${n} Tiere Hühner, hätten sie ${2*n} Beine. Es sind ${L - 2*n} Beine mehr. Jedes Kaninchen hat 2 Beine mehr: ${L-2*n} : 2 = <b>${k} Kaninchen</b>.`}); },
+    pk_moeglich(){ const art=aus(["muenzen","zerlegen"]);
+      if(art==="muenzen"){ const n=rnd(4,10), m=Math.floor(n/2)+1, z=[]; for(let i=0;i*2<=n;i++) z.push(`${i} × 2 € + ${n-2*i} × 1 €`);
+        return eingabe(`Du sollst <span class="ziel">${n} €</span> nur mit <span class="ziel">1-€- und 2-€-Münzen</span> legen.<br>Wie viele verschiedene Möglichkeiten gibt es?`, [F.zahl], m, {tag:"knobel", sollText:String(m),
+          erkl:`Geh <b>geordnet</b> vor – erst ohne 2-€-Münze, dann mit einer, mit zwei …:<br>${z.join("<br>")}<br>Das sind <b>${m} Möglichkeiten</b>. So vergisst du keine.`}); }
+      const n=rnd(6,14), m=Math.floor(n/2), z=[]; for(let a=1;a<=m;a++) z.push(`${a} + ${n-a}`);
+      return eingabe(`Zerlege <span class="ziel">${n}</span> in <span class="ziel">zwei Summanden</span> (keine 0, 3 + 5 und 5 + 3 zählen nur einmal).<br>Wie viele Möglichkeiten gibt es?`, [F.zahl], m, {tag:"knobel", sollText:String(m),
+        erkl:`Fang beim kleinsten ersten Summanden an und zähle hoch, bis sich die Aufgaben wiederholen würden:<br>${z.join(" · ")}<br>Das sind <b>${m} Möglichkeiten</b>.`}); }
   };
+  // ---------- 24.11.: Helfer für Würfelgebäude, Netze, Lage, Zufall, Knobeln ----------
+  const wbSumme=h=>h.flat().reduce((a,b)=>a+b,0);
+  function bauplanNeu(){ let h; do{ const C=aus([2,3,3]); h=[[],[]]; for(let c=0;c<C;c++){ h[0].push(rnd(1,3)); h[1].push(rnd(0,h[0][c])); } }while(wbSumme(h)<4||wbSumme(h)>11); return h; }
+  function bauplanVariante(h){ const g=h.map(r=>r.slice()); const r=rnd(0,1), c=rnd(0,g[0].length-1);
+    if(Math.random()<0.4 && g[0].length>1){ g.forEach(x=>x.reverse()); return g; }
+    g[r][c]=Math.max(r===0?1:0, Math.min(3, g[r][c]+aus([1,-1]))); if(g[1][c]>g[0][c]) g[1][c]=g[0][c]; return g; }
+  function bauplanBild(h, klein){ const s=klein?26:36, C=h[0].length, W=C*s+2, Hh=2*s+(klein?2:30); let t="";
+    h.forEach((row,r)=>row.forEach((v,c)=>{ const x=1+c*s, y=1+r*s; t+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${v?"#1e3a8a":"none"}" stroke="#93c5fd" stroke-width="2"${v?"":' stroke-dasharray="3 3"'}/>${v?`<text x="${x+s/2}" y="${y+s/2+(klein?6:8)}" text-anchor="middle" font-size="${klein?17:22}" font-weight="700" fill="#fff">${v}</text>`:""}`; }));
+    if(!klein) t+=`<text x="${W/2}" y="${2*s+22}" text-anchor="middle" font-size="12" fill="#94a3b8">↑ hinten · vorne ↓</text>`;
+    return `<svg width="${W*(klein?1:1.15)}" height="${Hh*(klein?1:1.15)}" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Bauplan">${t}</svg>`; }
+  function gebaeudeBild(h){ const s=30, d=14, R=h.length, C=h[0].length, base=4+d+3*s+(R-1)*d, W=12+C*s+(R-1)*d+d+4; let t="";
+    const st='stroke="#0f172a" stroke-width="1.6" stroke-linejoin="round"';
+    for(let r=0;r<R;r++){ const di=R-1-r; for(let c=0;c<C;c++) for(let z=0;z<h[r][c];z++){ const x=6+c*s+di*d, y=base-(z+1)*s-di*d;
+      t+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#60a5fa" ${st}/><polygon points="${x},${y} ${x+d},${y-d} ${x+s+d},${y-d} ${x+s},${y}" fill="#bfdbfe" ${st}/><polygon points="${x+s},${y} ${x+s+d},${y-d} ${x+s+d},${y+s-d} ${x+s},${y+s}" fill="#2563eb" ${st}/>`; } }
+    return `<svg width="${W*1.25}" height="${(base+4)*1.25}" viewBox="0 0 ${W} ${base+4}" role="img" aria-label="Würfelgebäude">${t}</svg>`; }
+  const NETZ_OK=[[[1,0],[0,1],[1,1],[2,1],[3,1],[1,2]],[[0,0],[0,1],[1,1],[2,1],[3,1],[0,2]],[[0,0],[0,1],[1,1],[2,1],[3,1],[1,2]],[[0,0],[0,1],[1,1],[2,1],[3,1],[2,2]],
+    [[0,0],[0,1],[1,1],[2,1],[3,1],[3,2]],[[1,0],[0,1],[1,1],[2,1],[3,1],[2,2]],[[0,0],[1,0],[1,1],[2,1],[3,1],[1,2]],[[0,0],[1,0],[1,1],[2,1],[3,1],[2,2]],[[0,0],[1,0],[1,1],[2,1],[3,1],[3,2]],
+    [[0,0],[1,0],[1,1],[2,1],[2,2],[3,2]],[[0,0],[1,0],[2,0],[2,1],[3,1],[4,1]]];
+  const NETZ_NEIN=[[[0,0],[1,0],[0,1],[1,1],[2,1],[3,1],"zwei"],[[0,0],[2,0],[0,1],[1,1],[2,1],[3,1],"zwei"],[[1,0],[3,0],[0,1],[1,1],[2,1],[3,1],"zwei"],
+    [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],"block"],[[0,0],[0,1],[1,1],[2,1],[3,1],[4,1],"fuenf"],[[2,0],[0,1],[1,1],[2,1],[3,1],[4,1],"fuenf"],[[0,0],[1,0],[2,0],[1,1],[2,1],[3,1],"block"]];
+  function netzNeu(){ const geht=Math.random()<0.5, roh=geht?aus(NETZ_OK):aus(NETZ_NEIN); let z=roh.slice(0,6).map(p=>p.slice());
+    const dreh=rnd(0,3), spiegel=Math.random()<0.5; for(let i=0;i<dreh;i++) z=z.map(([x,y])=>[y,-x]); if(spiegel) z=z.map(([x,y])=>[-x,y]);
+    const mx=Math.min(...z.map(p=>p[0])), my=Math.min(...z.map(p=>p[1])); z=z.map(([x,y])=>[x-mx,y-my]);
+    const erkl=geht?"<b>Ja!</b> Falte in Gedanken: Jede der 6 Flächen findet beim Falten einen <b>eigenen Platz</b> – vier rundherum, eine wird der Deckel, eine der Boden. Keine liegt doppelt."
+      : roh[6]==="zwei"?"<b>Nein.</b> Die vier Flächen in einer Reihe werden rundherum gefaltet. Die beiden anderen hängen auf <b>derselben Seite</b> – beide wollen Deckel werden, und der Boden fehlt."
+      : roh[6]==="block"?"<b>Nein.</b> Hier bilden vier Flächen ein großes Quadrat (2 × 2). Das geht nie: Beim Falten würden zwei Flächen <b>aufeinander liegen</b>."
+      : "<b>Nein.</b> Hier liegen <b>fünf</b> Flächen in einer Reihe. Beim Rundherum-Falten landet die fünfte genau auf der ersten.";
+    return {geht, z, erkl}; }
+  function netzBild(z){ const s=30, W=Math.max(...z.map(p=>p[0]))+1, H=Math.max(...z.map(p=>p[1]))+1;
+    return `<svg width="${(W*s+4)*1.2}" height="${(H*s+4)*1.2}" viewBox="0 0 ${W*s+4} ${H*s+4}" role="img" aria-label="Netz aus sechs Quadraten">${z.map(([x,y],i)=>`<rect x="${2+x*s}" y="${2+y*s}" width="${s}" height="${s}" fill="${FORMFARBE[i%6]}" stroke="#0f172a" stroke-width="2"/>`).join("")}</svg>`; }
+  const LAGE_DINGE=[["🍎","dem Apfel","der Apfel"],["⚽","dem Ball","der Ball"],["🐱","der Katze","die Katze"],["🚗","dem Auto","das Auto"],["⭐","dem Stern","der Stern"],["🌸","der Blume","die Blume"],
+    ["🎁","dem Geschenk","das Geschenk"],["🎈","dem Luftballon","der Luftballon"],["🐟","dem Fisch","der Fisch"],["🍌","der Banane","die Banane"],["🧸","dem Teddy","der Teddy"],["🔑","dem Schlüssel","der Schlüssel"]];
+  const LAGE_ART=Object.fromEntries(LAGE_DINGE.map(x=>[x[0], `<span class="ziel">${x[1]} ${x[0]}</span>`])), LAGE_NOM=Object.fromEntries(LAGE_DINGE.map(x=>[x[0], x[2]+" "+x[0]]));
+  function lageGitter(){ const d=mische(LAGE_DINGE.map(x=>x[0])).slice(0,9); return [d.slice(0,3),d.slice(3,6),d.slice(6,9)]; }
+  function lageBild(g){ return `<div class="lageGitter">${g.flat().map(x=>`<span>${x}</span>`).join("")}</div>`; }
+  function radBild(felder){ const n=felder.length, R=46; let t="";
+    felder.forEach((f,i)=>{ const a1=(i/n)*2*Math.PI-Math.PI/2, a2=((i+1)/n)*2*Math.PI-Math.PI/2;
+      t+=`<path d="M50 52 L${(50+R*Math.cos(a1)).toFixed(2)} ${(52+R*Math.sin(a1)).toFixed(2)} A${R} ${R} 0 0 1 ${(50+R*Math.cos(a2)).toFixed(2)} ${(52+R*Math.sin(a2)).toFixed(2)} Z" fill="${FARBEN[f]}" stroke="#0f172a" stroke-width="1.5"/>`; });
+    return `<svg width="170" height="170" viewBox="0 0 100 104" role="img" aria-label="Glücksrad">${t}<circle cx="50" cy="52" r="5" fill="#0f172a"/><polygon points="50,0 44,12 56,12" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/></svg>`; }
+  const W_EREIGNIS=[["eine 6",z=>z===6],["eine 1",z=>z===1],["eine gerade Zahl",z=>z%2===0],["eine ungerade Zahl",z=>z%2===1],["eine Zahl größer als 4",z=>z>4],
+    ["eine Zahl kleiner als 3",z=>z<3],["eine Zahl kleiner als 5",z=>z<5],["eine 7",z=>z===7],["eine Zahl größer als 1",z=>z>1]];
+  function kartenBild(z){ return `<div class="zKarten">${z.map(x=>`<span>${x}</span>`).join("")}</div>`; }
+  function zahlRaetsel(){
+    const HINW=[ t=>{ const a=Math.max(10,Math.floor((t-rnd(1,15))/10)*10); let b=Math.min(99,a+aus([20,30,40])); if(b<=t) b=Math.min(99,Math.floor(t/10)*10+10); return [`Meine Zahl liegt zwischen ${a} und ${b}.`, x=>x>a&&x<b]; },
+      t=>[t%2?"Meine Zahl ist ungerade.":"Meine Zahl ist gerade.", x=>x%2===t%2],
+      t=>{ const q=Math.floor(t/10)+t%10; return [`Wenn ich die beiden Ziffern zusammenzähle, kommt ${q} heraus.`, x=>Math.floor(x/10)+x%10===q]; },
+      t=>{ const z=Math.floor(t/10), e=t%10; return z===e?[`Beide Ziffern sind gleich.`, x=>Math.floor(x/10)===x%10]:[`Die Zehnerziffer ist ${z>e?"größer":"kleiner"} als die Einerziffer.`, x=>z>e?Math.floor(x/10)>x%10:Math.floor(x/10)<x%10]; },
+      t=>t%5===0?[`Meine Zahl ist in der Fünferreihe.`, x=>x%5===0]:[`Meine Zahl ist nicht in der Fünferreihe.`, x=>x%5!==0] ];
+    for(let v=0; v<200; v++){ const t=rnd(12,98), reihe=[HINW[0]].concat(mische(HINW.slice(1))); let kand=Array.from({length:90},(_,i)=>i+10); const h=[], schritte=[];
+      for(const f of reihe){ const [txt,p]=f(t), neu=kand.filter(p); if(neu.length===kand.length) continue; kand=neu; h.push(txt); schritte.push(kand.slice()); if(kand.length===1) break; }
+      if(kand.length!==1 || kand[0]!==t || h.length<3 || h.length>4) continue;
+      const zeig=k=>k.length>8?k.slice(0,4).join(", ")+" … "+k.slice(-2).join(", ")+` (${k.length} Zahlen)`:k.join(", ");
+      return eingabe(`🔎 Zahlenrätsel – welche Zahl ist es?<ul class="knHinw">${h.map(x=>`<li>${x}</li>`).join("")}</ul>`, [F.zahl], t, {tag:"knobel", sollText:String(t),
+        erkl:`Streiche Hinweis für Hinweis die Zahlen weg, die nicht passen:<br>${h.map((x,i)=>`<b>${i+1}.</b> ${x} → ${zeig(schritte[i])}`).join("<br>")}<br>Übrig bleibt nur <b>${t}</b>.`}); }
+    return eingabe("Welche Zahl ist es? Meine Zahl ist 7 + 8.", [F.zahl], 15, {tag:"knobel", sollText:"15", erkl:"7 + 8 = <b>15</b>"}); }
   // ---------- Punkt 4: Ziehen, Sortieren, Fehler-Detektiv ----------
   function setzeStrahl(z){ const [von,bis,n]=z, s=(bis-von)/n, k=rnd(1,n-1), ziel=von+k*s;
     return {art:"ziehen", zieh:"strahl", von, bis, n, soll:ziel, frage:`Zieh den Pfeil auf die <span class="ziel">${ziel}</span>.`, tag:"strahl", sollText:String(ziel),
