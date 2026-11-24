@@ -407,6 +407,7 @@
     .klM{display:inline-block;font-style:normal;margin-left:7px;font:normal 800 11px/1.55 "Segoe UI",system-ui,Arial,sans-serif;border-radius:999px;padding:0 7px;vertical-align:middle;white-space:nowrap;letter-spacing:0;text-transform:none;background:#334155;color:#e2e8f0}
     .klM.k1{background:#166534;color:#dcfce7} .klM.k2{background:#1e40af;color:#dbeafe} .klM.k3{background:#9a3412;color:#ffedd5} .klM.k4{background:#6b21a8;color:#f3e8ff}
     .klM.mein{box-shadow:0 0 0 2px #fde047}
+    .stufe .tx .klM{display:inline-block!important;width:auto!important;font-size:11px!important;color:inherit} .stufe .tx .klM.k1{color:#dcfce7} .stufe .tx .klM.k2{color:#dbeafe} .stufe .tx .klM.k3{color:#ffedd5} .stufe .tx .klM.k4{color:#f3e8ff}
     .fqBlase{position:fixed;z-index:2050;max-width:330px;width:calc(100vw - 24px);background:#f8fafc;color:#0f172a;border-radius:14px;padding:13px 14px 11px;
       box-shadow:0 12px 34px rgba(0,0,0,.55);font:500 15.5px/1.5 "Segoe UI",system-ui,Arial,sans-serif;text-align:left;border:2px solid #7dd3fc}
     .fqBlase b{font-weight:800} .fqBlase .fqFuss{display:flex;gap:8px;margin-top:10px}
