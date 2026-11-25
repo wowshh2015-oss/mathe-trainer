@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lärm-Kätzchen</title>
+<style>
+  :root{
+    --bg:#1b1726;
+    --panel:rgba(255,255,255,.08);
+    --text:#f6f2ea;
+    --muted:#bdb4c9;
+    --c1:#5fd98a;
+    --c2:#c9e05a;
+    --c3:#f5c242;
+    --c4:#f08a3c;
+    --c5:#e5574f;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% 0%,#2e2740 0%,var(--bg) 70%);
+    color:var(--text);
+    font-family:"Segoe UI",system-ui,sans-serif;
+    display:flex;flex-direction:column;align-items:center;
+    padding:18px;gap:16px;overflow:hidden;
+  }
+
+  h1{font-size:1.5rem;margin:0;font-weight:650;letter-spacing:.02em}
+  .sub{color:var(--muted);font-size:.95rem;margin-top:-10px}
+
+  #stage{
+    position:relative;
+    width:min(92vw, 1000px);
+    aspect-ratio:848/480;
+    border-radius:22px;overflow:hidden;
+    background:#0d0b12;
+    box-shadow:0 24px 60px rgba(0,0,0,.45), 0 0 0 6px rgba(255,255,255,.06);
+    flex:0 0 auto;
+  }
+  #stage video{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    opacity:0;transition:opacity .55s ease;
+  }
+  #stage video.on{opacity:1}
+
+  #statusBadge{
+    position:absolute;left:18px;top:16px;
+    background:rgba(0,0,0,.42);backdrop-filter:blur(6px);
+    padding:9px 16px;border-radius:999px;
+    font-size:1.15rem;font-weight:600;
+    display:flex;align-items:center;gap:10px;
+  }
+  #dot{width:14px;height:14px;border-radius:50%;background:var(--c1);transition:background .4s}
+
+  /* Lärmbalken */
+  #meterWrap{
+    width:min(92vw,1000px);
+    display:flex;align-items:center;gap:14px;
+  }
+  #meter{
+    position:relative;flex:1;height:30px;border-radius:999px;
+    background:linear-gradient(90deg,var(--c1) 0%,var(--c2) 28%,var(--c3) 52%,var(--c4) 74%,var(--c5) 100%);
+    overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.15);
+  }
+  #meterMask{
+    position:absolute;top:0;right:0;height:100%;
+    background:rgba(12,10,18,.78);
+    width:100%;transition:width .08s linear;
+  }
+  .tick{position:absolute;top:0;height:100%;width:2px;background:rgba(255,255,255,.35)}
+  #meterVal{width:62px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+  /* Steuerung */
+  #controls{
+    width:min(92vw,1000px);
+    background:var(--panel);border-radius:18px;padding:14px 18px;
+    display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;
+  }
+  button{
+    font:inherit;font-weight:600;cursor:pointer;
+    background:#f6f2ea;color:#241f31;border:0;border-radius:12px;
+    padding:11px 18px;transition:transform .08s, filter .15s;
+  }
+  button:hover{filter:brightness(1.07)}
+  button:active{transform:translateY(1px)}
+  button.ghost{background:rgba(255,255,255,.14);color:var(--text)}
+  button:disabled{opacity:.45;cursor:default}
+  label.slider{display:flex;align-items:center;gap:10px;font-size:.95rem;color:var(--muted)}
+  input[type=range]{width:170px;accent-color:#f5c242}
+  #hint{color:var(--muted);font-size:.9rem;max-width:min(92vw,1000px);text-align:center;line-height:1.45}
+  .err{color:#ffb3ae}
+
+  /* Vollbild */
+  body.full{padding:0;justify-content:center}
+  body.full h1,body.full .sub,body.full #hint{display:none}
+  body.full #stage{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;box-shadow:none}
+  body.full #meterWrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:min(90vw,900px);z-index:5}
+  body.full #controls{position:fixed;top:14px;right:14px;width:auto;opacity:.18;transition:opacity .2s}
+  body.full #controls:hover{opacity:1}
+</style>
+</head>
+<body>
+
+<h1>🐱 Lärm-Kätzchen</h1>
+<p class="sub">Wenn es leise ist, schläft das Kätzchen. Wird es laut, bekommt es Angst.</p>
+
+<div id="stage">
+  <video id="v0" src="videos/1_schlafen.mp4" muted loop playsinline preload="auto"></video>
+  <video id="v1" src="videos/2_aufwachen.mp4" muted loop playsinline preload="auto"></video>
+  <video id="v2" src="videos/3_angst.mp4" muted loop playsinline preload="auto"></video>
+  <video id="v3" src="videos/4_panik.mp4" muted loop playsinline preload="auto"></video>
+  <video id="v4" src="videos/5_traurig.mp4" muted loop playsinline preload="auto"></video>
+  <div id="statusBadge"><span id="dot"></span><span id="statusText">Mikrofon aus</span></div>
+</div>
+
+<div id="meterWrap">
+  <div id="meter"><div id="meterMask"></div></div>
+  <div id="meterVal">0</div>
+</div>
+
+<div id="controls">
+  <button id="btnStart">▶ Mikrofon starten</button>
+  <button id="btnCal" class="ghost" disabled>🤫 Ruhe messen</button>
+  <label class="slider">Empfindlichkeit
+    <input type="range" id="sens" min="18" max="55" step="1" value="34">
+  </label>
+  <label class="slider">Trägheit
+    <input type="range" id="smooth" min="1" max="12" step="1" value="5">
+  </label>
+  <button id="btnFull" class="ghost">⛶ Vollbild</button>
+</div>
+
+<p id="hint">Zum Einstellen: Klasse ist still → <b>Ruhe messen</b> drücken. Danach mit der <b>Empfindlichkeit</b> festlegen, wie viel Lärm bis zum weinenden Kätzchen nötig ist (Regler nach links = reagiert früher).</p>
+
+<script>
+(function(){
+  "use strict";
+
+  const STATES = [
+    { name:"Mimi schläft tief",        color:"var(--c1)" },
+    { name:"Mimi wacht auf …",         color:"var(--c2)" },
+    { name:"Mimi erschrickt",          color:"var(--c3)" },
+    { name:"Mimi hat Panik!",          color:"var(--c4)" },
+    { name:"Mimi ist traurig 😿",      color:"var(--c5)" }
+  ];
+  // Schwellen auf der 0–100-Skala, mit Hysterese (rauf/runter verschieden)
+  const UP   = [20, 40, 60, 80];
+  const DOWN = [13, 33, 53, 73];
+  const MIN_HOLD_MS = 4000;   // ein Zustand bleibt mindestens so lange stehen
+
+  const videos = [0,1,2,3,4].map(i => document.getElementById("v"+i));
+  const maskEl = document.getElementById("meterMask");
+  const valEl  = document.getElementById("meterVal");
+  const dotEl  = document.getElementById("dot");
+  const txtEl  = document.getElementById("statusText");
+  const hintEl = document.getElementById("hint");
+  const btnStart = document.getElementById("btnStart");
+  const btnCal   = document.getElementById("btnCal");
+  const btnFull  = document.getElementById("btnFull");
+  const sensEl   = document.getElementById("sens");
+  const smoothEl = document.getElementById("smooth");
+
+  // Markierungen im Balken
+  const meter = document.getElementById("meter");
+  UP.forEach(p => {
+    const t = document.createElement("div");
+    t.className = "tick"; t.style.left = p + "%";
+    meter.appendChild(t);
+  });
+
+  // gespeicherte Einstellungen
+  const store = {
+    get(k, d){ try { const v = localStorage.getItem("lk_"+k); return v===null?d:parseFloat(v); } catch(e){ return d; } },
+    set(k, v){ try { localStorage.setItem("lk_"+k, v); } catch(e){} }
+  };
+  let quietDb = store.get("quietDb", -62);        // gemessener Ruhepegel in dBFS
+  sensEl.value   = store.get("sens", 34);          // Spannweite in dB von Ruhe bis "ganz laut"
+  smoothEl.value = store.get("smooth", 5);
+
+  let audioCtx = null, analyser = null, buf = null, stream = null;
+  let level = 0;              // geglättete 0–100-Skala
+  let state = 0, lastChange = 0, running = false, lastFrame = 0;
+  let calibrating = false, calSamples = [], calUntil = 0;
+
+  function showState(i){
+    videos.forEach((v, idx) => v.classList.toggle("on", idx === i));
+    const v = videos[i];
+    v.currentTime = 0;
+    const p = v.play();
+    if (p && p.catch) p.catch(()=>{});
+    dotEl.style.background = STATES[i].color;
+    txtEl.textContent = STATES[i].name;
+  }
+
+  async function start(){
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+      });
+    } catch (err) {
+      hintEl.innerHTML = '<span class="err">Kein Zugriff auf das Mikrofon: ' + err.name +
+        '. Bitte im Browser die Mikrofon-Erlaubnis für diese Seite auf „Zulassen“ stellen ' +
+        'und prüfen, ob ein Mikrofon angeschlossen ist.</span>';
+      return;
+    }
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0;
+    src.connect(analyser);
+    buf = new Float32Array(analyser.fftSize);
+
+    running = true;
+    btnStart.textContent = "⏸ Mikrofon aus";
+    btnCal.disabled = false;
+    // alle Videos einmal anstoßen, damit sie später sofort laufen
+    videos.forEach(v => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); v.pause(); });
+    showState(0);
+    lastChange = lastFrame = performance.now();
+    level = 0;
+    requestAnimationFrame(loop);
+  }
+
+  function stop(){
+    running = false;
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    if (audioCtx) audioCtx.close();
+    stream = null; audioCtx = null;
+    btnStart.textContent = "▶ Mikrofon starten";
+    btnCal.disabled = true;
+    txtEl.textContent = "Mikrofon aus";
+    videos.forEach(v => v.pause());
+    maskEl.style.width = "100%";
+    valEl.textContent = "0";
+  }
+
+  function rmsDb(){
+    analyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    const rms = Math.sqrt(sum / buf.length);
+    return 20 * Math.log10(Math.max(rms, 1e-8));   // dBFS, ca. -90 … 0
+  }
+
+  function loop(now){
+    if (!running) return;
+    const db = rmsDb();
+
+    if (calibrating){
+      calSamples.push(db);
+      if (now >= calUntil){
+        calibrating = false;
+        calSamples.sort((a,b)=>a-b);
+        const median = calSamples[Math.floor(calSamples.length/2)];
+        quietDb = median;
+        store.set("quietDb", quietDb);
+        btnCal.textContent = "🤫 Ruhe messen";
+        hintEl.textContent = "Ruhepegel gespeichert (" + quietDb.toFixed(1) +
+          " dB). Wenn das Kätzchen zu schnell aufwacht: Empfindlichkeit nach rechts schieben.";
+      }
+    }
+
+    const range = parseFloat(sensEl.value);          // dB von Ruhe bis 100
+    let target = ((db - quietDb) / range) * 100;
+    target = Math.max(0, Math.min(100, target));
+
+    // Glättung: das Kätzchen hört auf DAUERlärm, nicht auf ein Niesen.
+    // tr = Trägheit; die Zeiten sind Sekunden, bis der Pegel dem Lärm folgt.
+    const tr = parseFloat(smoothEl.value);           // 1 = flink, 10 = sehr träge
+    const dt = Math.min((now - lastFrame) / 1000, 0.25);
+    lastFrame = now;
+    const tauUp   = 1.2 * tr;   // lauter werden: sehr träge – ein Huster zählt kaum
+    const tauDown = 0.7 * tr;   // leiser werden: schneller – Ruhe wird belohnt
+    const tau = target > level ? tauUp : tauDown;
+    level += (target - level) * (1 - Math.exp(-dt / tau));
+
+    const shown = Math.round(level);
+    maskEl.style.width = (100 - shown) + "%";
+    valEl.textContent = shown;
+
+    // Zustand bestimmen (mit Hysterese + Mindesthaltezeit)
+    let next = state;
+    while (next < 4 && level >= UP[next]) next++;
+    while (next > 0 && level <  DOWN[next-1]) next--;
+    // immer nur eine Stufe auf einmal – so sieht man das Aufwachen Schritt für Schritt
+    if (next > state) next = state + 1;
+    if (next < state) next = state - 1;
+    if (next !== state && now - lastChange > MIN_HOLD_MS){
+      state = next; lastChange = now; showState(state);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  btnStart.addEventListener("click", () => { running ? stop() : start(); });
+
+  btnCal.addEventListener("click", () => {
+    if (!running || calibrating) return;
+    calibrating = true; calSamples = []; calUntil = performance.now() + 2500;
+    btnCal.textContent = "… messe (3 s)";
+    hintEl.textContent = "Bitte jetzt 3 Sekunden ganz still sein …";
+  });
+
+  sensEl.addEventListener("input",   () => store.set("sens", sensEl.value));
+  smoothEl.addEventListener("input", () => store.set("smooth", smoothEl.value));
+
+  btnFull.addEventListener("click", () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  });
+  document.addEventListener("fullscreenchange", () => {
+    document.body.classList.toggle("full", !!document.fullscreenElement);
+  });
+
+  // Startbild
+  showState(0);
+  videos[0].pause();
+})();
+</script>
+</body>
+</html>
