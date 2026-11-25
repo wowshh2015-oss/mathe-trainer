@@ -131,6 +131,16 @@
   .dk{background:#fffaf0;border:2px solid #e3c98f;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--text)}
   .dk svg{width:100%;height:70px;display:block} .dk.an{border-color:#e5a50a;box-shadow:0 0 10px rgba(229,165,10,.5)}
   .dk.zu{opacity:.4;cursor:default}
+  /* Zimmer-Album (25.11.2026) */
+  .albumKopf{font:800 17px/1.3 "Segoe UI",Arial,sans-serif;color:var(--blau);margin:14px 0 4px}
+  .albumKopf small{font-weight:700;color:var(--muted);font-size:14px}
+  .album{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;margin-top:6px}
+  .ak{position:relative;background:#fffaf0;border:2px solid #e3c98f;border-radius:12px;padding:5px;text-align:center;font-size:12.5px;font-weight:700;color:var(--text);line-height:1.2}
+  .ak img,.ak .ersatz{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:8px;font-size:30px;background:#fef3c7;margin-bottom:4px}
+  .ak.s2{border-color:#60a5fa} .ak.s3{border-color:#e5a50a;box-shadow:0 0 8px rgba(229,165,10,.45)}
+  .ak .anz{position:absolute;top:2px;right:4px;background:#0f766e;color:#fff;border-radius:9px;padding:0 6px;font-size:11px}
+  .ak.fehlt{background:#e5e7eb;border-color:#cbd5e1;color:#64748b} .ak.fehlt .ersatz{background:#cbd5e1;color:#64748b;font-weight:900}
+  .albumBalken{height:12px;background:#e5e7eb;border-radius:8px;overflow:hidden;margin:6px 0 2px} .albumBalken i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#eab308)}
 </style>
 </head>
 <body>
@@ -159,6 +169,7 @@
         <button class="ghost klein" id="ganzBtn">🏙️ Mein ganzer Turm</button>
         <button class="ghost klein hide" id="passBtn">🛂 Mein Reisepass</button>
         <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
+        <button class="ghost klein" id="albumBtn">📒 Zimmer-Album</button>
       </div>
       <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Antworten</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
         ✈️ Jede <b>10. Etage</b> ist eine <b>Reise-Etage</b>: Du fliegst in eine neue Stadt, bekommst einen Stempel in deinen Reisepass – und baust die nächsten Etagen im Stil dieser Stadt.<br>
@@ -707,6 +718,20 @@ $("dachBtn").addEventListener("click", ()=>{
   $("extraInhalt").innerHTML=`<div class="info">Jede <b>20. Etage</b> schaltet ein neues Dach frei. Tippe auf ein Dach, das du schon hast.</div>
     <div class="daecher">${DAECHER.map((d,i)=>`<div class="dk${i<n?"":" zu"}${d[0]===akt?" an":""}" data-d="${d[0]}"><svg viewBox="${TX-10} -140 ${TW+20} 150">${dachSVG(d[0],0,"#ef4444")}</svg>${i<n?esc(d[1]):`🔒 ab Etage ${i*DACH}`}</div>`).join("")}</div>`;
   $("extraInhalt").querySelectorAll(".dk:not(.zu)").forEach(k=>k.addEventListener("click",()=>{ try{ localStorage.setItem(dachKey(), k.dataset.d); }catch(e){} $("dachBtn").click(); }));
+  zeige("extra");
+});
+// Zimmer-Album: alle Zimmer zum Sammeln – gefundene mit Bild, fehlende als „?" (25.11.2026)
+$("albumBtn").addEventListener("click", ()=>{
+  const b=besitz(), hat=ZIMMER.filter(z=>b[z[0]]).length, alle=ZIMMER.length;
+  const karte=z=>{ const n=b[z[0]]||0;
+    if(!n) return `<div class="ak fehlt s${z[3]}"><span class="ersatz">?</span>${z[3]===3?"🌟 einzigartig":z[3]===2?"⭐ selten":"noch nicht gefunden"}</div>`;
+    return `<div class="ak s${z[3]}">${n>1?`<span class="anz">${n}×</span>`:""}${BILD.zimmer.includes(z[0]) ? `<img src="bilder/turm/zimmer_${z[0]}.webp" alt="" loading="lazy">` : `<span class="ersatz">${z[1]}</span>`}${z[1]} ${esc(z[2])}</div>`; };
+  const gruppe=(s,titel)=>{ const l=ZIMMER.filter(z=>z[3]===s), h=l.filter(z=>b[z[0]]).length;
+    return `<div class="albumKopf">${titel} <small>${h} von ${l.length}</small></div><div class="album">${l.map(karte).join("")}</div>`; };
+  $("extraTitel").innerHTML="📒 Mein Zimmer-Album";
+  $("extraInhalt").innerHTML=`<div class="info">Du hast <b>${hat} von ${alle}</b> Zimmern gefunden.${hat<alle?" Bau weiter – vielleicht ist das nächste Zimmer ein neues!":" Wow – du hast alle Zimmer! 🏆"}
+      <div class="albumBalken"><i style="width:${Math.round(hat/alle*100)}%"></i></div></div>
+    ${gruppe(3,"🌟 Einzigartige Zimmer")}${gruppe(2,"⭐ Seltene Zimmer")}${gruppe(1,"🏠 Normale Zimmer")}`;
   zeige("extra");
 });
 $("extraZu").addEventListener("click", ()=>{ stillsein(); zeige("start"); zeigeStart(); });
