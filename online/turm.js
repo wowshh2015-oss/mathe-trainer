@@ -59,7 +59,7 @@ window.TurmDaten=(function(){
   {id:"nordpol",  name:"Nordpol",       land:"Arktis",      b:"🐻‍❄️", c:"#0ea5e9", fakt:"Am Nordpol gibt es kein Land – nur dickes Eis auf dem Meer. In der Arktis leben Eisbären.",
    wand:"#e0f2fe", kante:"#38bdf8", fenster:"glas", rahmen:"#0284c7", deko:"zacken"}
 ];
-  // 40 Zimmer: 19 häufige (1), 14 seltene (2), 7 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
+  // 80 Zimmer: 37 häufige (1), 28 seltene (2), 15 einzigartige (3) – ein einzigartiges Zimmer gibt es in jedem Turm nur einmal
   const ZIMMER=[
   ["schlaf","🛏️","Schlafzimmer",1],["wohn","🛋️","Wohnzimmer",1],["kueche","🍳","Küche",1],["bad","🛁","Badezimmer",1],["spiel","🧸","Spielzimmer",1],
   ["biblio","📚","Bibliothek",1],["klasse","🏫","Klassenzimmer",1],["mal","🎨","Malatelier",1],["musik","🎹","Musikzimmer",1],["baeckerei","🥐","Bäckerei",1],
@@ -69,7 +69,17 @@ window.TurmDaten=(function(){
   ["stern","🔭","Sternwarte",2],["dino","🦖","Dinosauriermuseum",2],["roboter","🤖","Roboterwerkstatt",2],["dschungel","🦜","Dschungelzimmer",2],["piraten","🏴‍☠️","Piratenkajüte",2],
   ["zirkus","🎪","Zirkus",2],["panda","🐼","Bambusgarten der Pandas",2],["eisbahn","⛸️","Eisbahn",2],["burg","🛡️","Rittersaal",2],
   ["drache","🐉","Drachenhöhle",3],["thron","👑","Königlicher Thronsaal",3],["zauber","🧙","Zauberzimmer",3],["weltraum","🚀","Weltraumstation",3],["kristall","💎","Kristallgrotte",3],
-  ["schatz","💰","Schatzkammer",3],["einhorn","🦄","Einhornstall",3]
+  ["schatz","💰","Schatzkammer",3],["einhorn","🦄","Einhornstall",3],
+  // 25.11.2026: 40 neue Zimmer (Wunsch der Kinder: ab Etage 50 kam nichts Neues mehr) – 18 häufige, 14 seltene, 8 einzigartige
+  ["hund","🐶","Hundezimmer",1],["hase","🐰","Hasenstall",1],["puzzle","🧩","Puzzlezimmer",1],["wasch","🧺","Waschküche",1],["burger","🍔","Burgerladen",1],
+  ["nudel","🍜","Nudelrestaurant",1],["obst","🍓","Obstladen",1],["basket","🏀","Basketballhalle",1],["turn","🤸","Turnhalle",1],["tennis","🎾","Tennishalle",1],
+  ["kletter","🧗","Kletterhalle",1],["arzt","🩺","Arztpraxis",1],["feuer","🚒","Feuerwache",1],["friseur","💇","Friseursalon",1],["markt","🛒","Supermarkt",1],
+  ["naeh","🧵","Nähzimmer",1],["post","📮","Postamt",1],["brett","🎲","Brettspielzimmer",1],
+  ["schoko","🍫","Schokoladenfabrik",2],["schmetterling","🦋","Schmetterlingshaus",2],["pinguin","🐧","Pinguinbecken",2],["hai","🦈","Haifischtunnel",2],
+  ["karussell","🎠","Karussell",2],["baelle","🔴","Bällebad",2],["kart","🏎️","Kartbahn",2],["eisenbahn","🚂","Modelleisenbahn",2],["theater","🎭","Theater",2],
+  ["baumhaus","🌳","Baumhaus",2],["iglu","❄️","Iglu",2],["pharao","🏺","Pharaonengrab",2],["ninja","🥷","Ninja-Dojo",2],["suess","🍭","Süßigkeitenladen",2],
+  ["meerjungfrau","🧜‍♀️","Meerjungfrauengrotte",3],["zeitmaschine","⏰","Zeitmaschine",3],["pokal","🏆","Pokalsaal",3],["regenbogen","🌈","Regenbogenrutsche",3],
+  ["wolkenschloss","☁️","Wolkenschloss",3],["phoenix","🔥","Phönixnest",3],["karte","🗺️","Geheimes Kartenzimmer",3],["unterwasser","🐋","Unterwasserkuppel",3]
 ];
   // frühere Zimmer – nur damit schon gebaute Etagen weiter richtig aussehen
   const ZIMMER_ALT=[["pingpong","🏓","Tischtennis",1],
@@ -83,6 +93,6 @@ window.TurmDaten=(function(){
   // Gemalte Bilder (bilder/turm): Fassade je Stadt mit durchsichtiger Öffnung [x, y, Breite, Höhe] als Anteil, Zimmer als Innenansicht 2:1.
   // Fehlt ein Bild, zeichnet das Spiel die Etage selbst. Neue Bilder: aufbereiten mit scratchpad/bilder_bauen.py, dann hier eintragen.
   // Dächer: [Sockel links, Sockel rechts] als Anteil der Bildbreite und Höhe/Breite – der Sockel wird genau auf die Turmbreite gelegt
-  const BILDER={ daecher:{"flach": [0.0075, 0.9925, 0.5], "garten": [0.0088, 0.9912, 0.5], "kuppel": [0.0025, 0.9975, 0.5], "heli": [0.0025, 0.9975, 0.5], "achter": [0.0088, 0.9912, 0.5], "stern": [0.0112, 0.9888, 0.5012], "rad": [0.0038, 0.9962, 0.5], "burg": [0.0038, 0.9962, 0.5], "rakete": [0.0025, 0.9975, 0.5], "krone": [0.0025, 0.9975, 0.5], "spitze": [0.0038, 0.9962, 0.5], "fahne": [0.0038, 0.9962, 0.5]}, karten:["accra", "athen", "barcelona", "damaskus", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "teheran", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "bad", "baeckerei", "biblio", "bowling", "burg", "dino", "disco", "drache", "dschungel", "einhorn", "eis", "eisbahn", "fussball", "games", "garten", "katzen", "kino", "klasse", "kristall", "kueche", "labor", "lobby", "mal", "musik", "panda", "piraten", "pizza", "pool", "roboter", "schatz", "schlaf", "spiel", "stern", "thron", "weltraum", "werk", "wohn", "zauber", "zirkus"] };
+  const BILDER={ daecher:{"flach": [0.0075, 0.9925, 0.5], "garten": [0.0088, 0.9912, 0.5], "kuppel": [0.0025, 0.9975, 0.5], "heli": [0.0025, 0.9975, 0.5], "achter": [0.0088, 0.9912, 0.5], "stern": [0.0112, 0.9888, 0.5012], "rad": [0.0038, 0.9962, 0.5], "burg": [0.0038, 0.9962, 0.5], "rakete": [0.0025, 0.9975, 0.5], "krone": [0.0025, 0.9975, 0.5], "spitze": [0.0038, 0.9962, 0.5], "fahne": [0.0038, 0.9962, 0.5]}, karten:["accra", "athen", "barcelona", "damaskus", "hamburg", "hanoi", "istanbul", "kairo", "kreta", "kyjiw", "london", "madrid", "mumbai", "nairobi", "newyork", "nordpol", "paris", "peking", "porto", "prag", "rio", "rom", "santiago", "sydney", "teheran", "tokio", "wien"], hintergrund:["hamburg"], kran:true, band:true, eingang:true, fassaden:{"hamburg": [0.1161, 0.1172, 0.7678, 0.7678], "paris": [0.1172, 0.1297, 0.7655, 0.7396]}, zimmer:["aqua", "bad", "baeckerei", "biblio", "bowling", "burg", "dino", "disco", "drache", "dschungel", "einhorn", "eis", "eisbahn", "fussball", "games", "garten", "katzen", "kino", "klasse", "kristall", "kueche", "labor", "lobby", "mal", "musik", "panda", "piraten", "pizza", "pool", "roboter", "schatz", "schlaf", "spiel", "stern", "thron", "weltraum", "werk", "wohn", "zauber", "zirkus", "hund", "hase", "puzzle", "wasch", "burger", "nudel", "obst", "basket", "turn", "tennis", "kletter", "arzt", "feuer", "friseur", "markt", "naeh", "post", "brett", "schoko", "schmetterling", "pinguin", "hai", "karussell", "baelle", "kart", "eisenbahn", "theater", "baumhaus", "iglu", "pharao", "ninja", "suess", "meerjungfrau", "zeitmaschine", "pokal", "regenbogen", "wolkenschloss", "phoenix", "karte", "unterwasser"] };
   return { STAEDTE, ZIMMER, ZIMMER_ALT, DAECHER, BILDER, REISE:10, DACH:20 };
 })();
