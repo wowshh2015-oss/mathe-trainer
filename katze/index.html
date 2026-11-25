@@ -91,6 +91,26 @@
   #hint{color:var(--muted);font-size:.9rem;max-width:min(92vw,1000px);text-align:center;line-height:1.45}
   .err{color:#ffb3ae}
 
+  /* Auswertung */
+  #report{
+    width:min(92vw,1000px);
+    background:var(--panel);border-radius:18px;padding:18px 20px;
+  }
+  #report h2{margin:0 0 4px;font-size:1.15rem}
+  #report .meta{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+  #report table{width:100%;border-collapse:collapse;font-size:.98rem}
+  #report th{text-align:left;font-weight:600;color:var(--muted);font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.06em;padding:0 8px 8px 0}
+  #report td{padding:7px 8px 7px 0;border-top:1px solid rgba(255,255,255,.1);
+    font-variant-numeric:tabular-nums}
+  #report td.num{text-align:right;width:84px}
+  #report .stufe{display:flex;align-items:center;gap:9px}
+  #report .chip{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  #report .bar{height:7px;border-radius:999px;background:rgba(255,255,255,.12);margin-top:5px}
+  #report .bar i{display:block;height:100%;border-radius:999px}
+  #report .fazit{margin:14px 0 0;line-height:1.5}
+  #report .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
   /* Vollbild */
   body.full{padding:0;justify-content:center}
   body.full h1,body.full .sub,body.full #hint{display:none}
@@ -129,6 +149,19 @@
     <input type="range" id="smooth" min="1" max="12" step="1" value="5">
   </label>
   <button id="btnFull" class="ghost">⛶ Vollbild</button>
+</div>
+
+<div id="report" hidden>
+  <h2>Auswertung</h2>
+  <p class="meta" id="repMeta"></p>
+  <table>
+    <thead><tr><th>Stufe</th><th class="num">wie oft erreicht</th><th class="num">wie lange</th><th class="num">Anteil</th></tr></thead>
+    <tbody id="repBody"></tbody>
+  </table>
+  <p class="fazit" id="repFazit"></p>
+  <div class="row">
+    <button id="btnRepClose" class="ghost">Schließen</button>
+  </div>
 </div>
 
 <p id="hint">Zum Einstellen: Klasse ist still → <b>Ruhe messen</b> drücken. Danach mit der <b>Empfindlichkeit</b> festlegen, wie viel Lärm bis zum weinenden Kätzchen nötig ist (Regler nach links = reagiert früher).</p>
@@ -178,9 +211,92 @@
   sensEl.value   = store.get("sens", 34);          // Spannweite in dB von Ruhe bis "ganz laut"
   smoothEl.value = store.get("smooth", 5);
 
+  const repEl    = document.getElementById("report");
+  const repMeta  = document.getElementById("repMeta");
+  const repBody  = document.getElementById("repBody");
+  const repFazit = document.getElementById("repFazit");
+  document.getElementById("btnRepClose").addEventListener("click", () => { repEl.hidden = true; });
+
   let audioCtx = null, analyser = null, buf = null, stream = null;
   let level = 0;              // geglättete 0–100-Skala
   let state = 0, lastChange = 0, running = false, lastFrame = 0;
+
+  // Mitschrift der Stunde: wie oft und wie lange war Mimi auf welcher Stufe?
+  let stats = null;
+
+  function newStats(now){
+    return { counts:[0,0,0,0,0], ms:[0,0,0,0,0], startedAt:now, stamp:now, maxLevel:0 };
+  }
+  function noteState(now, next){     // Wechsel von state nach next verbuchen
+    stats.ms[state] += now - stats.stamp;
+    stats.stamp = now;
+    // nur das Hinaufsteigen zählen – beim Beruhigen läuft Mimi die Stufen
+    // ja noch einmal rückwärts durch, das wäre sonst doppelt gezählt
+    if (next > state) stats.counts[next]++;
+  }
+  function fmtTime(ms){
+    const s = Math.round(ms / 1000);
+    if (s < 60) return s + " s";
+    return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0") + " min";
+  }
+  function showReport(){
+    const now = performance.now();
+    stats.ms[state] += now - stats.stamp;
+    const total = Math.max(now - stats.startedAt, 1);
+    if (total < 8000) return;        // zu kurz, lohnt keine Auswertung
+
+    repMeta.textContent = "Dauer " + fmtTime(total) +
+      " · lautester Moment " + Math.round(stats.maxLevel) + " von 100";
+
+    repBody.innerHTML = "";
+    STATES.forEach((st, i) => {
+      const anteil = stats.ms[i] / total * 100;
+      const tr = document.createElement("tr");
+
+      const tdName = document.createElement("td");
+      const wrap = document.createElement("div");
+      wrap.className = "stufe";
+      const chip = document.createElement("span");
+      chip.className = "chip"; chip.style.background = st.color;
+      const label = document.createElement("span");
+      label.textContent = st.name;
+      wrap.append(chip, label);
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("i");
+      fill.style.width = anteil.toFixed(1) + "%";
+      fill.style.background = st.color;
+      bar.appendChild(fill);
+      tdName.append(wrap, bar);
+
+      const tdCount = document.createElement("td");
+      tdCount.className = "num";
+      tdCount.textContent = i === 0 ? "–" : (stats.counts[i] + "×");
+
+      const tdTime = document.createElement("td");
+      tdTime.className = "num";
+      tdTime.textContent = fmtTime(stats.ms[i]);
+
+      const tdPct = document.createElement("td");
+      tdPct.className = "num";
+      tdPct.textContent = Math.round(anteil) + " %";
+
+      tr.append(tdName, tdCount, tdTime, tdPct);
+      repBody.appendChild(tr);
+    });
+
+    const schlaf = Math.round(stats.ms[0] / total * 100);
+    const geweckt = stats.counts[1], panik = stats.counts[3], traenen = stats.counts[4];
+    let satz = "Mimi hat " + schlaf + " % der Zeit geschlafen. ";
+    if (geweckt === 0)      satz += "Sie ist kein einziges Mal aufgewacht – das war richtig leise!";
+    else if (traenen > 0)   satz += "Aufgewacht ist sie " + geweckt + "×, geweint hat sie " + traenen + "×.";
+    else if (panik > 0)     satz += "Aufgewacht ist sie " + geweckt + "×, " + panik + "× hatte sie Panik – geweint hat sie aber nie.";
+    else                    satz += "Aufgewacht ist sie " + geweckt + "×, mehr ist nicht passiert.";
+    repFazit.textContent = satz;
+
+    repEl.hidden = false;
+    repEl.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }
   let calibrating = false, calSamples = [], calUntil = 0;
 
   function showState(i){
@@ -218,13 +334,17 @@
     // alle Videos einmal anstoßen, damit sie später sofort laufen
     videos.forEach(v => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); v.pause(); });
     showState(0);
+    state = 0;
     lastChange = lastFrame = performance.now();
+    stats = newStats(lastFrame);
+    repEl.hidden = true;
     level = 0;
     requestAnimationFrame(loop);
   }
 
   function stop(){
     running = false;
+    if (stats) showReport();
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (audioCtx) audioCtx.close();
     stream = null; audioCtx = null;
@@ -288,8 +408,10 @@
     if (next > state) next = state + 1;
     if (next < state) next = state - 1;
     if (next !== state && now - lastChange > MIN_HOLD_MS){
+      noteState(now, next);
       state = next; lastChange = now; showState(state);
     }
+    if (level > stats.maxLevel) stats.maxLevel = level;
 
     requestAnimationFrame(loop);
   }
