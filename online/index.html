@@ -241,7 +241,7 @@
 <script src="anleitung.js"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
-<script src="sterne.js"></script>
+<script src="sterne.js?v=20261126a"></script>
 <script src="hausaufgabe.js?v=20261124e"></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -482,7 +482,7 @@ function zeigeSchild(rows, name){
 }
 function zeigeHallo(rows, name){
   const mitGeschenken=rows;                              // für den Tank
-  rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk");   // Geschenke der Lehrkraft sind keine Durchgänge
+  rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft");   // Geschenke der Lehrkraft sind keine Durchgänge
   zeigeSchild(rows, name);
   STERN_HTML=Sterne.bandHTML(mitGeschenken, name);       // Sterne und Sticker-Album (sterne.js)
   const box=$("hallo");

@@ -32,6 +32,8 @@ window.Zoo=(function(){
     const wahl = neu.length && Math.random()<0.7 ? neu : pool;
     return wahl[Math.floor(Math.random()*wahl.length)][0];
   }
+  // Gemalte Sticker (bilder/heft/sticker_<id>.webp) – das Emoji bleibt als Ersatz, falls ein Bild nicht lädt
+  const bild=(t,gross)=>`<img src="bilder/heft/sticker_${t[0]}.webp" alt="${t[1]}" loading="lazy" style="width:${gross?"92px":"100%"};height:${gross?"92px":"100%"};object-fit:contain;display:block;margin:0 auto">`;
   function stil(){
     if(document.getElementById("zooStil")) return;
     const s=document.createElement("style"); s.id="zooStil";
@@ -41,7 +43,7 @@ window.Zoo=(function(){
     .zooGehege.fabel{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.45)} .zooGehege.meer{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.4)}
     .zooGehege h5{margin:0 0 4px;font-size:.8em;color:#cbd5e1;font-weight:700} .zooGehege h5 small{color:#94a3b8;font-weight:600}
     .zooTiere{display:flex;flex-wrap:wrap;gap:4px}
-    .zooTier{position:relative;width:2.2em;height:2.2em;display:flex;align-items:center;justify-content:center;font-size:1.45em;border-radius:.5em;background:rgba(15,23,42,.55)}
+    .zooTier{position:relative;width:2.2em;height:2.2em;padding:1px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:1.45em;border-radius:.5em;background:rgba(15,23,42,.55)}
     .zooTier.fehlt{font-size:1em;width:3.19em;height:3.19em;color:#475569;font-weight:800} .zooTier.s2{box-shadow:inset 0 0 0 2px #38bdf8} .zooTier.s3{box-shadow:inset 0 0 0 2px #fde047,0 0 10px rgba(253,224,71,.5)}
     .zooTier i{position:absolute;right:-3px;bottom:-4px;font:800 .42em/1.5 "Segoe UI",system-ui,sans-serif;font-style:normal;background:#0f172a;color:#e2e8f0;border-radius:999px;padding:0 5px}
     .zooNeu{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
@@ -56,12 +58,12 @@ window.Zoo=(function(){
     return `<div class="zooKopf"><b>${titel}: ${alle} ${alle===1?"Tier":"Tiere"}</b><span>${arten} von ${TIERE.length} Arten entdeckt</span></div>`+
       GEHEGE.map(g=>{ const l=TIERE.filter(t=>t[3]===g[0]), da=l.filter(t=>z[t[0]]).length;
         return `<div class="zooGehege ${g[0]}"><h5>${g[1]} ${g[2]} <small>${da} von ${l.length}</small></h5><div class="zooTiere">${l.map(t=> z[t[0]]
-          ? `<span class="zooTier s${t[4]}" title="${t[2]}${t[4]>1?" – "+WORT[t[4]]:""}">${t[1]}${z[t[0]]>1?`<i>×${z[t[0]]}</i>`:""}</span>` : `<span class="zooTier fehlt" title="noch nicht entdeckt">?</span>`).join("")}</div></div>`; }).join("");
+          ? `<span class="zooTier s${t[4]}" title="${t[2]}${t[4]>1?" – "+WORT[t[4]]:""}">${bild(t)}${z[t[0]]>1?`<i>×${z[t[0]]}</i>`:""}</span>` : `<span class="zooTier fehlt" title="noch nicht entdeckt">?</span>`).join("")}</div></div>`; }).join("");
   }
   // „Neu in deinem Zoo" nach einer Runde
   function neuHTML(ids){
     stil();
-    return `<div class="zooNeu">${ids.map(id=>{ const t=NACH_ID[id]; return `<div class="s${t[4]}"><div class="b">${t[1]}</div><div class="n">${t[2]}</div><div class="w">${t[4]>1?STERN[t[4]]+" "+WORT[t[4]]:"zieht ein"}</div></div>`; }).join("")}</div>`;
+    return `<div class="zooNeu">${ids.map(id=>{ const t=NACH_ID[id]; return `<div class="s${t[4]}"><div class="b">${bild(t,"gross")}</div><div class="n">${t[2]}</div><div class="w">${t[4]>1?STERN[t[4]]+" "+WORT[t[4]]:"zieht ein"}</div></div>`; }).join("")}</div>`;
   }
   // Ausbaustufen des Klassen-Zoos
   const STUFEN=[[0,"Kleines Gehege"],[25,"Streichelzoo"],[75,"Tierpark"],[150,"Zoo"],[300,"Großer Zoo"],[500,"Safari-Park"],[800,"Welt-Zoo"]];

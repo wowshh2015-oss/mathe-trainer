@@ -2058,6 +2058,7 @@
       $("ergTitel").textContent = tiere.length ? (tiere.length===1?"🎉 Ein neues Tier zieht ein!":"🎉 Zwei neue Tiere ziehen ein!") : "💪 Diesmal noch kein Tier";
       $("ergText").innerHTML=`<b>${runde.richtig}</b> von <b>${n}</b> Aufgaben richtig.`+(tiere.length ? Zoo.neuHTML(tiere) : "<br>Ab <b>5 richtigen</b> Aufgaben zieht ein Tier in deinen Zoo ein. Gleich noch einmal?")+(tiere.length && nurHaeufig ? "<div>Mit <b>7 oder mehr</b> richtigen Aufgaben kann es beim nächsten Mal auch ein seltenes Tier sein.</div>" : "")+
         (schwerGut ? `<div>💪 Du hast ${schwerGut===1?"eine Aufgabe":schwerGut+" Aufgaben"} gelöst, die dir früher schwerfiel${schwerGut===1?"":"en"} – das macht seltene Tiere wahrscheinlicher.</div>` : "")+
+        (tiere.length && window.Heft ? `<button type="button" id="heftErg" style="margin-top:12px;font-size:17px;padding:12px 18px">🎁 Sticker ins Tier-Sammelheft kleben</button>` : "")+
         `<div style="margin-top:8px;font-size:13px">5 oder 6 richtige: ein häufiges Tier · 7 bis 9: ein Tier, vielleicht ein seltenes ⭐ · 10 von 10: <b>zwei</b> Tiere, eines davon selten.</div>`;
     }
     if(blitz){
@@ -2082,6 +2083,7 @@
     // Zoo: „Nochmal" spielt auf der Stufe, die der Mathe-Trainer jetzt einstellt
     $("nochmalBtn").onclick=()=>starte(WAS==="zoo" && letzte.modus!=="mine" ? (stufe(zooStufeId())||letzte.st) : letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
     speichere(proz, bestanden);
+    if($("heftErg")) $("heftErg").addEventListener("click", oeffneHeft);
     if(WAS==="zoo" && window.Zoo && runde.modus!=="mine"){ const alt=runde.st.id, neu=zooStufeId(), a=ZOO_LEITER.indexOf(alt), b=ZOO_LEITER.indexOf(neu);
       if(a>=0 && b>a) $("ergText").insertAdjacentHTML("beforeend", `<div style="margin-top:10px;font-weight:800;color:#86efac">⬆️ Super! Deine nächste Runde: <b>${esc(zooStufenName(neu))}</b> – da ziehen öfter seltene Tiere ein.</div>`);
       else if(a>=0 && b>=0 && b<a) $("ergText").insertAdjacentHTML("beforeend", `<div style="margin-top:10px;font-weight:700;color:#fde68a">🌱 Die nächste Runde wird etwas leichter: <b>${esc(zooStufenName(neu))}</b>. So holst du sicher neue Tiere – und bald geht es wieder hoch.</div>`); }
@@ -2158,6 +2160,11 @@
     });
     return raus;
   }
+  // Tier-Sammelheft: gespeicherter Stand (undefined = noch nicht geladen, null = noch nie geöffnet)
+  let HEFT_STAND;
+  function ladeHeft(){ if(WAS!=="zoo" || !window.Heft || !db || !playerName) return; const wer=playerName;
+    Heft.laden(db,KEY,wer).then(h=>{ if(wer!==playerName) return; HEFT_STAND=h; if(!$("start").classList.contains("hide")) zeigeMenue(); }); }
+  function oeffneHeft(){ if(!window.Heft) return; Heft.oeffnen({db, key:KEY, name:playerName, besitz:Zoo.zaehle(MEINE), zu:()=>{ ladeHeft(); }}); }
   if(WAS==="zoo") window.ZooTest={ stufe:()=>zooStufeId(), name:id=>zooStufenName(id), fehler:()=>fremdeFehler(), geladen:()=>!!ALLE,
     runde:()=>baueRunde(stufe(zooStufeId())).map(a=>a.key), rundeAuf:id=>baueRunde(stufe(id)).map(a=>a.typ),
     klasse:()=>({inKlasse:inKlasse(), start:zooStartKlasse(), liste:KLASSEN_LISTE?KLASSEN_LISTE.length:null}) };   // nur zum Prüfen (liest, speichert nichts)
@@ -2542,8 +2549,12 @@
       else $("stufen").innerHTML=inhalt;
       $("stufen").querySelectorAll(".zooKl").forEach(b=>b.addEventListener("click", ()=>{ try{ localStorage.setItem("zoo_klasse_"+norm(playerName), b.dataset.kl); }catch(e){} zeigeMenue(); }));
       const los=()=>{ if(waehlen || wartenAufListe){ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} return; } starte(stufe(zooStufeId())||STUFEN[0], "Training"); };
-      $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:14px">▶ Neue Tiere holen</button>`+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
+      // 26.11.2026: Tier-Sammelheft – die gewonnenen Tiere als Sticker einkleben (heft.js)
+      const wartet = window.Heft && HEFT_STAND!==undefined ? Heft.wartend(HEFT_STAND, Zoo.zaehle(MEINE)) : 0;
+      const heftKnopf = window.Heft ? `<button id="heftBtn" class="ghost" style="width:100%;font-size:18px;padding:13px;margin-bottom:14px;border-color:#fde047;color:#fde68a">📖 Mein Tier-Sammelheft${wartet?` · 🎁 ${wartet} ${wartet===1?"neuer Sticker":"neue Sticker"}`:""}</button>` : "";
+      $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:10px">▶ Neue Tiere holen</button>`+heftKnopf+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
       $("zooLos").addEventListener("click", los);
+      if($("heftBtn")) $("heftBtn").addEventListener("click", oeffneHeft);
       $("stufen").querySelectorAll(".zooLos2").forEach(b=>b.addEventListener("click", los));
     }
     entdeckenKarte();
@@ -2568,7 +2579,7 @@
     (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
       .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
         $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
-        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); })
+        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); })
       .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
   }
   function konfetti(){

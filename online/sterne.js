@@ -121,7 +121,7 @@ window.Sterne=(function(){
     // Lernflammen: Jeder Tag mit mindestens einem Durchgang bringt eine Flamme dazu. Ein Schultag (Mo–Fr) ohne Üben
     // nimmt eine Flamme weg – aber eben nur eine. Wer einen Monat geübt hat und eine Woche krank ist, behält den Großteil.
     // Samstag und Sonntag sind frei: sie kosten nichts, bringen aber eine Flamme, wenn das Kind trotzdem übt.
-    const tage=new Set(rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk").map(tag).filter(x=>x.length===8));
+    const tage=new Set(rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft").map(tag).filter(x=>x.length===8));
     const iso=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
     const heute=new Date(); heute.setHours(12,0,0,0);
     const heuteIso=iso(heute), heuteDa=tage.has(heuteIso);
