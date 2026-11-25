@@ -729,8 +729,16 @@ function verbindeKind(){
   const m=location.hash.match(/name=([^&]+)/); let n = m ? decodeURIComponent(m[1]) : "";
   if(!n){ try{ n=localStorage.getItem("mathe_name")||""; }catch(e){} }
   if(n){ $("name").value=capName(n); playerName=capName(n); $("menuLink").href="index.html#name="+encodeURIComponent(playerName); setTimeout(verbindeKind, 400); } else $("name").focus();
-  setTimeout(()=>{ if(playerName && $("turmBox").classList.contains("hide"))
-    $("nameChips").insertAdjacentHTML("afterend",'<div class="info" style="margin-top:14px">⚠️ Die Verbindung zum Klassen-Archiv dauert ungewöhnlich lange. Bitte die Seite neu laden.</div>'); }, 9000);
+  // Hängt die Live-Verbindung (z. B. Schul-WLAN), einmal normal nachfragen und den Turm trotzdem zeigen (25.11.2026)
+  const warne=()=>{ if(playerName && $("turmBox").classList.contains("hide") && !$("zuLange"))
+    $("nameChips").insertAdjacentHTML("afterend",'<div class="info" id="zuLange" style="margin-top:14px">⚠️ Die Verbindung zum Klassen-Archiv dauert ungewöhnlich lange. <a href="#" onclick="location.reload();return false" style="color:inherit;font-weight:700">🔄 Seite neu laden</a></div>'); };
+  setTimeout(()=>{ if(!playerName || !db || cloudOk || !$("turmBox").classList.contains("hide")) return;
+    const wer=playerName, t=setTimeout(warne, 7000);
+    db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",wer).get().then(snap=>{
+      clearTimeout(t); if(cloudOk || wer!==playerName) return; MEINE=[]; snap.forEach(d=>MEINE.push(d.data())); cloudOk=true;
+      $("status").textContent=`☁️ Verbunden · ${hoechste()} Etagen gebaut`; if(!tankBereit) ladeAndere();
+      if($("spiel").classList.contains("hide") && $("ergebnis").classList.contains("hide") && $("extra").classList.contains("hide")) zeigeStart();
+    }).catch(()=>{ clearTimeout(t); warne(); }); }, 6000);
 })();
 function konfetti(){
   const c=document.createElement("canvas"); c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999"; document.body.appendChild(c);
