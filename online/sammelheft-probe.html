@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mein Tier-Sammelheft – Probe</title>
+<!-- 25.11.2026: Probe für das Sticker-Sammelheft des Zoos (Idee der Lehrkraft). Noch ohne Speichern, nicht verlinkt.
+     Bilder: bilder/heft/ (Umschlag, Waldseite, 5 Sticker). Andere Seiten und Tiere sind Platzhalter. -->
+<style>
+  :root{--bg:#1e1b2e;--text:#f8fafc;--muted:#cbd5e1}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(ellipse at top,#3b2f5c,#1e1b2e 70%);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    min-height:100vh;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .app{max-width:1000px;margin:0 auto;padding:14px 14px 40px}
+  .probe{font-size:12.5px;color:#fde68a;text-align:center;margin-bottom:8px}
+  button{font:inherit;font-weight:800;border-radius:14px;border:0;padding:12px 20px;cursor:pointer}
+  .haupt{background:linear-gradient(180deg,#fde047,#f59e0b);color:#3b2a05;box-shadow:0 4px 0 #b45309}
+  /* Umschlag */
+  #umschlag{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .cover{position:relative;width:min(92vw,480px);aspect-ratio:3/4;border-radius:10px 18px 18px 10px;overflow:hidden;cursor:pointer;
+    box-shadow:-8px 0 0 #1e3a8a,0 18px 40px rgba(0,0,0,.55);transition:transform .5s}
+  .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .cover .titel{position:absolute;left:14%;right:14%;top:9%;height:11.5%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font:900 clamp(18px,5.4vw,30px)/1.05 Georgia,"Times New Roman",serif;color:#5b2c06;text-align:center;text-shadow:0 1px 0 #fff6}
+  .cover .titel small{font:800 clamp(11px,2.6vw,15px)/1.2 "Segoe UI",sans-serif;color:#7c3f0b;margin-top:3px}
+  .cover:active{transform:scale(.98)}
+  /* Buch */
+  #buch{display:none}
+  .kopf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .kopf h1{margin:0;font:900 22px Georgia,serif}
+  .kopf .zahl{color:var(--muted);font-weight:700;font-size:15px}
+  .buchrahmen{display:flex;align-items:stretch;gap:0}
+  .seiteBox{flex:1;min-width:0;perspective:1600px}
+  .seite{position:relative;width:100%;aspect-ratio:3/2;border-radius:6px 14px 14px 6px;overflow:hidden;background:#fefce8 center/cover no-repeat;
+    box-shadow:inset 10px 0 18px -8px rgba(0,0,0,.35),0 14px 30px rgba(0,0,0,.5);transform-origin:left center}
+  .seite.blaettern{animation:blatt .55s ease-out}
+  @keyframes blatt{0%{transform:rotateY(-80deg);opacity:.3}100%{transform:rotateY(0);opacity:1}}
+  .seite .leer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#57534e;font-weight:800;font-size:18px;text-align:center;padding:20px}
+  .seitentitel{position:absolute;left:3%;top:3%;background:rgba(255,255,255,.82);color:#14532d;border-radius:12px;padding:4px 12px;font:900 clamp(13px,2.4vw,19px) Georgia,serif;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  /* Lesezeichen rechts am Buch */
+  .reiter{display:flex;flex-direction:column;gap:5px;padding-top:14px}
+  .reiter button{display:flex;align-items:center;gap:6px;text-align:left;border-radius:0 12px 12px 0;padding:9px 12px 9px 8px;font-size:13px;color:#fff;
+    box-shadow:2px 3px 0 rgba(0,0,0,.25);transform:translateX(-6px);transition:transform .2s;min-width:0;white-space:nowrap}
+  .reiter button.an{transform:translateX(0);outline:3px solid #fff8;outline-offset:-3px}
+  .reiter button.zeig{animation:zeig 1s 2}
+  @keyframes zeig{50%{transform:translateX(8px) scale(1.08)}}
+  .reiter .ic{font-size:18px}
+  @media (max-width:700px){ .buchrahmen{flex-direction:column-reverse} .reiter{flex-direction:row;overflow-x:auto;padding:0 0 0 6px}
+    .reiter button{border-radius:12px 12px 0 0;transform:translateY(6px);padding:8px 10px} .reiter button.an{transform:none} .reiter .nm{display:none} }
+  /* Plätze für Sticker */
+  .platz{position:absolute;width:13.5%;aspect-ratio:1;border-radius:18%;border:2.5px dashed rgba(87,83,78,.55);background:rgba(255,255,255,.32);
+    display:flex;align-items:flex-end;justify-content:center;transform:translate(-50%,-50%)}
+  .platz .pn{font-size:clamp(8px,1.3vw,11px);font-weight:800;color:#44403c;background:rgba(255,255,255,.75);border-radius:6px;padding:0 5px;margin-bottom:5%}
+  .platz.ziel{border-color:#16a34a;background:rgba(134,239,172,.45);border-style:solid}
+  .platz .st{position:absolute;inset:-6%;}
+  .st{touch-action:none;cursor:grab}
+  .st img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));pointer-events:none}
+  .st .emo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,6vw,52px);background:#fff;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.35)}
+  .st.s2 img,.st.s2 .emo{filter:drop-shadow(0 0 3px #facc15) drop-shadow(0 0 7px #f59e0b)}
+  .st.s3 img,.st.s3 .emo{filter:drop-shadow(0 0 4px #f0abfc) drop-shadow(0 0 8px #67e8f9)}
+  .st.klebt{animation:kleb .45s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes kleb{0%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1) rotate(0)}}
+  /* Neue Sticker unten */
+  .ablage{margin-top:14px;background:rgba(15,23,42,.55);border:2px dashed #64748b;border-radius:18px;padding:10px 12px}
+  .ablage h2{margin:0 0 8px;font-size:16px} .ablage h2 small{color:var(--muted);font-weight:600}
+  .reihe{display:flex;gap:10px;flex-wrap:wrap;min-height:90px;align-items:center}
+  .reihe .st{position:relative;width:86px;height:86px}
+  .reihe .st .anz{position:absolute;right:-4px;top:-4px;background:#ef4444;color:#fff;border-radius:999px;font-size:12px;font-weight:900;padding:1px 7px}
+  .reihe .st .wo{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-size:10.5px;font-weight:800;background:#0f172a;border-radius:8px;padding:0 6px;white-space:nowrap}
+  .reihe .st.neu{animation:rein .6s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes rein{0%{transform:translateY(-60px) scale(.2) rotate(30deg);opacity:0}100%{transform:none;opacity:1}}
+  .geist{position:fixed;z-index:50;width:96px;height:96px;pointer-events:none;transform:translate(-50%,-50%) scale(1.12) rotate(-4deg)}
+  .zurueck{transition:all .35s ease}
+  .meldung{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f172a;border:2px solid #fde047;color:#fef9c3;border-radius:14px;padding:10px 16px;font-weight:700;font-size:15px;z-index:60;max-width:92vw;text-align:center}
+  .tuete{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+  .tuete button{font-size:16px}
+  .tuete small{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="probe">🧪 Probe – nur zum Ausprobieren, nichts wird gespeichert</div>
+  <div id="umschlag">
+    <div class="cover" id="cover"><img src="bilder/heft/umschlag.webp" alt=""><div class="titel">Mein Tier-Sammelheft</div></div>
+    <button class="haupt" id="aufBtn">📖 Heft aufschlagen</button>
+  </div>
+  <div id="buch">
+    <div class="kopf"><h1>🦁 Mein Tier-Sammelheft</h1><span class="zahl" id="zahl"></span><button id="zuBtn" style="background:#334155;color:#fff;padding:8px 14px">✕ Heft zuklappen</button></div>
+    <div class="buchrahmen">
+      <div class="seiteBox"><div class="seite" id="seite"></div></div>
+      <div class="reiter" id="reiter"></div>
+    </div>
+    <div class="ablage">
+      <h2>✨ Neue Sticker <small>– zieh sie mit dem Finger auf die richtige Seite</small></h2>
+      <div class="reihe" id="reihe"></div>
+      <div class="tuete"><button class="haupt" id="tueteBtn">🎁 Sticker-Tüte öffnen</button><small>(in der Probe: 7 Sticker, später nach jeder Zoo-Runde)</small></div>
+    </div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+// Bereiche wie im Zoo (zoo.js). farbe = Lesezeichen
+const SEITEN=[["hof","🚜","Bauernhof","#b45309"],["wald","🌲","Wald und Wiese","#15803d"],["savanne","🌍","Savanne","#ca8a04"],
+  ["dschungel","🌴","Dschungel","#065f46"],["meer","🌊","Meer und Eis","#0369a1"],["fabel","✨","Urzeit und Fabelwesen","#7e22ce"]];
+const BILD={wald:"bilder/heft/seite_wald.webp"};
+// Tiere der Waldseite (13 wie im Zoo) – gemalt sind bisher 5
+const TIERE={fuchs:["🦊","Fuchs","wald",1],igel:["🦔","Igel","wald",1],frosch:["🐸","Frosch","wald",1],schnecke:["🐌","Schnecke","wald",1],marienkaefer:["🐞","Marienkäfer","wald",1],
+  schmetterling:["🦋","Schmetterling","wald",1],eichhoernchen:["🐿️","Eichhörnchen","wald",1],wildschwein:["🐗","Wildschwein","wald",1],hirsch:["🦌","Hirsch","wald",2],
+  eule:["🦉","Eule","wald",2],wolf:["🐺","Wolf","wald",2],baer:["🐻","Bär","wald",2],adler:["🦅","Adler","wald",2],
+  kuh:["🐮","Kuh","hof",1],delfin:["🐬","Delfin","meer",2]};
+const GEMALT=["wolf","fuchs","igel","hirsch","eule"];
+// 13 Plätze auf der Waldseite (Mitte, in % der Seite) – auf ruhigen Stellen der Wiese
+const PLAETZE=[[22,28],[40,26],[58,26],[76,28],[13,53],[31,52],[49,51],[67,52],[85,53],[22,78],[40,77],[58,77],[76,78]];
+const NAME_ART={wald:"im Wald",hof:"auf dem Bauernhof",meer:"im Meer",savanne:"in der Savanne",dschungel:"im Dschungel",fabel:"bei den Fabelwesen"};
+let seite="wald", platz={}, ablage=[];          // platz: {nr: tierId} auf der Waldseite; ablage: Liste von Tier-Ids
+function stickerHTML(id){ const t=TIERE[id];
+  return GEMALT.includes(id) ? `<img src="bilder/heft/sticker_${id}.webp" alt="${t[1]}">` : `<span class="emo">${t[0]}</span>`; }
+function zaehle(){ const n=Object.keys(platz).length; $("zahl").textContent=`🌲 Wald und Wiese: ${n} von 13 eingeklebt`; }
+function zeigeReiter(){
+  $("reiter").innerHTML=SEITEN.map(s=>`<button data-s="${s[0]}" class="${s[0]===seite?"an":""}" style="background:${s[3]}"><span class="ic">${s[1]}</span><span class="nm">${s[2]}</span></button>`).join("");
+  $("reiter").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.s!==seite){ seite=b.dataset.s; zeigeSeite(true); zeigeReiter(); } });
+}
+function zeigeSeite(blatt){
+  const S=$("seite"), s=SEITEN.find(x=>x[0]===seite);
+  S.style.backgroundImage = BILD[seite] ? `url(${BILD[seite]})` : "none";
+  S.style.backgroundColor = BILD[seite] ? "" : "#fefce8";
+  if(seite!=="wald"){ S.innerHTML=`<div class="seitentitel">${s[1]} ${s[2]}</div><div class="leer"><span style="font-size:46px">${s[1]}</span>Diese Seite malt Herr Svyetnyenko gerade.<br>In der Probe gibt es nur die Waldseite.</div>`; }
+  else {
+    S.innerHTML=`<div class="seitentitel">🌲 Wald und Wiese</div>`+PLAETZE.map(([x,y],i)=>{ const id=platz[i];
+      return `<div class="platz" data-p="${i}" style="left:${x}%;top:${y}%"><span class="pn">${i+1}</span>${id?`<div class="st s${TIERE[id][3]}" data-id="${id}" data-von="${i}">${stickerHTML(id)}</div>`:""}</div>`; }).join("");
+    S.querySelectorAll(".platz .st").forEach(ziehbar);
+  }
+  if(blatt){ S.classList.remove("blaettern"); void S.offsetWidth; S.classList.add("blaettern"); }
+  zaehle();
+}
+function zeigeAblage(neu){
+  const zahl={}; ablage.forEach(id=>zahl[id]=(zahl[id]||0)+1);
+  $("reihe").innerHTML = ablage.length ? Object.keys(zahl).map((id,k)=>`<div class="st s${TIERE[id][3]}${neu?" neu":""}" data-id="${id}" style="animation-delay:${k*0.12}s">${stickerHTML(id)}${zahl[id]>1?`<span class="anz">×${zahl[id]}</span>`:""}<span class="wo">${TIERE[id][1]}</span></div>`).join("")
+    : `<span style="color:#94a3b8">Alle Sticker sind eingeklebt. Öffne eine neue Tüte!</span>`;
+  $("reihe").querySelectorAll(".st").forEach(ziehbar);
+}
+function meldung(t){ document.querySelectorAll(".meldung").forEach(m=>m.remove()); const m=document.createElement("div"); m.className="meldung"; m.textContent=t; document.body.appendChild(m); setTimeout(()=>m.remove(),2600); }
+// Ziehen mit Finger oder Maus
+function ziehbar(el){
+  el.addEventListener("pointerdown", ev=>{
+    if(ev.button>0) return; ev.preventDefault();
+    const id=el.dataset.id, von=el.dataset.von, sx=ev.clientX, sy=ev.clientY; let g=null, ziel=null;
+    const mv=e=>{
+      if(!g && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ g=document.createElement("div"); g.className="geist st s"+TIERE[id][3]; g.innerHTML=stickerHTML(id); document.body.appendChild(g); el.style.opacity=".3"; }
+      if(!g) return; g.style.left=e.clientX+"px"; g.style.top=e.clientY+"px";
+      const unter=document.elementFromPoint(e.clientX,e.clientY), p=unter&&unter.closest(".platz");
+      if(ziel && ziel!==p) ziel.classList.remove("ziel"); ziel=p; if(p) p.classList.add("ziel");
+    };
+    const ende=e=>{
+      removeEventListener("pointermove",mv); removeEventListener("pointerup",ende); removeEventListener("pointercancel",ende);
+      el.style.opacity=""; if(ziel) ziel.classList.remove("ziel");
+      if(!g) return; g.remove();
+      if(e.type!=="pointerup") return;
+      const unter=document.elementFromPoint(e.clientX,e.clientY), p=unter&&unter.closest(".platz");
+      if(p) legeAuf(id, +p.dataset.p, von); else if(von!==undefined && !unter.closest(".seite")){ delete platz[von]; ablage.push(id); zeigeSeite(); zeigeAblage(); }
+    };
+    addEventListener("pointermove",mv); addEventListener("pointerup",ende); addEventListener("pointercancel",ende);
+  });
+}
+function legeAuf(id, nr, von){
+  const t=TIERE[id];
+  if(t[2]!==seite){                                   // falsche Seite: zurück, richtiges Lesezeichen zeigt sich
+    meldung(`${t[0]} ${t[1]==="Kuh"?"Die Kuh":t[1]==="Delfin"?"Der Delfin":t[1]} wohnt ${NAME_ART[t[2]]} – blättere zur richtigen Seite!`);
+    const r=$("reiter").querySelector(`[data-s="${t[2]}"]`); if(r){ r.classList.remove("zeig"); void r.offsetWidth; r.classList.add("zeig"); } return; }
+  if(von===undefined && Object.values(platz).includes(id)){ meldung(`${t[0]} Diesen Sticker hast du schon eingeklebt – das ist ein doppelter.`); return; }
+  const alt=platz[nr];
+  if(von!==undefined){ delete platz[von]; if(alt) platz[von]=alt; }      // auf der Seite umsetzen = tauschen
+  else { ablage.splice(ablage.indexOf(id),1); if(alt) ablage.push(alt); }
+  platz[nr]=id; zeigeSeite(); zeigeAblage();
+  const neu=$("seite").querySelector(`.platz[data-p="${nr}"] .st`); if(neu) neu.classList.add("klebt");
+  if(Object.keys(platz).length===13) meldung("🎉 Die Waldseite ist voll!");
+}
+$("tueteBtn").onclick=()=>{ ablage=ablage.concat(["wolf","fuchs","igel","hirsch","eule","kuh","delfin","wolf"].filter(id=>id!=="wolf"||!ablage.includes("wolf"))); zeigeAblage(true); };
+const auf=()=>{ $("umschlag").style.display="none"; $("buch").style.display="block"; zeigeReiter(); zeigeSeite(true); zeigeAblage(); };
+$("cover").onclick=auf; $("aufBtn").onclick=auf;
+$("zuBtn").onclick=()=>{ $("buch").style.display="none"; $("umschlag").style.display="flex"; };
+ablage=["wolf","fuchs","igel","hirsch","eule","kuh","delfin"];
+</script>
+</body>
+</html>
