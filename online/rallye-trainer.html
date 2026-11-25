@@ -146,6 +146,10 @@
     top:50%;right:4%;transform:translateY(-50%);transition:height 1.2s ease;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
   .zielobj.licht{mix-blend-mode:screen;filter:none}
   .zielobj.zurueck{right:auto;left:-6%;opacity:.9}
+  /* Deutschlandreise: Wahrzeichen steht auf dem Land hinter der Straße (--sb = Anteil der Straße), wächst mit --zg */
+  .zielobj.land{top:auto;transform:none;right:3%;bottom:calc(var(--sb) * 100% - 3px);height:calc(var(--zg) * (100% - var(--sb) * 100%));
+    max-width:48%;object-position:right bottom;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45))}
+  .strasse.bild.gemalt .mittellinie{display:none}
   .reise{margin-top:10px;background:#0b1220;border:1px solid var(--card2);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.45}
   .rleiste{display:flex;align-items:center;gap:0;margin:9px 2px 8px;position:relative}
   .rleiste::before{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:#334155}
@@ -409,6 +413,7 @@
 <script src="sicher.js?v=20261125b"></script>
 <script src="tank.js"></script>
 <script src="weltraum-reise.js?v=20261123a"></script>
+<script src="deutschland-reise.js?v=20261125a"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -1093,11 +1098,58 @@ const RAUM_Y=[-8,-96,-44,-132,-66,-114,-22,-78,-140,-52,-104,-30];
 const RAUM_GR=[30,19,25,15,27,17,22,32,14,24,18,28];
 // Gemalte Hintergründe je Welt und Strecke (bilder/rallye/bg_<welt><nr>_oben/_strasse.webp, aus hintergrund_bauen.py):
 // strasse = Anteil der Straße an der Bildhöhe, seite = Kachelbreite / Bildhöhe. Fehlt eine Strecke, nimmt die Welt ihr erstes Bild.
-const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417}, pferd1:{strasse:0.3224, seite:4.0} };
+const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417}, pferd1:{strasse:0.3224, seite:4.0},
+  // Deutschlandreise (25.11.2026): eine Landschaft je Region, die Straße ist schon gemalt (gemalt:1 = ohne extra Mittellinie)
+  denord:{strasse:0.3167, seite:2.9167, gemalt:1}, deost:{strasse:0.2771, seite:2.9167, gemalt:1},
+  dewest:{strasse:0.2729, seite:2.9167, gemalt:1}, desued:{strasse:0.2812, seite:2.9167, gemalt:1} };
 // Gemalte Hindernisse: seite = Höhe/Breite, tafel = leere Tafel (links, oben, rechts, unten als Anteil) – dort steht die Aufgabe
 const HIND_BILD={ auto:{seite:0.49, tafel:[0.124,0.095,0.877,0.57]}, pferd:{seite:0.5, tafel:[0.236,0.274,0.765,0.719]},
   rakete:{seite:0.96, tafel:[0.132,0.311,0.847,0.681]} };
-function bgFuer(){ if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
+function bgFuer(){
+  if(welt==="auto"){ const b=STADT[reiseStand("auto").i].bg; if(BG_BILD[b]) return b; }
+  if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
+
+//// ===== Deutschlandreise (25.11.2026, Bilder von der Lehrkraft) =====
+// Wie die Weltraum-Reise: jedes neue Auto = eine neue Stadt. Das Wahrzeichen der nächsten Stadt steht rechts
+// auf dem Land und wird mit jeder Runde größer. Landschaft je Region (Hamburg behält die Speicherstadt).
+// Bilder: bilder/rallye/de_<id>.webp (seite = Höhe/Breite). Karte und Steckbriefe: deutschland-reise.js
+const STADT=[
+  {id:"hamburg",name:"Hamburg",bg:"auto1",seite:0.986,fakt:"Hamburg hat über 2 500 Brücken – mehr als Venedig und Amsterdam zusammen."},
+  {id:"kiel",name:"Kiel",bg:"denord",seite:0.886,fakt:"Jedes Jahr im Juni ist in Kiel die Kieler Woche – das größte Segelfest der Welt."},
+  {id:"schwerin",name:"Schwerin",bg:"denord",seite:0.719,fakt:"Das Schweriner Schloss steht auf einer Insel im See."},
+  {id:"berlin",name:"Berlin",bg:"deost",seite:0.95,fakt:"Berlin ist die Hauptstadt Deutschlands. Auf dem Brandenburger Tor steht ein Wagen mit vier Pferden."},
+  {id:"potsdam",name:"Potsdam",bg:"deost",seite:0.633,fakt:"„Sanssouci“ ist Französisch und heißt „ohne Sorge“."},
+  {id:"dresden",name:"Dresden",bg:"deost",seite:1.443,fakt:"Die Frauenkirche in Dresden wurde wieder aufgebaut – die alten Steine sind dunkler als die neuen."},
+  {id:"erfurt",name:"Erfurt",bg:"deost",seite:0.695,fakt:"Auf der Krämerbrücke in Erfurt stehen Häuser, in denen Menschen wohnen."},
+  {id:"magdeburg",name:"Magdeburg",bg:"deost",seite:0.807,fakt:"In Magdeburg fahren Schiffe auf einer Brücke über die Elbe."},
+  {id:"hannover",name:"Hannover",bg:"denord",seite:0.862,fakt:"Im Rathaus von Hannover fährt ein Aufzug schräg im Bogen bis in die Kuppel."},
+  {id:"bremen",name:"Bremen",bg:"denord",seite:0.974,fakt:"Im Märchen kommen die Bremer Stadtmusikanten nie in Bremen an!"},
+  {id:"duesseldorf",name:"Düsseldorf",bg:"dewest",seite:1.141,fakt:"Lichter am Düsseldorfer Rheinturm zeigen die Uhrzeit an."},
+  {id:"koeln",name:"Köln",bg:"dewest",seite:1.037,fakt:"Am Kölner Dom wurde über 600 Jahre lang gebaut."},
+  {id:"mainz",name:"Mainz",bg:"dewest",seite:1.002,fakt:"In Mainz erfand Johannes Gutenberg den Buchdruck mit beweglichen Buchstaben."},
+  {id:"wiesbaden",name:"Wiesbaden",bg:"dewest",seite:0.59,fakt:"In Wiesbaden kommt heißes Wasser aus der Erde – aus über 20 Quellen."},
+  {id:"frankfurt",name:"Frankfurt",bg:"dewest",seite:1.017,fakt:"Frankfurt hat die meisten Hochhäuser Deutschlands."},
+  {id:"saarbruecken",name:"Saarbrücken",bg:"dewest",seite:0.95,fakt:"Saarbrücken liegt ganz nah an Frankreich."},
+  {id:"stuttgart",name:"Stuttgart",bg:"desued",seite:1.321,fakt:"Der Stuttgarter Fernsehturm war der erste Fernsehturm der Welt aus Beton."},
+  {id:"nuernberg",name:"Nürnberg",bg:"desued",seite:0.807,fakt:"Von Nürnberg nach Fürth fuhr 1835 die erste Eisenbahn in Deutschland."},
+  {id:"muenchen",name:"München",bg:"desued",seite:0.912,fakt:"Im Rathausturm von München tanzen bunte Figuren zum Glockenspiel."},
+  {id:"zugspitze",name:"Zugspitze",bg:"desued",seite:0.743,fakt:"Die Zugspitze ist mit 2 962 Metern der höchste Berg Deutschlands.",nach:"auf die Zugspitze",kurz:"die Zugspitze"}];
+STADT.forEach(z=>{ z.nach=z.nach||"nach "+z.name; z.kurz=z.kurz||z.name; });
+// Weltraum- oder Deutschlandreise: ziel = nächster Ort, hier = erreichter Ort
+function reiseZiele(w){ return w==="auto" ? STADT : ZIELE; }
+// Auto: das Wahrzeichen der nächsten Stadt steht rechts auf dem Land (unten = Straßenkante) und wächst mit jeder Runde
+function landZielHTML(strasse){
+  const r=reiseStand("auto"), z=r.ende?r.hier:r.ziel, gr=r.ende?0.95:0.3+0.62*r.t;
+  return `<img class="zielobj land" src="bilder/rallye/de_${z.id}.webp" alt="" style="--zg:${gr.toFixed(3)};--sb:${strasse.toFixed(4)};--zs:${z.seite}">`;
+}
+function deReiseKarteHTML(){
+  const r=reiseStand("auto");
+  const punkte=STADT.map((z,k)=>`<span class="rp${k<=r.i?" da":""}${k===r.i+1?" naechst":""}" title="${z.name}">${k===r.i?"🚗":""}</span>`).join("");
+  return `<div class="reise"><div class="rkopf">🗺️ <b>Deine Reise durch Deutschland</b> · ${r.ende?"Du bist am Ziel: ganz oben auf der Zugspitze!":`Du fährst von ${r.hier.name} ${r.ziel.nach}`}</div>
+    <div class="rleiste">${punkte}</div>
+    <div class="rfakt">💡 <b>Wusstest du?</b> ${r.hier.fakt}</div>
+    <button class="ghost" id="karteBtn" style="width:100%;margin-top:9px">🗺️ Deutschlandkarte öffnen – alles über die Städte, in denen du warst</button></div>`;
+}
 
 //// ===== Weltraum-Reise (23.11.2026, Idee der Lehrkraft) =====
 // Jedes neue Raumschiff = ein neues Reiseziel: von der Sonne an allen Planeten vorbei bis zur Andromeda-Galaxie.
@@ -1113,12 +1165,13 @@ const ZIELE=[
 const ZIEL_DA={}; ZIELE.forEach(z=>ZIEL_DA[z.id]=1);         // 23.11.2026: alle 20 Ziele gemalt
 const HIMMEL={raum1:6.0, raum2:6.0, raum3:6.0};                                    // seite = Kachelbreite / Höhe; raum1 Ziele 1–5, raum2 6–12, raum3 13–20
 // Wo ist die Reise? i = Nummer des Raumschiffs (0–19), t = 0…1 Weg zum nächsten Ziel
-function reiseStand(){
-  const L=FAHRZEUGE.filter(f=>f.welt==="rakete"), g=weltRunden("rakete"), p=weltProfi("rakete");
+function reiseStand(w){
+  w = w || (welt==="auto" ? "auto" : "rakete"); const Z=reiseZiele(w);
+  const L=FAHRZEUGE.filter(f=>f.welt===w), g=weltRunden(w), p=weltProfi(w);
   let i=0; L.forEach((f,k)=>{ if(istOffen(f,g,p)) i=k; });
   const cur=L[i], nxt=L[i+1]; let t=1;
   if(nxt) t = !nxt.pab ? (g-cur.ab)/(nxt.ab-cur.ab) : g<GARAGE_VOLL ? 0 : (p-(cur.pab||0))/(nxt.pab-(cur.pab||0));
-  return {i, t:Math.max(0,Math.min(1,t)), ziel:ZIELE[Math.min(i+1,ZIELE.length-1)], hier:ZIELE[i], ende:!nxt};
+  return {i, t:Math.max(0,Math.min(1,t)), ziel:Z[Math.min(i+1,Z.length-1)], hier:Z[i], ende:!nxt};
 }
 // „Wusstest du?" – ein kurzer, richtiger Satz pro Ziel (von der Lehrkraft zu prüfen)
 const FAKTEN=[
@@ -1195,7 +1248,8 @@ function bahnHTML(){
   if(bg){
     const p=(BG_BILD[bg].strasse*100).toFixed(2), q="bilder/rallye/bg_"+bg;
     return `<div class="bgOben" style="bottom:${p}%"><div class="bgBand" data-e="oben" style="background-image:url(${q}_oben.webp)"></div></div>
-      <div class="strasse bild" style="height:${p}%"><div class="bgBand" data-e="strasse" style="background-image:url(${q}_strasse.webp)"></div><div class="mittellinie"></div></div>
+      ${welt==="auto" ? landZielHTML(BG_BILD[bg].strasse) : ""}
+      <div class="strasse bild${BG_BILD[bg].gemalt?" gemalt":""}" style="height:${p}%"><div class="bgBand" data-e="strasse" style="background-image:url(${q}_strasse.webp)"></div><div class="mittellinie"></div></div>
       <div class="fahrzeug fz" style="left:6%">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, tune(), meinGold())}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
       <div class="hindernis hide hind"></div>
       <div class="ziel zielflagge">🏁</div>`;
@@ -1289,9 +1343,11 @@ function zeigeStart(){
   zeigeTitelUndProfi();
   zeigeWelten(); zeigeStrecken();
   zeichneBahn($("vorschau"));
-  $("reiseKarte").innerHTML = welt==="rakete" ? reiseKarteHTML() : "";
+  $("reiseKarte").innerHTML = welt==="rakete" ? reiseKarteHTML() : welt==="auto" ? deReiseKarteHTML() : "";
   if(welt==="rakete"){ const k=$("reiseKarte").querySelector(".reise");
     k.style.cursor="pointer"; k.onclick=()=>{ if(window.Reise) Reise.oeffnen(reiseStand()); }; }
+  if(welt==="auto"){ const k=$("reiseKarte").querySelector(".reise");
+    k.style.cursor="pointer"; k.onclick=()=>{ if(window.DReise) DReise.oeffnen(reiseStand("auto")); }; }
   const h=$("vorschau").querySelector(".hind");
   if(h){ h.classList.remove("hide"); h.innerHTML="7 + 8"; }
   zeigeTank();
@@ -1327,7 +1383,8 @@ function zeigeTitelUndProfi(){
   }
   if(wg<GARAGE_VOLL){
     const nd=naechstesDing(wg,wp);
-    const reise = welt==="rakete" ? ` · 🪐 nächstes Reiseziel: <b>${reiseStand().ziel.kurz}</b>` : "";
+    const reise = welt==="rakete" ? ` · 🪐 nächstes Reiseziel: <b>${reiseStand().ziel.kurz}</b>`
+                : welt==="auto" && !reiseStand("auto").ende ? ` · 🗺️ nächstes Reiseziel: <b>${reiseStand("auto").ziel.kurz}</b>` : "";
     $("profiZeile").innerHTML = nd ? `<div class="info" style="margin:-2px 0 12px">${weltName()}: <b>${wg}</b> Runde${wg===1?"":"n"} in dieser Welt · noch <b>${nd.fehlt}</b> bis <b>${nd.x.name}</b>${reise}</div>` : "";
     return;
   }
@@ -1607,6 +1664,8 @@ function rundeFertig(){
   const neuFrei = freigeschaltetZwischen({g:vorher,p:pVorher,wg:wVorher,wp:wpVorher}, {g:nachher,p:pNachher,wg:wNachher,wp:wpNachher});
   if(welt==="rakete" && reiseStand().i>reiseVorher){ const z=reiseStand().hier;
     neuFrei.unshift(`🪐 Angekommen: ${z.kurz}!\n💡 Wusstest du? ${z.fakt}`); }
+  if(welt==="auto" && reiseStand("auto").i>reiseVorher){ const z=reiseStand("auto").hier;
+    neuFrei.unshift(`🗺️ Angekommen: ${z.kurz}!\n💡 Wusstest du? ${z.fakt}`); }
   if(!f1Vorher && f1Offen()) neuFrei.push("🏆 Strecke Formel 1");
   if(levelFuer(strecke)>levelVorher) neuFrei.push(`⬆️ ${st(strecke).name}: Level ${levelFuer(strecke)+1} – jetzt wird es schwerer`);
   if(wVorher<GARAGE_VOLL && wNachher>=GARAGE_VOLL) neuFrei.push(`⭐ Die Profi-Garage ${weltName()} ist offen!`);
