@@ -23,7 +23,7 @@
     color:var(--text);
     font-family:"Segoe UI",system-ui,sans-serif;
     display:flex;flex-direction:column;align-items:center;
-    padding:18px;gap:16px;overflow:hidden;
+    padding:18px;gap:16px;overflow-x:hidden;overflow-y:auto;   /* 26.11.2026: kleine Bildschirme (1280×720) können wieder scrollen */
   }
 
   h1{font-size:1.5rem;margin:0;font-weight:650;letter-spacing:.02em}
@@ -112,12 +112,14 @@
   #report .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
   /* Vollbild */
-  body.full{padding:0;justify-content:center}
+  body.full{padding:0;justify-content:center;overflow:hidden}
   body.full h1,body.full .sub,body.full #hint{display:none}
   body.full #stage{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;box-shadow:none}
   body.full #meterWrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:min(90vw,900px);z-index:5}
-  body.full #controls{position:fixed;top:14px;right:14px;width:auto;opacity:.18;transition:opacity .2s}
-  body.full #controls:hover{opacity:1}
+  body.full #controls{position:fixed;top:14px;right:14px;left:auto;width:auto;max-width:min(560px,58vw);opacity:.18;transition:opacity .2s;
+    padding:10px 12px;gap:10px 14px;justify-content:flex-end}
+  body.full #controls:hover,body.full #controls:focus-within{opacity:1}   /* Tablet: Antippen zeigt die Knöpfe */
+  body.full label.slider input[type=range]{width:120px}
 </style>
 </head>
 <body>
@@ -339,11 +341,13 @@
     stats = newStats(lastFrame);
     repEl.hidden = true;
     level = 0;
+    wachHalten();
     requestAnimationFrame(loop);
   }
 
   function stop(){
     running = false;
+    wachLoslassen();
     if (stats) showReport();
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (audioCtx) audioCtx.close();
@@ -428,13 +432,41 @@
   sensEl.addEventListener("input",   () => store.set("sens", sensEl.value));
   smoothEl.addEventListener("input", () => store.set("smooth", smoothEl.value));
 
+  // Vollbild: Windows/Chrome/Edge normal, Safari (iPad, Mac) mit webkit-Namen.
+  // Wo es gar kein Vollbild gibt (iPhone), füllt die Seite wenigstens das ganze Fenster.
+  const de = document.documentElement;
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  function fsAn(){
+    try {
+      const f = de.requestFullscreen || de.webkitRequestFullscreen;
+      if (!f) { document.body.classList.add("full"); return; }
+      const p = f.call(de);
+      if (p && p.catch) p.catch(() => document.body.classList.add("full"));
+    } catch(e) { document.body.classList.add("full"); }
+  }
+  function fsAus(){
+    try {
+      if (fsEl()) { const f = document.exitFullscreen || document.webkitExitFullscreen; if (f) { const p = f.call(document); if (p && p.catch) p.catch(()=>{}); } }
+    } catch(e) {}
+    document.body.classList.remove("full");
+  }
   btnFull.addEventListener("click", () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+    (fsEl() || document.body.classList.contains("full")) ? fsAus() : fsAn();
   });
-  document.addEventListener("fullscreenchange", () => {
-    document.body.classList.toggle("full", !!document.fullscreenElement);
-  });
+  const fsWechsel = () => document.body.classList.toggle("full", !!fsEl());
+  document.addEventListener("fullscreenchange", fsWechsel);
+  document.addEventListener("webkitfullscreenchange", fsWechsel);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !fsEl()) document.body.classList.remove("full"); });
+
+  // Bildschirm wach halten, solange das Mikrofon läuft (sonst geht mitten in der Stunde das Display aus)
+  let wachSperre = null;
+  async function wachHalten(){
+    try { if ("wakeLock" in navigator && running && !wachSperre) { wachSperre = await navigator.wakeLock.request("screen");
+      wachSperre.addEventListener("release", () => { wachSperre = null; }); } } catch(e) { wachSperre = null; }
+  }
+  function wachLoslassen(){ try { if (wachSperre) wachSperre.release(); } catch(e) {} wachSperre = null; }
+  // beim Zurückkommen zum Tab gibt der Browser die Sperre frei – dann neu anfordern
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wachHalten(); });
 
   // Startbild
   showState(0);
