@@ -1102,11 +1102,16 @@ const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417}, pferd1:{strasse:0.3224, se
   // Deutschlandreise (25.11.2026): eine Landschaft je Region, die Straße ist schon gemalt (gemalt:1 = ohne extra Mittellinie)
   denord:{strasse:0.3167, seite:2.9167, gemalt:1}, deost:{strasse:0.2771, seite:2.9167, gemalt:1},
   dewest:{strasse:0.2729, seite:2.9167, gemalt:1}, desued:{strasse:0.2812, seite:2.9167, gemalt:1} };
+// 25.11.2026: Stadtpanoramen der Lehrkraft – je Stadt ein Bild (bg_de_<id>_oben/_strasse.webp, aus pano_bauen.py)
+Object.assign(BG_BILD, {"de_kiel": {strasse: 0.2812, seite: 3.1}, "de_schwerin": {strasse: 0.2812, seite: 2.9771}, "de_berlin": {strasse: 0.2792, seite: 3.1146}, "de_potsdam": {strasse: 0.275, seite: 2.9042}, "de_dresden": {strasse: 0.2667, seite: 2.9042}, "de_erfurt": {strasse: 0.2792, seite: 3.0771}, "de_magdeburg": {strasse: 0.2792, seite: 2.9979}, "de_hannover": {strasse: 0.2792, seite: 2.9562}, "de_bremen": {strasse: 0.2792, seite: 3.1146}, "de_duesseldorf": {strasse: 0.2708, seite: 2.9042}, "de_koeln": {strasse: 0.2792, seite: 2.9396}, "de_mainz": {strasse: 0.2792, seite: 3.0021}, "de_wiesbaden": {strasse: 0.2812, seite: 3.1187}, "de_frankfurt": {strasse: 0.2812, seite: 3.1}, "de_saarbruecken": {strasse: 0.2792, seite: 3.1146}, "de_stuttgart": {strasse: 0.2792, seite: 3.1104}, "de_nuernberg": {strasse: 0.2812, seite: 3.1}, "de_muenchen": {strasse: 0.2792, seite: 3.0958}, "de_zugspitze": {strasse: 0.2812, seite: 2.9896}});
 // Gemalte Hindernisse: seite = Höhe/Breite, tafel = leere Tafel (links, oben, rechts, unten als Anteil) – dort steht die Aufgabe
 const HIND_BILD={ auto:{seite:0.49, tafel:[0.124,0.095,0.877,0.57]}, pferd:{seite:0.5, tafel:[0.236,0.274,0.765,0.719]},
   rakete:{seite:0.96, tafel:[0.132,0.311,0.847,0.681]} };
 function bgFuer(){
-  if(welt==="auto" && DE_STRASSE){ const b=STADT[reiseStand("auto").i].bg; if(BG_BILD[b]) return b; }
+  // Auto: das Panorama der Stadt, in die man gerade fährt (am Ende: Zugspitze) – davor wächst ihr Wahrzeichen
+  // Start in Hamburg (Wunsch der Lehrkraft): die ersten 10 Runden die Speicherstadt, danach Kiel
+  if(welt==="auto" && DE_STRASSE){ const r=reiseStand("auto"); if(inHamburg(r)) return "auto1";
+    const b="de_"+(r.ende?r.hier:r.ziel).id; if(BG_BILD[b]) return b; }
   if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
 
 //// ===== Deutschlandreise (25.11.2026, Bilder von der Lehrkraft) =====
@@ -1114,7 +1119,8 @@ function bgFuer(){
 // auf dem Land und wird mit jeder Runde größer. Landschaft je Region (Hamburg behält die Speicherstadt).
 // Bilder: bilder/rallye/de_<id>.webp (seite = Höhe/Breite). Karte und Steckbriefe: deutschland-reise.js
 // 25.11.2026: Landschaften + einzelnes Wahrzeichen auf der Fahrbahn gefielen der Lehrkraft nicht – vorerst aus (Hamburg-Bild bleibt).
-const DE_STRASSE=false;
+// Danach malte sie 19 Stadtpanoramen im Stil von Hamburg – damit wieder an.
+const DE_STRASSE=true;
 const STADT=[
   {id:"hamburg",name:"Hamburg",bg:"auto1",seite:0.986,fakt:"Hamburg hat über 2 500 Brücken – mehr als Venedig und Amsterdam zusammen."},
   {id:"kiel",name:"Kiel",bg:"denord",seite:0.886,fakt:"Jedes Jahr im Juni ist in Kiel die Kieler Woche – das größte Segelfest der Welt."},
@@ -1140,8 +1146,11 @@ STADT.forEach(z=>{ z.nach=z.nach||"nach "+z.name; z.kurz=z.kurz||z.name; });
 // Weltraum- oder Deutschlandreise: ziel = nächster Ort, hier = erreichter Ort
 function reiseZiele(w){ return w==="auto" ? STADT : ZIELE; }
 // Auto: das Wahrzeichen der nächsten Stadt steht rechts auf dem Land (unten = Straßenkante) und wächst mit jeder Runde
+function inHamburg(r){ return r.i===0 && r.t<0.5; }
 function landZielHTML(strasse){
-  const r=reiseStand("auto"), z=r.ende?r.hier:r.ziel, gr=r.ende?0.95:0.3+0.62*r.t;
+  const r=reiseStand("auto"); if(inHamburg(r)) return "";                 // Hamburg: die Elbphilharmonie ist schon im Bild
+  const t = r.i===0 ? (r.t-0.5)/0.5 : r.t;                                 // Kiel: wächst ab Runde 10 bis zur Ankunft
+  const z=r.ende?r.hier:r.ziel, gr=r.ende?0.95:0.3+0.62*t;
   return `<img class="zielobj land" src="bilder/rallye/de_${z.id}.webp" alt="" style="--zg:${gr.toFixed(3)};--sb:${strasse.toFixed(4)};--zs:${z.seite}">`;
 }
 function deReiseKarteHTML(){
