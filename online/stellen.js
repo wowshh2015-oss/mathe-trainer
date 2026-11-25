@@ -52,7 +52,7 @@ window.Stellen=(function(){
     .stVorrat .stQ:active{cursor:grabbing;border-color:#fde68a}
     .stVorrat .stQ .bildQ{height:calc(var(--u)*10);display:flex;align-items:center}
     .stGeist{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%) scale(1.05);opacity:.9;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
-    .stTipp{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:6px}
+    .stTipp{text-align:center;color:#fde68a;font-size:12.5px;margin-top:6px}
     .stSync{margin-top:10px;background:#0b1220;border:1px solid var(--card2,#334155);border-radius:14px;padding:10px 12px;text-align:center}
     .stSync table{margin:0 auto 6px;border-collapse:collapse;font-weight:800}
     .stSync th{font-size:15px;padding:2px 14px;border-bottom:2px solid #475569}
