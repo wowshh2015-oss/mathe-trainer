@@ -1106,13 +1106,15 @@ const BG_BILD={ auto1:{strasse:0.2841, seite:1.8417}, pferd1:{strasse:0.3224, se
 const HIND_BILD={ auto:{seite:0.49, tafel:[0.124,0.095,0.877,0.57]}, pferd:{seite:0.5, tafel:[0.236,0.274,0.765,0.719]},
   rakete:{seite:0.96, tafel:[0.132,0.311,0.847,0.681]} };
 function bgFuer(){
-  if(welt==="auto"){ const b=STADT[reiseStand("auto").i].bg; if(BG_BILD[b]) return b; }
+  if(welt==="auto" && DE_STRASSE){ const b=STADT[reiseStand("auto").i].bg; if(BG_BILD[b]) return b; }
   if(BG_BILD[welt+strecke]) return welt+strecke; for(let n=1;n<=5;n++) if(BG_BILD[welt+n]) return welt+n; return null; }
 
 //// ===== Deutschlandreise (25.11.2026, Bilder von der Lehrkraft) =====
 // Wie die Weltraum-Reise: jedes neue Auto = eine neue Stadt. Das Wahrzeichen der nächsten Stadt steht rechts
 // auf dem Land und wird mit jeder Runde größer. Landschaft je Region (Hamburg behält die Speicherstadt).
 // Bilder: bilder/rallye/de_<id>.webp (seite = Höhe/Breite). Karte und Steckbriefe: deutschland-reise.js
+// 25.11.2026: Landschaften + einzelnes Wahrzeichen auf der Fahrbahn gefielen der Lehrkraft nicht – vorerst aus (Hamburg-Bild bleibt).
+const DE_STRASSE=false;
 const STADT=[
   {id:"hamburg",name:"Hamburg",bg:"auto1",seite:0.986,fakt:"Hamburg hat über 2 500 Brücken – mehr als Venedig und Amsterdam zusammen."},
   {id:"kiel",name:"Kiel",bg:"denord",seite:0.886,fakt:"Jedes Jahr im Juni ist in Kiel die Kieler Woche – das größte Segelfest der Welt."},
@@ -1248,7 +1250,7 @@ function bahnHTML(){
   if(bg){
     const p=(BG_BILD[bg].strasse*100).toFixed(2), q="bilder/rallye/bg_"+bg;
     return `<div class="bgOben" style="bottom:${p}%"><div class="bgBand" data-e="oben" style="background-image:url(${q}_oben.webp)"></div></div>
-      ${welt==="auto" ? landZielHTML(BG_BILD[bg].strasse) : ""}
+      ${welt==="auto" && DE_STRASSE ? landZielHTML(BG_BILD[bg].strasse) : ""}
       <div class="strasse bild${BG_BILD[bg].gemalt?" gemalt":""}" style="height:${p}%"><div class="bgBand" data-e="strasse" style="background-image:url(${q}_strasse.webp)"></div><div class="mittellinie"></div></div>
       <div class="fahrzeug fz" style="left:6%">${mitTuning(fahrzeugSVG(fahrzeugId,farbe), fahrzeugId, tune(), meinGold())}${boost()?`<span class="flamme">${flammeIcon()}</span>`:""}</div>
       <div class="hindernis hide hind"></div>
