@@ -71,8 +71,10 @@
         r.onupgradeneeded=()=>{ try{ r.result.createObjectStore(IDB_STORE); }catch(e){} };
         r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); r.onblocked=()=>res(null); setTimeout(()=>res(null), 3000); }catch(e){ res(null); } });
     return idbP; }
+  // Hängt der Gerätespeicher (iPad/Safari), nach kurzer Zeit ohne ihn weiter (25.11.2026)
+  const mitFrist=(p,ms,ersatz)=>Promise.race([p, new Promise(r=>setTimeout(()=>r(ersatz),ms))]);
   async function vLies(k){ const d=await idb(); if(!d) return null;
-    return new Promise(res=>{ try{ const q=d.transaction(IDB_STORE,"readonly").objectStore(IDB_STORE).get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }catch(e){ res(null); } }); }
+    return mitFrist(new Promise(res=>{ try{ const q=d.transaction(IDB_STORE,"readonly").objectStore(IDB_STORE).get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }catch(e){ res(null); } }), 1500, null); }
   async function vSchreib(k,v){ const d=await idb(); if(!d) return;
     return new Promise(res=>{ try{ const t=d.transaction(IDB_STORE,"readwrite"); t.objectStore(IDB_STORE).put(v,k); t.oncomplete=()=>res(); t.onerror=()=>res(); t.onabort=()=>res(); }catch(e){ res(); } }); }
   // Zeitstempel (Firestore-Timestamp) in Millisekunden umwandeln, damit alles speicherbar ist
@@ -85,8 +87,14 @@
   function liste(docs){ return Object.keys(docs).map(id=>Object.assign({_id:id}, docs[id])); }
   const V=W.Vorrat={ zaehler:{voll:0,neu:0},
     // Einmal laden (Kinder-Seiten). name = Vorname oder null für die ganze Klasse. Liefert [{_id, ...daten}].
-    async lade(db, key, name){
-      const k="erg|"+key+"|"+(name==null?"*":name), jetzt=Date.now(), st=await stand(db);
+    lade(db, key, name){
+      // Sicherheitsnetz: dauert der Weg über den Vorrat zu lange oder geht schief, wie früher direkt alles holen
+      const direkt=()=>basis(db,key,name).get().then(s=>{ V.zaehler.voll+=s.size; return s.docs.map(d=>Object.assign({_id:d.id}, datenAus(d))); });
+      let fertig=false;
+      const weg=V._lade(db,key,name).then(l=>{ fertig=true; return l; });
+      return Promise.race([weg, new Promise(r=>setTimeout(r,5000))]).then(l=>fertig ? l : direkt()).catch(()=>direkt()); },
+    async _lade(db, key, name){
+      const k="erg|"+key+"|"+(name==null?"*":name), jetzt=Date.now(), st=await mitFrist(stand(db), 3000, -1);
       let c=await vLies(k);
       if(c && (c.stand!==st || jetzt-c.voll>WOCHE)) c=null;
       if(c){ try{ const s=await ab(basis(db,key,name), c.max).get(); V.zaehler.neu+=s.size;
@@ -126,4 +134,9 @@
         return {docs, size:docs.length, empty:!docs.length, forEach:f=>docs.forEach(f)}; }); },
     leeren(){ return idb().then(d=>{ if(d) try{ d.transaction(IDB_STORE,"readwrite").objectStore(IDB_STORE).clear(); }catch(e){} }); }
   };
+  // 25.11.2026: Auf den Schul-iPads gab es nach Einführung des Vorrats keine Verbindung zum Archiv.
+  // Darum auf iPad/iPhone vorerst ohne Vorrat – die Seiten laden dann wieder genau wie vorher.
+  // (iPads mit iPadOS melden sich als „Macintosh" mit Touch.) Zum Testen: ?vorrat=1 erzwingt ihn.
+  try{ const ua=navigator.userAgent||"", ios=/iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
+    if(ios && !/[?&]vorrat=1/.test(location.search)){ W._Vorrat=V; delete W.Vorrat; } }catch(e){}
 })();
