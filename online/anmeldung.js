@@ -221,7 +221,7 @@
             let neuOk=false;
             try{ await mitZeit(db.collection("geheim").doc(docId(name)).set({key:KEY, tier:id}), 10000);
                  // merge: „zurückgesetzt am" bleibt erhalten (Hinweis für das echte Kind, falls es das nicht selbst war)
-                 await mitZeit(ref.set({key:KEY, name:name, hatTier:true, fehl:0, seit, hilfe:firebase.firestore.FieldValue.delete(), hilfeAm:firebase.firestore.FieldValue.delete()}, {merge:true}), 10000); neuOk=true;
+                 await mitZeit(ref.set({key:KEY, name:name, hatTier:true, fehl:0, seit, hilfe:firebase.firestore.FieldValue.delete(), hilfeAm:firebase.firestore.FieldValue.delete(), geloescht:firebase.firestore.FieldValue.delete()}, {merge:true}), 10000); neuOk=true;
                  beweis(db, name, id).catch(()=>{}); }
             catch(e){ if(!(e && e.code==="permission-denied")) throw e; }
             // alte Datenbank-Regeln (vor der Umstellung): Tier wie bisher im Dokument speichern
