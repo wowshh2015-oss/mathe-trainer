@@ -25,7 +25,7 @@ window.Stellen=(function(){
     .stBrett{display:flex;gap:8px;background:#0b1220;border:2px solid var(--card2,#334155);border-radius:16px;padding:8px;min-height:calc(var(--u)*10 + 64px)}
     .stBrett.ziel{border-color:#fde68a;box-shadow:0 0 0 3px rgba(253,230,138,.25)}
     .stSp{flex:1 1 0;min-width:0;display:flex;flex-direction:column;border-radius:12px;background:rgba(148,163,184,.06)}
-    .stSp[data-s=H]{flex-grow:1.35}
+    .stSp[data-s=H]{flex-grow:1.35;min-width:min-content}
     .stKopf{text-align:center;font-weight:800;font-size:14px;padding:4px 0 2px;border-bottom:2px solid currentColor;margin:0 6px}
     .stKopf small{display:block;font-size:10.5px;font-weight:700;opacity:.85}
     .stFeld{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:3px;padding:7px 4px;min-height:calc(var(--u)*10 + 10px);position:relative}
@@ -73,7 +73,7 @@ window.Stellen=(function(){
   function teil(s){ return `<i class="st${s}"></i>`; }
   function feldHTML(s, n){
     if(!n) return `<span class="stLeer">–</span>`;
-    if(s==="H") return Array.from({length:n},(_,i)=>`<i class="stH" data-s="H" style="left:calc(50% - var(--u)*5 + ${i*5-((n-1)*5)/2}px);top:${7+i*5}px"></i>`).join("")+`<div style="height:calc(var(--u)*10 + ${(n-1)*5}px)"></div>`;
+    if(s==="H") return Array.from({length:n},(_,i)=>`<i class="stH" data-s="H" style="left:calc(50% - var(--u)*5 + ${i*5-((n-1)*5)/2}px);top:${7+i*5}px"></i>`).join("")+`<div style="height:calc(var(--u)*10 + ${(n-1)*5}px);width:calc(var(--u)*10 + ${(n-1)*5+4}px);margin:0 auto"></div>`;   // 25.11.2026: Platz für die Platten – sonst war die H-Spalte auf dem iPad zu schmal
     return Array.from({length:n},()=>`<i class="st${s}" data-s="${s}"></i>`).join("");
   }
   // Nur ein Bild (zum Ablesen oder als Antwort zum Antippen)
