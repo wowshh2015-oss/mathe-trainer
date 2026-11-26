@@ -4,6 +4,9 @@
 //   🔇/🔊 Ton        – kurze Töne für richtig/falsch. Startet AUS, damit es im Klassenraum leise bleibt.
 //   A  Schriftgröße – drei Stufen
 //   🔢 Zahlentasten – auf Tablets und Handys eigene große Tasten statt der Bildschirmtastatur
+// (26.11.2026) Helles Papier-Design: hell.js wird sofort mitgeladen; 🌙/☀️ in der Leiste schaltet um
+if(!window.Thema){ try{ if(document.readyState==="loading") document.write('<script src="hell.js?v=20261126a"><\/script>');
+  else { const s=document.createElement("script"); s.src="hell.js?v=20261126a"; document.head.appendChild(s); } }catch(e){} }
 (function(){
   const lies=(k,d)=>{ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } };
   const merke=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
@@ -174,6 +177,7 @@
       `<button type="button" data-k="ton" title="Ton an oder aus" aria-label="Ton an oder aus"></button>
        <button type="button" data-k="schrift" title="Schriftgröße" aria-label="Schriftgröße">A<small>A</small></button>`+
       (TOUCH?`<button type="button" data-k="tasten" title="Zahlentasten an oder aus" aria-label="Zahlentasten an oder aus">🔢</button>`:"")+
+      `<button type="button" data-k="thema" title="Hell oder dunkel" aria-label="Hell oder dunkel">${window.Thema && !Thema.hell ? "☀️" : "🌙"}</button>`+
       `<button type="button" data-k="hilfe" title="Anleitung für Eltern" aria-label="Anleitung für Eltern">❓</button>`;
     document.body.appendChild(l);
     const zeige=()=>{
@@ -189,6 +193,7 @@
         if(window.Anleitung) Anleitung.zeige();
         else{ const sc=document.createElement("script"); sc.src="anleitung.js"; sc.onload=()=>{ if(window.Anleitung) Anleitung.zeige(); }; document.head.appendChild(sc); }
       }
+      if(k==="thema" && window.Thema){ Thema.setze(Thema.hell ? "dunkel" : "hell"); return; }
       if(k==="ton"){ ton=!ton; merke("mathe_ton",ton?"an":"aus"); if(ton) klang("gut"); sage(ton?"Ton ist an":"Ton ist aus"); }
       if(k==="schrift"){ stufe=(stufe+1)%STUFEN.length; merke("mathe_schrift",String(stufe)); setzeSchrift(); sage("Schrift: "+NAMEN[stufe]); }
       if(k==="tasten"){ padAn=!padAn; merke("mathe_tasten",padAn?"an":"aus"); pflegePad(); sage(padAn?"Eigene Zahlentasten":"Tastatur des Geräts"); }
