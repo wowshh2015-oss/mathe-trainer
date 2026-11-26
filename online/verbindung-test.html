@@ -45,6 +45,16 @@ function ladeSkript(src){ return new Promise((res,rej)=>{ const s=document.creat
     await schritt("5. Geräte-Anmeldung starten", ()=>new Promise((res,rej)=>{ auth=c.auth(); const stop=auth.onAuthStateChanged(u=>{ stop(); res(u?"schon angemeldet":"noch nicht angemeldet"); }, rej); }));
     await schritt("6. Anonym anmelden", ()=>auth.currentUser ? Promise.resolve("war schon") : auth.signInAnonymously().then(()=>"angemeldet"));
     await schritt("7. Archiv lesen (mit Anmeldung)", ()=>c.firestore().collection("ergebnisse").where("key","==",KEY).limit(50).get().then(s=>s.size+" Einträge"));
+    // 8–11: genau wie die Trainer – gespeicherte Geräte-Anmeldung dieses iPads und das Archiv des Kindes, das hier zuletzt angemeldet war
+    let wer=""; try{ wer=localStorage.getItem("mathe_name")||""; }catch(e){}
+    const d=firebase.initializeApp(CONF); let authD;
+    await schritt("8. Gespeicherte Anmeldung dieses iPads", ()=>new Promise((res,rej)=>{ authD=d.auth(); const stop=authD.onAuthStateChanged(u=>{ stop(); res(u?"gefunden":"keine"); }, rej); }));
+    await schritt("9. Ausweis erneuern (Token)", ()=>authD.currentUser ? authD.currentUser.getIdToken(true).then(()=>"ok") : authD.signInAnonymously().then(()=>"neu angemeldet"));
+    if(wer){
+      const dbD=d.firestore();
+      await schritt(`10. Zoo-Archiv von „${wer}"`, ()=>dbD.collection("ergebnisse").where("key","==",KEY).where("app","==","zoo").where("name","==",wer).get().then(s=>s.size+" Zoo-Runden"));
+      await schritt(`11. Ganzes Archiv von „${wer}"`, ()=>dbD.collection("ergebnisse").where("key","==",KEY).where("name","==",wer).get().then(s=>s.size+" Einträge"));
+    } else zeile("10. Kein Kind auf diesem iPad angemeldet").textContent="–";
   }
   document.getElementById("nochmal").style.display="";
 })();
