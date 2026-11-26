@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verbindungs-Test</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;padding:16px;font-size:18px}
+h1{font-size:24px;margin:0 0 6px} .klein{font-size:13px;color:#94a3b8;word-break:break-all}
+.z{display:flex;gap:10px;align-items:center;padding:10px 12px;margin:8px 0;border-radius:10px;background:#1e293b}
+.z b{flex:1} .z span{font-weight:800;white-space:nowrap}
+.ok{color:#4ade80} .lang{color:#facc15} .fehl{color:#f87171} .warte{color:#94a3b8}
+button{font-size:18px;padding:12px 18px;border-radius:10px;border:0;background:#22c55e;color:#052e16;font-weight:800;margin-top:10px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head><body>
+<h1>🔌 Verbindungs-Test</h1>
+<div class="klein">Prüft Schritt für Schritt die Verbindung zum Klassen-Archiv. Liest nur, speichert keine Ergebnisse. Bitte am Ende ein Bildschirmfoto machen.</div>
+<div id="liste"></div>
+<button id="nochmal" style="display:none" onclick="location.reload()">🔄 Noch einmal testen</button>
+<div class="klein" id="ua" style="margin-top:14px"></div>
+<script>
+const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
+             projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
+const KEY="HL-GH7G-3T7W-N5S5-BV3C";
+document.getElementById("ua").textContent=navigator.userAgent+" · "+new Date().toLocaleString("de-DE");
+function zeile(t){ const d=document.createElement("div"); d.className="z"; d.innerHTML=`<b>${t}</b><span class="warte">…</span>`; document.getElementById("liste").appendChild(d); return d.querySelector("span"); }
+function frist(p,ms){ return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("keine Antwort nach "+ms/1000+" s")),ms))]); }
+async function schritt(text, f, ms=20000){ const s=zeile(text), t0=performance.now();
+  try{ const info=await frist(f(), ms); const sek=(performance.now()-t0)/1000;
+    s.className=sek<3?"ok":"lang"; s.textContent=(sek<3?"✅ ":"🐢 ")+sek.toFixed(1)+" s"+(info?" · "+info:""); return true; }
+  catch(e){ s.className="fehl"; s.textContent="❌ "+((e&&(e.code||e.message))||e); return false; } }
+function ladeSkript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=()=>res(""); s.onerror=()=>rej(new Error("Skript lädt nicht")); document.head.appendChild(s); }); }
+(async()=>{
+  await schritt("1. Gerätespeicher (IndexedDB)", ()=>new Promise((res,rej)=>{ try{ const r=indexedDB.open("verbindung-test",1); r.onsuccess=()=>{ try{ r.result.close(); }catch(e){} res(); }; r.onerror=()=>rej(new Error("Fehler")); r.onblocked=()=>rej(new Error("blockiert")); }catch(e){ rej(e); } }), 8000);
+  await schritt("1b. Ein Bild laden (Sticker-Seite, 140 KB)", ()=>new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(""); i.onerror=()=>rej(new Error("lädt nicht")); i.src="bilder/heft/seite_hof.webp?x="+Date.now(); }));
+  // 2. Archiv OHNE Geräte-Anmeldung (Auth-Skript ist noch gar nicht geladen)
+  const a=firebase.initializeApp(CONF,"ohne"); const dbA=a.firestore();
+  await schritt("2. Archiv lesen (ohne Anmeldung)", ()=>dbA.collection("ergebnisse").where("key","==",KEY).limit(50).get().then(s=>s.size+" Einträge"));
+  // 3. Archiv OHNE Anmeldung, aber mit „Long Polling" (andere Übertragungsart)
+  const b=firebase.initializeApp(CONF,"lp"); const dbB=b.firestore(); try{ dbB.settings({experimentalForceLongPolling:true}); }catch(e){}
+  await schritt("3. Archiv lesen (Long Polling)", ()=>dbB.collection("ergebnisse").where("key","==",KEY).limit(50).get().then(s=>s.size+" Einträge"));
+  // 4. Jetzt die Geräte-Anmeldung wie in den Trainern
+  const geladen=await schritt("4. Anmelde-Skript laden", ()=>ladeSkript("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"));
+  if(geladen){
+    const c=firebase.initializeApp(CONF,"mit"); let auth;
+    await schritt("5. Geräte-Anmeldung starten", ()=>new Promise((res,rej)=>{ auth=c.auth(); const stop=auth.onAuthStateChanged(u=>{ stop(); res(u?"schon angemeldet":"noch nicht angemeldet"); }, rej); }));
+    await schritt("6. Anonym anmelden", ()=>auth.currentUser ? Promise.resolve("war schon") : auth.signInAnonymously().then(()=>"angemeldet"));
+    await schritt("7. Archiv lesen (mit Anmeldung)", ()=>c.firestore().collection("ergebnisse").where("key","==",KEY).limit(50).get().then(s=>s.size+" Einträge"));
+  }
+  document.getElementById("nochmal").style.display="";
+})();
+</script>
+</body></html>
