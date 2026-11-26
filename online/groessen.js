@@ -1802,7 +1802,7 @@
   }
 
   // ---------- Ablauf ----------
-  let db=null, playerName="", MEINE=[], runde=null, wartet=false, timer=null, zeitRest=0, lauf=0, letzte=null, haufen=[];
+  let db=null, playerName="", MEINE=[], MEINE_DA=false, runde=null, wartet=false, timer=null, zeitRest=0, lauf=0, letzte=null, haufen=[];
   function zeige(id){ ["start","spiel","ergebnis"].forEach(s=>$(s).classList.toggle("hide", s!==id)); stoppZeit(); scrollTo(0,0); }
   function spaeter(ms){ const meiner=lauf; setTimeout(()=>{ if(meiner===lauf && runde) naechste(); }, ms); }
   function zeichneFortschritt(){ if(runde.blitz){ const f=runde.i-runde.richtig; $("fortschritt").innerHTML=`<span style="font-weight:800;color:#fde68a;font-size:17px">⚡ ${runde.richtig} richtig${f?` <span style="color:#fca5a5">· ${f} falsch</span>`:""}</span>`; return; }
@@ -2164,7 +2164,7 @@
   let HEFT_STAND;
   function ladeHeft(){ if(WAS!=="zoo" || !window.Heft || !db || !playerName) return; const wer=playerName;
     Heft.laden(db,KEY,wer).then(h=>{ if(wer!==playerName) return; HEFT_STAND=h; if(!$("start").classList.contains("hide")) zeigeMenue(); }); }
-  function oeffneHeft(){ if(!window.Heft) return; Heft.oeffnen({db, key:KEY, name:playerName, besitz:Zoo.zaehle(MEINE), zu:()=>{ ladeHeft(); }}); }
+  function oeffneHeft(){ if(!window.Heft || !MEINE_DA) return; Heft.oeffnen({db, key:KEY, name:playerName, besitz:Zoo.zaehle(MEINE), zu:()=>{ ladeHeft(); }}); }
   if(WAS==="zoo") window.ZooTest={ stufe:()=>zooStufeId(), name:id=>zooStufenName(id), fehler:()=>fremdeFehler(), geladen:()=>!!ALLE,
     runde:()=>baueRunde(stufe(zooStufeId())).map(a=>a.key), rundeAuf:id=>baueRunde(stufe(id)).map(a=>a.typ),
     klasse:()=>({inKlasse:inKlasse(), start:zooStartKlasse(), liste:KLASSEN_LISTE?KLASSEN_LISTE.length:null}) };   // nur zum Prüfen (liest, speichert nichts)
@@ -2548,11 +2548,14 @@
       if(lehrer) $("stufen").insertAdjacentHTML("afterbegin", inhalt+`<div style="font-size:13px;color:var(--muted);margin-bottom:6px">Lehrer-Gerät: alle Stufen zum Ausprobieren</div>`);
       else $("stufen").innerHTML=inhalt;
       $("stufen").querySelectorAll(".zooKl").forEach(b=>b.addEventListener("click", ()=>{ try{ localStorage.setItem("zoo_klasse_"+norm(playerName), b.dataset.kl); }catch(e){} zeigeMenue(); }));
-      const los=()=>{ if(waehlen || wartenAufListe){ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} return; } starte(stufe(zooStufeId())||STUFEN[0], "Training"); };
+      // 26.11.2026: Erst wenn das Archiv da ist, Heft und Runde freigeben (sonst zeigte das Heft auf dem iPad 0 Sticker)
+      const laedt = !MEINE_DA;
+      const los=()=>{ if(laedt) return; if(waehlen || wartenAufListe){ try{ $("stufen").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} return; } starte(stufe(zooStufeId())||STUFEN[0], "Training"); };
       // 26.11.2026: Tier-Sammelheft – die gewonnenen Tiere als Sticker einkleben (heft.js)
       const wartet = window.Heft && HEFT_STAND!==undefined ? Heft.wartend(HEFT_STAND, Zoo.zaehle(MEINE)) : 0;
-      const heftKnopf = window.Heft ? `<button id="heftBtn" class="ghost" style="width:100%;font-size:18px;padding:13px;margin-bottom:14px;border-color:#fde047;color:#fde68a">📖 Mein Tier-Sammelheft${wartet?` · 🎁 ${wartet} ${wartet===1?"neuer Sticker":"neue Sticker"}`:""}</button>` : "";
-      $("zooFeld").innerHTML=`<button id="zooLos" style="width:100%;font-size:19px;padding:15px;margin-bottom:10px">▶ Neue Tiere holen</button>`+heftKnopf+Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo");
+      const heftKnopf = window.Heft ? `<button id="heftBtn" class="ghost"${laedt?" disabled":""} style="width:100%;font-size:18px;padding:13px;margin-bottom:14px;border-color:#fde047;color:#fde68a">📖 Mein Tier-Sammelheft${laedt?" · ⏳ lädt …":wartet?` · 🎁 ${wartet} ${wartet===1?"neuer Sticker":"neue Sticker"}`:""}</button>` : "";
+      $("zooFeld").innerHTML=`<button id="zooLos"${laedt?" disabled":""} style="width:100%;font-size:19px;padding:15px;margin-bottom:10px">${laedt?"⏳ Dein Zoo wird geladen …":"▶ Neue Tiere holen"}</button>`+heftKnopf+(laedt?"":Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo"));
+      if(laedt) $("stufen").querySelectorAll(".zooLos2").forEach(b=>{ b.disabled=true; b.textContent="⏳ Dein Zoo wird geladen …"; });
       $("zooLos").addEventListener("click", los);
       if($("heftBtn")) $("heftBtn").addEventListener("click", oeffneHeft);
       $("stufen").querySelectorAll(".zooLos2").forEach(b=>b.addEventListener("click", los));
@@ -2575,12 +2578,13 @@
 
   function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
   function ladeMeine(){
-    if(!db || !playerName){ zeigeMenue(); return; }
+    if(!db || !playerName){ MEINE_DA=true; zeigeMenue(); return; }
+    MEINE_DA=false;
     (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
-      .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a)));
+      .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a))); MEINE_DA=true;
         $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
         if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); })
-      .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); zeigeMenue(); });
+      .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); MEINE_DA=true; zeigeMenue(); });
   }
   function konfetti(){
     const c=document.createElement("canvas"); c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999"; document.body.appendChild(c);

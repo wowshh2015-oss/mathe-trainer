@@ -56,6 +56,17 @@ function ladeSkript(src){ return new Promise((res,rej)=>{ const s=document.creat
       await schritt(`11. Ganzes Archiv von „${wer}"`, ()=>dbD.collection("ergebnisse").where("key","==",KEY).where("name","==",wer).get().then(s=>s.size+" Einträge"));
     } else zeile("10. Kein Kind auf diesem iPad angemeldet").textContent="–";
   }
+  // 12–13: die echten Seiten unsichtbar öffnen und messen, bis „Verbunden" dasteht (nur lesen, nichts spielen)
+  const seite=(datei)=>()=>new Promise((res,rej)=>{ const f=document.createElement("iframe"); f.style.cssText="position:absolute;left:-3000px;width:1024px;height:768px";
+    const t0=performance.now(); let geladen=0;
+    f.onload=()=>{ geladen=performance.now()-t0; };
+    const iv=setInterval(()=>{ try{ const st=f.contentDocument && f.contentDocument.getElementById("status"); const tx=st?st.textContent:"";
+        if(/Verbunden/.test(tx)){ clearInterval(iv); const r="Seite "+(geladen/1000).toFixed(1)+" s · "+tx.replace(/☁️\s*Verbunden\s*·\s*/,""); f.remove(); res(r); }
+        else if(/Keine Verbindung|Fehler/.test(tx)){ clearInterval(iv); f.remove(); rej(new Error(tx)); } }catch(e){} }, 100);
+    setTimeout(()=>{ clearInterval(iv); f.remove(); }, 29000);
+    f.src=datei+"?x="+Date.now(); document.body.appendChild(f); });
+  await schritt("12. Zoo-Seite öffnen", seite("zoo-trainer.html"), 30000);
+  await schritt("13. Wolkenkratzer öffnen", seite("turm-trainer.html"), 30000);
   document.getElementById("nochmal").style.display="";
 })();
 </script>
