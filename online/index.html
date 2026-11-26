@@ -482,7 +482,7 @@ function zeigeSchild(rows, name){
 }
 function zeigeHallo(rows, name){
   const mitGeschenken=rows;                              // für den Tank
-  rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft");   // Geschenke der Lehrkraft sind keine Durchgänge
+  rows=rows.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft" && e.app!=="zoobau");   // Geschenke der Lehrkraft sind keine Durchgänge
   zeigeSchild(rows, name);
   STERN_HTML=Sterne.bandHTML(mitGeschenken, name);       // Sterne und Sticker-Album (sterne.js)
   const box=$("hallo");

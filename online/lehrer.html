@@ -1353,7 +1353,7 @@ function tsZahl(e){ const p=String(e.datum||"").split("."); return +((p[2]||"0")
 function fuelleLoeschen(){
   const box=$("dNamen"); if(!box) return;
   const pro={};
-  ALLE.concat(GESCHENKE).forEach(e=>{ if(!e.name) return; const k=pro[e.name]=pro[e.name]||{n:0,letzt:0,datum:""}; if(e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft") k.n++; const t=tsZahl(e); if(t>k.letzt){ k.letzt=t; k.datum=e.datum||""; } });
+  ALLE.concat(GESCHENKE).forEach(e=>{ if(!e.name) return; const k=pro[e.name]=pro[e.name]||{n:0,letzt:0,datum:""}; if(e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft" && e.app!=="zoobau") k.n++; const t=tsZahl(e); if(t>k.letzt){ k.letzt=t; k.datum=e.datum||""; } });
   const namen=Object.keys(pro).sort((a,b)=> dSort==="abc" ? a.localeCompare(b,"de") : pro[a].letzt-pro[b].letzt || a.localeCompare(b,"de"));
   [...LOESCHEN].forEach(n=>{ if(!pro[n]) LOESCHEN.delete(n); });
   box.innerHTML = namen.length ? namen.map(n=>{ const k=pro[n], meins=KLASSE && KLASSE.includes(n);
@@ -1604,7 +1604,7 @@ $("tSchlBtn").addEventListener("click",()=>{
     const nimm=liste=>{
       ALLE=[]; GESCHENKE=[];
       liste.sort((a,b)=>a._id<b._id?-1:a._id>b._id?1:0);   // gleiche Reihenfolge wie früher vom Server (nach Dokument-ID)
-      liste.forEach(y=>{ const x=Object.assign({}, y); x.name=capName(x.name); delete x.key; delete x.geaendert; ((x.app==="tankgeschenk"||x.app==="sterngeschenk"||x.app==="heft")?GESCHENKE:ALLE).push(x); /* heft = Sticker-Sammelheft, kein Durchgang */ });
+      liste.forEach(y=>{ const x=Object.assign({}, y); x.name=capName(x.name); delete x.key; delete x.geaendert; ((x.app==="tankgeschenk"||x.app==="sterngeschenk"||x.app==="heft"||x.app==="zoobau")?GESCHENKE:ALLE).push(x); /* heft = Sticker-Sammelheft, kein Durchgang */ });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
       if(entsperrt) render();

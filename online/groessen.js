@@ -2164,6 +2164,10 @@
   let HEFT_STAND;
   function ladeHeft(){ if(WAS!=="zoo" || !window.Heft || !db || !playerName) return; const wer=playerName;
     Heft.laden(db,KEY,wer).then(h=>{ if(wer!==playerName) return; HEFT_STAND=h; if(!$("start").classList.contains("hide")) zeigeMenue(); }); }
+  let BAU_STAND=null;
+  function ladeBau(){ if(WAS!=="zoo" || !window.ZooBau || !db || !playerName) return; const wer=playerName;
+    ZooBau.laden(db,KEY,wer).then(b=>{ if(wer!==playerName) return; BAU_STAND=b; if(!$("start").classList.contains("hide")) zeigeMenue(); }); }
+  function oeffneBau(){ if(!window.ZooBau || !MEINE_DA) return; ZooBau.oeffnen({db, key:KEY, name:playerName, besitz:Zoo.zaehle(MEINE), rows:MEINE, zu:()=>{ ladeBau(); }}); }
   function oeffneHeft(){ if(!window.Heft || !MEINE_DA) return; Heft.oeffnen({db, key:KEY, name:playerName, besitz:Zoo.zaehle(MEINE), zu:()=>{ ladeHeft(); }}); }
   if(WAS==="zoo") window.ZooTest={ stufe:()=>zooStufeId(), name:id=>zooStufenName(id), fehler:()=>fremdeFehler(), geladen:()=>!!ALLE,
     runde:()=>baueRunde(stufe(zooStufeId())).map(a=>a.key), rundeAuf:id=>baueRunde(stufe(id)).map(a=>a.typ),
@@ -2554,10 +2558,13 @@
       // 26.11.2026: Tier-Sammelheft – die gewonnenen Tiere als Sticker einkleben (heft.js)
       const wartet = window.Heft && HEFT_STAND!==undefined ? Heft.wartend(HEFT_STAND, Zoo.zaehle(MEINE)) : 0;
       const heftKnopf = window.Heft ? `<button id="heftBtn" class="ghost"${laedt?" disabled":""} style="width:100%;font-size:18px;padding:13px;margin-bottom:14px;border-color:#fde047;color:#fde68a">📖 Mein Tier-Sammelheft${laedt?" · ⏳ lädt …":wartet?` · 🎁 ${wartet} ${wartet===1?"neuer Sticker":"neue Sticker"}`:""}</button>` : "";
-      $("zooFeld").innerHTML=`<button id="zooLos"${laedt?" disabled":""} style="width:100%;font-size:19px;padding:15px;margin-bottom:10px">${laedt?"⏳ Dein Zoo wird geladen …":"▶ Neue Tiere holen"}</button>`+heftKnopf+(laedt?"":Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo"));
+      // 26.11.2026: Mein Zoo bauen (zoobau.js) – Gehege mit den ⭐ aus den Zoo-Runden
+      const bauKnopf = window.ZooBau ? `<button id="bauBtn" class="ghost"${laedt?" disabled":""} style="width:100%;font-size:18px;padding:13px;margin-bottom:14px;border-color:#4ade80;color:#bbf7d0">🏞️ Meinen Zoo bauen${laedt?"":` · ⭐ ${ZooBau.verdient(MEINE)-(BAU_STAND&&+BAU_STAND.aus||0)}`}</button>` : "";
+      $("zooFeld").innerHTML=`<button id="zooLos"${laedt?" disabled":""} style="width:100%;font-size:19px;padding:15px;margin-bottom:10px">${laedt?"⏳ Dein Zoo wird geladen …":"▶ Neue Tiere holen"}</button>`+bauKnopf+heftKnopf+(laedt?"":Zoo.feldHTML(Zoo.zaehle(MEINE), "🦁 Mein Zoo"));
       if(laedt) $("stufen").querySelectorAll(".zooLos2").forEach(b=>{ b.disabled=true; b.textContent="⏳ Dein Zoo wird geladen …"; });
       $("zooLos").addEventListener("click", los);
       if($("heftBtn")) $("heftBtn").addEventListener("click", oeffneHeft);
+      if($("bauBtn")) $("bauBtn").addEventListener("click", oeffneBau);
       $("stufen").querySelectorAll(".zooLos2").forEach(b=>b.addEventListener("click", los));
     }
     entdeckenKarte();
@@ -2583,7 +2590,7 @@
     (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
       .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a))); MEINE_DA=true;
         $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
-        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); })
+        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); ladeBau(); })
       .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); MEINE_DA=true; zeigeMenue(); });
   }
   function konfetti(){

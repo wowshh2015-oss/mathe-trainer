@@ -67,7 +67,7 @@ function offeneFehler(rows){
   return offen;
 }
 function zeige(name, alle){
-  const r=alle.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft").sort((a,b)=>ts(b).localeCompare(ts(a)));
+  const r=alle.filter(e=>e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft" && e.app!=="zoobau").sort((a,b)=>ts(b).localeCompare(ts(a)));
   const d=new Date(), datum=`${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
   const kopf=`<h1>Lernstand von ${esc(name)}</h1><div class="klein">Mathe-Trainer · Schule Hohe Landwehr · Stand: ${datum}</div>`;
   if(!r.length){ $("seite").innerHTML=kopf+`<div class="leer">${esc(name)} hat im Mathe-Trainer noch nicht geübt.<br>Sobald die erste Runde gemacht ist, sehen Sie hier den Lernstand.</div>`; return; }
