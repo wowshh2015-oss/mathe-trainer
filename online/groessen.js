@@ -2127,7 +2127,18 @@
   function inKlasse(){ return !!(KLASSEN_LISTE && KLASSEN_LISTE.some(n=>norm(n)===norm(playerName))); }
   function gewaehlteKlasse(){ try{ return +(localStorage.getItem("zoo_klasse_"+norm(playerName))||0); }catch(e){ return 0; } }
   function zooStartKlasse(){ return inKlasse() ? KLASSEN_STUFE : gewaehlteKlasse(); }
-  function zooRunden(){ return MEINE.filter(e=>e.reihe!=="mine" && ZOO_LEITER.includes(+e.zr) && Array.isArray(e.gestellt) && tsKey(e)>=ZOO_AUTO_AB).slice().sort((a,b)=>tsKey(a).localeCompare(tsKey(b))); }
+  // 27.11.2026: auch die Rechenaufgaben im Wolkenkratzer (ab Etage 51, Feld rechnen{richtig,falsch,zr}) bewegen die Leiter –
+  // Etagen auf derselben Stufe werden gesammelt, bis es mindestens 15 Rechenaufgaben sind (≈ 3 Etagen); dieser Block zählt dann wie eine Zoo-Runde –
+  // hoch bei höchstens 1 Fehler, runter schon nach EINEM schwachen Block (höchstens die Hälfte richtig), damit niemand hängen bleibt.
+  function turmBloecke(){
+    const rows=(ALLE||[]).filter(e=>e.app==="turm" && e.rechnen && ZOO_LEITER.includes(+e.rechnen.zr) && tsKey(e)>=ZOO_AUTO_AB).slice().sort((a,b)=>tsKey(a).localeCompare(tsKey(b))||((a._t||0)-(b._t||0)));
+    const raus=[]; let b=null;
+    rows.forEach(e=>{ const r=e.rechnen, zr=+r.zr;
+      if(!b || b.zr!==zr) b={zr, richtig:0, falsch:0, datum:e.datum, zeit:e.zeit, gestellt:[], turm:true};
+      b.richtig+=(+r.richtig||0); b.falsch+=(+r.falsch||0); b.datum=e.datum; b.zeit=e.zeit;
+      if(b.richtig+b.falsch>=15){ raus.push(b); b=null; } });
+    return raus; }
+  function zooRunden(){ return MEINE.filter(e=>e.reihe!=="mine" && ZOO_LEITER.includes(+e.zr) && Array.isArray(e.gestellt) && tsKey(e)>=ZOO_AUTO_AB).concat(turmBloecke()).sort((a,b)=>tsKey(a).localeCompare(tsKey(b))); }
   function zooStufeId(){
     const rows=zooRunden();
     const nVon=e=>((+e.richtig||0)+(+e.falsch||0))||10, schwach=e=>(+e.richtig||0)*2<=nVon(e);
@@ -2136,7 +2147,7 @@
     else { let vorher=null;
       rows.forEach(e=>{ const j=ZOO_LEITER.indexOf(+e.zr);
         if((+e.richtig||0)>=nVon(e)-1) i=j+1;
-        else if(schwach(e) && vorher && +vorher.zr===+e.zr && schwach(vorher)) i=j-1;
+        else if(schwach(e) && (e.turm || (vorher && +vorher.zr===+e.zr && schwach(vorher)))) i=j-1;
         else i=j;
         vorher=e; }); }
     return ZOO_LEITER[Math.max(0, Math.min(ZOO_LEITER.length-1, i))];
@@ -2149,7 +2160,7 @@
   function ladeAlle(){
     if(WAS!=="zoo" || !db || !playerName) return; const wer=playerName;
     (window.Vorrat ? Vorrat.lade(db,KEY,wer) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",wer).get().then(s=>s.docs.map(d=>d.data())))
-      .then(l=>{ if(wer===playerName) ALLE=l; }).catch(()=>{});
+      .then(l=>{ if(wer===playerName){ ALLE=l; if(!$("start").classList.contains("hide")) zeigeMenue(); } }).catch(()=>{});      // Turm-Rechnen kann die Zoo-Stufe verändern
     if(KLASSEN_LISTE===null) db.collection("einstellungen").doc("freigabe").get().then(d=>{ const x=(d.exists && d.data())||{};
       KLASSEN_LISTE=Array.isArray(x.klasse)?x.klasse:[]; if(+x.klassenstufe>=1 && +x.klassenstufe<=4) KLASSEN_STUFE=+x.klassenstufe;
       if(!$("start").classList.contains("hide")) zeigeMenue(); }).catch(()=>{ KLASSEN_LISTE=[]; if(!$("start").classList.contains("hide")) zeigeMenue(); });
