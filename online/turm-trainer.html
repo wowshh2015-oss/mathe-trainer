@@ -10,7 +10,7 @@
 <script src="anmeldung.js?v=20261127a"></script>
 <script src="komfort.js"></script>
 <script src="wiederholung.js"></script>
-<script src="sterne.js?v=20261127a"></script>
+<script src="sterne.js?v=20261127b"></script>
 <style>
   /* Warmes Bilderbuch-Design: Pergament, goldener Rahmen, grüne Bau-Knöpfe */
   :root{ --bg:#f6ead0; --card:#fffaf0; --card2:#e5cf9f; --text:#3f2a14; --muted:#8a6a45; --accent:#2f855a; --accent2:#276749;
@@ -141,6 +141,24 @@
   .ak .anz{position:absolute;top:2px;right:4px;background:#0f766e;color:#fff;border-radius:9px;padding:0 6px;font-size:11px}
   .ak.fehlt{background:#e5e7eb;border-color:#cbd5e1;color:#64748b} .ak.fehlt .ersatz{background:#cbd5e1;color:#64748b;font-weight:900}
   .albumBalken{height:12px;background:#e5e7eb;border-radius:8px;overflow:hidden;margin:6px 0 2px} .albumBalken i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#eab308)}
+  /* Goldener Schlüssel und Drachenbuch (27.11.2026) */
+  .schluessel{margin-top:14px;border:3px solid #e5a50a;border-radius:18px;padding:14px 16px;background:linear-gradient(135deg,#fff7d6,#fde68a);box-shadow:0 0 14px rgba(229,165,10,.35);color:#5b3a06}
+  .schluessel h4{margin:0 0 6px;font:800 19px/1.3 "Segoe UI",Arial,sans-serif;color:#7c4a03} .schluessel p{margin:4px 0 10px;font-size:15px;line-height:1.4}
+  .schluessel button{background:linear-gradient(180deg,#facc15,#d97706);color:#3b2603;border:0;font-weight:800}
+  .schluessel button.ghost{background:transparent;color:#7c4a03;border:2px solid #d97706}
+  .auftraege{display:grid;gap:10px;margin-top:10px}
+  .auftrag{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;border-radius:14px;background:#fffaf0;border:2px solid #e3c98f;cursor:pointer;color:var(--text);font-size:15px;line-height:1.35}
+  .auftrag:hover{border-color:#d97706} .auftrag .ic{font-size:34px;flex:none} .auftrag b{font-size:17px;display:block}
+  .drWahl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+  .drK{background:#fffaf0;border:3px solid #e5a50a;border-radius:14px;padding:6px;text-align:center;cursor:pointer;font-weight:800;color:var(--text);box-shadow:0 0 10px rgba(229,165,10,.35)}
+  .drK img{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:10px;display:block;margin-bottom:5px} .drK small{display:block;font-weight:600;color:var(--muted)}
+  .drGross{width:100%;max-width:640px;display:block;margin:8px auto;border-radius:16px;border:3px solid #e5a50a}
+  .drBuch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+  .drB{position:relative;background:#fffaf0;border:3px solid #e5a50a;border-radius:12px;padding:5px;text-align:center;font-size:13px;font-weight:800;line-height:1.25;cursor:pointer;color:var(--text)}
+  .drB img{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:8px;display:block;margin-bottom:4px} .drB small{display:block;font-weight:600;color:var(--muted)}
+  .drB.zu{border-color:#cbd5e1;background:#e5e7eb;cursor:default;color:#64748b} .drB.zu img{filter:blur(7px) brightness(.6) saturate(.8);transform:scale(1.08)} .drB.zu .bildRahmen{overflow:hidden;border-radius:8px;margin-bottom:4px} .drB.zu .bildRahmen img{margin:0}
+  .drB.zu .schloss{position:absolute;left:0;right:0;top:20%;font-size:26px}
+  .steck{background:#fffaf0;border:2px solid #e3c98f;border-radius:14px;padding:12px 14px;margin-top:8px;font-size:16px;line-height:1.45;color:var(--text)}
 </style>
 </head>
 <body>
@@ -164,17 +182,20 @@
         <div class="seite"><div class="pk" id="naechster"></div><div class="pk" id="passKlein"></div></div>
       </div>
       <div id="tankZeile" style="margin-top:14px"></div>
+      <div id="schluesselBox"></div>
       <div class="bauen"><div class="auf">🧠 8 Fragen<br>⚡ 1 Sprit</div><button id="startBtn">🔨 Weiterbauen</button></div>
       <div class="reihe">
         <button class="ghost klein" id="ganzBtn">🏙️ Mein ganzer Turm</button>
         <button class="ghost klein hide" id="passBtn">🛂 Mein Reisepass</button>
         <button class="ghost klein" id="dachBtn">🏗️ Dach wählen</button>
         <button class="ghost klein" id="albumBtn">📒 Zimmer-Album</button>
+        <button class="ghost klein" id="drBuchBtn">🐉 Drachenbuch</button>
       </div>
       <div class="info" style="margin-top:14px">🧱 Pro Etage <b>8 richtige Antworten</b>, dafür hast du <b>3 Herzen</b>. Danach suchst du dir aus, was in die neue Etage kommt.<br>
         ✈️ Jede <b>10. Etage</b> ist eine <b>Reise-Etage</b>: Du fliegst in eine neue Stadt, bekommst einen Stempel in deinen Reisepass – und baust die nächsten Etagen im Stil dieser Stadt.<br>
         🏗️ Jede <b>20. Etage</b> bringt ein neues Dach.<br>
-        🧠 Hier übst du <b>Wissen</b>: Wochentage, Monate, Uhr, Geld, Längen, Gewichte und Formen.</div>
+        🔑 Für jede <b>Reise-Etage</b> gibt es einen <b>goldenen Schlüssel</b>. Mit einem Schlüssel und einer kleinen Aufgabe holst du dir ein <b>Drachenzimmer</b> – die gibt es nur so!<br>
+        🧠 Hier übst du <b>Wissen</b>: Wochentage, Monate, Uhr, Geld, Längen, Gewichte und Formen – ab Etage 51 auch <b>Rechnen</b>.</div>
       <div class="status" id="status">Verbinde …</div>
     </div>
   </div>
@@ -213,8 +234,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="sicher.js?v=20261125b"></script>
 <script src="tank.js"></script>
-<script src="turm.js?v=20261125a"></script>
+<script src="turm.js?v=20261127a"></script>
 <script src="turm-info.js"></script>
+<script src="hausaufgabe.js"></script>
 <script>window.GROESSE_NUR=true;</script>
 <script src="groessen.js?v=20261127d"></script>
 <script>
@@ -430,7 +452,12 @@ function oeffnung(st){ return BILD.fassaden[st.id] || OEFF_STD; }
 function etageSVG(e,y,z){ const st=stilVon(e), o=oeffnung(st), ox=TX+o[0]*TW, oy=y+o[1]*EH, ow=o[2]*TW, oh=o[3]*EH;
   let s="";
   // 1) innen: Zimmer, Reise-Halle oder Baustelle
-  if(istReise(e)){
+  const drA = istReise(e) ? drachenEtagen()[e] : null;
+  if(drA){
+    const ziel=zielStadt(e), bw=Math.min(ow*0.3,64);
+    s+=`<image href="bilder/turm/drache_${drA}.webp" x="${ox}" y="${oy}" width="${ow}" height="${oh}" preserveAspectRatio="xMidYMid slice"/>`+
+       `<rect x="${ox+4}" y="${oy+4}" width="${bw}" height="${oh*0.26}" rx="6" fill="#0b1220" opacity=".55"/><text x="${ox+4+bw/2}" y="${oy+4+oh*0.2}" font-size="${oh*0.18}" text-anchor="middle">✈️${ziel.b}</text>`;
+  }else if(istReise(e)){
     const ziel=zielStadt(e);
     s+=`<rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="${ziel.c}"/><rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="#0b1220" opacity=".55"/>`+
        `<text x="${ox+ow*0.2}" y="${oy+oh*0.62}" font-size="${oh*0.42}" text-anchor="middle">✈️</text><text x="${ox+ow*0.8}" y="${oy+oh*0.64}" font-size="${oh*0.46}" text-anchor="middle">${ziel.b}</text>`+
@@ -561,7 +588,7 @@ function zeigeStart(){
   $("etageGross").innerHTML=`${etage}. Stock<small>${esc(stufenText(etage))}</small>`;
   const staedte=Math.min(STAEDTE.length, Math.floor(h/REISE)+1);
   $("kopfRechts").innerHTML=`<div class="pill">${st.b} Du baust gerade in ${esc(st.name)}</div><div class="pill gold" style="margin-top:6px">🛂 ${staedte} von ${STAEDTE.length} Städten</div>`;
-  zeigeTank();
+  zeigeTank(); zeigeSchluessel();
   $("startBtn").textContent = tankLeer() ? "⚡ Erst Sprit tanken" : istReise(etage) ? `✈️ Reise-Etage ${etage}` : `🔨 Weiterbauen`;
   zeichneTurm($("turm"), h);
   zeigeSeite(h);
@@ -645,6 +672,7 @@ function fertig(ok){
       ${BILD.karten.includes(z.id)?`<img class="postkarte" src="bilder/turm/karte_${z.id}.webp" alt="${esc(z.name)}">`:""}
       <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
     $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten ${REISE} Etagen baust du im Stil von <b>${esc(z.name)}</b>.<br><button type="button" class="klein" id="mehrBtn" style="margin-top:10px">🔍 Mehr über ${esc(z.name)}</button>`+
+      (drStand().start!==null && e>drStand().start ? `<br><br>🔑 <b>Du hast einen goldenen Schlüssel bekommen!</b> Damit holst du dir ein Drachenzimmer – schau unten am Turm.` : "")+
       (e===RECHNEN_AB-1 && window.ZooKopf?`<br><br>🧮 <b>Ab jetzt baust du mit Wissen und Rechnen:</b> In jeder Etage kommen auch Rechenaufgaben – so schwer wie deine Zoo-Runden.`:"")+
       (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
     const mb=$("mehrBtn"); if(mb) mb.addEventListener("click", ()=>zeigePass(STAEDTE.indexOf(z)));
@@ -751,12 +779,159 @@ $("albumBtn").addEventListener("click", ()=>{
 });
 $("extraZu").addEventListener("click", ()=>{ stillsein(); zeige("start"); zeigeStart(); });
 
+
+//// ===== Goldener Schlüssel und Drachenbuch (27.11.2026, Idee und Bilder der Lehrkraft) =====
+// Jede Reise-Etage (10, 20, 30 …) bringt einen goldenen Schlüssel. Mit dem Schlüssel wählt das Kind 1 von 3 Aufträgen
+// (Hausaufgabe · schwache Stelle · Zoo-Runde) und macht EINE Runde mit mindestens 80 % richtig. Danach wählt es 1 von 3 Drachen.
+// Ein Drache zieht in eine Reise-Etage ein (die unterste ohne Drachen). Die 20 Drachen gibt es NUR mit Schlüssel.
+// Start (Lehrkraft): wer schon gebaut hat, bekommt einmalig Schlüssel – ab Etage 10: 1, ab 50: 2, ab 100: 3 – frühere Reise-Etagen zählen sonst nicht.
+// Gespeichert in „ergebnisse" als app:"drache" (eine Zeile je Kind und Gerät, zusammengeführt) – das ist KEIN Durchgang.
+const DRACHEN=TurmDaten.DRACHEN||[], DRN={}; DRACHEN.forEach(d=>DRN[d.id]=d);
+const AUFTRAG_QUOTE=0.8;
+let DRACHE_DOCS=null, drSchreibt=false;
+function drGeraet(){ try{ let g=localStorage.getItem("drache_geraet"); if(!g){ g=Math.random().toString(36).slice(2,10); localStorage.setItem("drache_geraet",g); } return g; }catch(e){ return "x"; } }
+function drEigeneId(){ return ("drache_"+playerName+"_"+drGeraet()).replace(/[\/\s.#\[\]]/g,"_"); }
+function ladeDrachen(){ if(!db || !playerName) return; const wer=playerName;
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==","drache").where("name","==",wer).get().then(s=>{ if(wer!==playerName) return;
+    DRACHE_DOCS=s.docs.map(d=>Object.assign({_id:d.id}, d.data())); drStartMerken();
+    if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart(); }).catch(()=>{}); }
+// zusammengeführter Stand aus allen Geräten
+function drStand(){
+  const drachen={}; let start=null, auftrag=null;
+  (DRACHE_DOCS||[]).forEach(d=>{
+    Object.entries(d.drachen||{}).forEach(([id,v])=>{ if(!DRN[id]) return; const am=+(v&&v.am)||0; if(!drachen[id] || am<drachen[id].am) drachen[id]={e:+(v&&v.e)||0, am}; });
+    if(d.start!=null && !isNaN(+d.start)) start = start===null ? +d.start : Math.min(start, +d.start);
+    if(d.auftrag && d.auftrag.seit && (!auftrag || +d.auftrag.seit>+auftrag.seit)) auftrag=d.auftrag; });
+  // ein Auftrag ist verbraucht, sobald danach ein Drache eingezogen ist
+  if(auftrag && Object.values(drachen).some(v=>v.am>=+auftrag.seit)) auftrag=null;
+  return {drachen, start, auftrag};
+}
+function startSchluessel(h0){ return h0>=10 ? Math.min(3, 1+Math.floor(h0/50)) : 0; }
+function schluesselStand(){
+  const st=drStand(), h=hoechste(), hat=Object.keys(st.drachen).length; if(st.start===null) return {verdient:0, hat, frei:0, st};
+  const verdient=startSchluessel(st.start)+Math.max(0, Math.floor(h/REISE)-Math.floor(st.start/REISE));
+  return {verdient, hat, frei:Math.max(0, Math.min(verdient, DRACHEN.length)-hat), st};
+}
+function drachenEtagen(){ const m={}; Object.entries(drStand().drachen).forEach(([id,v])=>{ if(v.e) m[v.e]=id; }); return m; }
+function drSchreib(neu, erneut){
+  if(!db || !playerName) return Promise.reject("ohne Verbindung");
+  const st=drStand(), n=new Date(), p=x=>String(x).padStart(2,"0");
+  const doc=Object.assign({ key:KEY, app:"drache", name:playerName, datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
+    start:st.start, drachen:Object.assign({}, st.drachen), auftrag:st.auftrag||null }, neu);
+  const id=drEigeneId();
+  return db.collection("ergebnisse").doc(id).set(doc).then(()=>{
+    DRACHE_DOCS=(DRACHE_DOCS||[]).filter(d=>d._id!==id).concat([Object.assign({_id:id}, doc)]); })
+    .catch(err=>{ if(!erneut && err && err.code==="permission-denied"){ try{ localStorage.removeItem("drache_geraet"); }catch(x){} return drSchreib(neu, true); } throw err; });
+}
+// Beim ersten Mal (Daten sicher vom Server): Höhe merken – daraus werden die Start-Schlüssel berechnet
+// (die Höhe kommt aus einer eigenen Abfrage beim Server – nicht aus dem Live-Abo, das zuerst leer aus dem Zwischenspeicher melden kann)
+function drStartMerken(){
+  if(drSchreibt || DRACHE_DOCS===null || drStand().start!==null || !playerName || !db) return;
+  drSchreibt=true; const wer=playerName;
+  db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",wer).get({source:"server"}).then(snap=>{
+    if(wer!==playerName) throw "anderes Kind";
+    let h=0; snap.forEach(d=>{ const x=d.data(); if(x.bestanden==="Ja" && +x.etage>h) h=+x.etage; });
+    return drSchreib({start:h}); })
+  .catch(()=>{}).then(()=>{ drSchreibt=false; if(!$("turmBox").classList.contains("hide") && !$("start").classList.contains("hide")) zeigeStart(); });
+}
+// ---- Aufträge: 1 von 3 ----
+function zeitMs(e){ try{ if(e.geaendert && typeof e.geaendert.toMillis==="function") return e.geaendert.toMillis(); }catch(x){}
+  if(e.geaendert && e.geaendert.seconds) return e.geaendert.seconds*1000;
+  const [t,m,j]=String(e.datum||"").split("."), [hh,mm]=String(e.zeit||"00:00").split(":"); return new Date(+j,(+m)-1,+t,+hh||0,+mm||0).getTime(); }
+function quote(e){ const r=+e.richtig||0, f=+e.falsch||0; if(r+f>0) return r/(r+f); return (+e.prozent||0)/100; }
+function auftragErfuellt(a){ if(!a) return null;
+  return ANDERE.filter(e=>e.app===a.app && zeitMs(e)>=+a.seit-60000 && (+e.richtig||0)+(+e.falsch||0)>=5 && quote(e)>=AUFTRAG_QUOTE).sort((x,y)=>zeitMs(y)-zeitMs(x))[0] || null; }
+const SCHWACH_APP={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u:"kalender",g:"geld",gs:"geld",f:"geo",w:"gewichte",l:"laengen",d:"daten",sp:"schrift",sm:"schrift",sx:"schrift",sd:"schrift",rp:"plus",rm:"minus",rx:"einmaleins",rd:"einsdurcheins",rz:"zerlegen",rw:"halbschriftlich",rf:"platz",m:"zahlen",q:"sach2"};
+function tageHer(datum){ const p=String(datum||"").split("."), d=new Date(+p[2],(+p[1])-1,+p[0]), h=new Date(); h.setHours(0,0,0,0); return Math.round((h-d)/86400000); }
+function angebote(){
+  const zu=(FREIGABE_KL&&FREIGABE_KL.zu)||{}, offen=app=>zu[app]!==true, l=[], B=app=>(window.HA?HA.bereich(app):{ic:"📌",name:app,datei:app+"-trainer.html"});
+  // 1) Hausaufgabe der Lehrkraft (noch nicht fertig)
+  try{ const ha=HA.fuerKind((FREIGABE_KL&&FREIGABE_KL.aufgaben)||[], playerName).find(a=>!HA.stand(a, ANDERE).fertig && offen(a.app));
+    if(ha){ const b=B(ha.app); l.push({art:"ha", app:ha.app, ic:"📚", titel:"Deine Hausaufgabe", text:HA.titel(ha), datei:b.datei}); } }catch(e){}
+  // 2) schwache Stelle: Fehler der letzten 3 Wochen in Zoo, Bunter Mischung und Turm-Rechnen
+  try{ const w={}; ANDERE.concat(MEINE).filter(e=>["zoo","mix","turm"].includes(e.app) && tageHer(e.datum)<=21).forEach(e=>{
+      (e.gestellt||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a){ (w[a]=w[a]||{n:0,f:0}).n++; } });
+      (e.fehler||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a && w[a]) w[a].f++; }); });
+    const a=Object.keys(w).filter(a=>w[a].f>=2 && offen(a) && !l.some(x=>x.app===a)).sort((x,y)=>w[y].f/w[y].n-w[x].f/w[x].n)[0];
+    if(a){ const b=B(a); l.push({art:"schwach", app:a, ic:b.ic, titel:"Üben: "+b.name, text:`Hier gingen zuletzt ${w[a].f} von ${w[a].n} Aufgaben daneben – eine gute Runde, und es sitzt besser.`, datei:b.datei}); } }catch(e){}
+  // 3) eine Zoo-Runde – und notfalls Bunte Mischung / Blitzrechnen
+  [["zoo","🦁","Eine Zoo-Runde","10 gemischte Aufgaben – und vielleicht ein neues Tier!"],["mix","🎲","Bunte Mischung","Eine Runde mit Aufgaben aus allen Themen."],["blitz","⚡","Blitzrechnen","Eine Übungsrunde Kopfrechnen."]].forEach(([app,ic,titel,text])=>{
+    if(l.length<3 && offen(app) && !l.some(x=>x.app===app)) l.push({art:app, app, ic, titel, text, datei:B(app).datei}); });
+  return l.slice(0,3);
+}
+function zeigeSchluessel(){
+  const box=$("schluesselBox"); if(!box) return;
+  if(!DRACHEN.length || DRACHE_DOCS===null || !cloudOk){ box.innerHTML=""; return; }
+  const k=schluesselStand(), a=k.st.auftrag;
+  if(!k.frei){ const naechste=(Math.floor(hoechste()/REISE)+1)*REISE;
+    box.innerHTML = k.st.start!==null && k.hat<DRACHEN.length ? `<div class="info" style="margin-top:12px">🔑 Den nächsten <b>goldenen Schlüssel</b> gibt es in Etage <b>${naechste}</b>. 🐉 Du hast <b>${k.hat} von ${DRACHEN.length}</b> Drachen.</div>` : ""; return; }
+  const ok = a ? auftragErfuellt(a) : null;
+  if(a && ok){
+    box.innerHTML=`<div class="schluessel"><h4>✅ Auftrag geschafft!</h4><p>${esc(a.titel)} – <b>${Math.round(quote(ok)*100)} %</b> richtig. Jetzt öffnet dein goldener Schlüssel ein Drachenzimmer!</p><button id="drWahlBtn">🐉 Drachen aussuchen</button></div>`;
+    $("drWahlBtn").addEventListener("click", zeigeDrachenWahl); return; }
+  if(a){
+    box.innerHTML=`<div class="schluessel"><h4>🔑 Dein Schlüssel-Auftrag</h4><p><b>${esc(a.titel)}</b>${a.text?" – "+esc(a.text):""}<br>Mach <b>eine Runde mit mindestens ${Math.round(AUFTRAG_QUOTE*100)} % richtig</b>. Danach komm hierher zurück und such dir deinen Drachen aus.</p>
+      <button id="drLosBtn">▶ Los geht's</button> <button class="ghost klein" id="drAndersBtn">anderen Auftrag wählen</button></div>`;
+    $("drLosBtn").addEventListener("click", ()=>geheZu(a.datei));
+    $("drAndersBtn").addEventListener("click", zeigeAuftraege); return; }
+  box.innerHTML=`<div class="schluessel"><h4>🔑 Du hast ${k.frei===1?"einen goldenen Schlüssel":k.frei+" goldene Schlüssel"}!</h4><p>Ein Schlüssel öffnet ein <b>Drachenzimmer</b> – die gibt es nur mit Schlüssel. Dafür machst du eine kleine Aufgabe.</p><button id="drBenutzenBtn">🔑 Schlüssel benutzen</button></div>`;
+  $("drBenutzenBtn").addEventListener("click", zeigeAuftraege);
+}
+function geheZu(datei){ location.href=datei+"#name="+encodeURIComponent(playerName); }
+function zeigeAuftraege(){
+  const l=angebote();
+  $("extraTitel").innerHTML="🔑 Dein goldener Schlüssel";
+  $("extraInhalt").innerHTML=`<div class="info">Such dir <b>einen</b> Auftrag aus. Schaffst du <b>eine Runde mit mindestens ${Math.round(AUFTRAG_QUOTE*100)} % richtig</b>, öffnet der Schlüssel ein Drachenzimmer. 🐉<br>Klappt es nicht gleich? Kein Problem – du kannst es so oft versuchen, wie du willst.</div>
+    <div class="auftraege">${l.map((x,i)=>`<div class="auftrag" data-i="${i}"><span class="ic">${x.ic}</span><span><b>${esc(x.titel)}</b>${esc(x.text||"")}</span></div>`).join("")}</div>`;
+  $("extraInhalt").querySelectorAll(".auftrag").forEach(el=>el.addEventListener("click", ()=>{
+    const x=l[+el.dataset.i], auftrag={art:x.art, app:x.app, titel:x.titel, text:x.text||"", datei:x.datei, seit:Date.now()};
+    el.style.opacity=".6"; drSchreib({auftrag}).then(()=>geheZu(x.datei)).catch(()=>{ el.style.opacity=""; $("status").textContent="⚠️ Nicht gespeichert – bitte noch einmal tippen."; }); }));
+  zeige("extra");
+}
+function zeigeDrachenWahl(){
+  const k=schluesselStand(), frei=DRACHEN.filter(d=>!k.st.drachen[d.id]), angebot=mische(frei).slice(0,3);
+  if(!k.frei || !angebot.length || !k.st.auftrag || !auftragErfuellt(k.st.auftrag)){ zeige("start"); zeigeStart(); return; }
+  $("extraTitel").innerHTML="🐉 Welcher Drache zieht bei dir ein?";
+  $("extraInhalt").innerHTML=`<div class="info">Diese Drachen gibt es <b>nur mit dem goldenen Schlüssel</b>. Such dir einen aus!</div>
+    <div class="drWahl">${angebot.map(d=>`<div class="drK" data-d="${d.id}"><img src="bilder/turm/drache_${d.id}.webp" alt="">${esc(d.name)}<small>${esc(d.art)} · ${esc(d.ort)}</small></div>`).join("")}</div>`;
+  $("extraInhalt").querySelectorAll(".drK").forEach(el=>el.addEventListener("click", ()=>{
+    const d=DRN[el.dataset.d], belegt=drachenEtagen();
+    let e=REISE; while(belegt[e]) e+=REISE;
+    const drachen=Object.assign({}, drStand().drachen); drachen[d.id]={e, am:Date.now()};
+    $("extraInhalt").querySelectorAll(".drK").forEach(x=>x.style.pointerEvents="none");
+    drSchreib({drachen, auftrag:null}).then(()=>{
+      $("extraTitel").innerHTML=`🎉 ${esc(d.name)} zieht ein!`;
+      $("extraInhalt").innerHTML=`<img class="drGross" src="bilder/turm/drache_${d.id}.webp" alt="">
+        <div class="steck"><b>${esc(d.name)}</b> · ${esc(d.art)} · ${esc(d.ort)}<br>${esc(d.text)}<br><br>🏙️ ${esc(d.name)} wohnt jetzt in deiner <b>Etage ${e}</b>. 🐉 Im Drachenbuch: <b>${Object.keys(drachen).length} von ${DRACHEN.length}</b>.
+        <br><button class="ghost klein" id="drVorlesen" style="margin-top:8px">🔈 Vorlesen</button></div>`;
+      $("drVorlesen").addEventListener("click", ()=>vorlesen(`${d.name}. ${d.art}. ${d.text}`));
+      konfetti();
+    }).catch(()=>{ $("extraInhalt").querySelectorAll(".drK").forEach(x=>x.style.pointerEvents=""); $("status").textContent="⚠️ Nicht gespeichert – bitte noch einmal tippen."; });
+  }));
+  zeige("extra");
+}
+$("drBuchBtn").addEventListener("click", ()=>{
+  const st=drStand(), hat=DRACHEN.filter(d=>st.drachen[d.id]).length;
+  $("extraTitel").innerHTML="🐉 Mein Drachenbuch";
+  $("extraInhalt").innerHTML=`<div class="info">Du hast <b>${hat} von ${DRACHEN.length}</b> Drachen. Drachen gibt es <b>nur mit dem goldenen Schlüssel</b> – einen für jede Reise-Etage.
+      <div class="albumBalken"><i style="width:${Math.round(hat/DRACHEN.length*100)}%"></i></div></div><div id="drSteck"></div>
+    <div class="drBuch">${DRACHEN.map(d=>st.drachen[d.id]
+      ? `<div class="drB" data-d="${d.id}"><img src="bilder/turm/drache_${d.id}.webp" alt="" loading="lazy">${esc(d.name)}<small>${esc(d.art)} · Etage ${st.drachen[d.id].e}</small></div>`
+      : `<div class="drB zu"><div class="bildRahmen"><img src="bilder/turm/drache_${d.id}.webp" alt="" loading="lazy"></div><span class="schloss">🔒</span>???<small>nur mit 🔑</small></div>`).join("")}</div>`;
+  $("extraInhalt").querySelectorAll(".drB[data-d]").forEach(el=>el.addEventListener("click", ()=>{ const d=DRN[el.dataset.d];
+    $("drSteck").innerHTML=`<img class="drGross" src="bilder/turm/drache_${d.id}.webp" alt=""><div class="steck"><b>${esc(d.name)}</b> · ${esc(d.art)} · ${esc(d.ort)}<br>${esc(d.text)}<br><button class="ghost klein" id="drVorlesen2" style="margin-top:8px">🔈 Vorlesen</button></div>`;
+    $("drVorlesen2").addEventListener("click", ()=>vorlesen(`${d.name}. ${d.art}. ${d.text}`)); $("drSteck").scrollIntoView({behavior:"smooth", block:"start"}); }));
+  zeige("extra");
+});
+// nach der Rückkehr aus einem Trainer (Safari-Zurück) Stand neu holen
+addEventListener("pageshow", e=>{ if(e.persisted) ladeDrachen(); });
+
 //// ===== Namen und Verbindung =====
 $("name").addEventListener("input", ()=>{ playerName=capName($("name").value); });
 $("name").addEventListener("change", ()=>{ $("name").value=capName($("name").value); playerName=$("name").value; try{ if(playerName) localStorage.setItem("mathe_name",playerName); }catch(e){} verbindeKind(); });
 function verbindeKind(){
   if(!db || !playerName) return; if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
-  ladeAndere(); hoereGeschenke();
+  ladeAndere(); hoereGeschenke(); ladeDrachen();
   if(!FREIGABE_KL) db.collection("einstellungen").doc("freigabe").get().then(d=>{ FREIGABE_KL=(d.exists && d.data())||{}; }).catch(()=>{ FREIGABE_KL={}; });
   unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).onSnapshot(snap=>{
     MEINE=[]; snap.forEach(d=>MEINE.push(d.data())); cloudOk=true;

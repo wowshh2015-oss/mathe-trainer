@@ -124,7 +124,7 @@
   // Runde fertig = ein Ergebnis wird gespeichert. Im Nachspiel danach kurz das Ergebnis zeigen, dann Schluss.
   function horcheErgebnis(){ try{
     const DR=firebase.firestore.DocumentReference, CR=firebase.firestore.CollectionReference;
-    const fertig=(ref,d)=>{ try{ if(!nachspielAb || !d || ["zeit","zoobau","heft"].includes(d.app)) return;
+    const fertig=(ref,d)=>{ try{ if(!nachspielAb || !d || ["zeit","zoobau","heft","drache"].includes(d.app)) return;
         if(String((ref&&ref.path)||"").split("/")[0]!=="ergebnisse" && String((ref&&ref.parent&&ref.parent.path)||"")!=="ergebnisse") return;
         setTimeout(sperre, 4000); }catch(e){} };
     const set=DR.prototype.set; DR.prototype.set=function(d,o){ fertig(this,d); return set.apply(this, arguments); };
