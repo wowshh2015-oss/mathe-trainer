@@ -687,8 +687,10 @@
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   // ---------- Blitzrechnen: Bilder ----------
   // Zwanzigerfeld: zwei Reihen à 10, nach 5 eine Lücke (Kraft der Fünf)
-  function feld20(n){ let s=""; for(let i=0;i<20;i++){ const r=Math.floor(i/10), c=i%10, x=14+c*24+(c>=5?10:0), y=16+r*26, an=i<n;
-      s+=`<circle class="${an?"an":"leer"}" cx="${x}" cy="${y}" r="9.5" fill="${an?"#ef4444":"#1e293b"}" stroke="${an?"#991b1b":"#475569"}" stroke-width="1.5"/>`; }
+  // (27.11.2026) Im hellen Design wie auf Papier: leere Plätze weiß mit grauem Rand, Stellentafel hell mit dunkler Schrift
+  const HELL=()=>!!(window.Thema && Thema.hell);
+  function feld20(n){ let s=""; const h=HELL(); for(let i=0;i<20;i++){ const r=Math.floor(i/10), c=i%10, x=14+c*24+(c>=5?10:0), y=16+r*26, an=i<n;
+      s+=`<circle class="${an?"an":"leer"}" cx="${x}" cy="${y}" r="9.5" fill="${an?"#ef4444":h?"#ffffff":"#1e293b"}" stroke="${an?"#991b1b":h?"#a8a29e":"#475569"}" stroke-width="1.5"/>`; }
     return `<svg viewBox="0 0 262 58" width="262" height="58" role="img" aria-label="Zwanzigerfeld">${s}</svg>`; }
   // Hunderterplatten, Zehnerstangen, Einerpunkte
   function bloecke(n){ const h=Math.floor(n/100), z=Math.floor(n%100/10), e=n%10; let s="", x=4;
@@ -700,11 +702,12 @@
     const w=Math.max(4+h*34, x+50), hh=y0+34;
     return `<svg viewBox="0 0 ${w} ${hh}" width="${Math.min(300,w)}" style="max-width:100%;height:auto" role="img" aria-label="Hunderter, Zehner und Einer">${s}</svg>`; }
   // Stellentafel mit Plättchen (höchstens 9 je Stelle, im 3×3-Muster)
-  function tafel(n, stellen){ const sp=String(n).padStart(stellen.length,"0").split("").map(Number), B=44; let s="";
-    stellen.forEach((k,i)=>{ const x=i*B; s+=`<rect x="${x}" y="0" width="${B}" height="22" fill="#1e293b" stroke="#64748b"/><text x="${x+B/2}" y="15.5" font-size="12" font-weight="800" text-anchor="middle" fill="#e2e8f0" font-family="Arial,sans-serif">${k}</text>`;
-      s+=`<rect x="${x}" y="22" width="${B}" height="44" fill="#0b1220" stroke="#64748b"/>`;
-      for(let p=0;p<sp[i];p++){ s+=`<circle class="p s${i}" cx="${x+10+(p%3)*12}" cy="${32+Math.floor(p/3)*12}" r="4.6" fill="#facc15" stroke="#a16207" stroke-width="1"/>`; } });
-    return `<svg viewBox="-1 -1 ${stellen.length*B+2} 68" width="${Math.min(300,stellen.length*B+2)}" style="max-width:100%;height:auto" role="img" aria-label="Stellentafel">${s}</svg>`; }
+  function tafel(n, stellen){ const sp=String(n).padStart(stellen.length,"0").split("").map(Number), B=44, h=HELL(); let s="";
+    const kopf=h?"#e9dcc0":"#1e293b", kopfT=h?"#3b2f1e":"#e2e8f0", feld=h?"#fffdf7":"#0b1220", rand=h?"#8a7556":"#64748b";
+    stellen.forEach((k,i)=>{ const x=i*B; s+=`<rect x="${x}" y="0" width="${B}" height="22" fill="${kopf}" stroke="${rand}"/><text x="${x+B/2}" y="15.5" font-size="12" font-weight="800" text-anchor="middle" fill="${kopfT}" font-family="Arial,sans-serif">${k}</text>`;
+      s+=`<rect x="${x}" y="22" width="${B}" height="44" fill="${feld}" stroke="${rand}"/>`;
+      for(let p=0;p<sp[i];p++){ s+=`<circle class="p s${i}" cx="${x+10+(p%3)*12}" cy="${32+Math.floor(p/3)*12}" r="4.6" fill="#ef4444" stroke="#991b1b" stroke-width="1.2"/>`; } });   // rot wie die Wendeplättchen (Wunsch 27.11.2026, vorher gelb)
+    return `<svg viewBox="-1 -1 ${stellen.length*B+2} 68" width="${Math.min(h?420:300,(stellen.length*B+2)*(h?1.4:1))}" style="max-width:100%;height:auto" role="img" aria-label="Stellentafel">${s}</svg>`; }
   // Zahlwort: 345 210 → dreihundertfünfundvierzigtausendzweihundertzehn
   const WORT_E=["","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"],
         WORT_Z=["","","zwanzig","dreißig","vierzig","fünfzig","sechzig","siebzig","achtzig","neunzig"];
