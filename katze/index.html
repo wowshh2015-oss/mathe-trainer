@@ -23,7 +23,7 @@
     color:var(--text);
     font-family:"Segoe UI",system-ui,sans-serif;
     display:flex;flex-direction:column;align-items:center;
-    padding:18px;gap:16px;overflow-x:hidden;overflow-y:auto;   /* 26.11.2026: kleine Bildschirme (1280×720) können wieder scrollen */
+    padding:18px;gap:16px;overflow:hidden;
   }
 
   h1{font-size:1.5rem;margin:0;font-weight:650;letter-spacing:.02em}
@@ -40,7 +40,7 @@
   }
   #stage video{
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    opacity:0;transition:opacity .55s ease;
+    opacity:0;transition:opacity 1s ease;
   }
   #stage video.on{opacity:1}
 
@@ -112,14 +112,12 @@
   #report .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
   /* Vollbild */
-  body.full{padding:0;justify-content:center;overflow:hidden}
+  body.full{padding:0;justify-content:center}
   body.full h1,body.full .sub,body.full #hint{display:none}
   body.full #stage{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;box-shadow:none}
   body.full #meterWrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:min(90vw,900px);z-index:5}
-  body.full #controls{position:fixed;top:14px;right:14px;left:auto;width:auto;max-width:min(560px,58vw);opacity:.18;transition:opacity .2s;
-    padding:10px 12px;gap:10px 14px;justify-content:flex-end}
-  body.full #controls:hover,body.full #controls:focus-within{opacity:1}   /* Tablet: Antippen zeigt die Knöpfe */
-  body.full label.slider input[type=range]{width:120px}
+  body.full #controls{position:fixed;top:14px;right:14px;width:auto;opacity:.18;transition:opacity .2s}
+  body.full #controls:hover{opacity:1}
 </style>
 </head>
 <body>
@@ -221,7 +219,7 @@
 
   let audioCtx = null, analyser = null, buf = null, stream = null;
   let level = 0;              // geglättete 0–100-Skala
-  let state = 0, lastChange = 0, running = false, lastFrame = 0;
+  let state = 0, lastChange = 0, running = false, lastFrame = 0, timer = null;
 
   // Mitschrift der Stunde: wie oft und wie lange war Mimi auf welcher Stufe?
   let stats = null;
@@ -301,12 +299,20 @@
   }
   let calibrating = false, calSamples = [], calUntil = 0;
 
+  let pauseTimer = null;
+
   function showState(i){
-    videos.forEach((v, idx) => v.classList.toggle("on", idx === i));
+    // Das neue Video läuft schon, BEVOR es sichtbar wird, und wird dort
+    // fortgesetzt, wo es stehen geblieben ist – kein Sprung auf den Anfang.
     const v = videos[i];
-    v.currentTime = 0;
     const p = v.play();
     if (p && p.catch) p.catch(()=>{});
+    videos.forEach((el, idx) => el.classList.toggle("on", idx === i));
+    // nach der Überblendung die unsichtbaren anhalten (schont den Rechner)
+    clearTimeout(pauseTimer);
+    pauseTimer = setTimeout(() => {
+      videos.forEach((el, idx) => { if (idx !== i) el.pause(); });
+    }, 1300);
     dotEl.style.background = STATES[i].color;
     txtEl.textContent = STATES[i].name;
   }
@@ -333,21 +339,21 @@
     running = true;
     btnStart.textContent = "⏸ Mikrofon aus";
     btnCal.disabled = false;
-    // alle Videos einmal anstoßen, damit sie später sofort laufen
-    videos.forEach(v => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); v.pause(); });
     showState(0);
     state = 0;
     lastChange = lastFrame = performance.now();
     stats = newStats(lastFrame);
     repEl.hidden = true;
     level = 0;
-    wachHalten();
-    requestAnimationFrame(loop);
+    // Timer statt requestAnimationFrame: läuft auch weiter, wenn das Fenster
+    // gerade nicht im Vordergrund ist.
+    clearInterval(timer);
+    timer = setInterval(() => loop(performance.now()), 50);
   }
 
   function stop(){
     running = false;
-    wachLoslassen();
+    clearInterval(timer); timer = null;
     if (stats) showReport();
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (audioCtx) audioCtx.close();
@@ -393,7 +399,7 @@
     // Glättung: das Kätzchen hört auf DAUERlärm, nicht auf ein Niesen.
     // tr = Trägheit; die Zeiten sind Sekunden, bis der Pegel dem Lärm folgt.
     const tr = parseFloat(smoothEl.value);           // 1 = flink, 10 = sehr träge
-    const dt = Math.min((now - lastFrame) / 1000, 0.25);
+    const dt = Math.min((now - lastFrame) / 1000, 1.0);
     lastFrame = now;
     const tauUp   = 1.2 * tr;   // lauter werden: sehr träge – ein Huster zählt kaum
     const tauDown = 0.7 * tr;   // leiser werden: schneller – Ruhe wird belohnt
@@ -416,8 +422,6 @@
       state = next; lastChange = now; showState(state);
     }
     if (level > stats.maxLevel) stats.maxLevel = level;
-
-    requestAnimationFrame(loop);
   }
 
   btnStart.addEventListener("click", () => { running ? stop() : start(); });
@@ -432,41 +436,13 @@
   sensEl.addEventListener("input",   () => store.set("sens", sensEl.value));
   smoothEl.addEventListener("input", () => store.set("smooth", smoothEl.value));
 
-  // Vollbild: Windows/Chrome/Edge normal, Safari (iPad, Mac) mit webkit-Namen.
-  // Wo es gar kein Vollbild gibt (iPhone), füllt die Seite wenigstens das ganze Fenster.
-  const de = document.documentElement;
-  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
-  function fsAn(){
-    try {
-      const f = de.requestFullscreen || de.webkitRequestFullscreen;
-      if (!f) { document.body.classList.add("full"); return; }
-      const p = f.call(de);
-      if (p && p.catch) p.catch(() => document.body.classList.add("full"));
-    } catch(e) { document.body.classList.add("full"); }
-  }
-  function fsAus(){
-    try {
-      if (fsEl()) { const f = document.exitFullscreen || document.webkitExitFullscreen; if (f) { const p = f.call(document); if (p && p.catch) p.catch(()=>{}); } }
-    } catch(e) {}
-    document.body.classList.remove("full");
-  }
   btnFull.addEventListener("click", () => {
-    (fsEl() || document.body.classList.contains("full")) ? fsAus() : fsAn();
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
   });
-  const fsWechsel = () => document.body.classList.toggle("full", !!fsEl());
-  document.addEventListener("fullscreenchange", fsWechsel);
-  document.addEventListener("webkitfullscreenchange", fsWechsel);
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && !fsEl()) document.body.classList.remove("full"); });
-
-  // Bildschirm wach halten, solange das Mikrofon läuft (sonst geht mitten in der Stunde das Display aus)
-  let wachSperre = null;
-  async function wachHalten(){
-    try { if ("wakeLock" in navigator && running && !wachSperre) { wachSperre = await navigator.wakeLock.request("screen");
-      wachSperre.addEventListener("release", () => { wachSperre = null; }); } } catch(e) { wachSperre = null; }
-  }
-  function wachLoslassen(){ try { if (wachSperre) wachSperre.release(); } catch(e) {} wachSperre = null; }
-  // beim Zurückkommen zum Tab gibt der Browser die Sperre frei – dann neu anfordern
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wachHalten(); });
+  document.addEventListener("fullscreenchange", () => {
+    document.body.classList.toggle("full", !!document.fullscreenElement);
+  });
 
   // Startbild
   showState(0);
