@@ -997,9 +997,13 @@ async function schulGib(name, m, knopf){
 }
 setInterval(()=>{ if(schulAn()) renderSchul(); }, 30000);
 
+// (27.11.2026) Sterne- und Tank-Liste: nur die eigene Klasse („Meine Klasse"), nie Test-Namen (Zz…) –
+// sonst standen dort gelöschte und ausprobierte Namen, und die Liste wurde immer länger.
+function klassenFilter(namen){ return namen.filter(n=>n && !/^zz/i.test(n) && (!KLASSE || KLASSE.includes(n))); }
+
 //// ===== Sterne der Klasse (nur für die Lehrkraft) =====
 function renderSterne(){
-  const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n);
+  const namen=klassenFilter([...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))]);
   if(!namen.length){ $("sterneListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
   const liste=namen.map(n=>({n, s:Sterne.stand(ALLE.filter(e=>e.name===n).concat(GESCHENKE.filter(e=>e.name===n)))}))
     .sort((a,b)=>b.s.silber-a.s.silber || b.s.gold-a.s.gold || a.n.localeCompare(b.n,"de"));
@@ -1041,7 +1045,7 @@ async function schenkeSterne(name, silber, gold){
 
 //// ===== Tank auffüllen =====
 function renderTank(){
-  const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n).sort((a,b)=>a.localeCompare(b,"de"));
+  const namen=klassenFilter([...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))]).sort((a,b)=>a.localeCompare(b,"de"));
   if(!namen.length){ $("tankListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
   $("tankListe").innerHTML=`<table><thead><tr><th>Kind</th><th>im Tank</th><th>verdient</th><th>geschenkt</th><th>verfahren</th><th>auffüllen</th></tr></thead><tbody>`+
     namen.map(n=>{
@@ -1649,7 +1653,7 @@ $("tSchlBtn").addEventListener("click",()=>{
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; pin=pin||"0000"; if(!entsperrt && !$("pinModal").innerHTML) entsperren(); });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
       KONTEN=[]; SCHUL=null; snap.forEach(d=>{ if(d.id==="schulzeit") SCHUL=d.data(); if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; if(!x.geloescht) KONTEN.push(x); }
-                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
+                                    if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe(); if(entsperrt){ try{ renderSterne(); renderTank(); }catch(e){} }
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld();
                                       T_ZU=Array.isArray((d.data()||{}).testMonateZu) ? d.data().testMonateZu : []; T_SCHL=Array.isArray((d.data()||{}).notenSchluessel) && d.data().notenSchluessel.length===5 ? d.data().notenSchluessel : null;
