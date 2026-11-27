@@ -80,10 +80,10 @@
 
   // (27.11.2026) Die Uhr läuft nur bei der Arbeit, nicht auf dem Startbildschirm des Trainers (#start bzw. #home):
   // Die Lehrkraft holt die iPads ein und lässt die Seite offen – vorher fraß die Uhr dabei die restlichen Minuten.
-  // Sammelheft und Zoo-Baustelle liegen über dem Startbildschirm – die zählen mit.
+  // Sammelheft und Zoo-Baustelle liegen über dem Startbildschirm: dort wird nicht gerechnet, nur eingeklebt und gebaut –
+  // die Uhr steht (Wunsch der Lehrkraft 27.11.2026). Ohne Minuten kommt man ohnehin nicht hinein: der Trainer ist dann gesperrt.
   const sichtbar=el=>!!(el && el.getClientRects().length && getComputedStyle(el).visibility!=="hidden");
-  function amStart(){ if(D.getElementById("zooBau") || D.getElementById("heft")) return false;
-    return sichtbar(D.getElementById("start")) || sichtbar(D.getElementById("home")); }
+  function amStart(){ return sichtbar(D.getElementById("start")) || sichtbar(D.getElementById("home")); }
   // Gutschein = der runde gelbe Daumen-Sticker aus der Klasse (1 Sticker = 5 Minuten)
   // ---------- Zählen ----------
   setInterval(()=>{
