@@ -91,8 +91,26 @@
       const cs=getComputedStyle(el), c=rgbVon(cs.color); if(!c) continue; const [h,s,l]=hsl(c[0],c[1],c[2]);
       const bg=rgbVon(cs.backgroundColor); if(bg && bg[3]>.6 && hsl(bg[0],bg[1],bg[2])[2]<.5) continue;   // helle Schrift auf eigener dunkler Fläche bleibt
       if(l>.45 && s>.3){ el.style.setProperty("color", aus(rgb(h, Math.min(.85,s), h>40&&h<70 ? .30 : .33), c[3])); } } }
+  // (27.11.2026) Zeichnungen (SVG) auf Papier: Zahlenstrahl, Uhr, Diagramme waren für dunklen Grund mit blassen Linien gemalt.
+  // Liegt eine Zeichnung auf hellem Grund und hat keine eigene große dunkle Fläche (Spielszene), werden blasse Linien und Beschriftungen dunkel.
+  // Kräftige Farben (roter Pfeil, grüne Bögen) und Flächen (Ziffernblatt, Lineal) bleiben.
+  const blass=c=>{ const [h,s,l]=hsl(c[0],c[1],c[2]); return c[3]>0 && (l>.74 || (l>.58 && s<.3)); };
+  function tinte(c){ const [h,s,l]=hsl(c[0],c[1],c[2]); return s<.2 ? aus(rgb(215,.2,.27),c[3]) : aus(rgb(h, Math.min(.8,s), h>40&&h<70 ? .32 : .36), c[3]); }
+  function grundDunkel(el){ for(let e=el.parentElement; e && e!==D.documentElement; e=e.parentElement){
+      const b=rgbVon(getComputedStyle(e).backgroundColor); if(b && b[3]>.5) return hsl(b[0],b[1],b[2])[2]<.45; } return false; }
+  function svgUm(svg){ try{
+    if(!svg.isConnected || (svg.parentElement && svg.parentElement.closest("svg,.bleibDunkel,.kopfband,.klM")) || grundDunkel(svg)) return;
+    const box=svg.getBBox(); const flaeche=Math.max(1, box.width*box.height);
+    for(const f of svg.querySelectorAll("rect,circle,ellipse,polygon,path")){ const c=rgbVon(f.getAttribute("fill")||"");
+      if(c && c[3]>.5 && hsl(c[0],c[1],c[2])[2]<.4){ const b=f.getBBox(); if(b.width*b.height>flaeche*.12) return; } }   // Spielszene mit dunklem Grund
+    for(const e of svg.querySelectorAll("*")){
+      const st=rgbVon(e.getAttribute("stroke")||""); if(st && blass(st)) e.setAttribute("stroke", tinte(st));
+      if(/^(text|tspan)$/i.test(e.nodeName)){ const fi=rgbVon(e.getAttribute("fill")||""); if(fi && blass(fi)) e.setAttribute("fill", tinte(fi)); } }
+  }catch(e){} }
+  function svgsIn(n){ const s=n.closest ? n.closest("svg") : null; if(s){ let o=s; while(o.parentElement && o.parentElement.closest("svg")) o=o.parentElement.closest("svg"); svgUm(o); return; }
+    if(n.querySelectorAll) n.querySelectorAll("svg").forEach(x=>{ if(!x.parentElement.closest("svg")) svgUm(x); }); }
   let kWarte=[], kZeit=null;
-  const spaeterKontrast=n=>{ kWarte.push(n); clearTimeout(kZeit); kZeit=setTimeout(()=>{ const l=kWarte; kWarte=[]; l.forEach(x=>{ try{ if(D.contains(x)) kontrast(x); }catch(e){} }); }, 60); };
+  const spaeterKontrast=n=>{ kWarte.push(n); clearTimeout(kZeit); kZeit=setTimeout(()=>{ const l=kWarte; kWarte=[]; l.forEach(x=>{ try{ if(D.contains(x)){ kontrast(x); svgsIn(x); } }catch(e){} }); }, 60); };
   // Feste Ergänzungen, die keine Farbregel erraten kann
   function extra(){ const s=D.createElement("style"); s.id="hellExtra"; s.textContent=`
     html.hell{color-scheme:light}
@@ -104,7 +122,7 @@
     html.hell .kfLeiste button{background:#fff!important;color:#1f2937!important}
     html.hell .kfLeiste button.an{background:#fef3c7!important}`;
     D.head.appendChild(s); }
-  function los(){ try{ extra(); blaetterUm(); baumUm(D.body); kontrast(D.body); }catch(e){} zeigen();
+  function los(){ try{ extra(); blaetterUm(); baumUm(D.body); kontrast(D.body); svgsIn(D.body); }catch(e){} zeigen();
     // Später hinzugefügte Stile und Elemente (die Seiten bauen vieles mit JavaScript)
     new MutationObserver(ms=>{ let neueBlaetter=false;
       for(const m of ms){
