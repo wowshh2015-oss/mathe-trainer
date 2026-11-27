@@ -653,10 +653,11 @@
       ${achse==="senkrecht"?`<line x1="50" y1="2" x2="50" y2="98"`:`<line x1="2" y1="50" x2="98" y2="50"`} stroke="#f87171" stroke-width="2.5" stroke-dasharray="6 5"/></svg>`;
   }
   function gitterBild(a,b){
-    const k=24, W=10*k+2, Hh=7*k+2; let s="";
-    for(let x=0;x<=10;x++) s+=`<line x1="${1+x*k}" y1="1" x2="${1+x*k}" y2="${1+7*k}" stroke="#475569" stroke-width="1"/>`;
-    for(let y=0;y<=7;y++) s+=`<line x1="1" y1="${1+y*k}" x2="${1+10*k}" y2="${1+y*k}" stroke="#475569" stroke-width="1"/>`;
-    s+=`<rect x="${1+k}" y="${1+k}" width="${a*k}" height="${b*k}" fill="rgba(250,204,21,.35)" stroke="#facc15" stroke-width="3"/>`;
+    // (27.11.2026) Im hellen Design war das gelbe Rechteck auf Papier kaum zu sehen: dort dünne graue Kästchen, kräftig oranges Rechteck
+    const k=24, W=10*k+2, Hh=7*k+2, h=HELL(), linie=h?"#9c8f7a":"#475569"; let s="";
+    for(let x=0;x<=10;x++) s+=`<line x1="${1+x*k}" y1="1" x2="${1+x*k}" y2="${1+7*k}" stroke="${linie}" stroke-width="1"/>`;
+    for(let y=0;y<=7;y++) s+=`<line x1="1" y1="${1+y*k}" x2="${1+10*k}" y2="${1+y*k}" stroke="${linie}" stroke-width="1"/>`;
+    s+=`<rect x="${1+k}" y="${1+k}" width="${a*k}" height="${b*k}" fill="${h?"rgba(249,115,22,.38)":"rgba(250,204,21,.35)"}" stroke="${h?"#c2410c":"#facc15"}" stroke-width="3"/>`;
     return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Kästchenpapier">${s}</svg>`;
   }
   function strichBild(n){
