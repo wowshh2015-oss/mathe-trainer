@@ -206,6 +206,20 @@ if(!window.Thema){ try{ if(document.readyState==="loading") document.write('<scr
     // kleine Fragezeichen mit Erklärungen (info.js) – auf jeder Seite, ohne dass die Seite selbst etwas einbinden muss
     try{ const sc=document.createElement("script"); sc.src="info.js"; document.head.appendChild(sc); }catch(e){}
     if(TOUCH){ pflegePad(); setInterval(pflegePad, 350); }
+    waechter();
   });
+  // (27.11.2026) Schul-iPad hing 5 Minuten bei „Verbinde …". Steht die Anzeige nach 15 s noch da:
+  // hat das Kind noch nichts angetippt -> einmal still neu laden; sonst (oder beim 2. Mal) ein Knopf zum Neuladen.
+  function waechter(){
+    const st=document.getElementById("status"); if(!st) return;
+    let getippt=false; addEventListener("pointerdown", ()=>{ getippt=true; }, {capture:true, passive:true});
+    const haengt=()=>/^\s*Verbinde/.test(st.textContent||"");
+    setTimeout(()=>{ if(!haengt()) return;
+      const k="mathe_neu_"+location.pathname; let zuletzt=0; try{ zuletzt=+sessionStorage.getItem(k)||0; }catch(e){}
+      if(!getippt && Date.now()-zuletzt>120000){ try{ sessionStorage.setItem(k, String(Date.now())); }catch(e){} location.reload(); return; }
+      st.innerHTML='Verbindung hängt … <button type="button" style="margin-left:6px;padding:6px 12px;border-radius:10px;border:0;background:#f59e0b;color:#1f1300;font-weight:700;font-size:14px">🔄 Neu laden</button>';
+      st.querySelector("button").onclick=()=>location.reload();
+    }, 15000);
+  }
   window.Komfort={ klang, stimme };
 })();
