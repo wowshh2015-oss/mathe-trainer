@@ -978,9 +978,9 @@ function renderSchul(){
     .filter(n=>n && !/^zz/i.test(n)).sort((a,b)=>a.localeCompare(b,"de"));
   if(!namen.length){ $("schulListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
   const kn=(n,m,t)=>`<button class="ghost" style="padding:6px 12px;font-size:14px" data-zk="${esc(n)}" data-zm="${m}">${t}</button>`;
-  $("schulListe").innerHTML=`<table><thead><tr><th>Kind</th><th>🎟️ diese Woche</th><th>verbraucht</th><th>übrig</th><th>Gutschein</th></tr></thead><tbody>`+
+  $("schulListe").innerHTML=`<table><thead><tr><th>Kind</th><th><span style="display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;border-radius:50%;background:#fde047;border:1px solid #a16207;vertical-align:middle;font-size:.85em">👍</span> diese Woche</th><th>verbraucht</th><th>übrig</th><th>Gutschein</th></tr></thead><tbody>`+
     namen.map(n=>{ const g=schulGut(n), v=schulVerbraucht(n), r=g*60-v;
-      return `<tr><td class="nm">${esc(n)}</td><td><b>${g}</b> Min${g?` <span style="color:var(--muted)">(${g/5} 🎟️)</span>`:""}</td><td>${v?mmss(v):"–"}</td>
+      return `<tr><td class="nm">${esc(n)}</td><td><b>${g}</b> Min${g?` <span style="color:var(--muted)">(${g/5} × <span style="display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;border-radius:50%;background:#fde047;border:1px solid #a16207;vertical-align:middle;font-size:.85em">👍</span>)</span>`:""}</td><td>${v?mmss(v):"–"}</td>
         <td class="${!g&&!v?"":r<=0?"no":r<=120?"mid":"ok"}"><b>${g||v?mmss(r):"–"}</b></td>
         <td>${kn(n,5,"+5 Min")} ${kn(n,10,"+10")} ${kn(n,-5,"−5")}</td></tr>`; }).join("")+"</tbody></table>";
   $("schulListe").querySelectorAll("button[data-zk]").forEach(b=>b.addEventListener("click", ()=>schulGib(b.dataset.zk, +b.dataset.zm, b)));

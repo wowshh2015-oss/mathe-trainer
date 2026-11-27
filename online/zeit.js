@@ -30,7 +30,8 @@
   let andere=0;                          // Sekunden dieser Woche von anderen Geräten/Einträgen
   const N=name(), WO=woche();
   const MK="zeit_mein_"+WO+"_"+N;         // Sekunden dieses Geräts in dieser Woche
-  let fest=false, mein=+lies(MK,0)||0, gemeldet=-1, db=null, uid="", nachspielAb=0, gesperrt=false, gerade=false;
+  let fest=false, mein=+lies(MK,0)||0, gemeldet=-1, db=null, uid="", nachspielAb=0, gesperrt=false, gerade=false, bekannt=false, hatteZeit=false;
+  setTimeout(()=>{ bekannt=true; }, 15000);   // ohne Antwort vom Server nach 15 s mit dem rechnen, was das Gerät weiß
 
   // Hat die Lehrkraft ihre Klasse festgelegt, gilt der Schulmodus nur für diese Kinder
   const inKlasse=()=>!(ST && Array.isArray(ST.klasse) && ST.klasse.length) || ST.klasse.includes(N);
@@ -57,10 +58,13 @@
     let pi=D.getElementById("zeitPille");
     if(!an()){ if(pi) pi.remove(); band(""); entsperre(); return; }
     if(!pi){ pi=D.createElement("div"); pi.id="zeitPille"; D.body.appendChild(pi); }
-    const r=rest(); pi.textContent="⏱ "+(r>0?fmt(r):"0:00"); pi.className=r<=0?"um":r<=60?"knapp":"";
+    const r=rest(), pause=zaehlt && amStart(); pi.textContent=(pause&&r>0?"⏸ ":"⏱ ")+(r>0?fmt(r):"0:00"); pi.className=r<=0?"um":r<=60?"knapp":"";
     if(!zaehlt) return;
-    if(r>0){ nachspielAb=0; entsperre(); band(r<=60?"⏳ Noch 1 Minute!":""); return; }
+    if(r>0){ if(bekannt) hatteZeit=true; nachspielAb=0; entsperre(); band(r<=60?"⏳ Noch 1 Minute!":""); return; }
     if(gesperrt) return;
+    // Nachspiel nur für eine Runde, die mit Zeit angefangen hat – wer ohne Minuten einen Trainer öffnet, sieht sofort „Zeit ist um"
+    if(!hatteZeit){ if(bekannt) sperre(); return; }
+    if(nachspielAb && amStart()){ sperre(); return; }   // zurück im Menü = Runde fertig
     if(!nachspielAb) nachspielAb=Date.now();
     if(Date.now()-nachspielAb > NACHSPIEL*1000) sperre(); else band("⏰ Deine Zeit ist um – mach die Runde noch fertig!");
   }
@@ -69,22 +73,50 @@
   function sperre(){ if(gesperrt || !D.body) return; gesperrt=true; band(""); melde(true); stil();
     const o=D.createElement("div"); o.id="zeitSperre";
     o.innerHTML=`<div class="zb"><div class="zi">⏰</div><h3>Deine Zeit ist um!</h3>
-      <p>Toll gerechnet, ${N.replace(/[&<>"]/g,"")}! 🎉<br>Für mehr Zeit brauchst du einen neuen <b>Gutschein 🎟️</b>.<br>Sobald du ihn bekommst, geht es hier sofort weiter.</p>
+      <p>Toll gerechnet, ${N.replace(/[&<>"]/g,"")}! 🎉<br>Für mehr Zeit brauchst du einen neuen <b>Daumen-Gutschein</b>:<br><span style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:#fde047;border:2px solid #a16207;font-size:36px;margin:4px 0 10px">👍</span><br><br>Sobald du ihn bekommst, geht es hier sofort weiter.</p>
       <a href="index.html">← Zur Startseite</a></div>`;
     D.body.appendChild(o); try{ D.activeElement && D.activeElement.blur(); }catch(e){} }
   function entsperre(){ if(!gesperrt) return; gesperrt=false; const o=D.getElementById("zeitSperre"); if(o) o.remove(); }
 
+  // (27.11.2026) Die Uhr läuft nur bei der Arbeit, nicht auf dem Startbildschirm des Trainers (#start bzw. #home):
+  // Die Lehrkraft holt die iPads ein und lässt die Seite offen – vorher fraß die Uhr dabei die restlichen Minuten.
+  // Sammelheft und Zoo-Baustelle liegen über dem Startbildschirm – die zählen mit.
+  const sichtbar=el=>!!(el && el.getClientRects().length && getComputedStyle(el).visibility!=="hidden");
+  function amStart(){ if(D.getElementById("zooBau") || D.getElementById("heft")) return false;
+    return sichtbar(D.getElementById("start")) || sichtbar(D.getElementById("home")); }
+  // Gutschein = der runde gelbe Daumen-Sticker aus der Klasse (1 Sticker = 5 Minuten)
   // ---------- Zählen ----------
   setInterval(()=>{
-    if(zaehlt && an() && !gesperrt && D.visibilityState==="visible" && !lehrerGeraet()){
+    if(zaehlt && an() && !gesperrt && D.visibilityState==="visible" && !lehrerGeraet() && !amStart()){
       mein++; if(mein%5===0) merk(MK, mein); if(mein%SCHREIB===0) melde(); }
     zeige();
   }, 1000);
-  function melde(sofort){
-    if(!db || !uid || !N || mein===gemeldet || !zaehlt) return; merk(MK, mein); gemeldet=mein;
-    const d=new Date(), id=("zeit_"+WO+"_"+N+"_"+uid).replace(/[\/\s.#\[\]]/g,"_");
-    try{ db.collection("ergebnisse").doc(id).set({key:KEY, app:"zeit", name:N, woche:WO, sek:mein,
-      datum:`${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p2(d.getHours())}:${p2(d.getMinutes())}`}).catch(()=>{ gemeldet=-1; }); }catch(e){ gemeldet=-1; }
+  // (27.11.2026, nach dem ersten Einsatz) Bei Clara kam nie etwas an: ihr iPad hatte beim Öffnen noch keine Geräte-Anmeldung,
+  // und ohne die wurde nie geschrieben. Bei zwei anderen fehlte im ersten Eintrag die Geräte-Nummer – danach lehnte die Datenbank jedes Update ab.
+  // Jetzt: Geräte-Nummer bei jedem Versuch neu holen und ausdrücklich mitschreiben. Geht das Update nicht, neues Dokument.
+  // Ganz ohne Anmeldung: die Minuten als einzelne „Nachträge" (je ein neues Dokument, das darf jedes Gerät anlegen).
+  const GK="zeit_geraet", OK_="zeit_ohne_"+WO+"_"+N, IK="zeit_id_"+WO+"_"+N;
+  let geraet=lies(GK,""); if(!geraet){ geraet=Math.random().toString(36).slice(2,9); merk(GK, geraet); }
+  let ohne=+lies(OK_,0)||0, okSek=0, schreibt=false;
+  const sauber=s=>s.replace(/[\/\s.#\[\]]/g,"_");
+  function stempel(){ const d=new Date(); return {datum:`${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()}`, zeit:`${p2(d.getHours())}:${p2(d.getMinutes())}`}; }
+  function melde(){
+    if(!db || !N || !zaehlt || schreibt) return; merk(MK, mein);
+    if(!uid && W.Sicher) uid=Sicher.uid()||"";
+    const basis=Object.assign({key:KEY, app:"zeit", name:N, woche:WO}, stempel());
+    if(!uid){   // keine Geräte-Anmeldung: Nachtrag als neues Dokument, höchstens einmal pro Minute
+      const delta=mein-ohne-okSek; if(delta<60 && !(delta>0 && gesperrt)) return;
+      schreibt=true; const id=sauber("zeit_"+WO+"_"+N+"_o_"+geraet+"_"+Date.now().toString(36));
+      db.collection("ergebnisse").doc(id).set(Object.assign(basis,{sek:delta})).then(()=>{ ohne+=delta; merk(OK_, ohne); }).catch(()=>{}).then(()=>{ schreibt=false; });
+      return; }
+    const sek=mein-ohne; if(sek===gemeldet) return;
+    let id=lies(IK,""); if(!id || id.indexOf(uid)<0){ id=sauber("zeit_"+WO+"_"+N+"_"+uid); okSek=0; }
+    schreibt=true;
+    db.collection("ergebnisse").doc(id).set(Object.assign(basis,{sek, uid})).then(()=>{ gemeldet=sek; okSek=sek; merk(IK, id); })
+      .catch(err=>{ gemeldet=-1;
+        if(err && err.code==="permission-denied"){   // altes Dokument ohne Geräte-Nummer: was dort steht, bleibt gezählt – neu anfangen
+          ohne+=okSek; merk(OK_, ohne); okSek=0; merk(IK, sauber("zeit_"+WO+"_"+N+"_"+uid+"_"+Date.now().toString(36))); } })
+      .then(()=>{ schreibt=false; });
   }
   addEventListener("pagehide", ()=>melde(true));
   D.addEventListener("visibilitychange", ()=>{ if(D.visibilityState!=="visible") melde(true); });
@@ -103,8 +135,10 @@
   function andereHolen(){
     if(!db || !N) return;
     db.collection("ergebnisse").where("key","==",KEY).where("app","==","zeit").where("name","==",N).where("woche","==",WO).get().then(s=>{
-      let a=0, server=0; s.forEach(d=>{ const x=d.data(); if(uid && x.uid===uid) server=Math.max(server, +x.sek||0); else a+=(+x.sek||0); });
-      andere=a; if(server>mein){ mein=server; merk(MK, mein); } zeige(); }).catch(()=>{});
+      let a=0, server=0; s.forEach(d=>{ const x=d.data();
+        if(d.id.indexOf("_o_"+geraet+"_")>0) return;                       // eigene Nachträge stecken schon in „mein"
+        if(uid && x.uid===uid) server=Math.max(server, +x.sek||0); else a+=(+x.sek||0); });
+      andere=a; bekannt=true; if(server+ohne>mein){ mein=server+ohne; merk(MK, mein); } zeige(); }).catch(()=>{});
   }
   function start(){
     try{ if(!W.firebase || !firebase.apps || !firebase.apps.length) return false; db=firebase.firestore(); }catch(e){ return false; }
@@ -122,5 +156,5 @@
   let versuche=0; (function warte(){ if(start()) return; if(versuche++<80) setTimeout(warte, 300); })();
   if(D.readyState==="loading") D.addEventListener("DOMContentLoaded", zeige); else zeige();
 
-  W.Zeit={ schulmodus:()=>!!(ST && ST.an && ST.tag===heute()), woche, heute, _test(st){ fest=true; ST=st; zeige(); }, _S:()=>({ST, andere, mein, rest:rest(), gesperrt, nachspielAb}) };
+  W.Zeit={ schulmodus:()=>!!(ST && ST.an && ST.tag===heute()), woche, heute, _test(st){ fest=true; ST=st; bekannt=true; zeige(); }, _S:()=>({amStart:amStart(), ST, andere, mein, rest:rest(), gesperrt, nachspielAb}) };
 })();
