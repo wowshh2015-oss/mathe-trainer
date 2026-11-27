@@ -5,8 +5,8 @@
 //   A  Schriftgröße – drei Stufen
 //   🔢 Zahlentasten – auf Tablets und Handys eigene große Tasten statt der Bildschirmtastatur
 // (26.11.2026) Helles Papier-Design: hell.js wird sofort mitgeladen; 🌙/☀️ in der Leiste schaltet um
-if(!window.Thema){ try{ if(document.readyState==="loading") document.write('<script src="hell.js?v=20261127a"><\/script>');
-  else { const s=document.createElement("script"); s.src="hell.js?v=20261127a"; document.head.appendChild(s); } }catch(e){} }
+if(!window.Thema){ try{ if(document.readyState==="loading") document.write('<script src="hell.js?v=20261128a"><\/script>');
+  else { const s=document.createElement("script"); s.src="hell.js?v=20261128a"; document.head.appendChild(s); } }catch(e){} }
 // (27.11.2026) Schulmodus mit Zeit-Gutscheinen (zeit.js) – auf jeder Kinderseite
 if(!window.Zeit){ try{ const s=document.createElement("script"); s.src="zeit.js?v=20261127f"; (document.head||document.documentElement).appendChild(s); }catch(e){} }
 (function(){

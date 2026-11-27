@@ -104,6 +104,7 @@
     for(const f of svg.querySelectorAll("rect,circle,ellipse,polygon,path")){ const c=rgbVon(f.getAttribute("fill")||"");
       if(c && c[3]>.5 && hsl(c[0],c[1],c[2])[2]<.4){ const b=f.getBBox(); if(b.width*b.height>flaeche*.12) return; } }   // Spielszene mit dunklem Grund
     for(const e of svg.querySelectorAll("*")){
+      if(e.closest(".hellFest")) continue;          // z. B. Stadt-Band im Wolkenkratzer: helle Schrift auf dunklem Schild bleibt hell
       const st=rgbVon(e.getAttribute("stroke")||""); if(st && blass(st)) e.setAttribute("stroke", tinte(st));
       if(/^(text|tspan)$/i.test(e.nodeName)){ const fi=rgbVon(e.getAttribute("fill")||""); if(fi && blass(fi)) e.setAttribute("fill", tinte(fi)); } }
   }catch(e){} }

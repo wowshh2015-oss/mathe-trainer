@@ -455,8 +455,7 @@ function etageSVG(e,y,z){ const st=stilVon(e), o=oeffnung(st), ox=TX+o[0]*TW, oy
   const drA = istReise(e) ? drachenEtagen()[e] : null;
   if(drA){
     const ziel=zielStadt(e), bw=Math.min(ow*0.3,64);
-    s+=`<image href="bilder/turm/drache_${drA}.webp" x="${ox}" y="${oy}" width="${ow}" height="${oh}" preserveAspectRatio="xMidYMid slice"/>`+
-       `<rect x="${ox+4}" y="${oy+4}" width="${bw}" height="${oh*0.26}" rx="6" fill="#0b1220" opacity=".55"/><text x="${ox+4+bw/2}" y="${oy+4+oh*0.2}" font-size="${oh*0.18}" text-anchor="middle">✈️${ziel.b}</text>`;
+    s+=`<image href="bilder/turm/drache_${drA}.webp" x="${ox}" y="${oy}" width="${ow}" height="${oh}" preserveAspectRatio="xMidYMid slice"/>`;
   }else if(istReise(e)){
     const ziel=zielStadt(e);
     s+=`<rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="${ziel.c}"/><rect x="${ox}" y="${oy}" width="${ow}" height="${oh}" fill="#0b1220" opacity=".55"/>`+
@@ -499,11 +498,27 @@ function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
     default: return `<rect x="${TX-6}" y="${y-8}" width="${TW+12}" height="8" fill="#334155"/><path d="M${TX+TW-40} ${y-8} V${y-56}" stroke="#475569" stroke-width="3"/><path d="M${TX+TW-52} ${y-44} H${TX+TW-28} M${TX+TW-48} ${y-34} H${TX+TW-32}" stroke="#475569" stroke-width="2.5"/><circle cx="${TX+TW-40}" cy="${y-58}" r="3.5" fill="#ef4444"/>`;
   } }
 // Ganzer Turm: gebaute Etagen, darüber das Dach und (gestrichelt) die nächste Etage mit Kran
+// Stadt-Band über einer Reise-Etage mit Drachen: Postkarte, „✈️ Stadt · Land", Symbol der Stadt
+function stadtBand(r, y, hb){ const z=zielStadt(r), kb=Math.round((hb-8)*1.5), x0=TX-6, w=TW+12;
+  let s=`<g class="hellFest"><rect x="${x0}" y="${y}" width="${w}" height="${hb}" rx="5" fill="#1e293b" stroke="#e5a50a" stroke-width="2.5"/>`+
+        `<rect x="${x0+3}" y="${y+3}" width="${w-6}" height="${hb-6}" rx="3" fill="${z.c}" opacity=".35"/>`;
+  if(BILD.karten.includes(z.id)) s+=`<image href="bilder/turm/karte_${z.id}.webp" x="${x0+6}" y="${y+4}" width="${kb}" height="${hb-8}" preserveAspectRatio="xMidYMid slice"/>`+
+     `<rect x="${x0+6}" y="${y+4}" width="${kb}" height="${hb-8}" fill="none" stroke="#fef3c7" stroke-width="1.5"/>`;
+  const tx=x0+6+(BILD.karten.includes(z.id)?kb+8:4), name=`✈️ ${z.name}`, fs=Math.min(hb*0.42, (w-(tx-x0)-34)/Math.max(6,name.length)*1.9);
+  s+=`<text x="${tx}" y="${y+hb*0.52}" font-size="${fs}" font-weight="800" fill="#fef3c7" font-family="Georgia,serif">${esc(name)}</text>`+
+     `<text x="${tx+2}" y="${y+hb*0.86}" font-size="${hb*0.24}" fill="#fde68a" font-family="Arial">${esc(z.land)}</text>`+
+     `<text x="${x0+w-8}" y="${y+hb*0.72}" font-size="${hb*0.55}" text-anchor="end">${z.b}</text></g>`;
+  return s; }
 function turmSVG(h, z, dach, neu, buehne){
-  const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten; let s="";
-  if(!buehne){ for(let e=0;e<=h+4;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
+  // 28.11.2026 (Wunsch der Lehrkraft): Über einer Reise-Etage mit Drachen liegt ein schmales Stadt-Band („Zwischengeschoss") –
+  // so sieht man weiter, wo die Reise in eine neue Stadt ging. Alle Etagen darüber rücken um die Bandhöhe nach oben.
+  const drE=drachenEtagen(), SB=Math.round(EH*0.3), baender=Object.keys(drE).map(Number).filter(e=>e<=h).sort((a,b)=>a-b);
+  const unter=e=>baender.filter(r=>r<e).length*SB;
+  const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten+baender.length*SB; let s="";
+  const Y=e=>H-unten-e*EH-unter(e), extra=Math.ceil(baender.length*SB/EH);
+  if(!buehne){ for(let e=0;e<=h+4+extra;e++){ const y=H-unten-e*EH; s+=`<rect x="0" y="${y-EH}" width="${W}" height="${EH+1}" fill="${himmelFarbe(e)}"/>`; }
     s+=`<rect x="0" y="0" width="${W}" height="${oben}" fill="${himmelFarbe(h+4)}"/>`; }
-  for(let e=1;e<=h+4;e++){ const y=H-unten-e*EH; if(e>110 && e%2===0) s+=`<circle cx="${(e*53)%280+10}" cy="${y+12}" r="1.6" fill="#fff"/><circle cx="${(e*97)%280+10}" cy="${y+30}" r="1.1" fill="#fff"/>`;
+  for(let e=1;e<=h+4+extra;e++){ const y=H-unten-e*EH; if(e>110 && e%2===0) s+=`<circle cx="${(e*53)%280+10}" cy="${y+12}" r="1.6" fill="#fff"/><circle cx="${(e*97)%280+10}" cy="${y+30}" r="1.1" fill="#fff"/>`;
     else if(e>2 && e<100 && e%3===0) s+=`<g fill="#fff" opacity=".8"><ellipse cx="${e%2?8:292}" cy="${y+40}" rx="22" ry="9"/></g>`; }
   const gr=H-70;      // Höhe des Bodens
   if(!buehne){ s+=`<rect x="0" y="${gr}" width="${W}" height="70" fill="#4ade80"/><rect x="0" y="${gr+24}" width="${W}" height="46" fill="#475569"/><path d="M0 ${gr+46} H${W}" stroke="#facc15" stroke-width="2.5" stroke-dasharray="14 10"/>`;
@@ -523,8 +538,9 @@ function turmSVG(h, z, dach, neu, buehne){
     [m-62, m+62].forEach(x=>{ s+=`<circle cx="${x}" cy="${ly+18}" r="9" fill="#ffd27a" opacity=".3"/><rect x="${x-3.5}" y="${ly+12}" width="7" height="11" rx="2" fill="#fff1b8" stroke="#3a2a12" stroke-width="1.4"/><path d="M${x} ${ly+12} V${ly+7}" stroke="#3a2a12" stroke-width="1.4"/>`; });
     [lx+16, lx+lw-56].forEach(x=>{ s+=`<path d="M${x} ${ly+LOBBY-12} V${ly+22} A20 20 0 0 1 ${x+40} ${ly+22} V${ly+LOBBY-12} Z" fill="#ffe7a3" stroke="#ead7a8" stroke-width="3"/><path d="M${x+20} ${ly+8} V${ly+LOBBY-12} M${x} ${ly+26} H${x+40}" stroke="#ead7a8" stroke-width="2"/>`; });
     s+=`<text x="${lx+2}" y="${gr+2}" font-size="22">🪴</text><text x="${lx+lw-24}" y="${gr+2}" font-size="22">🪴</text>`; }
-  for(let e=1;e<=h;e++){ const y=H-unten-e*EH; s+=`<g${neu===e?' class="neuEtage"':""}>${etageSVG(e,y,z[e])}</g>`; }
-  const yTop=H-unten-h*EH, hell = h+1>=85 ? "#e2e8f0" : "#0f172a";
+  for(let e=1;e<=h;e++){ const y=Y(e); s+=`<g${neu===e?' class="neuEtage"':""}>${etageSVG(e,y,z[e])}</g>`; }
+  baender.forEach(r=>{ s+=stadtBand(r, Y(r)-SB, SB); });
+  const yTop=Y(h+1)+EH, hell = h+1>=85 ? "#e2e8f0" : "#0f172a";
   s+=`<rect x="${TX}" y="${yTop-EH}" width="${TW}" height="${EH}" fill="none" stroke="${hell}" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/><text x="${TX+TW/2}" y="${yTop-EH/2+5}" font-size="13" font-weight="800" text-anchor="middle" fill="${hell}" opacity=".75" font-family="Segoe UI,Arial">Etage ${h+1}</text>`;
   s+=dachSVG(dach, yTop-EH-2, stilVon(h+1).c);
   const kw=104, kh=219; s+=`<image href="bilder/turm/kran.webp" x="${TX+TW-0.63*kw}" y="${yTop-kh+8}" width="${kw}" height="${kh}"/>`;      // Kran mit Ziegeln über der nächsten Etage
