@@ -845,17 +845,16 @@ const SCHWACH_APP={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u
 function tageHer(datum){ const p=String(datum||"").split("."), d=new Date(+p[2],(+p[1])-1,+p[0]), h=new Date(); h.setHours(0,0,0,0); return Math.round((h-d)/86400000); }
 function angebote(){
   const zu=(FREIGABE_KL&&FREIGABE_KL.zu)||{}, offen=app=>zu[app]!==true, l=[], B=app=>(window.HA?HA.bereich(app):{ic:"📌",name:app,datei:app+"-trainer.html"});
-  // 1) Hausaufgabe der Lehrkraft (noch nicht fertig)
-  try{ const ha=HA.fuerKind((FREIGABE_KL&&FREIGABE_KL.aufgaben)||[], playerName).find(a=>!HA.stand(a, ANDERE).fertig && offen(a.app));
-    if(ha){ const b=B(ha.app); l.push({art:"ha", app:ha.app, ic:"📚", titel:"Deine Hausaufgabe", text:HA.titel(ha), datei:b.datei}); } }catch(e){}
-  // 2) schwache Stelle: Fehler der letzten 3 Wochen in Zoo, Bunter Mischung und Turm-Rechnen
+  // (Hausaufgabe gehört NICHT dazu – Wunsch der Lehrkraft 27.11.2026: die machen viele ohnehin)
+  // 1) schwache Stelle: Fehler der letzten 3 Wochen in Zoo, Bunter Mischung und Turm-Rechnen
   try{ const w={}; ANDERE.concat(MEINE).filter(e=>["zoo","mix","turm"].includes(e.app) && tageHer(e.datum)<=21).forEach(e=>{
       (e.gestellt||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a){ (w[a]=w[a]||{n:0,f:0}).n++; } });
       (e.fehler||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a && w[a]) w[a].f++; }); });
     const a=Object.keys(w).filter(a=>w[a].f>=2 && offen(a) && !l.some(x=>x.app===a)).sort((x,y)=>w[y].f/w[y].n-w[x].f/w[x].n)[0];
     if(a){ const b=B(a); l.push({art:"schwach", app:a, ic:b.ic, titel:"Üben: "+b.name, text:`Hier gingen zuletzt ${w[a].f} von ${w[a].n} Aufgaben daneben – eine gute Runde, und es sitzt besser.`, datei:b.datei}); } }catch(e){}
-  // 3) eine Zoo-Runde – und notfalls Bunte Mischung / Blitzrechnen
-  [["zoo","🦁","Eine Zoo-Runde","10 gemischte Aufgaben – und vielleicht ein neues Tier!"],["mix","🎲","Bunte Mischung","Eine Runde mit Aufgaben aus allen Themen."],["blitz","⚡","Blitzrechnen","Eine Übungsrunde Kopfrechnen."]].forEach(([app,ic,titel,text])=>{
+  // 2) Zoo-Runde, dazu Bunte Mischung und Blitzrechnen (bei einer schwachen Stelle eins von beiden, zufällig)
+  const misch=[["mix","🎲","Bunte Mischung","Eine Runde mit Aufgaben aus allen Themen."],["blitz","⚡","Blitzrechnen","Eine Übungsrunde Kopfrechnen."]];
+  [["zoo","🦁","Eine Zoo-Runde","10 gemischte Aufgaben – und vielleicht ein neues Tier!"]].concat(Math.random()<0.5 ? misch : misch.reverse()).forEach(([app,ic,titel,text])=>{
     if(l.length<3 && offen(app) && !l.some(x=>x.app===app)) l.push({art:app, app, ic, titel, text, datei:B(app).datei}); });
   return l.slice(0,3);
 }
