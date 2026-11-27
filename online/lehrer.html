@@ -997,9 +997,12 @@ async function schulGib(name, m, knopf){
 }
 setInterval(()=>{ if(schulAn()) renderSchul(); }, 30000);
 
-// (27.11.2026) Sterne- und Tank-Liste: nur die eigene Klasse („Meine Klasse"), nie Test-Namen (Zz…) –
-// sonst standen dort gelöschte und ausprobierte Namen, und die Liste wurde immer länger.
-function klassenFilter(namen){ return namen.filter(n=>n && !/^zz/i.test(n) && (!KLASSE || KLASSE.includes(n))); }
+// (27.11.2026) Sterne- und Tank-Liste: nur Kinder, die noch in der Kinderliste stehen (Geheimtiere, auch aus anderen Klassen)
+// oder in „Meine Klasse" – gelöschte und ausprobierte Namen (und Zz…-Tests) nicht. Vorher wurde die Liste immer länger.
+function klassenFilter(namen){
+  const konten=KONTEN.filter(k=>hatTier(k)); const weg=new Set(verwaisteKonten());
+  const da=new Set(konten.filter(k=>!weg.has(k)).map(k=>normN(k.name)).concat((KLASSE||[]).map(normN)));
+  return namen.filter(n=>n && !/^zz/i.test(n) && (!konten.length || da.has(normN(n)))); }
 
 //// ===== Sterne der Klasse (nur für die Lehrkraft) =====
 function renderSterne(){
@@ -1658,7 +1661,7 @@ $("tSchlBtn").addEventListener("click",()=>{
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld();
                                       T_ZU=Array.isArray((d.data()||{}).testMonateZu) ? d.data().testMonateZu : []; T_SCHL=Array.isArray((d.data()||{}).notenSchluessel) && d.data().notenSchluessel.length===5 ? d.data().notenSchluessel : null;
                                       if(entsperrt) renderTests(); } });
-      if(entsperrt) renderTiere();
+      if(entsperrt){ renderTiere(); try{ renderSterne(); renderTank(); }catch(e){} }
       renderSchul();
     }, ()=>{});
     // (25.11.2026) Nicht mehr bei jedem Öffnen alle Einträge lesen: Vorrat (sicher.js) merkt sie sich und holt nur Neues.
