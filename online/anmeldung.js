@@ -195,6 +195,10 @@
         const ab=ov.querySelector("[data-ab]"); if(ab) ab.addEventListener("click",()=>fertig(false)); ov.scrollTop=0; };
 
       function neuFrage(){
+        // (27.11.2026) Im Schulmodus keine neuen Namen – nur die Kinder, die schon da sind
+        if(window.Zeit && Zeit.schulmodus()){
+          setze(`<h3>🏫 Schulzeit</h3><p>Den Namen <b>${esc(name)}</b> gibt es hier noch nicht.<br>Gerade in der Schule geht das nur mit deinem <b>eigenen</b> Namen. Hast du dich vertippt?</p>
+            <div class="anmKn"><button data-ab="1">✏️ Namen nochmal schreiben</button></div>`); return; }
         setze(`<h3>👋 Hallo ${esc(name)}!</h3>
           <p>Den Namen <b>${esc(name)}</b> gibt es hier noch nicht.<br>Bist du neu – oder hast du dich vertippt?</p>
           <div class="anmKn"><button id="anmNeu">✨ Ich bin neu</button><button class="zweit" data-ab="1">✏️ Vertippt</button></div>`);

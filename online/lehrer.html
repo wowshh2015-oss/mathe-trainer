@@ -198,6 +198,14 @@
   <div class="card noprint hide" id="nurAnsehen" style="border:2px solid #f87171">🔓 Sie sind mit der PIN hier, nicht mit Ihrem Lehrkraft-Konto. Nach der Sicherheits-Umstellung werden Änderungen so <b>nicht gespeichert</b>. <a href="#" onclick="location.reload();return false" style="color:#fde68a">Neu anmelden</a></div>
   <div class="card noprint hide" id="hilfeOben" style="border:2px solid #f59e0b"></div>
 
+  <div class="card noprint" id="schulCard">
+    <h2>🏫 Schulmodus · Zeit-Gutscheine <small>1 Sticker = 5 Minuten Mathe-Trainer · das Guthaben sammelt sich bis Sonntag, am Montag beginnt alles neu</small></h2>
+    <div id="schulKopf"></div>
+    <div class="scroll"><div id="schulListe"></div></div>
+    <div class="status">Nur im Schulmodus läuft die Zeit: Ein Kind übt nur so lange, wie es Minuten hat, und neue Namen gehen nicht. Ist die Zeit um, darf es die Runde fertig rechnen – was es dabei überzieht, geht vom nächsten Gutschein ab.
+      Der Schulmodus gilt nur für heute und ist morgen von selbst wieder aus. Zu Hause läuft alles wie immer.</div>
+  </div>
+
   <div class="card">
     <h2>📊 Überblick <small id="zeitLabel"></small></h2>
     <div class="tiles" id="tiles"></div>
@@ -388,7 +396,7 @@
 <script src="sicher.js?v=20261125b"></script>
 <script src="wiederholung.js"></script>
 <script src="tank.js"></script>
-<script src="sterne.js?v=20261126a"></script>
+<script src="sterne.js?v=20261127a"></script>
 <script src="zoo.js?v=20261126a"></script>
 <script src="turm.js"></script>
 <script src="hausaufgabe.js"></script>
@@ -941,6 +949,54 @@ function zeigeFreigabe(){
 }
 zeigeFreigabe();
 
+//// ===== Schulmodus · Zeit-Gutscheine (27.11.2026, siehe zeit.js) =====
+let SCHUL=null, ZEIT=[];
+function schulHeute(){ const d=new Date(), p=x=>String(x).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function schulWoche(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+3-(d.getDay()+6)%7);
+  const w1=new Date(d.getFullYear(),0,4); const n=1+Math.round(((d-w1)/864e5-3+(w1.getDay()+6)%7)/7); return `${d.getFullYear()}-W${String(n).padStart(2,"0")}`; }
+const schulAn=()=>!!(SCHUL && SCHUL.an && SCHUL.tag===schulHeute());
+function schulGut(n){ return (SCHUL && SCHUL.woche===schulWoche() && SCHUL.minuten && +SCHUL.minuten[n]>0) ? +SCHUL.minuten[n] : 0; }
+function schulVerbraucht(n){ const w=schulWoche(); return ZEIT.filter(e=>e.name===n && e.woche===w).reduce((s,e)=>s+(+e.sek||0),0); }
+const mmss=s=>{ const neg=s<0; s=Math.abs(Math.round(s)); return (neg?"−":"")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
+function renderSchul(){
+  if(!entsperrt || !$("schulListe")) return;
+  const an=schulAn();
+  $("schulKopf").innerHTML=`<div class="row" style="margin-bottom:12px;align-items:center;gap:12px">
+      <span style="font-size:17px;font-weight:700" class="${an?"ok":""}">${an?"🟢 Schulmodus ist AN (heute)":"⚪ Schulmodus ist aus"}</span>
+      <button id="schulSchalter" class="${an?"ghost":""}" style="padding:9px 16px">${an?"Schulmodus ausschalten":"🏫 Schulmodus jetzt einschalten"}</button>
+      <button id="schulKlasse" class="ghost" style="padding:9px 16px">👥 Meine Klasse${KLASSE?" ("+KLASSE.length+")":" festlegen"}</button></div>
+    ${KLASSE?"":`<div class="status" style="color:#f59e0b;margin:-4px 0 10px">Tipp: Lege zuerst fest, wer zu deiner Klasse gehört – dann gilt der Schulmodus nur für diese Kinder und nur sie stehen in der Liste.</div>`}`;
+  $("schulSchalter").onclick=async ()=>{
+    // Die Klassenliste wird mitgeschickt: der Schulmodus gilt nur für diese Kinder (ohne Liste: für alle)
+    try{ await db.collection("einstellungen").doc("schulzeit").set({key:KEY, typ:"schulzeit", an:!an, tag:schulHeute(), klasse:KLASSE||[]}, {merge:true}); }
+    catch(err){ alert("⚠️ Nicht gespeichert: "+(err.code||err)); } };
+  $("schulKlasse").onclick=()=>{ zeigeProjektor(); setTimeout(()=>{ const b=$("projWahl"); if(b) b.click(); }, 50); };
+  // Klasse geändert, während der Schulmodus läuft? Liste im Schulmodus nachziehen
+  if(an && JSON.stringify(SCHUL.klasse||[])!==JSON.stringify(KLASSE||[]))
+    db.collection("einstellungen").doc("schulzeit").set({klasse:KLASSE||[]}, {merge:true}).catch(()=>{});
+  const namen=[...new Set(KLASSE || kinderNamen().concat(Object.keys((SCHUL&&SCHUL.woche===schulWoche()&&SCHUL.minuten)||{})))]
+    .filter(n=>n && !/^zz/i.test(n)).sort((a,b)=>a.localeCompare(b,"de"));
+  if(!namen.length){ $("schulListe").innerHTML='<div class="empty">Noch keine Kinder.</div>'; return; }
+  const kn=(n,m,t)=>`<button class="ghost" style="padding:6px 12px;font-size:14px" data-zk="${esc(n)}" data-zm="${m}">${t}</button>`;
+  $("schulListe").innerHTML=`<table><thead><tr><th>Kind</th><th>🎟️ diese Woche</th><th>verbraucht</th><th>übrig</th><th>Gutschein</th></tr></thead><tbody>`+
+    namen.map(n=>{ const g=schulGut(n), v=schulVerbraucht(n), r=g*60-v;
+      return `<tr><td class="nm">${esc(n)}</td><td><b>${g}</b> Min${g?` <span style="color:var(--muted)">(${g/5} 🎟️)</span>`:""}</td><td>${v?mmss(v):"–"}</td>
+        <td class="${!g&&!v?"":r<=0?"no":r<=120?"mid":"ok"}"><b>${g||v?mmss(r):"–"}</b></td>
+        <td>${kn(n,5,"+5 Min")} ${kn(n,10,"+10")} ${kn(n,-5,"−5")}</td></tr>`; }).join("")+"</tbody></table>";
+  $("schulListe").querySelectorAll("button[data-zk]").forEach(b=>b.addEventListener("click", ()=>schulGib(b.dataset.zk, +b.dataset.zm, b)));
+}
+async function schulGib(name, m, knopf){
+  const w=schulWoche(), alt=schulGut(name), neu=Math.max(0, alt+m); if(neu===alt) return;
+  if(knopf) knopf.disabled=true;
+  const ref=db.collection("einstellungen").doc("schulzeit");
+  // Ganzes Dokument schreiben: in einer neuen Woche verfällt das alte Guthaben (bei „merge" bliebe es in der Liste stehen)
+  const S=SCHUL||{}, min=Object.assign({}, S.woche===w ? (S.minuten||{}) : {}); min[name]=neu;
+  try{ await ref.set({key:KEY, typ:"schulzeit", an:!!S.an, tag:S.tag||"", klasse:Array.isArray(S.klasse)?S.klasse:(KLASSE||[]), woche:w, minuten:min}); }
+  catch(err){ alert("⚠️ Nicht gespeichert: "+(err.code||err)); }
+  if(knopf) knopf.disabled=false;
+}
+setInterval(()=>{ if(schulAn()) renderSchul(); }, 30000);
+
 //// ===== Sterne der Klasse (nur für die Lehrkraft) =====
 function renderSterne(){
   const namen=[...new Set(ALLE.map(e=>e.name).concat(GESCHENKE.map(e=>e.name)))].filter(n=>n);
@@ -1353,7 +1409,7 @@ function tsZahl(e){ const p=String(e.datum||"").split("."); return +((p[2]||"0")
 function fuelleLoeschen(){
   const box=$("dNamen"); if(!box) return;
   const pro={};
-  ALLE.concat(GESCHENKE).forEach(e=>{ if(!e.name) return; const k=pro[e.name]=pro[e.name]||{n:0,letzt:0,datum:""}; if(e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft" && e.app!=="zoobau") k.n++; const t=tsZahl(e); if(t>k.letzt){ k.letzt=t; k.datum=e.datum||""; } });
+  ALLE.concat(GESCHENKE).forEach(e=>{ if(!e.name) return; const k=pro[e.name]=pro[e.name]||{n:0,letzt:0,datum:""}; if(e.app!=="tankgeschenk" && e.app!=="sterngeschenk" && e.app!=="heft" && e.app!=="zoobau" && e.app!=="zeit") k.n++; const t=tsZahl(e); if(t>k.letzt){ k.letzt=t; k.datum=e.datum||""; } });
   const namen=Object.keys(pro).sort((a,b)=> dSort==="abc" ? a.localeCompare(b,"de") : pro[a].letzt-pro[b].letzt || a.localeCompare(b,"de"));
   [...LOESCHEN].forEach(n=>{ if(!pro[n]) LOESCHEN.delete(n); });
   box.innerHTML = namen.length ? namen.map(n=>{ const k=pro[n], meins=KLASSE && KLASSE.includes(n);
@@ -1484,16 +1540,16 @@ function loginDialog(){
 function lehrerHinweis(){ const b=$("nurAnsehen"); if(b) b.classList.toggle("hide", !!(window.Sicher&&Sicher.lehrer())); }
 async function entsperren(){
   if(window.Sicher){ await Promise.race([Sicher.bereit, new Promise(r=>setTimeout(r,6000))]); }
-  if(window.Sicher && Sicher.lehrer()){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); zuTieren(); return; }
-  if(window.Sicher && Sicher.auth()){ const w=await loginDialog(); if(w==="konto"){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); zuTieren(); return; } }
+  if(window.Sicher && Sicher.lehrer()){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); renderSchul(); zuTieren(); return; }
+  if(window.Sicher && Sicher.auth()){ const w=await loginDialog(); if(w==="konto"){ entsperrt=true; $("pinOverlay").classList.add("hide"); lehrerHinweis(); ladeGeheim(); render(); renderSchul(); zuTieren(); return; } }
   lehrerHinweis();
   while(true){
     const r=await pinDialog({ title:"🔒 Klassenübersicht", text:"Diese Seite ist nur für die Lehrkraft. Bitte die 4-stellige PIN eingeben.",
       check:v=> v===pin ? null : "Falsche PIN.", link:"PIN vergessen?" });
-    if(r.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); zuTieren(); return; }
+    if(r.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); renderSchul(); zuTieren(); return; }
     const s=await pinDialog({ title:"🛟 Super-PIN", text:"Bitte die Super-PIN eingeben. Die PIN selbst kann in einem Trainer über „PIN ändern“ neu gesetzt werden.",
       check:v=> v===SUPER_PIN ? null : "Falsche Super-PIN." });
-    if(s.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); zuTieren(); return; }
+    if(s.value){ entsperrt=true; $("pinOverlay").classList.add("hide"); render(); renderSchul(); zuTieren(); return; }
   }
 }
 
@@ -1592,22 +1648,30 @@ $("tSchlBtn").addEventListener("click",()=>{
       if(!entsperrt && !$("pinModal").innerHTML) entsperren();
     }, ()=>{ $("status").textContent="⚠️ Einstellungen nicht erreichbar."; pin=pin||"0000"; if(!entsperrt && !$("pinModal").innerHTML) entsperren(); });
     db.collection("einstellungen").where("key","==",KEY).onSnapshot(snap=>{
-      KONTEN=[]; snap.forEach(d=>{ if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; if(!x.geloescht) KONTEN.push(x); }
+      KONTEN=[]; SCHUL=null; snap.forEach(d=>{ if(d.id==="schulzeit") SCHUL=d.data(); if(d.id.indexOf("tier_")===0){ const x=d.data(); x._id=d.id; if(!x.geloescht) KONTEN.push(x); }
                                     if(d.id==="freigabe"){ UHR_FREI=(d.data()||{}).uhr===true; RUF=String((d.data()||{}).ruf||""); ZU=(d.data()||{}).zu||{}; KLASSE=Array.isArray((d.data()||{}).klasse) && (d.data()||{}).klasse.length ? (d.data()||{}).klasse : null; zeigeFreigabe();
                                       AUFGABEN=Array.isArray((d.data()||{}).aufgaben) ? d.data().aufgaben : []; if(entsperrt) renderHA();
                                       MELD=(d.data()||{}).meldung||null; zeigeMeld();
                                       T_ZU=Array.isArray((d.data()||{}).testMonateZu) ? d.data().testMonateZu : []; T_SCHL=Array.isArray((d.data()||{}).notenSchluessel) && d.data().notenSchluessel.length===5 ? d.data().notenSchluessel : null;
                                       if(entsperrt) renderTests(); } });
       if(entsperrt) renderTiere();
+      renderSchul();
     }, ()=>{});
     // (25.11.2026) Nicht mehr bei jedem Öffnen alle Einträge lesen: Vorrat (sicher.js) merkt sie sich und holt nur Neues.
+    let letzteSig="";
     const nimm=liste=>{
-      ALLE=[]; GESCHENKE=[];
+      ALLE=[]; GESCHENKE=[]; ZEIT=[]; let sig=0;
       liste.sort((a,b)=>a._id<b._id?-1:a._id>b._id?1:0);   // gleiche Reihenfolge wie früher vom Server (nach Dokument-ID)
-      liste.forEach(y=>{ const x=Object.assign({}, y); x.name=capName(x.name); delete x.key; delete x.geaendert; ((x.app==="tankgeschenk"||x.app==="sterngeschenk"||x.app==="heft"||x.app==="zoobau")?GESCHENKE:ALLE).push(x); /* heft = Sticker-Sammelheft, kein Durchgang */ });
+      liste.forEach(y=>{ const x=Object.assign({}, y); x.name=capName(x.name); delete x.key; delete x.geaendert;
+        if(x.app==="zeit"){ ZEIT.push(x); return; }   // Schulmodus: verbrauchte Sekunden, kein Durchgang
+        sig=Math.max(sig, typeof y.geaendert==="number"?y.geaendert:0);
+        ((x.app==="tankgeschenk"||x.app==="sterngeschenk"||x.app==="heft"||x.app==="zoobau")?GESCHENKE:ALLE).push(x); /* heft = Sticker-Sammelheft, kein Durchgang */ });
       const tageMitDaten=new Set(ALLE.map(e=>e.datum)).size;
       $("status").textContent=`✅ Verbunden · ${ALLE.length} Durchgänge aus ${tageMitDaten} Tagen · aktualisiert sich automatisch`;
-      if(entsperrt) render();
+      // Im Schulmodus melden die Geräte alle 30 s ihre Zeit – dafür nicht jedes Mal die ganze Seite neu zeichnen
+      const s=ALLE.length+"|"+GESCHENKE.length+"|"+sig;
+      if(entsperrt && s!==letzteSig) render();
+      letzteSig=s; renderSchul();
     };
     const fehlt=err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); };
     if(window.Vorrat) Vorrat.beobachte(db, KEY, nimm, fehlt);
