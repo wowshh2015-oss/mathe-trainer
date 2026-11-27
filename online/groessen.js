@@ -5,7 +5,9 @@
 //   wahl    – eine von mehreren Antworten antippen
 //   legen   – einen Betrag mit Münzen und Scheinen selbst legen
 (function(){
-  const WAS=["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen","paeckchen"].includes(window.GROESSE) ? window.GROESSE : "geld";
+  // Nur der Aufgaben-Motor (27.11.2026): der Wolkenkratzer holt sich ab Etage 51 Rechenaufgaben wie im Zoo – ohne Seite, ohne Datenbank
+  const NUR = window.GROESSE_NUR===true;
+  const WAS=NUR ? "zoo" : ["laengen","gewichte","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","zoo","blitz","stellen","paeckchen"].includes(window.GROESSE) ? window.GROESSE : "geld";
   const KEY="HL-GH7G-3T7W-N5S5-BV3C";
   const CONF={ apiKey:"AIzaSyC8EzUrPYV3j6tsgFIR3LQBlF5YLLZgkQI", authDomain:"mathe-trainer-5ad4f.firebaseapp.com",
                projectId:"mathe-trainer-5ad4f", appId:"1:322708616948:web:cafd973192eb25a459d0a1" };
@@ -157,8 +159,8 @@
   .k3Tipp{font-size:13px;color:var(--muted);margin:4px 0} .k3Info{min-height:22px;font-size:16px;margin:4px 0 8px;color:#fde68a} .k3Kn{justify-content:center;flex-wrap:wrap;gap:6px} .wahl .emo{font-size:36px;line-height:1}
   .zmPaar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-end} .zmPaar small{display:block;text-align:center;color:var(--muted);font-size:12.5px;margin-top:2px}
   @media (max-width:430px){ body{padding:60px 14px 14px} .stufe{flex-wrap:wrap} .stufe .kn{width:100%;justify-content:flex-start} .eingabe input{width:86px} }`;
-  document.head.appendChild(css);
-  document.body.insertAdjacentHTML("afterbegin", `<div class="app">
+  if(!NUR) document.head.appendChild(css);
+  if(!NUR) document.body.insertAdjacentHTML("afterbegin", `<div class="app">
     <h1>${TITEL[0]} ${TITEL[1]}</h1><p class="sub">${TITEL[2]}</p>
     <div id="start" class="card">
       <a class="backbtn" id="menuLink" href="index.html">← Alle Trainer</a>
@@ -2142,7 +2144,7 @@
   const zooStufenName=id=>{ const s=stufe(id); return s ? s.name.replace(/^Zoo-Runde /,"") : ""; };
   // Zoo: Fehler aus den ANDEREN Trainern (Geld, Uhr-Aufgaben, Stellenwerte …) – pro Runde kommt eine davon wieder.
   // Schlüssel im Zoo: "<programm>:<alter Schlüssel>". Nach 3 richtigen Antworten (auch im Zoo) gilt der Fehler als behoben (Wdh).
-  const FEHLER_APPS=["geld","gewichte","laengen","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","stellen","paeckchen","blitz"];
+  const FEHLER_APPS=["geld","gewichte","laengen","zahlen","geo","daten","schrift","kalender","mix","sach2","strahl","stellen","paeckchen","blitz","turm"];      // turm: Rechenaufgaben ab Etage 51
   let ALLE=null;
   function ladeAlle(){
     if(WAS!=="zoo" || !db || !playerName) return; const wer=playerName;
@@ -2577,6 +2579,46 @@
                                    : "Gerade nichts offen – Fehler aus dem Üben landen automatisch hier.";
     $("meineBtn").disabled=!n;
     $("menue").classList.remove("hide");
+  }
+  // ---------- Nur Aufgaben-Motor (Wolkenkratzer ab Etage 51): Rechnen und Zahlen wie im Zoo ----------
+  // Stufe = die Zoo-Stufe des Kindes (dieselbe Leiter), dazu bis zu 2 Wiederholungen aus offenen Fehlern (Turm, Zoo, andere Trainer).
+  // Es kommen nur Aufgaben, die der Turm zeigen kann: eine Zahl eintippen oder eine Antwort (Text) antippen.
+  if(NUR){
+    const istRechnen=t=>!!BAU[t] && !istAndere(t);
+    const klar=h=>String(h||"").replace(/<br\s*\/?>/gi," ").replace(/<[^>]+>/g,"").replace(/&nbsp;/g," ").replace(/\s+/g," ").trim();
+    const fuerTurm=a=>{
+      if(!a || a.art==="stellen") return null;
+      const bild = a.bild ? `<div class="zkBild">${a.bild}</div>` : "";
+      if(a.art==="eingabe" && a.felder.length===1 && a.felder[0].f===1 && Number.isFinite(a.soll))
+        return {html:a.frage+bild, text:klar(a.frage), antwort:a.soll, einheit:a.felder[0].e||"", key:a.key, erkl:klar(a.erkl)||`${klar(a.frage)} → ${a.soll}`, rechnen:true};
+      if(a.art==="wahl" && Array.isArray(a.optionen) && a.optionen.every(o=>typeof o==="string" && !/[<>]/.test(o)) && typeof a.ok==="string")
+        return {html:a.frage+bild, text:klar(a.frage), ok:a.ok, optionen:a.optionen.slice(), key:a.key, erkl:klar(a.erkl)||a.ok, rechnen:true};
+      return null; };
+    window.ZooKopf={
+      // zoo = Zoo-Runden des Kindes, alle = alle Einträge des Kindes, klasse/klassenstufe aus einstellungen/freigabe
+      setze(o){ o=o||{}; playerName=o.name||""; MEINE=(o.zoo||[]).slice().sort((a,b)=>tsKey(b).localeCompare(tsKey(a))); ALLE=o.alle||[];
+        if(Array.isArray(o.klasse)) KLASSEN_LISTE=o.klasse; if(+o.klassenstufe>=1 && +o.klassenstufe<=4) KLASSEN_STUFE=+o.klassenstufe; },
+      stufe(){ const id=zooStufeId(); return {id, name:zooStufenName(id)}; },
+      // eigene = Einträge des Turms (Schlüssel der Rechenaufgaben "<stufe>|<art>")
+      rechnen(n, eigene){
+        const st=stufe(zooStufeId())||STUFEN[0], raus=[];
+        // Kopfrechnen (Kern der Stufe) kommt doppelt so oft wie Zahlen/Schriftlich/Zahlenstrahl
+        const kern=[...new Set((st.kern||[]).filter(istRechnen))], rest=[...new Set((st.typen||[]).filter(t=>istRechnen(t) && !kern.includes(t)))];
+        const pool=mische(kern.concat(kern, rest));
+        // Wiederholungen: offene Fehler bei Rechenaufgaben aus Turm und Zoo, dann aus den anderen Trainern
+        const rows=(eigene||[]).concat(MEINE).filter(e=>Array.isArray(e.gestellt)), facts=new Set();
+        rows.forEach(e=>(e.fehler||[]).forEach(k=>{ if(String(k).includes("|")) facts.add(String(k)); }));
+        const wdh=[]; facts.forEach(k=>{ const typ=k.split("|")[1]; if(!istRechnen(typ)) return; const s=Wdh.status(rows,k); if(s.offen || s.faellig) wdh.push({key:k, typ, offen:s.offen}); });
+        let fremd=[]; try{ fremd=fremdeFehler().filter(x=>istRechnen(x.typ)); }catch(e){}
+        const reihe=mische(wdh.filter(x=>x.offen)).concat(mische(fremd.filter(x=>x.offen)), mische(wdh.filter(x=>!x.offen)), mische(fremd.filter(x=>!x.offen)));
+        for(const w of reihe){ if(raus.length>=Math.min(2,n)) break; try{ const a=fuerTurm(Object.assign(baueAufgabe(st,w.typ),{key:w.key})); if(a){ a.wdh=true; raus.push(a); } }catch(e){} }
+        let i=0, versuch=0, seen=new Set(raus.map(a=>a.text));
+        while(raus.length<n && versuch++<200 && pool.length){ const typ=pool[i++ % pool.length];
+          try{ const a=fuerTurm(baueAufgabe(st,typ)); if(a && !seen.has(a.text)){ seen.add(a.text); raus.push(a); } }catch(e){} }
+        return raus; },
+      istRechnen
+    };
+    return;
   }
   $("meineBtn").addEventListener("click", ()=>{
     const z=meineTypen(), keys=z.offen.concat(z.faellig); if(!keys.length) return;

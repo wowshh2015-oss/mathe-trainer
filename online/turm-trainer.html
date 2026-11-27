@@ -77,7 +77,7 @@
   .herzen{font-size:26px;letter-spacing:3px} .herzen .weg{opacity:.25;filter:grayscale(1)}
   .fortschritt{display:flex;gap:5px;margin:0 0 18px} .fortschritt i{flex:1;height:9px;border-radius:999px;background:#f1e4c6;border:1px solid var(--card2)}
   .fortschritt i.ok{background:var(--good);border-color:var(--good)}
-  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px;color:var(--blau)} .frage.lang{font-size:27px;letter-spacing:0;line-height:1.35}
+  .frage{font-size:50px;font-weight:800;text-align:center;margin:8px 0 22px;letter-spacing:1px;color:var(--blau)} .frage.lang{font-size:27px;letter-spacing:0;line-height:1.35} .zkBild{margin:8px auto 0;font-size:16px;letter-spacing:0} .zkBild svg{max-width:100%;height:auto} html:not(.hell) .zkBild{background:#1e293b;border-radius:14px;padding:8px 10px}
   .frage .blank{display:inline-block;min-width:.95em;padding:0 .12em;border:4px dashed var(--accent);border-radius:12px;color:var(--accent);line-height:1.05}
   .antwortzeile{display:flex;gap:12px} .antwortzeile input{flex:1;font-size:30px;text-align:center}
   .optionen{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -215,6 +215,8 @@
 <script src="tank.js"></script>
 <script src="turm.js?v=20261125a"></script>
 <script src="turm-info.js"></script>
+<script>window.GROESSE_NUR=true;</script>
+<script src="groessen.js?v=20261127c"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -225,7 +227,7 @@ const $=id=>document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function capName(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-])(\S)/g,(m,p,c)=>p+c.toUpperCase()); }
 let db=null, unsub=null, MEINE=[], playerName="", cloudOk=false, ANDERE=[], tankBereit=false;
-let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], startZeit=0, letzteId=null;
+let etage=1, aufgaben=[], idx=0, richtig=0, herzen=HERZEN, fehlerListe=[], gestellt=[], falsch=[], rechenOk=0, rechenFalsch=0, startZeit=0, letzteId=null;
 
 //// ===== Die Weltreise =====
 // Jede 10. Etage fliegt man weiter. Die nächsten Etagen werden im Stil der neuen Stadt gebaut.
@@ -360,7 +362,14 @@ const STUFE=[ ["tagNach","tagVor","monatNach","monatVor","jahreszeit","schein","
 const STUFE_NAME=["Grundwissen: Woche, Monate, Geld, Formen","Mehr Wissen: Kalender, Uhr, Maße, Körper","Umrechnen: Zeit, Längen, Gewichte, Geld"];
 function stufeVon(e){ return e<=20 ? 0 : e<=60 ? 1 : 2; }
 function typenFuer(e){ const s=stufeVon(e); return istReise(e) ? STUFE.slice(0,s+1).flat() : STUFE[s]; }
-function stufenText(e){ return istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : STUFE_NAME[stufeVon(e)]; }
+function stufenText(e){ return (istReise(e) ? `✈️ Reise-Etage: alles bisher Gelernte – dann geht es nach ${zielStadt(e).name}` : STUFE_NAME[stufeVon(e)])+(mitRechnen(e)?" · 🧮 + Rechnen":""); }
+// 27.11.2026 (Wunsch der Lehrkraft): ab Etage 51 ist jede Etage halb Wissen, halb Rechnen – Rechenaufgaben wie im Zoo
+// (Zoo-Stufe des Kindes, Wiederholung offener Fehler; Motor = groessen.js im Nur-Aufgaben-Modus, window.ZooKopf)
+const RECHNEN_AB=51; let FREIGABE_KL=null;
+function mitRechnen(e){ return e>=RECHNEN_AB && !!window.ZooKopf; }
+function rechenAufgaben(n){ try{
+  ZooKopf.setze({name:playerName, zoo:ANDERE.filter(x=>x.app==="zoo"), alle:ANDERE.concat(MEINE), klasse:FREIGABE_KL&&FREIGABE_KL.klasse, klassenstufe:FREIGABE_KL&&FREIGABE_KL.klassenstufe});
+  return ZooKopf.rechnen(n, MEINE); }catch(e){ return []; } }
 function mkTyp(t){ return WISSEN[t](); }
 // Damit sich nichts ständig wiederholt: Fragen der letzten 4 Etagen (aus den gespeicherten Durchgängen, also auf jedem Gerät)
 // werden gemieden, und von jeder Art kommen höchstens 2 Fragen pro Etage. Reicht das nicht, wird Schritt für Schritt gelockert.
@@ -369,7 +378,11 @@ function baueAufgaben(e){ const typen=typenFuer(e), alt=zuletztGefragt(), q=[], 
   [[true,2],[false,2],[false,3],[false,99]].forEach(([meiden,max])=>{ let g=0;
     while(q.length<ziel && g++<1500){ const t=aus(typen); if((jeArt[t]||0)>=max) continue; const a=mkTyp(t);
       if(seen.has(a.key) || (meiden && alt.has(a.key))) continue; seen.add(a.key); jeArt[t]=(jeArt[t]||0)+1; q.push(a); } });
-  while(q.length<ziel) q.push(mkTyp(aus(typen))); return mische(q); }
+  while(q.length<ziel) q.push(mkTyp(aus(typen)));
+  if(mitRechnen(e)){ const r=rechenAufgaben(Math.ceil(ziel/2));
+    if(r.length>=3){ const w=mische(q).slice(0, ziel-r.length), l=[], vorn=Math.random()<0.5;      // abwechselnd Wissen und Rechnen
+      for(let i=0; l.length<ziel && (i<w.length || i<r.length); i++){ const p=vorn?[r[i],w[i]]:[w[i],r[i]]; p.forEach(x=>{ if(x) l.push(x); }); } return l; } }
+  return mische(q); }
 
 //// ===== Stand aus den gespeicherten Etagen =====
 function geschafft(){ return MEINE.filter(e=>e.bestanden==="Ja" && +e.etage>0); }
@@ -572,7 +585,7 @@ function zeige(id){ ["start","spiel","ergebnis","extra"].forEach(s=>$(s).classLi
 //// ===== Spiel =====
 $("startBtn").addEventListener("click", ()=>{
   if(tankLeer()){ zeige("start"); zeigeStart(); const b=$("tkBox"); if(b) b.scrollIntoView({behavior:"smooth", block:"center"}); return; }
-  aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN; fehlerListe=[]; gestellt=[]; falsch=[]; startZeit=Date.now();
+  aufgaben=baueAufgaben(etage); idx=0; richtig=0; herzen=HERZEN; fehlerListe=[]; gestellt=[]; falsch=[]; rechenOk=0; rechenFalsch=0; startZeit=Date.now();
   $("spielEtage").textContent=`Etage ${etage} · ${stufenText(etage)}`;
   zeige("spiel"); naechsteAufgabe();
 });
@@ -600,9 +613,9 @@ function pruefe(gewaehlt, knopf){
     setTimeout(()=>{ $("optionen").dataset.zu=""; }, ok?650:1900);
   } else {
     if($("antwort").disabled || $("antwort").value.trim()==="") return;
-    ok=parseInt($("antwort").value,10)===a.antwort; $("antwort").disabled=true; $("okBtn").disabled=true;
+    ok=parseInt($("antwort").value.replace(/[\s. ]/g,""),10)===a.antwort; $("antwort").disabled=true; $("okBtn").disabled=true;
   }
-  gestellt.push(a.key); const r=$("rueck"), loesung = a.optionen ? a.ok : a.antwort;
+  gestellt.push(a.key); if(a.rechnen){ if(ok) rechenOk++; else rechenFalsch++; } const r=$("rueck"), loesung = a.optionen ? a.ok : a.antwort;
   if(ok){ richtig++; r.style.color="var(--good)"; r.textContent="Richtig! 👍"; }
   else { herzen--; falsch.push(a.key); fehlerListe.push(a.erkl || `${a.text} → ${loesung}`); r.style.color="var(--bad)"; r.innerHTML=`Nicht ganz: ${esc(a.erkl || String(loesung))}`; }
   zeichneHerzen(); zeichneFortschritt(); idx++; setTimeout(naechsteAufgabe, ok?700:2600);
@@ -632,6 +645,7 @@ function fertig(ok){
       ${BILD.karten.includes(z.id)?`<img class="postkarte" src="bilder/turm/karte_${z.id}.webp" alt="${esc(z.name)}">`:""}
       <div style="text-align:center"><span class="stempel" style="border-color:${z.c};color:${z.c}"><b>${z.b}</b>${esc(z.name)}</span></div>`;
     $("ergText").innerHTML=`<b>Neuer Stempel im Reisepass: ${esc(z.name)} (${esc(z.land)})</b>${rnd2>1?` – ${rnd2}. Weltreise!`:""}<br>${esc(z.fakt)}<br><br>Die nächsten ${REISE} Etagen baust du im Stil von <b>${esc(z.name)}</b>.<br><button type="button" class="klein" id="mehrBtn" style="margin-top:10px">🔍 Mehr über ${esc(z.name)}</button>`+
+      (e===RECHNEN_AB-1 && window.ZooKopf?`<br><br>🧮 <b>Ab jetzt baust du mit Wissen und Rechnen:</b> In jeder Etage kommen auch Rechenaufgaben – so schwer wie deine Zoo-Runden.`:"")+
       (dachNeu?`<br><br>🏗️ <b>Etage ${e} – ein neues Dach ist frei!</b> Du findest es unter „Dach wählen“.`:"");
     const mb=$("mehrBtn"); if(mb) mb.addEventListener("click", ()=>zeigePass(STAEDTE.indexOf(z)));
     setTimeout(()=>{ $("turm2").classList.remove("hide"); zeichneTurm($("turm2"), e, e); konfetti(); }, 3100);
@@ -658,6 +672,7 @@ function speichere(ok, dauer, zimmer){
   const eintrag={ key:KEY, app:APP, name:playerName, datum:`${p(n.getDate())}.${p(n.getMonth()+1)}.${n.getFullYear()}`, zeit:`${p(n.getHours())}:${p(n.getMinutes())}`,
     modus:"Turm", etage:etage, stufe: istReise(etage) ? "Reise-Etage" : STUFE_NAME[stufeVon(etage)], richtig, falsch:falsch.length,
     prozent: gestellt.length ? Math.round(richtig/gestellt.length*100) : 0, bestanden: ok?"Ja":"Nein", dauer, gestellt:gestellt.slice(), fehler:falsch.slice(), _t:Date.now() };
+  if(rechenOk+rechenFalsch){ eintrag.rechnen={richtig:rechenOk, falsch:rechenFalsch}; try{ eintrag.rechnen.zr=ZooKopf.stufe().id; }catch(x){} }
   if(ok && zimmer) eintrag.zimmer=zimmer;
   if(ok && istReise(etage)) eintrag.stadt=zielStadt(etage).id;
   MEINE.push(eintrag);
@@ -742,6 +757,7 @@ $("name").addEventListener("change", ()=>{ $("name").value=capName($("name").val
 function verbindeKind(){
   if(!db || !playerName) return; if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
   ladeAndere(); hoereGeschenke();
+  if(!FREIGABE_KL) db.collection("einstellungen").doc("freigabe").get().then(d=>{ FREIGABE_KL=(d.exists && d.data())||{}; }).catch(()=>{ FREIGABE_KL={}; });
   unsub=db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).onSnapshot(snap=>{
     MEINE=[]; snap.forEach(d=>MEINE.push(d.data())); cloudOk=true;
     $("status").textContent=`☁️ Verbunden · ${hoechste()} Etagen gebaut`;
