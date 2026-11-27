@@ -238,7 +238,7 @@
 <script src="turm-info.js"></script>
 <script src="hausaufgabe.js"></script>
 <script>window.GROESSE_NUR=true;</script>
-<script src="groessen.js?v=20261127d"></script>
+<script src="groessen.js?v=20261128a"></script>
 <script>
 //// ===== Verbindung =====
 const KEY="HL-GH7G-3T7W-N5S5-BV3C";
@@ -577,7 +577,8 @@ function hoereGeschenke(){ if(!db || !playerName) return; if(unsubGabe){ try{ un
     ANDERE=ANDERE.filter(e=>e.app!=="tankgeschenk"); snap.forEach(d=>ANDERE.push(d.data()));
     if(tankBereit && !$("start").classList.contains("hide")) zeigeStart(); }, ()=>{}); }
 function ladeAndere(){ if(!db || !playerName) return;
-  (window.Vorrat ? Vorrat.snap(db,KEY,playerName,null) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get()).then(s=>{ ANDERE=[]; s.forEach(d=>{ const x=d.data(); if(x.app!==APP) ANDERE.push(x); }); tankBereit=true;
+  // Vorrat.lade (nicht .snap): behält den Server-Zeitstempel „geaendert" (als Millisekunden) – den braucht der Schlüssel-Auftrag
+  (window.Vorrat ? Vorrat.lade(db,KEY,playerName) : db.collection("ergebnisse").where("key","==",KEY).where("name","==",playerName).get().then(s=>s.docs.map(d=>d.data()))).then(l=>{ ANDERE=[]; l.forEach(x0=>{ const x=Object.assign({}, x0); delete x._id; if(x.app!==APP) ANDERE.push(x); }); tankBereit=true;
     if(!$("start").classList.contains("hide") && !$("turmBox").classList.contains("hide")) zeigeStart(); }).catch(()=>{}); }
 addEventListener("pageshow", e=>{ if(e.persisted) ladeAndere(); });
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && $("spiel").classList.contains("hide")) ladeAndere(); });
@@ -799,13 +800,15 @@ function ladeDrachen(){ if(!db || !playerName) return; const wer=playerName;
 function drStand(){
   const drachen={}; let start=null, auftrag=null;
   (DRACHE_DOCS||[]).forEach(d=>{
-    Object.entries(d.drachen||{}).forEach(([id,v])=>{ if(!DRN[id]) return; const am=+(v&&v.am)||0; if(!drachen[id] || am<drachen[id].am) drachen[id]={e:+(v&&v.e)||0, am}; });
+    Object.entries(d.drachen||{}).forEach(([id,v])=>{ if(!DRN[id]) return; const am=+(v&&v.am)||0; if(!drachen[id] || am<drachen[id].am){ drachen[id]={e:+(v&&v.e)||0, am}; if(v && v.amS && msVon(v.amS)) drachen[id].amS=v.amS; } });
     if(d.start!=null && !isNaN(+d.start)) start = start===null ? +d.start : Math.min(start, +d.start);
     if(d.auftrag && d.auftrag.seit && (!auftrag || +d.auftrag.seit>+auftrag.seit)) auftrag=d.auftrag; });
   // ein Auftrag ist verbraucht, sobald danach ein Drache eingezogen ist
   if(auftrag && Object.values(drachen).some(v=>v.am>=+auftrag.seit)) auftrag=null;
   return {drachen, start, auftrag};
 }
+function msVon(ts){ try{ if(typeof ts==="number" && ts>0) return ts; if(ts && typeof ts.toMillis==="function") return ts.toMillis(); if(ts && ts.seconds) return ts.seconds*1000; }catch(e){} return null; }
+const SERVERZEIT=()=>firebase.firestore.FieldValue.serverTimestamp();
 function startSchluessel(h0){ return h0>=10 ? Math.min(3, 1+Math.floor(h0/50)) : 0; }
 function schluesselStand(){
   const st=drStand(), h=hoechste(), hat=Object.keys(st.drachen).length; if(st.start===null) return {verdient:0, hat, frei:0, st};
@@ -820,7 +823,7 @@ function drSchreib(neu, erneut){
     start:st.start, drachen:Object.assign({}, st.drachen), auftrag:st.auftrag||null }, neu);
   const id=drEigeneId();
   return db.collection("ergebnisse").doc(id).set(doc).then(()=>{
-    DRACHE_DOCS=(DRACHE_DOCS||[]).filter(d=>d._id!==id).concat([Object.assign({_id:id}, doc)]); })
+    DRACHE_DOCS=(DRACHE_DOCS||[]).filter(d=>d._id!==id).concat([Object.assign({_id:id}, doc)]); setTimeout(ladeDrachen, 800); })
     .catch(err=>{ if(!erneut && err && err.code==="permission-denied"){ try{ localStorage.removeItem("drache_geraet"); }catch(x){} return drSchreib(neu, true); } throw err; });
 }
 // Beim ersten Mal (Daten sicher vom Server): Höhe merken – daraus werden die Start-Schlüssel berechnet
@@ -839,23 +842,49 @@ function zeitMs(e){ try{ if(e.geaendert && typeof e.geaendert.toMillis==="functi
   if(e.geaendert && e.geaendert.seconds) return e.geaendert.seconds*1000;
   const [t,m,j]=String(e.datum||"").split("."), [hh,mm]=String(e.zeit||"00:00").split(":"); return new Date(+j,(+m)-1,+t,+hh||0,+mm||0).getTime(); }
 function quote(e){ const r=+e.richtig||0, f=+e.falsch||0; if(r+f>0) return r/(r+f); return (+e.prozent||0)/100; }
+// Gezählt wird nur eine Runde in GENAU der Stufe des Auftrags (zr) – wer im Trainer Klasse 1 wählt, bekommt keinen Schlüssel.
+function passt(e,a){ if(e.app!==a.app) return false;
+  if(a.app==="zoo") return e.reihe!=="mine";
+  if(a.zr && +e.zr!==+a.zr) return false;
+  if(a.app==="blitz" && (+e.lv||0)<(+a.lv||2)) return false;
+  if(a.typen && a.typen.length){ const g=(e.gestellt||[]).map(k=>String(k).split("|")[1]); if(!g.length || !g.every(x=>a.typen.includes(x))) return false; }
+  return true; }
+// Zeit: genau (Server-Zeitstempel „geaendert") – sonst nur auf die Minute (datum/zeit), dann mit 1 Minute Spielraum.
+// Eine Runde, die schon einen Drachen geöffnet hat, zählt nie ein zweites Mal.
+function genau(e){ return !!(e.geaendert && (typeof e.geaendert.toMillis==="function" || e.geaendert.seconds)); }
+// Wenn möglich wird Server-Zeit mit Server-Zeit verglichen (Uhren der Geräte gehen oft falsch).
 function auftragErfuellt(a){ if(!a) return null;
-  return ANDERE.filter(e=>e.app===a.app && zeitMs(e)>=+a.seit-60000 && (+e.richtig||0)+(+e.falsch||0)>=5 && quote(e)>=AUFTRAG_QUOTE).sort((x,y)=>zeitMs(y)-zeitMs(x))[0] || null; }
+  const dr=Object.values(drStand().drachen), seitS=msVon(a.seitS), letzterS=dr.reduce((m,v)=>Math.max(m, msVon(v.amS)||0), 0), letzter=dr.reduce((m,v)=>Math.max(m, +v.am||0), 0);
+  return ANDERE.filter(e=>{ if(!passt(e,a) || (+e.richtig||0)+(+e.falsch||0)<5 || quote(e)<AUFTRAG_QUOTE) return false;
+      const zs=msVon(e.geaendert);
+      if(zs && seitS) return zs>=seitS && zs>letzterS;
+      const z=zeitMs(e); return z>=Math.max(+a.seit, letzter)-60000 && z>letzter; })
+    .sort((x,y)=>zeitMs(y)-zeitMs(x))[0] || null; }
 const SCHWACH_APP={z:"zahlen",s:"zahlen",t:"zahlen",k:"kalender",zs:"kalender",u:"kalender",g:"geld",gs:"geld",f:"geo",w:"gewichte",l:"laengen",d:"daten",sp:"schrift",sm:"schrift",sx:"schrift",sd:"schrift",rp:"plus",rm:"minus",rx:"einmaleins",rd:"einsdurcheins",rz:"zerlegen",rw:"halbschriftlich",rf:"platz",m:"zahlen",q:"sach2"};
 function tageHer(datum){ const p=String(datum||"").split("."), d=new Date(+p[2],(+p[1])-1,+p[0]), h=new Date(); h.setHours(0,0,0,0); return Math.round((h-d)/86400000); }
+const STUFE_KLASSE={1:1,7:2,5:2,2:2,8:3,6:3,3:3,4:4}, BLITZ_MIX={1:34,2:35,3:36,4:37};
 function angebote(){
   const zu=(FREIGABE_KL&&FREIGABE_KL.zu)||{}, offen=app=>zu[app]!==true, l=[], B=app=>(window.HA?HA.bereich(app):{ic:"📌",name:app,datei:app+"-trainer.html"});
+  // Stufe des Kindes = seine Zoo-Stufe (dieselbe Leiter wie im Zoo und beim Turm-Rechnen)
+  let stufe={id:8, name:"Klasse 3 · Leicht"};
+  try{ ZooKopf.setze({name:playerName, zoo:ANDERE.filter(x=>x.app==="zoo"), alle:ANDERE.concat(MEINE), klasse:FREIGABE_KL&&FREIGABE_KL.klasse, klassenstufe:FREIGABE_KL&&FREIGABE_KL.klassenstufe}); stufe=ZooKopf.stufe(); }catch(e){}
+  const kl=STUFE_KLASSE[stufe.id]||3;
   // (Hausaufgabe gehört NICHT dazu – Wunsch der Lehrkraft 27.11.2026: die machen viele ohnehin)
   // 1) schwache Stelle: Fehler der letzten 3 Wochen in Zoo, Bunter Mischung und Turm-Rechnen
+  //    → eine Schlüssel-Runde der Bunten Mischung NUR mit diesen Aufgabenarten, auf der Stufe des Kindes
   try{ const w={}; ANDERE.concat(MEINE).filter(e=>["zoo","mix","turm"].includes(e.app) && tageHer(e.datum)<=21).forEach(e=>{
-      (e.gestellt||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a){ (w[a]=w[a]||{n:0,f:0}).n++; } });
-      (e.fehler||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a && w[a]) w[a].f++; }); });
-    const a=Object.keys(w).filter(a=>w[a].f>=2 && offen(a) && !l.some(x=>x.app===a)).sort((x,y)=>w[y].f/w[y].n-w[x].f/w[x].n)[0];
-    if(a){ const b=B(a); l.push({art:"schwach", app:a, ic:b.ic, titel:"Üben: "+b.name, text:`Hier gingen zuletzt ${w[a].f} von ${w[a].n} Aufgaben daneben – eine gute Runde, und es sitzt besser.`, datei:b.datei}); } }catch(e){}
-  // 2) Zoo-Runde, dazu Bunte Mischung und Blitzrechnen (bei einer schwachen Stelle eins von beiden, zufällig)
-  const misch=[["mix","🎲","Bunte Mischung","Eine Runde mit Aufgaben aus allen Themen."],["blitz","⚡","Blitzrechnen","Eine Übungsrunde Kopfrechnen."]];
-  [["zoo","🦁","Eine Zoo-Runde","10 gemischte Aufgaben – und vielleicht ein neues Tier!"]].concat(Math.random()<0.5 ? misch : misch.reverse()).forEach(([app,ic,titel,text])=>{
-    if(l.length<3 && offen(app) && !l.some(x=>x.app===app)) l.push({art:app, app, ic, titel, text, datei:B(app).datei}); });
+      (e.gestellt||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a){ (w[a]=w[a]||{n:0,f:0,typen:{}}).n++; } });
+      (e.fehler||[]).forEach(k=>{ const t=String(k).split("|")[1]; if(!t) return; const a=SCHWACH_APP[t.split("_")[0]]; if(a && w[a]){ w[a].f++; w[a].typen[t]=(w[a].typen[t]||0)+1; } }); });
+    const a=offen("mix") ? Object.keys(w).filter(a=>w[a].f>=2 && Object.keys(w[a].typen).some(x=>ZooKopf.hat(x))).sort((x,y)=>w[y].f/w[y].n-w[x].f/w[x].n)[0] : null;
+    if(a){ const b=B(a), typen=Object.keys(w[a].typen).filter(x=>ZooKopf.hat(x)).sort((x,y)=>w[a].typen[y]-w[a].typen[x]).slice(0,4);
+      l.push({art:"schwach", app:"mix", zr:stufe.id, typen, ic:b.ic, titel:"Üben: "+b.name, text:`Hier gingen zuletzt ${w[a].f} von ${w[a].n} Aufgaben daneben. 10 Aufgaben genau dazu – ${stufe.name}.`, datei:"mix-trainer.html",
+        extra:`&schluessel=schwach&st=${stufe.id}&typen=${typen.join(",")}`}); } }catch(e){}
+  // 2) Zoo-Runde, dazu Bunte Mischung und Blitzrechnen (bei einer schwachen Stelle eins von beiden, zufällig) – immer auf der festen Stufe
+  const zoo={art:"zoo", app:"zoo", ic:"🦁", titel:"Eine Zoo-Runde", text:"10 gemischte Aufgaben – und vielleicht ein neues Tier!", datei:"zoo-trainer.html", extra:"&schluessel=zoo"};
+  const mix={art:"mix", app:"mix", zr:stufe.id, ic:"🎲", titel:"Bunte Mischung", text:`15 Aufgaben aus allen Themen – ${stufe.name}.`, datei:"mix-trainer.html", extra:`&schluessel=mix&st=${stufe.id}`};
+  const bz=BLITZ_MIX[kl], blitz={art:"blitz", app:"blitz", zr:bz, lv:2, ic:"⚡", titel:"Blitzrechnen", text:`Eine Übungsrunde Blitz-Mix Klasse ${kl}.`, datei:"blitz-trainer.html", extra:`&schluessel=blitz&st=${bz}&lv=2`};
+  const misch=[mix, blitz];
+  [zoo].concat(Math.random()<0.5 ? misch : misch.reverse()).forEach(x=>{ if(l.length<3 && offen(x.app) && !l.some(y=>y.art===x.art || (y.app===x.app && x.app!=="mix"))) l.push(x); });
   return l.slice(0,3);
 }
 function zeigeSchluessel(){
@@ -869,22 +898,22 @@ function zeigeSchluessel(){
     box.innerHTML=`<div class="schluessel"><h4>✅ Auftrag geschafft!</h4><p>${esc(a.titel)} – <b>${Math.round(quote(ok)*100)} %</b> richtig. Jetzt öffnet dein goldener Schlüssel ein Drachenzimmer!</p><button id="drWahlBtn">🐉 Drachen aussuchen</button></div>`;
     $("drWahlBtn").addEventListener("click", zeigeDrachenWahl); return; }
   if(a){
-    box.innerHTML=`<div class="schluessel"><h4>🔑 Dein Schlüssel-Auftrag</h4><p><b>${esc(a.titel)}</b>${a.text?" – "+esc(a.text):""}<br>Mach <b>eine Runde mit mindestens ${Math.round(AUFTRAG_QUOTE*100)} % richtig</b>. Danach komm hierher zurück und such dir deinen Drachen aus.</p>
+    box.innerHTML=`<div class="schluessel"><h4>🔑 Dein Schlüssel-Auftrag</h4><p><b>${esc(a.titel)}</b>${a.text?" – "+esc(a.text):""}<br>Mach <b>eine Runde mit mindestens ${Math.round(AUFTRAG_QUOTE*100)} % richtig</b> – sie startet von allein, wenn du auf „Los geht's“ tippst. Danach komm hierher zurück und such dir deinen Drachen aus.</p>
       <button id="drLosBtn">▶ Los geht's</button> <button class="ghost klein" id="drAndersBtn">anderen Auftrag wählen</button></div>`;
-    $("drLosBtn").addEventListener("click", ()=>geheZu(a.datei));
+    $("drLosBtn").addEventListener("click", ()=>geheZu(a.datei, a.extra));
     $("drAndersBtn").addEventListener("click", zeigeAuftraege); return; }
   box.innerHTML=`<div class="schluessel"><h4>🔑 Du hast ${k.frei===1?"einen goldenen Schlüssel":k.frei+" goldene Schlüssel"}!</h4><p>Ein Schlüssel öffnet ein <b>Drachenzimmer</b> – die gibt es nur mit Schlüssel. Dafür machst du eine kleine Aufgabe.</p><button id="drBenutzenBtn">🔑 Schlüssel benutzen</button></div>`;
   $("drBenutzenBtn").addEventListener("click", zeigeAuftraege);
 }
-function geheZu(datei){ location.href=datei+"#name="+encodeURIComponent(playerName); }
+function geheZu(datei, extra){ location.href=datei+"#name="+encodeURIComponent(playerName)+(extra||""); }
 function zeigeAuftraege(){
   const l=angebote();
   $("extraTitel").innerHTML="🔑 Dein goldener Schlüssel";
   $("extraInhalt").innerHTML=`<div class="info">Such dir <b>einen</b> Auftrag aus. Schaffst du <b>eine Runde mit mindestens ${Math.round(AUFTRAG_QUOTE*100)} % richtig</b>, öffnet der Schlüssel ein Drachenzimmer. 🐉<br>Klappt es nicht gleich? Kein Problem – du kannst es so oft versuchen, wie du willst.</div>
     <div class="auftraege">${l.map((x,i)=>`<div class="auftrag" data-i="${i}"><span class="ic">${x.ic}</span><span><b>${esc(x.titel)}</b>${esc(x.text||"")}</span></div>`).join("")}</div>`;
   $("extraInhalt").querySelectorAll(".auftrag").forEach(el=>el.addEventListener("click", ()=>{
-    const x=l[+el.dataset.i], auftrag={art:x.art, app:x.app, titel:x.titel, text:x.text||"", datei:x.datei, seit:Date.now()};
-    el.style.opacity=".6"; drSchreib({auftrag}).then(()=>geheZu(x.datei)).catch(()=>{ el.style.opacity=""; $("status").textContent="⚠️ Nicht gespeichert – bitte noch einmal tippen."; }); }));
+    const x=l[+el.dataset.i], auftrag={art:x.art, app:x.app, titel:x.titel, text:x.text||"", datei:x.datei, extra:x.extra||"", zr:x.zr||null, lv:x.lv||null, typen:x.typen||null, seit:Date.now(), seitS:SERVERZEIT()};
+    el.style.opacity=".6"; drSchreib({auftrag}).then(()=>geheZu(x.datei, x.extra)).catch(()=>{ el.style.opacity=""; $("status").textContent="⚠️ Nicht gespeichert – bitte noch einmal tippen."; }); }));
   zeige("extra");
 }
 function zeigeDrachenWahl(){
@@ -896,7 +925,7 @@ function zeigeDrachenWahl(){
   $("extraInhalt").querySelectorAll(".drK").forEach(el=>el.addEventListener("click", ()=>{
     const d=DRN[el.dataset.d], belegt=drachenEtagen();
     let e=REISE; while(belegt[e]) e+=REISE;
-    const drachen=Object.assign({}, drStand().drachen); drachen[d.id]={e, am:Date.now()};
+    const drachen=Object.assign({}, drStand().drachen); drachen[d.id]={e, am:Date.now(), amS:SERVERZEIT()};
     $("extraInhalt").querySelectorAll(".drK").forEach(x=>x.style.pointerEvents="none");
     drSchreib({drachen, auftrag:null}).then(()=>{
       $("extraTitel").innerHTML=`🎉 ${esc(d.name)} zieht ein!`;

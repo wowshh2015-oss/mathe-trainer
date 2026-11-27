@@ -2088,6 +2088,9 @@
     letzte=runde;
     // Zoo: „Nochmal" spielt auf der Stufe, die der Mathe-Trainer jetzt einstellt
     $("nochmalBtn").onclick=()=>starte(WAS==="zoo" && letzte.modus!=="mine" ? (stufe(zooStufeId())||letzte.st) : letzte.st, letzte.modus==="mine"?"Training":letzte.modus);
+    if(runde.schluessel){ const ok=proz>=80;
+      $("ergText").insertAdjacentHTML("beforeend", `<div style="margin-top:14px;padding:12px;border-radius:14px;border:2px solid #e5a50a;background:rgba(250,204,21,.12)"><b>${ok?"🔑 Geschafft! Jetzt zurück zum Wolkenkratzer – dein Drache wartet.":"🔑 Für den goldenen Schlüssel brauchst du mindestens 80 % richtig. Versuch es gleich noch einmal – mit „Noch einmal“!"}</b><br><a href="turm-trainer.html#name=${encodeURIComponent(playerName)}" style="display:inline-block;margin-top:8px;font-weight:800;color:#fde68a">🐉 Zum Wolkenkratzer ›</a></div>`);
+      $("nochmalBtn").onclick=schluesselRunde; }
     speichere(proz, bestanden);
     if($("heftErg")) $("heftErg").addEventListener("click", oeffneHeft);
     if(WAS==="zoo" && window.Zoo && runde.modus!=="mine"){ const alt=runde.st.id, neu=zooStufeId(), a=ZOO_LEITER.indexOf(alt), b=ZOO_LEITER.indexOf(neu);
@@ -2102,6 +2105,7 @@
       richtig:r.richtig, falsch:r.aufgaben.length-r.richtig, prozent:proz, bestanden:r.modus==="Test"?(bestanden?"Ja":"Nein"):"–", dauer:Math.round((Date.now()-r.start)/1000),
       gestellt:r.gestellt.slice(), fehler:r.fehler.slice(), antworten:r.antworten.slice() };
     if(r.tiere) eintrag.tiere=r.tiere.slice();           // Mein Zoo: die in dieser Runde gewonnenen Tiere
+    if(r.schluessel) eintrag.schluessel=true;            // Runde für den goldenen Schlüssel im Wolkenkratzer
     if(WAS==="blitz" && !mine){ eintrag.lv=r.lv; eintrag.sofort=r.sofort; eintrag.stufeName=`${r.st.name} · ${LVN[r.lv]}`; }
     if(r.blitz){ eintrag.blitz=BLITZ_SEK; eintrag.stufeName=`${r.st.name} · ${LVN[r.lv]} · ⚡ ${r.richtig} richtig in 1 Minute`; }
     try{
@@ -2627,7 +2631,8 @@
         while(raus.length<n && versuch++<200 && pool.length){ const typ=pool[i++ % pool.length];
           try{ const a=fuerTurm(baueAufgabe(st,typ)); if(a && !seen.has(a.text)){ seen.add(a.text); raus.push(a); } }catch(e){} }
         return raus; },
-      istRechnen
+      istRechnen,
+      hat:t=>!!BAU[t]
     };
     return;
   }
@@ -2640,6 +2645,27 @@
   $("abbruchBtn").addEventListener("click", ()=>{ lauf++; runde=null; zeige("start"); zeigeMenue(); });
   $("zumMenue").addEventListener("click", ()=>{ zeige("start"); zeigeMenue(); });
 
+  // ---------- Goldener Schlüssel (Wolkenkratzer, 28.11.2026) ----------
+  // turm-trainer.html schickt das Kind mit #name=…&schluessel=<art>&st=<stufe>[&typen=a,b][&lv=2] hierher. Die Runde startet sofort
+  // auf der festen Stufe – das Kind wählt keine Klasse (sonst könnte es Klasse 1 nehmen). Gezählt wird im Turm nur eine Runde mit genau dieser Stufe.
+  let SCHL=null;
+  try{ const h=location.hash, m=h.match(/schluessel=([a-z]+)/);
+    if(m){ const g=k=>{ const x=h.match(new RegExp("[#&]"+k+"=([^&]+)")); return x?decodeURIComponent(x[1]):""; };
+      SCHL={art:m[1], st:+g("st")||0, typen:g("typen")?g("typen").split(",").filter(t=>BAU[t]):[], lv:+g("lv")||0, versuch:0}; } }catch(e){}
+  function schluesselStart(){
+    if(!SCHL || SCHL.gestartet || !MEINE_DA) return;
+    if(WAS==="zoo" && KLASSEN_LISTE===null && SCHL.versuch++<20){ setTimeout(schluesselStart, 300); return; }
+    SCHL.gestartet=true; schluesselRunde();
+  }
+  function schluesselRunde(){
+    let st=null;
+    if(WAS==="zoo") st=stufe(zooStufeId())||STUFEN[0];
+    else st=stufe(SCHL.st);
+    if(!st) return;
+    if(WAS==="blitz") BL_WAHL[st.id]=SCHL.lv||2;
+    starte(st, "Training", WAS!=="zoo" && WAS!=="blitz" && SCHL.typen.length ? SCHL.typen : undefined);
+    if(runde){ runde.schluessel=true; $("spielTitel").textContent="🔑 Schlüssel-Runde · "+$("spielTitel").textContent.replace(/^Üben · /,""); }
+  }
   function tsKey(e){ const [t,m,j]=String(e.datum||"01.01.2000").split("."); return `${j}${m}${t}${String(e.zeit||"00:00").replace(":","")}`; }
   function ladeMeine(){
     if(!db || !playerName){ MEINE_DA=true; zeigeMenue(); return; }
@@ -2647,7 +2673,7 @@
     (window.Vorrat ? Vorrat.snap(db,KEY,playerName,APP) : db.collection("ergebnisse").where("key","==",KEY).where("app","==",APP).where("name","==",playerName).get())
       .then(s=>{ MEINE=[]; s.forEach(d=>MEINE.push(d.data())); MEINE.sort((a,b)=>tsKey(b).localeCompare(tsKey(a))); MEINE_DA=true;
         $("status").textContent=`☁️ Verbunden · ${MEINE.length} ${MEINE.length===1?"Durchgang":"Durchgänge"} gespeichert`;
-        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); ladeBau(); })
+        if(!$("start").classList.contains("hide")) zeigeMenue(); ladeAlle(); ladeHeft(); ladeBau(); schluesselStart(); })
       .catch(err=>{ $("status").textContent="⚠️ Keine Verbindung: "+(err.code||err); MEINE_DA=true; zeigeMenue(); });
   }
   function konfetti(){
