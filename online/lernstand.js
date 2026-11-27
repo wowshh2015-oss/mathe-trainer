@@ -111,7 +111,7 @@ window.Lernstand=(function(){
       <table class="aufg"><tr><th style="width:8mm">Nr.</th><th>Aufgabe</th><th style="width:22mm">Antwort</th><th style="width:22mm">Richtig</th><th style="width:7mm"></th></tr>
         ${(e.aufgaben||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.f)}</td><td>${esc(x.a)}</td><td>${esc(x.s)}</td><td>${x.ok?"✓":"✗"}</td></tr>`).join("")}</table>
       ${lang?"":`<div class="unterschrift"><div>Unterschrift Erziehungsberechtigte</div><div>Bemerkung der Lehrkraft</div></div>`}
-      <div class="fuss">Mathe-Trainer · Schule Hohe Landwehr · Aufgaben orientiert an „Flex und Flo" und an den Leitideen des Hamburger Bildungsplans Mathematik (Grundschule).</div></div>`;
+      <div class="fuss">Mathe-Trainer · Aufgaben orientiert an „Flex und Flo" und an den Leitideen des Hamburger Bildungsplans Mathematik (Grundschule).</div></div>`;
   }
 
   // ===== Lernverlauf: gleiche Aufgabenarten über die Monate =====
@@ -147,7 +147,7 @@ window.Lernstand=(function(){
       <div class="sumz"><span>↑ besser geworden: <b>${zaehl.besser}</b> · → etwa gleich: <b>${zaehl.gleich}</b> · ↓ schlechter: <b>${zaehl.schlechter}</b> · neu: <b>${zaehl.neu}</b></span></div>
       <table><tr><th>Aufgabenart</th>${v.monate.map(m=>`<th style="width:17mm">${monatKurz(m)}</th>`).join("")}<th style="width:28mm">Entwicklung</th></tr>${zeilen}</table>
       ${v.ohneArt?`<p class="erkl">${v.ohneArt} kurze${v.ohneArt===1?"r":""} Test${v.ohneArt===1?"":"s"} vom Anfang ohne Einzelauswertung ${v.ohneArt===1?"ist":"sind"} hier nicht enthalten.</p>`:""}
-      <div class="fuss">Mathe-Trainer · Schule Hohe Landwehr · Lernverlauf aus den Tests „Wo stehe ich?"</div></div>`;
+      <div class="fuss">Mathe-Trainer · Lernverlauf aus den Tests „Wo stehe ich?"</div></div>`;
   }
 
   // Aussehen der Blätter (am Bildschirm als weiße Seite, beim Drucken A4)

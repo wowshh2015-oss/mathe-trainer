@@ -688,7 +688,7 @@ function zeigeBlatt(name){
   $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>
    <div class="seite">
     <h3>Mathe-Trainer · Lernstand von ${esc(name)}</h3>
-    <div class="klein">Stand: ${datum} · Schule Hohe Landwehr</div>
+    <div class="klein">Stand: ${datum}</div>
     <h4>Überblick</h4>
     <div>Geübt an <b>${k.tage}</b> ${k.tage===1?"Tag":"Tagen"} (davon ${k.tage14} in den letzten 14 Tagen) · insgesamt <b>${k.r.length}</b> ${k.r.length===1?"Durchgang":"Durchgänge"} · zuletzt ${zuletzt}</div>
     <h4>Der Lernweg – vom Leichten zum Schweren</h4>
@@ -851,7 +851,7 @@ function zeigeWoche(){
   $("blatt").innerHTML=`<div class="knoepfe noprint"><button id="blattDruck">🖨️ Drucken</button><button class="ghost" id="blattZu" style="color:#fff">Schließen</button></div>
    <div class="seite">
     <h3>Mathe-Trainer · Wochenblatt</h3>
-    <div class="klein">${kurz(ab)} bis ${kurz(h)}${h.getFullYear()} · Schule Hohe Landwehr</div>
+    <div class="klein">${kurz(ab)} bis ${kurz(h)}${h.getFullYear()}</div>
     <h4>Die Woche in Zahlen</h4>
     <div><b>${aktiv.length}</b> von ${alleNamen.length} Kindern haben geübt · <b>${woche.length}</b> Durchgänge · <b>${aufgaben}</b> gerechnete Aufgaben · im Schnitt <b>${schnitt} %</b> richtig</div>
     <h4>Besonders fleißig</h4>
