@@ -504,7 +504,7 @@ function stadtBand(r, y, hb){ const z=zielStadt(r), kb=Math.round((hb-8)*1.5), x
         `<rect x="${x0+3}" y="${y+3}" width="${w-6}" height="${hb-6}" rx="3" fill="${z.c}" opacity=".35"/>`;
   if(BILD.karten.includes(z.id)) s+=`<image href="bilder/turm/karte_${z.id}.webp" x="${x0+6}" y="${y+4}" width="${kb}" height="${hb-8}" preserveAspectRatio="xMidYMid slice"/>`+
      `<rect x="${x0+6}" y="${y+4}" width="${kb}" height="${hb-8}" fill="none" stroke="#fef3c7" stroke-width="1.5"/>`;
-  const tx=x0+6+(BILD.karten.includes(z.id)?kb+8:4), name=`✈️ ${z.name}`, fs=Math.min(hb*0.42, (w-(tx-x0)-34)/Math.max(6,name.length)*1.9);
+  const tx=x0+6+(BILD.karten.includes(z.id)?kb+8:4), name=r?`✈️ ${z.name}`:z.name, fs=Math.min(hb*0.42, (w-(tx-x0)-34)/Math.max(6,name.length)*1.9);
   s+=`<text x="${tx}" y="${y+hb*0.52}" font-size="${fs}" font-weight="800" fill="#fef3c7" font-family="Georgia,serif">${esc(name)}</text>`+
      `<text x="${tx+2}" y="${y+hb*0.86}" font-size="${hb*0.24}" fill="#fde68a" font-family="Arial">${esc(z.land)}</text>`+
      `<text x="${x0+w-8}" y="${y+hb*0.72}" font-size="${hb*0.55}" text-anchor="end">${z.b}</text></g>`;
@@ -512,7 +512,7 @@ function stadtBand(r, y, hb){ const z=zielStadt(r), kb=Math.round((hb-8)*1.5), x
 function turmSVG(h, z, dach, neu, buehne){
   // 28.11.2026 (Wunsch der Lehrkraft): Über einer Reise-Etage mit Drachen liegt ein schmales Stadt-Band („Zwischengeschoss") –
   // so sieht man weiter, wo die Reise in eine neue Stadt ging. Alle Etagen darüber rücken um die Bandhöhe nach oben.
-  const drE=drachenEtagen(), SB=Math.round(EH*0.3), baender=Object.keys(drE).map(Number).filter(e=>e<=h).sort((a,b)=>a-b);
+  const drE=drachenEtagen(), SB=Math.round(EH*0.3), baender=[0].concat(Object.keys(drE).map(Number).filter(e=>e>0 && e<=h).sort((a,b)=>a-b));      // 0 = Hamburg-Band über dem Eingang (Startstadt)
   const unter=e=>baender.filter(r=>r<e).length*SB;
   const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten+baender.length*SB; let s="";
   const Y=e=>H-unten-e*EH-unter(e), extra=Math.ceil(baender.length*SB/EH);
