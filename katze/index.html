@@ -194,7 +194,7 @@
   <p>Hier die Namen der Klasse eintragen – <b>ein Name pro Zeile</b>. Das Programm hört
   dann mit, wie oft ich einen dieser Namen sage, und in welchem Zusammenhang
   („leise sein“, „aufhören“, „Lob“ …). Am Ende steht das in der Auswertung.</p>
-  <textarea id="namesText" rows="8" placeholder="Mustafa&#10;Khalil&#10;Lajsa&#10;…"></textarea>
+  <textarea id="namesText" rows="8" placeholder="Anna&#10;Ben&#10;Mia&#10;…"></textarea>
   <label class="chk"><input type="checkbox" id="hearChk"> Namen mithören, während das Mikrofon läuft</label>
   <p id="srNote"></p>
   <div class="row">
@@ -515,7 +515,7 @@
     { key:"stop",   label:"aufhören",      words:["aufhören","hör auf","hört auf","höre auf","lass das","lasst das","lass es","schluss","genug","stopp","stop","hör damit auf","nicht schubsen","nicht hauen"] },
     { key:"ruhe",   label:"leise sein",    words:["leise","ruhig","ruhe","still","psst","pst","nicht so laut","zu laut","flüstern"] },
     { key:"platz",  label:"Platz / sitzen",words:["setz dich","setzt euch","hinsetzen","auf deinen platz","auf deinem platz","platz","bleib sitzen","bleibt sitzen","nicht aufstehen","geh zurück"] },
-    { key:"hoeren", label:"zuhören",       words:["zuhören","hör zu","hört zu","aufpassen","pass auf","passt auf","schau her","schau mal","guck"] },
+    { key:"hoeren", label:"zuhören",       words:["zuhören","hör zu","hört zu","aufpassen","pass auf","passt auf","pass bitte auf","passt bitte auf","pass mal auf","schau her","schau mal","guck"] },
     { key:"arbeit", label:"arbeiten",      words:["arbeite","arbeiten","weiterarbeiten","mach weiter","machst weiter","aufgabe","ins heft","konzentrier","konzentriere","beeil","fertig werden"] },
     { key:"lob",    label:"Lob",           words:["danke","gut gemacht","sehr gut","super","toll","prima","brav","klasse gemacht","schön gemacht","richtig gut"] }
   ];
@@ -526,7 +526,7 @@
       .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
       .replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
   }
-  // grobe Lautschrift: "Khalil" und "Kalil", "Mustafa" und "Mustapha" werden gleich
+  // grobe Lautschrift: "Kathrin" und "Katrin", "Sofia" und "Sophia" werden gleich
   function soundKey(s){
     let t = norm(s).replace(/ /g,"");
     t = t.replace(/sch/g,"s").replace(/ch/g,"k").replace(/ph/g,"f").replace(/ck/g,"k")
@@ -550,10 +550,26 @@
     }
     return prev[n];
   }
-  function ratio(a,b){
-    if (!a || !b) return 0;
-    return 1 - lev(a,b) / Math.max(a.length, b.length);
+  // Wie viele Buchstaben darf die Erkennung bei einem Namen danebenliegen?
+  function maxEdits(len){
+    if (len <= 4) return 0;
+    if (len <= 8) return 1;
+    return 2;
   }
+  // Haeufige deutsche Woerter muessen GENAU passen, sonst wird aus
+  // "der Stuhl muss leise" ein gerufenes "Mussa".
+  const COMMON = new Set((
+    "der die das dass den dem des ein eine einen einem einer und oder aber auch "+
+    "auf aus bei bis durch fuer gegen in im am an vom zum zur ist sind war waren "+
+    "hat habe haben hier heute hin her ich du er sie es wir ihr mir mich dir dich "+
+    "uns euch man kann kannst koennen muss musst muessen will willst wollen soll "+
+    "sollst sollen darf duerfen mal noch nur nach nicht nie nein doch schon sehr "+
+    "mehr viel wenig gut besser leise laut still ruhig jetzt dann denn wann wenn "+
+    "weil was wer wie wo warum alle alles ganz gern bitte danke komm kommt nimm "+
+    "nimmt gib gebt setz setzt sitz steh steht lass lasst los oben unten vorne "+
+    "hinten seite zahl karte name blatt heft buch stift tafel platz pause schule "+
+    "klasse kind kinder zeit mama papa frau herr mama hose nase rose sonne blume"
+  ).split(" "));
 
   let namesList = [];          // [{label, norm, sound, words}]
   let hearNames = txtStore.get("hear","0") === "1";
@@ -584,17 +600,22 @@
         const cand = tokens.slice(i, i+w).join(" ");
         if (cand.length < 3) continue;
         const sk = soundKey(cand);
-        if (cand === n.norm || sk === n.sound ||
-            ratio(cand, n.norm) >= 0.78 || ratio(sk, n.sound) >= 0.85) found = true;
+        if (COMMON.has(cand)){
+          if (cand === n.norm) found = true;     // ein Kind heisst wirklich so
+          continue;
+        }
+        if (lev(cand, n.norm) <= maxEdits(n.norm.length) ||
+            sk === n.sound ||
+            (n.sound.length >= 6 && lev(sk, n.sound) <= 1)) found = true;
       }
       // Die Erkennung zerlegt unbekannte Namen gern in falsche Woerter
-      // ("Mustafa" -> "muss da war"). Darum zusaetzlich die Lautfolge des
+      // ("Marie-Luise" -> "mari luise"). Darum zusaetzlich die Lautfolge des
       // ganzen Satzes durchschieben - aber nur bei laengeren Namen, sonst
       // steckt der Name auf einmal in jedem zweiten Wort.
-      if (!found && n.sound.length >= 5){
+      if (!found && n.sound.length >= 6){
         const L = n.sound.length;
         for (let i=0; i+L<=whole.length && !found; i++){
-          if (ratio(whole.substr(i, L), n.sound) >= 0.84) found = true;
+          if (lev(whole.substr(i, L), n.sound) <= 1) found = true;
         }
       }
       if (found) hits.push(n.label);
@@ -725,6 +746,24 @@
     txtStore.set("hear", hearNames ? "1" : "0");
     if (running){ hearNames ? startHearing() : stopHearing(); }
   });
+
+  // Namen koennen auch im Link stehen: ...index.html#namen=Anna,Ben,Mia
+  // Der Teil hinter # wird nie an den Server geschickt - die Liste bleibt
+  // auf diesem Rechner. Nach dem Uebernehmen raeumen wir die Adresszeile auf.
+  (function(){
+    const m = /[#&]namen=([^&]+)/.exec(location.hash);
+    if (!m) return;
+    let raw = "";
+    try { raw = decodeURIComponent(m[1].replace(/\+/g, " ")); } catch(e){ return; }
+    const arr = raw.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+    if (!arr.length) return;
+    namesText.value = arr.join("\n");
+    txtStore.set("names", namesText.value);
+    namesList = parseNames(namesText.value);
+    if (SR){ hearNames = true; hearChk.checked = true; txtStore.set("hear", "1"); }
+    try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+    setTimeout(() => flash(namesList.length + " Namen übernommen", "aus dem Link gespeichert"), 300);
+  })();
 
   /* ---- Auswertung der Namen ---- */
   const repNames     = document.getElementById("repNames");
