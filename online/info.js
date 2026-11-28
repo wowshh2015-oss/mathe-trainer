@@ -139,6 +139,17 @@
     "Uhr: zwei Uhrzeiten, drei Schreibweisen":"Jede Uhr mit Zeigern zeigt zwei Uhrzeiten am Tag (3.10 Uhr und 15.10 Uhr). Und jede Uhrzeit gibt es dreimal: mit Zeigern, als Digitaluhr und in Worten. <b>Klasse 3.</b>",
     "Liter und Milliliter":"1 l = <b>1000 ml</b>. Schätzen, umwandeln und ausrechnen, wie viele Gläser man füllen kann. <b>Klasse 3.</b>",
     // 24.11.: Raum, Zufall, Knobeln
+    // 28.11.: Tabellen, Spiegeln, Zeit, Geld
+    "Tabellen: Preise und Mengen":"Oben steht die Anzahl, unten der Preis. Mit jedem Stück kommt derselbe Preis dazu – oder du rechnest gleich mal. <b>Klasse 2 und 3.</b>",
+    "Tabellen geschickt ergänzen":"Doppelt so viele kosten doppelt so viel, halb so viele die Hälfte. Oder erst auf 1 rechnen. <b>Klasse 3 und 4.</b>",
+    "Regel finden":"Prüfe die Regel an jeder Spalte. Bei Zahlenfolgen: Wie geht es von Zahl zu Zahl weiter? <b>Klasse 2 und 3.</b>",
+    "Tabellen lesen":"Erst die Zeile suchen, dann die Spalte – wo sie sich treffen, steht die Zahl. <b>Klasse 2 und 3.</b>",
+    "Spiegeln: Bild ergänzen":"Jedes Kästchen hat auf der anderen Seite der Achse einen Partner, genau gleich weit weg. <b>Klasse 2 und 3.</b>",
+    "Spiegelbild erkennen":"Beim Spiegeln klappt die Figur um wie beim Falten – nur verschieben reicht nicht. <b>Klasse 2 und 3.</b>",
+    "Was kann stimmen?":"Stell dir die Sache vor: Passt die Zeit wirklich? Sekunden, Minuten, Stunden, Tage, Wochen. <b>Klasse 3.</b>",
+    "Fahrplan lesen":"In der Abfahrtstafel steht links die Stunde und rechts die Minuten. <b>Klasse 3.</b>",
+    "Auf verschiedene Wege bezahlen":"Ein Betrag lässt sich auf viele Arten legen. Achte genau auf die Bedingung. <b>Klasse 2 und 3.</b>",
+    "Sparschweine":"Erst jedes Sparschwein zählen, dann vergleichen oder ergänzen. <b>Klasse 3.</b>",
     "Würfelgebäude":"Im Bauplan steht, wie viele Würfel übereinander stehen. Auch versteckte Würfel zählen mit – unter jedem Würfel muss einer stehen! <b>Klasse 2 und 3.</b>",
     "Würfelnetze":"Falte das Netz in Gedanken. Klappt es zu einem Würfel, ohne dass zwei Flächen aufeinander liegen? <b>Klasse 3 und 4.</b>",
     "Wo liegt was?":"Links, rechts, über, unter: Such zuerst das Ding und schau dann in die richtige Richtung. <b>Klasse 1.</b>",

@@ -123,7 +123,14 @@ window.Wdh=(function(){
     groesse_diagramm: "📊 Diagramm falsch abgelesen",
     groesse_zufall:   "📊 sicher – möglich – unmöglich verwechselt",
     groesse_kombi:    "📊 Kombinieren: addiert statt multipliziert",
-    groesse_vergleich:"⚖️ Gewichte falsch verglichen"
+    groesse_vergleich:"⚖️ Gewichte falsch verglichen",
+    groesse_zuordnung:"📋 Tabelle: Preis und Menge falsch zugeordnet",
+    groesse_regel:    "📋 Regel oder Zahlenfolge nicht erkannt",
+    groesse_tabelle:  "📋 Tabelle falsch gelesen (Zeile/Spalte)",
+    groesse_plausibel:"⏱️ Zeitangabe passt nicht zur Wirklichkeit",
+    groesse_fahrplan: "🚌 Fahrplan falsch gelesen",
+    groesse_spiegeln: "🪞 Figur falsch gespiegelt",
+    groesse_geldwege: "💶 Betrag stimmt, aber die Bedingung nicht"
   };
   function carries(a,b){ return a%10+b%10>=10; }
   // eintrag: "Schlüssel|richtig|gegeben"  z. B. "8+47|55|45"

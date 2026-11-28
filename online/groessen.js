@@ -239,7 +239,9 @@
     {id:8, name:"Malnehmen und Teilen mit Geld", kurz:"3 · 1,40 € · vier kosten 8,24 € – was kostet eines?", typen:["g_mal","g_teil","g_wieviele","g_dreisatz","g_mal","g_teil"], sek:90},
     {id:9, name:"Schriftlich rechnen mit Komma", kurz:"Komma steht immer unter Komma", typen:["gs_plus","gs_minus","gs_plus3","gs_minus"], sek:120},
     {id:10, name:"Große Geldbeträge", kurz:"Scheine bis 200 € zählen und legen", typen:["g_gross","g_gross","g_grossLegen"]},
-    {id:11, name:"Fehler-Detektiv: Geld", kurz:"Was hat Flo falsch gemacht? Komma, Cent und Rückgeld", typen:["g_detektiv"], sek:60}
+    {id:11, name:"Fehler-Detektiv: Geld", kurz:"Was hat Flo falsch gemacht? Komma, Cent und Rückgeld", typen:["g_detektiv"], sek:60},
+    {id:12, name:"Auf verschiedene Wege bezahlen", kurz:"genau 3 Münzen · ohne 50-ct-Münze · möglichst wenige", typen:["g_wegeAnzahl","g_wegeOhne","g_wegeWenig"], sek:90},
+    {id:13, name:"Sparschweine", kurz:"Wer hat mehr gespart? Wie viel fehlt noch?", typen:["g_sparVergleich","g_sparFehlt","g_sparVergleich"], sek:90}
   ];
   const LAENGEN=[
     {id:1, name:"Mit dem Lineal messen", kurz:"Wie viele Zentimeter?", typen:["l_messen","l_messen","l_messenVersetzt"]},
@@ -282,7 +284,9 @@
     {id:7, name:"Sortieren", kurz:"Fläche oder Körper? Kann er rollen? Genau 4 Ecken?", typen:["f_sortFlaeche","f_sortRollen","f_sortEcken"], sek:60},
     {id:8, name:"Würfelgebäude", kurz:"Bauplan lesen · Wie viele Würfel sind es?", typen:["f_bauplan","f_gebaeude","f_bauplanWahl","f_gebaeude"], sek:70},
     {id:9, name:"Würfelnetze", kurz:"Kann man daraus einen Würfel falten?", typen:["f_netz"], sek:45},
-    {id:10, name:"Wo liegt was?", kurz:"links · rechts · über · unter", typen:["f_lage","f_lageWo","f_lage"]}
+    {id:10, name:"Wo liegt was?", kurz:"links · rechts · über · unter", typen:["f_lage","f_lageWo","f_lage"]},
+    {id:11, name:"Spiegeln: Bild ergänzen", kurz:"Tippe die Kästchen auf der anderen Seite der Achse an", typen:["f_spiegeln"], sek:150},
+    {id:12, name:"Spiegelbild erkennen", kurz:"Welches Bild ist richtig gespiegelt?", typen:["f_spiegelWahl"], sek:60}
   ];
   const DATEN=[
     {id:1, name:"Strichlisten", kurz:"immer fünf im Bündel", typen:["d_strich"]},
@@ -292,7 +296,8 @@
     {id:5, name:"Kombinieren", kurz:"3 T-Shirts und 2 Hosen – wie viele Outfits?", typen:["d_kombi"]},
     {id:6, name:"Säulen zeichnen", kurz:"Strichliste lesen – Säule auf die richtige Höhe ziehen", typen:["d_saeule"], sek:60},
     {id:7, name:"Glücksrad und Würfel", kurz:"Was ist wahrscheinlicher? Ist das Spiel fair?", typen:["d_rad","d_wuerfel","d_fair","d_wuerfel"], sek:60},
-    {id:8, name:"Zwei Würfel", kurz:"Klasse 4 · Welche Summe kommt am häufigsten?", typen:["d_zweiWuerfel"], sek:90}
+    {id:8, name:"Zwei Würfel", kurz:"Klasse 4 · Welche Summe kommt am häufigsten?", typen:["d_zweiWuerfel"], sek:90},
+    {id:9, name:"Tabellen lesen", kurz:"Zeile und Spalte · zusammenzählen · Unterschied", typen:["d_tabLesen","d_tabRechnen","d_tabLesen","d_tabRechnen"], sek:70}
   ];
   const SCHRIFT=[
     {id:1, name:"Plus ohne Übertrag", kurz:"342 + 215 – Stelle für Stelle", typen:["sp_ohne"], sek:90},
@@ -317,7 +322,9 @@
     {id:7, name:"Wie spät ist es in …? Wie spät war es vor …?", kurz:"13.34 Uhr + 16 min · auch über die volle Stunde", typen:["zs_voll","zs_in","zs_in","zs_inH","zs_vor"]},
     {id:8, name:"Wie viel Zeit ist vergangen?", kurz:"17.44 Uhr bis 18.12 Uhr · 8.10 Uhr bis 11.05 Uhr", typen:["zs_dauer","zs_dauerH","zs_dauer","zs_dauerH","zs_voll"], sek:90},
     {id:9, name:"Zeit in Sachaufgaben", kurz:"Training · Fahrplan · Wann muss er losgehen?", typen:["zs_training","zs_fahrplan","zs_los","zs_woche","zs_takt","zs_beginn"], sek:100},
-    {id:10, name:"Uhr: zwei Uhrzeiten, drei Schreibweisen", kurz:"3.10 Uhr und 15.10 Uhr · Viertel vor 8 = 7.45 Uhr = 19:45", typen:["u_beide","u_wortUhr","u_digitalWort","u_uhrPaar","u_nachm"], sek:60}
+    {id:10, name:"Uhr: zwei Uhrzeiten, drei Schreibweisen", kurz:"3.10 Uhr und 15.10 Uhr · Viertel vor 8 = 7.45 Uhr = 19:45", typen:["u_beide","u_wortUhr","u_digitalWort","u_uhrPaar","u_nachm"], sek:60},
+    {id:11, name:"Was kann stimmen?", kurz:"Dauert ein Film 2 Stunden oder 2 Minuten? · Frühstück um 7 oder 19 Uhr?", typen:["k_plausibel","k_plausibelUhr","k_plausibel"], sek:45},
+    {id:12, name:"Fahrplan lesen", kurz:"Abfahrten zählen · nächster Bus · Welchen Bus nehme ich?", typen:["k_abfahrten","k_naechsterBus","k_ankommen","zs_fahrplan"], sek:100}
   ];
   const SACH2=[
     {id:1, name:"Was war am Anfang?", kurz:"rückwärts rechnen: Jetzt sind es 30 – wie viele waren es vorher?", typen:["q_anfangPlus","q_anfangMinus","q_anfangMal","q_anfangPlus","q_anfangMinus"], sek:90},
@@ -359,7 +366,10 @@
     {id:7, name:"Zahlenmauern", kurz:"Zwei Steine zusammen ergeben den Stein darüber", typen:["zm_deck","zm_unten","zm_deck","zm_mitte"], sek:70},
     {id:8, name:"Zahlenmauern erforschen", kurz:"Was passiert mit dem Deckstein, wenn …?", typen:["zm_warum","zm_unten","zm_warum","zm_ziel"], sek:90},
     {id:9, name:"Knobeln: Zahlenrätsel", kurz:"Hinweis für Hinweis die Zahl finden · Ziffernkarten", typen:["pk_raetsel","pk_ziffern","pk_raetsel","pk_ziffern"], sek:120},
-    {id:10, name:"Knobeln: geschickt probieren", kurz:"Köpfe und Beine · Alle Möglichkeiten finden", typen:["pk_tiere","pk_moeglich","pk_tiere","pk_moeglich"], sek:150}
+    {id:10, name:"Knobeln: geschickt probieren", kurz:"Köpfe und Beine · Alle Möglichkeiten finden", typen:["pk_tiere","pk_moeglich","pk_tiere","pk_moeglich"], sek:150},
+    {id:11, name:"Tabellen: Preise und Mengen", kurz:"1 Heft kostet 3 € – was kosten 4 Hefte?", typen:["zo_tab","zo_tab","zo_tabRueck"], sek:70},
+    {id:12, name:"Tabellen geschickt ergänzen", kurz:"verdoppeln · halbieren · über 1 rechnen · Spalten addieren", typen:["zo_tabSprung","zo_tabSumme","zo_tabSprung"], sek:90},
+    {id:13, name:"Regel finden", kurz:"Wie wird aus der oberen Zahl die untere? · Zahlenfolgen", typen:["zo_regel","zo_regelZahl","zo_folge","zo_regelZahl"], sek:70}
   ];
   // Bunte Mischung: jede Runde zieht 15 zufällige Aufgabenarten aus allen Themen der Klassenstufe (mix:true)
   const MIX=[
@@ -686,7 +696,7 @@
       g:["geld","💶 Geld"],gs:["geld","💶 Geld"],f:["geo","📐 Formen und Körper"],w:["gewichte","⚖️ Gewichte und Liter"],l:["laengen","📏 Längen"],d:["daten","📊 Daten und Zufall"],
       sp:["schrift","✍️ Schriftlich rechnen"],sm:["schrift","✍️ Schriftlich rechnen"],sx:["schrift","✍️ Schriftlich rechnen"],sd:["schrift","✍️ Schriftlich rechnen"],
       rp:["plus","➕ Plus"],rm:["minus","➖ Minus"],rx:["einmaleins","✖️ Einmaleins"],rd:["einsdurcheins","➗ Einsdurcheins"],rz:["zerlegen","🧩 Zerlegen"],
-      rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"],b:["blitz","⚡ Blitzrechnen"],m:["zahlen","🔢 Zahlen"],q:["sach2","📚 Sachaufgaben in zwei Schritten"]})[p] || ["mix","🎲 Verschiedenes"]; }
+      rw:["halbschriftlich","🪜 Rechenwege"],rf:["platz","🔍 Fehlende Zahl"],b:["blitz","⚡ Blitzrechnen"],m:["zahlen","🔢 Zahlen"],q:["sach2","📚 Sachaufgaben in zwei Schritten"],zo:["paeckchen","🕵️ Tabellen und Regeln"]})[p] || ["mix","🎲 Verschiedenes"]; }
   function eingabe(frage, felder, soll, o){ return Object.assign({art:"eingabe", frage, felder, soll}, o); }
   // ---------- Blitzrechnen: Bilder ----------
   // Zwanzigerfeld: zwei Reihen à 10, nach 5 eine Lücke (Kraft der Fünf)
@@ -744,7 +754,179 @@
 
   // reine Rechenaufgabe: große Aufgabe, ein Zahlenfeld
   function rechen(text, soll, probe, erkl){ return eingabe(`<span class="ziel" style="font-size:34px">${text}</span>`, [F.zahl], soll, {tag:"kopf", sollText:String(soll), erkl, probe}); }
+  // ===== 28.11.2026: Tabellen und Zuordnungen, Spiegeln, „Was kann stimmen?", Fahrplan, Geld auf verschiedenen Wegen, Sparschweine =====
+  const TD="border:1px solid rgba(128,128,128,.75);padding:6px 11px;text-align:center;min-width:30px", TH=TD+";background:rgba(250,204,21,.24);font-weight:800";
+  const FRAG='<b style="color:#f59e0b;font-size:1.15em">?</b>';
+  function tabelle(kopf, zeilen){ return `<table style="border-collapse:collapse;font-size:17px;margin:0 auto">`+
+      (kopf?`<tr>${kopf.map(k=>`<th style="${TH}">${k}</th>`).join("")}</tr>`:"")+
+      zeilen.map(z=>`<tr>${z.map((x,i)=>i===0?`<th style="${TH};text-align:left">${x}</th>`:`<td style="${TD}">${x}</td>`).join("")}</tr>`).join("")+`</table>`; }
+  // zweizeilige Tabelle wie im Heft: oben die Anzahl, unten der Preis
+  function zoTab(kO, oben, kU, unten){ return `<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:18px;margin:0 auto">`+
+      `<tr><th style="${TH};text-align:left">${kO}</th>${oben.map(x=>`<td style="${TD}">${x}</td>`).join("")}</tr>`+
+      `<tr><th style="${TH};text-align:left">${kU}</th>${unten.map(x=>`<td style="${TD}">${x}</td>`).join("")}</tr></table></div>`; }
+  const ZO_DING=[["Hefte","Heft"],["Stifte","Stift"],["Brötchen","Brötchen"],["Eintrittskarten","Eintrittskarte"],["Kugeln Eis","Kugel Eis"],["Bälle","Ball"],["Bücher","Buch"],["Sticker-Tüten","Sticker-Tüte"]];
+  const FE={e:"€",f:1};
+  const PLAUS_DAUER=[["Ein Fußballspiel dauert …","90 Minuten",["90 Sekunden","90 Stunden"]],["Zähneputzen dauert …","3 Minuten",["3 Stunden","3 Sekunden"]],
+    ["Eine Schulstunde dauert …","45 Minuten",["45 Sekunden","45 Stunden"]],["Die Sommerferien dauern …","6 Wochen",["6 Tage","6 Monate"]],
+    ["Ein Kinofilm dauert …","2 Stunden",["2 Minuten","2 Tage"]],["Ein Ei weich kochen dauert …","5 Minuten",["5 Sekunden","5 Stunden"]],
+    ["Einmal tief einatmen dauert …","3 Sekunden",["3 Minuten","3 Stunden"]],["Ein Kind schläft in der Nacht …","10 Stunden",["10 Minuten","10 Tage"]],
+    ["Den Schulranzen packen dauert …","5 Minuten",["5 Sekunden","5 Stunden"]],["Eine große Pause dauert …","20 Minuten",["20 Sekunden","20 Stunden"]],
+    ["Ein Schuljahr dauert …","1 Jahr",["1 Monat","1 Woche"]],["Die Herbstferien dauern …","2 Wochen",["2 Tage","2 Monate"]],
+    ["Ein 50-m-Lauf dauert …","10 Sekunden",["10 Minuten","10 Stunden"]],["Mit dem Flugzeug von Hamburg nach München dauert es …","1 Stunde",["1 Minute","1 Tag"]],
+    ["Ein Weihnachtsbaum wächst, bis er groß ist, …","10 Jahre",["10 Tage","10 Wochen"]],["Die Hausaufgaben dauern …","20 Minuten",["20 Sekunden","20 Stunden"]]];
+  const PLAUS_UHR=[["Lea geht morgens zur Schule um …","7.30 Uhr",["17.30 Uhr","2.30 Uhr"]],["Tom isst zu Abend um …","18.30 Uhr",["8.30 Uhr","3.30 Uhr"]],
+    ["Die Schule ist aus um …","13.15 Uhr",["1.15 Uhr","21.15 Uhr"]],["Ben geht abends ins Bett um …","20.00 Uhr",["8.00 Uhr","14.00 Uhr"]],
+    ["Mittagessen gibt es um …","12.30 Uhr",["0.30 Uhr","22.30 Uhr"]],["Mia frühstückt um …","7.00 Uhr",["19.00 Uhr","11.00 Uhr"]],
+    ["Das Fußballtraining am Nachmittag beginnt um …","16.00 Uhr",["4.00 Uhr","23.00 Uhr"]],["Die erste Stunde beginnt um …","8.00 Uhr",["20.00 Uhr","6.00 Uhr"]],
+    ["Im Winter wird es dunkel um …","16.30 Uhr",["10.30 Uhr","4.30 Uhr"]],["Das Abendbrot-Fernsehen für Kinder läuft um …","19.00 Uhr",["7.00 Uhr","1.00 Uhr"]]];
+  // Abfahrtstafel wie an der Haltestelle: links die Stunde, rechts die Minuten
+  function abfahrtNeu(){ const tafel={}; for(let h=7;h<=10;h++){ const takt=aus([10,15,20,20,30]), start=rnd(0,takt-1); const m=[]; for(let x=start;x<60;x+=takt) m.push(x);
+      if(Math.random()<0.4 && m.length>2) m.splice(rnd(1,m.length-1),1); tafel[h]=m; } return tafel; }
+  function abfahrtBild(t, halt){ return `<div style="font-weight:800;margin-bottom:4px">🚏 ${halt} · Abfahrt Montag bis Freitag</div>`+tabelle(["Uhr","Minuten"], Object.keys(t).map(h=>[h, t[h].map(zz).join("&nbsp;&nbsp;")])); }
+  // Spiegeln: Gitter mit Spiegelachse, links (oder oben) ist die Hälfte vorgegeben
+  function spiegelFigur(achse){ const C=achse==="senkrecht"?10:8, R=achse==="senkrecht"?6:8, halb=achse==="senkrecht"?5:4, n=rnd(4,8), g=new Set();
+    let r, c; if(achse==="senkrecht"){ r=rnd(1,R-2); c=halb-1; } else { r=halb-1; c=rnd(1,C-2); }
+    g.add(r+","+c); let schutz=0;
+    while(g.size<n && schutz++<300){ const l=[...g], p=aus(l).split(",").map(Number), d=aus([[0,1],[0,-1],[1,0],[-1,0]]), nr=p[0]+d[0], nc=p[1]+d[1];
+      if(nr<0||nc<0||nr>=R||nc>=C) continue; if(achse==="senkrecht" ? nc>=halb : nr>=halb) continue; g.add(nr+","+nc); }
+    const spiegel=k=>{ const [a,b]=k.split(",").map(Number); return achse==="senkrecht" ? a+","+(C-1-b) : (R-1-a)+","+b; };
+    return {achse, C, R, halb, gegeben:[...g], ziel:[...g].map(spiegel)}; }
+  function spiegelSvg(f, mein, pruef, px){ const s=px||30, W=f.C*s, H=f.R*s, h=HELL(); let t=`<rect x="0" y="0" width="${W}" height="${H}" fill="${h?"#ffffff":"#0f172a"}"/>`;
+    const zelle=(k,fill,extra)=>{ const [r,c]=k.split(",").map(Number); return `<rect x="${c*s+1.5}" y="${r*s+1.5}" width="${s-3}" height="${s-3}" rx="3" fill="${fill}"${extra||""}/>`; };
+    f.gegeben.forEach(k=>t+=zelle(k,"#3b82f6"));
+    (mein||[]).forEach(k=>t+=zelle(k, pruef && !f.ziel.includes(k) ? "#ef4444" : "#f59e0b"));
+    if(pruef) f.ziel.filter(k=>!(mein||[]).includes(k)).forEach(k=>t+=zelle(k,"none",` stroke="#22c55e" stroke-width="3" stroke-dasharray="5 3"`));
+    for(let c=0;c<=f.C;c++) t+=`<path d="M${c*s} 0 V${H}" stroke="${h?"#cbd5e1":"#334155"}" stroke-width="1"/>`;
+    for(let r=0;r<=f.R;r++) t+=`<path d="M0 ${r*s} H${W}" stroke="${h?"#cbd5e1":"#334155"}" stroke-width="1"/>`;
+    t+= f.achse==="senkrecht" ? `<path d="M${f.halb*s} -4 V${H+4}" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="9 6"/>` : `<path d="M-4 ${f.halb*s} H${W+4}" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="9 6"/>`;
+    return t; }
+  function spiegelBildKlein(f, zellen){ const s=16, W=f.C*s, H=f.R*s, h=HELL(); let t=`<svg viewBox="-2 -2 ${W+4} ${H+4}" width="${W*0.9}" height="${H*0.9}"><rect width="${W}" height="${H}" fill="${h?"#fff":"#0f172a"}" stroke="${h?"#cbd5e1":"#334155"}"/>`;
+    f.gegeben.concat(zellen).forEach((k,i)=>{ const [r,c]=k.split(",").map(Number); t+=`<rect x="${c*s+1}" y="${r*s+1}" width="${s-2}" height="${s-2}" fill="${i<f.gegeben.length?"#3b82f6":"#f59e0b"}"/>`; });
+    t+= f.achse==="senkrecht" ? `<path d="M${f.halb*s} 0 V${H}" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3"/>` : `<path d="M0 ${f.halb*s} H${W}" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3"/>`;
+    return t+"</svg>"; }
+  function geldOhne(c, ohne){ const l=[]; STUECKE.filter(s=>s!==ohne).forEach(s=>{ while(c>=s){ l.push(s); c-=s; } }); return l; }
+  function haufenBild(c){ return `<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center">${mische(zerlege(c)).map(v=>geldBild(v,true)).join("")}</div>`; }
   const BAU={
+    // ===== 28.11.2026: Tabellen und Zuordnungen (Päckchen 11–13) =====
+    zo_tab(){ const d=aus(ZO_DING), p=rnd(2,9), n=[1,2,3,4,5], k=rnd(2,5), w=n.map(x=>x*p);
+      return eingabe(`1 ${d[1]} kostet <span class="ziel">${p} €</span>. Was kosten <span class="ziel">${k} ${d[0]}</span>?`, [FE], k*p,
+        {bild:zoTab("Anzahl", n, "Preis", w.map((x,i)=>i===0?x+" €":n[i]===k?FRAG:i<k?x+" €":"")), tag:"zuordnung", sollText:`${k*p} €`, falle:k+p, falleArt:"zuordnung",
+         erkl:`Mit jedem ${d[1]} kommen <b>${p} €</b> dazu: ${n.slice(0,k).map(x=>x*p+" €").join(" → ")}.<br>Oder gleich mal: ${k} · ${p} € = <b>${k*p} €</b>.`}); },
+    zo_tabRueck(){ const d=aus(ZO_DING), p=rnd(2,9), k=rnd(3,6);
+      if(Math.random()<0.5) return eingabe(`<span class="ziel">${k} ${d[0]}</span> kosten zusammen <span class="ziel">${k*p} €</span>. Was kostet <span class="ziel">1 ${d[1]}</span>?`, [FE], p,
+        {bild:zoTab("Anzahl", [1,k], "Preis", [FRAG, k*p+" €"]), tag:"zuordnung", sollText:`${p} €`, falle:k*p-k,
+         erkl:`Alle ${d[0]} kosten gleich viel. Verteile ${k*p} € gerecht auf ${k}: ${k*p} : ${k} = <b>${p} €</b>.<br>Probe: ${k} · ${p} € = ${k*p} €.`});
+      const g=rnd(2,6)*p;
+      return eingabe(`1 ${d[1]} kostet <span class="ziel">${p} €</span>. Wie viele ${d[0]} bekommst du für <span class="ziel">${g} €</span>?`, [F.zahl], g/p,
+        {bild:zoTab("Anzahl", [1,FRAG], "Preis", [p+" €", g+" €"]), tag:"zuordnung", sollText:String(g/p),
+         erkl:`Wie oft passen ${p} € in ${g} €? ${g} : ${p} = <b>${g/p}</b>.<br>Probe: ${g/p} · ${p} € = ${g} €.`}); },
+    zo_tabSprung(){ const d=aus(ZO_DING), p=rnd(2,9), art=aus(["doppel","doppel","halb","eins"]);
+      if(art==="doppel"){ const a=aus([2,3,4,5]), b=2*a;
+        return eingabe(`<span class="ziel">${a} ${d[0]}</span> kosten <span class="ziel">${a*p} €</span>. Was kosten <span class="ziel">${b} ${d[0]}</span>?`, [FE], b*p,
+          {bild:zoTab("Anzahl", [a,b], "Preis", [a*p+" €",FRAG]), tag:"zuordnung", sollText:`${b*p} €`,
+           erkl:`${b} ist das <b>Doppelte</b> von ${a}. Dann kostet es auch das Doppelte: ${a*p} € + ${a*p} € = <b>${b*p} €</b>.`}); }
+      if(art==="halb"){ const a=aus([4,6,8,10]), b=a/2;
+        return eingabe(`<span class="ziel">${a} ${d[0]}</span> kosten <span class="ziel">${a*p} €</span>. Was kosten <span class="ziel">${b} ${d[0]}</span>?`, [FE], b*p,
+          {bild:zoTab("Anzahl", [b,a], "Preis", [FRAG,a*p+" €"]), tag:"zuordnung", sollText:`${b*p} €`,
+           erkl:`${b} ist die <b>Hälfte</b> von ${a}. Dann kostet es auch die Hälfte: ${a*p} € : 2 = <b>${b*p} €</b>.`}); }
+      return eingabe(`<span class="ziel">10 ${d[0]}</span> kosten <span class="ziel">${10*p} €</span>. Was kostet <span class="ziel">1 ${d[1]}</span>? Was kosten dann <span class="ziel">3 ${d[0]}</span>?<br>Schreib den Preis für 3 ${d[0]}.`, [FE], 3*p,
+        {bild:zoTab("Anzahl", [10,1,3], "Preis", [10*p+" €","",FRAG]), tag:"zuordnung", sollText:`${3*p} €`,
+         erkl:`Erst auf 1: ${10*p} € : 10 = ${p} €. Dann auf 3: 3 · ${p} € = <b>${3*p} €</b>.`}); },
+    zo_tabSumme(){ const d=aus(ZO_DING), p=rnd(2,8), a=rnd(2,5), b=rnd(2,5), s=a+b;
+      return eingabe(`<span class="ziel">${a} ${d[0]}</span> kosten <span class="ziel">${a*p} €</span>, <span class="ziel">${b} ${d[0]}</span> kosten <span class="ziel">${b*p} €</span>.<br>Was kosten <span class="ziel">${s} ${d[0]}</span>?`, [FE], s*p,
+        {bild:zoTab("Anzahl", [a,b,s], "Preis", [a*p+" €",b*p+" €",FRAG]), tag:"zuordnung", sollText:`${s*p} €`,
+         erkl:`${a} + ${b} = ${s}. Darum darfst du auch die Preise zusammenzählen: ${a*p} € + ${b*p} € = <b>${s*p} €</b>.`}); },
+    zo_regel(){ const r=aus([["+",rnd(2,9)],["−",rnd(2,9)],["·",rnd(2,5)],["·",2]]), f=x=>r[0]==="+"?x+r[1]:r[0]==="−"?x-r[1]:x*r[1];
+      const ein=mische([2,3,4,5,6,7,8,10,12]).slice(0,4).map(x=>r[0]==="−"?x+r[1]:x), ok=`${r[0]} ${r[1]}`;
+      let falsch=new Set(); while(falsch.size<3){ const z=aus([["+",rnd(1,9)],["−",rnd(1,9)],["·",rnd(2,5)]]), t=`${z[0]} ${z[1]}`; if(t!==ok && !ein.every(x=>(z[0]==="+"?x+z[1]:z[0]==="−"?x-z[1]:x*z[1])===f(x))) falsch.add(t); }
+      return {art:"wahl", frage:"Wie wird aus der <span class=\"ziel\">oberen Zahl</span> die <span class=\"ziel\">untere</span>? Welche Regel passt?", bild:zoTab("Zahl", ein, "Ergebnis", ein.map(f)),
+        optionen:mische([ok,...falsch]), ok, tag:"regel", sollText:ok,
+        erkl:`Prüfe die Regel an <b>jeder</b> Spalte: ${ein.map(x=>`${x} ${ok} = ${f(x)}`).join(" · ")}.`}; },
+    zo_regelZahl(){ const r=aus([["+",rnd(3,9)],["·",rnd(2,6)],["−",rnd(2,8)],["+",rnd(10,20)]]), f=x=>r[0]==="+"?x+r[1]:r[0]==="−"?x-r[1]:x*r[1];
+      const ein=mische([2,3,4,5,6,7,8,9,10]).slice(0,5).map(x=>r[0]==="−"?x+r[1]:x), k=rnd(2,4);
+      return eingabe("Finde die Regel und ergänze die Tabelle. Welche Zahl gehört an die Stelle mit dem <span class=\"ziel\">?</span>", [F.zahl], f(ein[k]),
+        {bild:zoTab("Zahl", ein, "Ergebnis", ein.map((x,i)=>i===k?FRAG:f(x))), tag:"regel", sollText:String(f(ein[k])),
+         erkl:`Die Regel ist <b>${r[0]} ${r[1]}</b>: ${ein[0]} ${r[0]} ${r[1]} = ${f(ein[0])}. Also ${ein[k]} ${r[0]} ${r[1]} = <b>${f(ein[k])}</b>.`}); },
+    zo_folge(){ const art=aus(["plus","minus","mal","zwei"]); let l=[], regel;
+      if(art==="plus"){ const d=rnd(3,12); l=[rnd(1,20)]; for(let i=0;i<5;i++) l.push(l[i]+d); regel=`immer + ${d}`; }
+      else if(art==="minus"){ const d=rnd(3,9); l=[rnd(50,99)]; for(let i=0;i<5;i++) l.push(l[i]-d); regel=`immer − ${d}`; }
+      else if(art==="mal"){ l=[rnd(1,3)]; for(let i=0;i<5;i++) l.push(l[i]*2); regel="immer das Doppelte"; }
+      else { const a=rnd(2,5), b=rnd(1,4); l=[rnd(1,10)]; for(let i=0;i<5;i++) l.push(l[i]+(i%2?b:a)); regel=`abwechselnd + ${a} und + ${b}`; }
+      return eingabe(`Setze die Zahlenfolge fort: <span class="ziel">${l.slice(0,5).join(", ")}, …</span><br>Welche Zahl kommt als Nächstes?`, [F.zahl], l[5],
+        {tag:"regel", sollText:String(l[5]), erkl:`Schau, wie es von Zahl zu Zahl weitergeht: <b>${regel}</b>. ${l.slice(0,5).join(" → ")} → <b>${l[5]}</b>.`}); },
+    // ===== Daten 9: Tabellen lesen =====
+    d_tabLesen(){ const kl=["3a","3b","3c"], sp=mische([["🚌 Bus"],["🚲 Fahrrad"],["🚶 zu Fuß"],["🚗 Auto"],["🛴 Roller"]]).slice(0,3).map(x=>x[0]), w=kl.map(()=>sp.map(()=>rnd(2,14)));
+      const i=rnd(0,2), j=rnd(0,2);
+      return eingabe(`Wie kommen die Kinder zur Schule?<br>Wie viele Kinder der <span class="ziel">${kl[i]}</span> kommen <span class="ziel">${sp[j].replace(/^\S+ /,"")==="zu Fuß"?"zu Fuß":"mit dem "+sp[j].replace(/^\S+ /,"")}</span>?`, [F.zahl], w[i][j],
+        {bild:tabelle(["Klasse"].concat(sp), kl.map((k,a)=>[k].concat(w[a]))), tag:"tabelle", sollText:String(w[i][j]),
+         erkl:`Geh in die <b>Zeile</b> „${kl[i]}“ und dann in die <b>Spalte</b> „${sp[j]}“. Dort, wo sie sich treffen, steht <b>${w[i][j]}</b>.`}); },
+    d_tabRechnen(){ const kl=["3a","3b","3c"], sp=["🍎 Apfel","🍌 Banane","🍓 Erdbeere"], w=kl.map(()=>sp.map(()=>rnd(2,12))), art=aus(["zeile","spalte","diff"]);
+      const bild=tabelle(["Klasse"].concat(sp), kl.map((k,a)=>[k].concat(w[a]))), i=rnd(0,2), j=rnd(0,2);
+      if(art==="zeile"){ const s=w[i].reduce((a,b)=>a+b,0);
+        return eingabe(`Lieblingsobst: Wie viele Kinder der <span class="ziel">${kl[i]}</span> haben <span class="ziel">insgesamt</span> abgestimmt?`, [F.zahl], s, {bild, tag:"tabelle", sollText:String(s),
+          erkl:`Zähle die ganze <b>Zeile</b> „${kl[i]}“ zusammen: ${w[i].join(" + ")} = <b>${s}</b>.`}); }
+      if(art==="spalte"){ const s=w.reduce((a,z)=>a+z[j],0);
+        return eingabe(`Lieblingsobst: Wie viele Kinder aus <span class="ziel">allen drei Klassen</span> mögen am liebsten <span class="ziel">${sp[j].replace(/^\S+ /,"")}</span>?`, [F.zahl], s, {bild, tag:"tabelle", sollText:String(s),
+          erkl:`Zähle die ganze <b>Spalte</b> „${sp[j]}“ zusammen: ${w.map(z=>z[j]).join(" + ")} = <b>${s}</b>.`}); }
+      let a=0, b=1; if(w[i][a]===w[i][b]) w[i][b]+=2; const g=w[i][a]>w[i][b]?a:b, k=g===a?b:a;
+      return eingabe(`Lieblingsobst in der <span class="ziel">${kl[i]}</span>: Wie viele Kinder mögen <span class="ziel">${sp[g].replace(/^\S+ /,"")}</span> mehr als <span class="ziel">${sp[k].replace(/^\S+ /,"")}</span>?`, [F.zahl], w[i][g]-w[i][k],
+        {bild:tabelle(["Klasse"].concat(sp), kl.map((x,q)=>[x].concat(w[q]))), tag:"tabelle", sollText:String(w[i][g]-w[i][k]),
+         erkl:`Zeile „${kl[i]}“: ${sp[g]} ${w[i][g]}, ${sp[k]} ${w[i][k]}. Unterschied: ${w[i][g]} − ${w[i][k]} = <b>${w[i][g]-w[i][k]}</b>.`}); },
+    // ===== Kalender 11: Was kann stimmen? · Kalender 12: Fahrplan lesen =====
+    k_plausibel(){ const x=aus(PLAUS_DAUER);
+      return {art:"wahl", frage:`Was kann stimmen?<br><span class="ziel">${x[0]}</span>`, optionen:mische([x[1]].concat(x[2])), ok:x[1], tag:"plausibel", sollText:x[1], spalten:1,
+        erkl:`Stell es dir vor: ${x[0].replace(" …","")} <b>${x[1]}</b>. Die anderen Angaben sind viel zu kurz oder viel zu lang.`}; },
+    k_plausibelUhr(){ const x=aus(PLAUS_UHR);
+      return {art:"wahl", frage:`Was kann stimmen?<br><span class="ziel">${x[0]}</span>`, optionen:mische([x[1]].concat(x[2])), ok:x[1], tag:"plausibel", sollText:x[1], spalten:1,
+        erkl:`Denk an deinen Tag: ${x[0].replace(" …","")} <b>${x[1]}</b>. Nach 12 Uhr mittags zählt man weiter: 13 Uhr, 14 Uhr … bis 24 Uhr.`}; },
+    k_abfahrten(){ const t=abfahrtNeu(), halt=aus(["Marktplatz","Schulstraße","Rathaus","Bahnhof"]), h=rnd(7,10), n=t[h].length;
+      return eingabe(`Wie viele Busse fahren <span class="ziel">zwischen ${h}.00 Uhr und ${h}.59 Uhr</span> ab?`, [F.zahl], n, {bild:abfahrtBild(t,halt), tag:"fahrplan", sollText:String(n),
+        erkl:`In der Zeile <b>${h}</b> stehen die Minuten: ${t[h].map(zz).join(", ")}. Das heißt ${t[h].map(m=>`${h}.${zz(m)} Uhr`).join(", ")}. Das sind <b>${n} Busse</b>.`}); },
+    k_naechsterBus(){ const t=abfahrtNeu(), halt=aus(["Marktplatz","Schulstraße","Rathaus","Bahnhof"]), alle=[]; Object.keys(t).forEach(h=>t[h].forEach(m=>alle.push(+h*60+m)));
+      alle.sort((a,b)=>a-b); const k=rnd(1,alle.length-2), jetzt=rnd(alle[k-1]+1, alle[k]), soll=alle[k];
+      return eingabe(`Du bist um <span class="ziel">${uhr(jetzt)}</span> an der Haltestelle ${halt}. Wann fährt der <span class="ziel">nächste Bus</span>?`, [F.uhrH,F.uhrM], soll,
+        {bild:abfahrtBild(t,halt), tag:"fahrplan", sollText:uhr(soll), streng:true,
+         erkl:`Geh in die Zeile <b>${Math.floor(jetzt/60)}</b>${Math.floor(soll/60)!==Math.floor(jetzt/60)?` – dort fährt nach ${uhr(jetzt)} keiner mehr, also in die nächste Zeile <b>${Math.floor(soll/60)}</b>`:""}. Der erste Bus nach ${uhr(jetzt)} fährt um <b>${uhr(soll)}</b>.`}); },
+    k_ankommen(){ const halt=["Busbahnhof","Lange Straße","Schule","Marktplatz"], fahrt=[0,rnd(4,9),0,0]; fahrt[2]=fahrt[1]+rnd(4,9); fahrt[3]=fahrt[2]+rnd(4,9);
+      const st=rnd(7,8)*60+rnd(0,2)*5, takt=aus([15,20]), ab=[0,1,2].map(i=>st+i*takt), ziel=rnd(1,3), tb=rnd(0,2), spaet=ab[tb]+fahrt[ziel]+rnd(1,takt-2);
+      const okI=ab.map(a=>a+fahrt[ziel]).filter(x=>x<=spaet).length-1, ok=uhr(ab[okI]).replace(" Uhr","");
+      return {art:"wahl", frage:`Du musst spätestens um <span class="ziel">${uhr(spaet)}</span> an der Haltestelle <span class="ziel">${halt[ziel]}</span> sein.<br>Welchen Bus nimmst du am Busbahnhof? (Nimm den spätesten, der noch passt.)`,
+        bild:tabelle(["Haltestelle","Bus 1","Bus 2","Bus 3"], halt.map((h,i)=>[h].concat(ab.map(a=>uhr(a+fahrt[i]).replace(" Uhr",""))))),
+        optionen:ab.map(a=>uhr(a).replace(" Uhr","")), ok, optText:ab.map(a=>uhr(a)), tag:"fahrplan", sollText:uhr(ab[okI]), spalten:3,
+        erkl:`Schau in die Zeile <b>${halt[ziel]}</b>: ${ab.map(a=>uhr(a+fahrt[ziel])).join(", ")}. Spätestens ${uhr(spaet)} – das schafft noch der Bus, der um <b>${uhr(ab[okI])}</b> am Busbahnhof losfährt.`}; },
+    // ===== Geometrie 11–12: Spiegeln =====
+    f_spiegeln(){ const f=spiegelFigur(Math.random()<0.75?"senkrecht":"waagerecht");
+      return Object.assign({art:"spiegeln", frage:`Spiegle die blaue Figur an der <span class="ziel">roten Achse</span>. Tippe die Kästchen auf der anderen Seite an.`, tag:"spiegeln", sollText:"so wie im Bild",
+        erkl:`Jedes Kästchen hat auf der anderen Seite einen Partner – <b>genau gleich weit</b> von der Achse entfernt. Zähle die Kästchen bis zur Achse und dann gleich viele weiter.`}, {fig:f}); },
+    f_spiegelWahl(){ const f=spiegelFigur("senkrecht"), C=f.C, ok=f.ziel;
+      const schieb=f.gegeben.map(k=>{ const [r,c]=k.split(",").map(Number); return r+","+(c+f.halb); });      // nur verschoben, nicht gespiegelt
+      const versetzt=ok.map(k=>{ const [r,c]=k.split(",").map(Number); return r+","+Math.min(C-1,c+1); });
+      const auf=ok.map(k=>{ const [r,c]=k.split(",").map(Number); return (f.R-1-r)+","+c; });            // zusätzlich auf den Kopf gestellt
+      const kand=[[ok,"richtig gespiegelt"],[schieb,"nur verschoben"],[versetzt,"ein Kästchen zu weit"],[auf,"auf den Kopf gestellt"]];
+      const sig=l=>l.slice().sort().join(";"), gesehen=new Set(), opt=[];
+      kand.forEach(k=>{ const s=sig(k[0]); if(!gesehen.has(s)){ gesehen.add(s); opt.push(k); } });
+      const bilder=opt.map(k=>spiegelBildKlein(f,k[0])), mix=mische(opt.map((k,i)=>i));
+      return {art:"wahl", frage:"Welches Bild ist an der roten Achse <span class=\"ziel\">richtig gespiegelt</span>?", optionen:mix.map(i=>bilder[i]), ok:bilder[0], optText:mix.map(i=>opt[i][1]), tag:"spiegeln", sollText:"richtig gespiegelt",
+        erkl:`Beim Spiegeln klappt die Figur um wie beim Falten: Was nah an der Achse ist, bleibt nah an der Achse. Nur verschieben reicht nicht.`}; },
+    // ===== Geld 12–13: auf verschiedenen Wegen bezahlen · Sparschweine =====
+    g_wegeAnzahl(){ let l, c; do{ const n=rnd(2,5); l=[]; for(let i=0;i<n;i++) l.push(aus([200,100,50,20,10,5,2,1,50,20,10])); c=l.reduce((a,b)=>a+b,0); }while(c>500 || zerlege(c).length===l.length && Math.random()<0.5);
+      return {art:"legen", frage:`Lege <span class="ziel">${komma(c)}</span> mit <span class="ziel">genau ${l.length} Münzen</span>.`, soll:c, anzahl:l.length, kasse:[200,100,50,20,10,5,2,1], tag:"geldwege", sollText:`${komma(c)} mit ${l.length} Münzen`,
+        erkl:`Eine Möglichkeit: ${summenKette(l.sort((a,b)=>b-a))} = <b>${komma(c)}</b> – das sind ${l.length} Münzen.`}; },
+    g_wegeOhne(){ let c, ohne; do{ c=aus([50,100,100,200,150,80,70,120,250,500]); ohne=aus(zerlege(c)); }while(c===ohne && c<=5);
+      const l=geldOhne(c, ohne);
+      return {art:"legen", frage:`Lege <span class="ziel">${komma(c)}</span> – aber <span class="ziel">ohne ${stueckName(ohne)}</span>.`, soll:c, ohne, kasse:[500,200,100,50,20,10,5,2,1], tag:"geldwege", sollText:`${komma(c)} ohne ${stueckName(ohne)}`,
+        erkl:`Eine Möglichkeit: ${summenKette(l)} = <b>${komma(c)}</b>. Es gibt noch viele andere Wege!`}; },
+    g_wegeWenig(){ const c=rnd(3,49)*10+aus([0,0,5,2,7]), l=zerlege(c);
+      return {art:"legen", frage:`Lege <span class="ziel">${komma(c)}</span> mit <span class="ziel">möglichst wenigen</span> Münzen und Scheinen.`, soll:c, wenig:l.length, kasse:[500,200,100,50,20,10,5,2,1], tag:"geldwege", sollText:`${komma(c)} mit ${l.length} Stück`,
+        erkl:`Nimm immer zuerst das größte Stück, das noch passt: ${summenKette(l)} – das sind nur <b>${l.length}</b> Stück.`}; },
+    g_sparVergleich(){ const n=mische(QKIND).slice(0,2), a=rnd(3,30)*25+aus([0,5,2,10]), b=a+aus([-1,1])*rnd(1,12)*10; const m=Math.max(a,b), k=Math.min(a,b), wer=a>b?n[0][0]:n[1][0], d=m-k;
+      return eingabe(`In den Sparschweinen ist so viel Geld:<br><b>${n[0][0]}</b> und <b>${n[1][0]}</b>.<br>Wie viel hat <span class="ziel">${wer}</span> mehr gespart?`, [F.eur,F.ct], d,
+        {bild:`<div style="display:grid;gap:8px"><div><b>🐷 ${n[0][0]}</b>${haufenBild(a)}</div><div><b>🐷 ${n[1][0]}</b>${haufenBild(b)}</div></div>`, tag:"rechnen", sollText:euroCent(d), streng:true,
+         erkl:`Zähle zuerst jedes Sparschwein: ${n[0][0]} hat ${komma(a)}, ${n[1][0]} hat ${komma(b)}. Unterschied: ${komma(m)} − ${komma(k)} = <b>${euroCent(d)}</b>.`}); },
+    g_sparFehlt(){ const n=aus(QKIND), ding=aus([["ein Buch",1250],["ein Spiel",1990],["einen Ball",1500],["ein Puzzle",899],["eine Taschenlampe",750],["einen Rucksack",2400]]), hat=rnd(Math.floor(ding[1]*0.3/5), Math.floor(ding[1]*0.85/5))*5, d=ding[1]-hat;
+      return eingabe(`${n[0]} möchte <span class="ziel">${ding[0]}</span> für <span class="ziel">${komma(ding[1])}</span> kaufen. Im Sparschwein ist dieses Geld.<br>Wie viel fehlt noch?`, [F.eur,F.ct], d,
+        {bild:haufenBild(hat), tag:"rechnen", sollText:euroCent(d), streng:true,
+         erkl:`Im Sparschwein: ${komma(hat)}. Es fehlen ${komma(ding[1])} − ${komma(hat)} = <b>${euroCent(d)}</b>. Probe: ${komma(hat)} + ${euroCent(d)} = ${komma(ding[1])}.`}); },
     // ---------- Blitzrechnen ----------
     // BL = gewählte Stufe: 1 Anfänger (kleinere Zahlen, einfacher) · 2 Fortgeschritten (wie im Buch) · 3 Profi (Übergänge, Lücke vorn, kürzer sehen …)
     // ----- Klasse 1 -----
@@ -1955,6 +2137,26 @@
         br.sperren(); br.zeigeSync(); $("okBtn").disabled=true; $("leerBtn").disabled=true;
         auswerten(a, ok, `${Stellen.kurz(s,a.sp)} = ${w}`, w, false);
       });
+    }else if(a.art==="spiegeln"){
+      // 28.11.2026: Figur an der Achse spiegeln – Kästchen antippen oder darüberwischen
+      const f=a.fig, S=30, mein=new Set();
+      $("buehne").innerHTML=`<svg class="entSvg" id="spSvg" viewBox="-6 -6 ${f.C*S+12} ${f.R*S+12}" role="img" aria-label="Kästchengitter zum Spiegeln" style="max-width:${f.C*S+12}px;touch-action:none;display:block;margin:0 auto"></svg>
+        <div class="stTipp">Tippe ein Kästchen an, um es anzumalen – noch einmal tippen macht es wieder leer.</div>
+        <div class="reihe"><button class="ghost klein" id="leerBtn">Alles leer</button><button id="okBtn">Fertig ✓</button></div>`;
+      const svg=$("spSvg"), mal=(pr)=>{ svg.innerHTML=spiegelSvg(f,[...mein],pr,S); };
+      mal(false);
+      const zelle=ev=>{ const r=svg.getBoundingClientRect(), x=(ev.clientX-r.left)/r.width*(f.C*S+12)-6, y=(ev.clientY-r.top)/r.height*(f.R*S+12)-6, c=Math.floor(x/S), rr=Math.floor(y/S);
+        if(c<0||rr<0||c>=f.C||rr>=f.R) return null; if(f.achse==="senkrecht" ? c<f.halb : rr<f.halb) return null; return rr+","+c; };
+      let modus=null;
+      svg.addEventListener("pointerdown", ev=>{ if(wartet) return; const k=zelle(ev); if(!k) return; ev.preventDefault(); try{ svg.setPointerCapture(ev.pointerId); }catch(e){}
+        modus=!mein.has(k); if(modus) mein.add(k); else mein.delete(k); mal(false); });
+      svg.addEventListener("pointermove", ev=>{ if(modus===null || wartet) return; const k=zelle(ev); if(!k) return; if(modus && !mein.has(k)){ mein.add(k); mal(false); } else if(!modus && mein.has(k)){ mein.delete(k); mal(false); } });
+      const los=()=>{ modus=null; }; svg.addEventListener("pointerup", los); svg.addEventListener("pointercancel", los);
+      $("leerBtn").addEventListener("click",()=>{ if(!wartet){ mein.clear(); mal(false); } });
+      $("okBtn").addEventListener("click",()=>{ if(wartet || !mein.size) return; $("okBtn").disabled=true; $("leerBtn").disabled=true;
+        const fehlt=f.ziel.filter(k=>!mein.has(k)).length, zuviel=[...mein].filter(k=>!f.ziel.includes(k)).length, ok=!fehlt && !zuviel;
+        mal(true); a.zusatz2 = ok ? "" : ` ${fehlt?`${fehlt} ${fehlt===1?"Kästchen fehlt":"Kästchen fehlen"} (grün gestrichelt)`:""}${fehlt&&zuviel?", ":""}${zuviel?`${zuviel} ${zuviel===1?"Kästchen ist":"Kästchen sind"} zu viel (rot)`:""}.`;
+        auswerten(a, ok, ok?"richtig gespiegelt":`${fehlt} fehlen, ${zuviel} zu viel`, null, false); });
     }else{   // legen
       haufen=[];
       $("buehne").innerHTML=`<div class="haufen" id="haufen">Tippe unten auf Münzen und Scheine.</div>
@@ -1964,7 +2166,14 @@
         $("haufen").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ if(wartet) return; haufen.splice(+b.dataset.i,1); mal(); })); };
       $("buehne").querySelectorAll(".kasse button").forEach(b=>b.addEventListener("click",()=>{ if(wartet || haufen.length>=14) return; haufen.push(+b.dataset.v); mal(); }));
       $("leerBtn").addEventListener("click",()=>{ if(!wartet){ haufen=[]; mal(); } });
-      $("okBtn").addEventListener("click",()=>{ if(wartet || !haufen.length) return; const s=haufen.reduce((x,y)=>x+y,0); $("okBtn").disabled=true; auswerten(a, s===a.soll, komma(s), s, false); });
+      $("okBtn").addEventListener("click",()=>{ if(wartet || !haufen.length) return; const s=haufen.reduce((x,y)=>x+y,0); $("okBtn").disabled=true;
+        // 28.11.2026: Bedingungen – genau n Stück, ohne ein bestimmtes Stück, möglichst wenige
+        let ok=s===a.soll, txt=komma(s); a.zusatz2="";
+        if(ok && a.anzahl && haufen.length!==a.anzahl){ ok=false; a.zusatz2=` Der Betrag stimmt – aber du hast ${haufen.length} Münzen genommen, nicht ${a.anzahl}.`; }
+        if(ok && a.ohne && haufen.includes(a.ohne)){ ok=false; a.zusatz2=` Der Betrag stimmt – aber du hast ${stueckName(a.ohne)} benutzt.`; }
+        if(ok && a.wenig && haufen.length>a.wenig){ ok=false; a.zusatz2=` Der Betrag stimmt – aber es geht mit weniger: nur ${a.wenig} Stück statt ${haufen.length}.`; }
+        if(a.anzahl||a.ohne||a.wenig) txt+=` mit ${haufen.length} Stück`;
+        auswerten(a, ok, txt, s, false); });
     }
     if(a.blick) blickZudecken(a);
     starteZeit();
