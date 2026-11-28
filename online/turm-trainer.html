@@ -500,7 +500,8 @@ function dachSVG(id,y,c){ const m=TX+TW/2; c=c||"#334155";
 // Ganzer Turm: gebaute Etagen, darüber das Dach und (gestrichelt) die nächste Etage mit Kran
 // Stadt-Band über einer Reise-Etage mit Drachen: Postkarte, „✈️ Stadt · Land", Symbol der Stadt
 // 28.11.2026: gemalte Stadt-Bänder der Lehrkraft (3:1, Panorama + Landes-Ornament) – Name und Land werden auf die leere Schleife gesetzt.
-function stadtBandBild(r, y, hb, z, box){ const x0=4, w=W-8, bx=x0+box[0]*w, by=y+box[1]*hb, bw=(box[2]-box[0])*w, bh=(box[3]-box[1])*hb, m=bx+bw/2;
+const BAND_W=2*(W-TX-TW)+TW-4;      // Band ragt links und rechts gleich weit über den Turm (Turmmitte = 156)
+function stadtBandBild(r, y, hb, z, box){ const w=BAND_W, x0=TX+TW/2-w/2, bx=x0+box[0]*w, by=y+box[1]*hb, bw=(box[2]-box[0])*w, bh=(box[3]-box[1])*hb, m=bx+bw/2;
   const fs=Math.min(bh*0.62, bw/(Math.max(5,z.name.length)*0.6)), ls=Math.min(bh*0.3, fs*0.62);
   let s=`<g class="hellFest"><image href="bilder/turm/band_${z.id}.webp" x="${x0}" y="${y}" width="${w}" height="${hb}" preserveAspectRatio="xMidYMid slice"/>`+
     `<rect x="${x0}" y="${y}" width="${w}" height="${hb}" fill="none" stroke="#e5a50a" stroke-width="1.5"/>`+
@@ -522,7 +523,7 @@ function stadtBand(r, y, hb){ const z=zielStadt(r); if(BILD.baender && BILD.baen
 function turmSVG(h, z, dach, neu, buehne){
   // 28.11.2026 (Wunsch der Lehrkraft): Über einer Reise-Etage mit Drachen liegt ein schmales Stadt-Band („Zwischengeschoss") –
   // so sieht man weiter, wo die Reise in eine neue Stadt ging. Alle Etagen darüber rücken um die Bandhöhe nach oben.
-  const drE=drachenEtagen(), SB=Math.round((W-8)/3), baender=[0].concat(Object.keys(drE).map(Number).filter(e=>e>0 && e<=h).sort((a,b)=>a-b));      // 0 = Hamburg-Band über dem Eingang (Startstadt)
+  const drE=drachenEtagen(), SB=Math.round(BAND_W/3), baender=[0].concat(Object.keys(drE).map(Number).filter(e=>e>0 && e<=h).sort((a,b)=>a-b));      // 0 = Hamburg-Band über dem Eingang (Startstadt)
   const unter=e=>baender.filter(r=>r<e).length*SB;
   const oben=190, unten=70+LOBBY, H=oben+(h+1)*EH+unten+baender.length*SB; let s="";
   const Y=e=>H-unten-e*EH-unter(e), extra=Math.ceil(baender.length*SB/EH);
