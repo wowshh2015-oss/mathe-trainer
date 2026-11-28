@@ -743,14 +743,12 @@ function waehleZimmer(e, id){
 
 //// ===== Reisepass und Dächer =====
 $("ganzBtn").addEventListener("click", ()=>{
-  const h=hoechste(), z=zimmerVon(), eh=26, w=200, H=h*eh+40; let s=`<rect width="${w}" height="${H}" fill="#7dd3fc"/><rect y="${H-24}" width="${w}" height="24" fill="#4ade80"/>`;
-  for(let e=1;e<=h;e++){ const y=H-24-e*eh, st=stilVon(e), zi=ZN[z[e]];
-    s+=`<rect x="40" y="${y}" width="120" height="${eh}" fill="${st.wand}" stroke="${st.kante}" stroke-width="1"/>`+
-       (istReise(e) ? `<text x="100" y="${y+18}" font-size="13" text-anchor="middle">✈️ ${zielStadt(e).b}</text>` : `<rect x="72" y="${y+3}" width="56" height="${eh-6}" rx="3" fill="#fef3c7"/><text x="100" y="${y+18}" font-size="14" text-anchor="middle">${zi?zi[1]:""}</text>`)+
-       `<text x="34" y="${y+17}" font-size="10" font-weight="800" text-anchor="end" fill="#0f172a" font-family="Arial">${e}</text>`; }
+  // 28.11.2026 (Wunsch der Lehrkraft): der ganze Turm als echtes Bild (statt Piktogramm-Liste), vollständig in die Höhe eingepasst
+  const h=hoechste();
   $("extraTitel").innerHTML=`🏙️ Mein ganzer Turm`;
   $("extraInhalt").innerHTML=`<div class="info">${h} Etagen · ${Object.keys(besitz()).length} verschiedene Zimmer · 🛂 ${Math.min(STAEDTE.length, Math.floor(h/REISE)+1)} Städte</div>`+
-    (h ? `<div style="max-height:620px;overflow:auto;border-radius:14px;margin-top:10px"><svg viewBox="0 0 ${w} ${H}" style="display:block;width:100%;max-width:420px;margin:0 auto">${s}</svg></div>` : "");
+    (h ? `<div id="ganzBild" style="height:min(76vh,1000px);margin-top:10px;border-radius:14px;overflow:hidden;display:flex;justify-content:center;background:#bfe6fb">${turmSVG(h, zimmerVon(), aktDach(h), null, false)}</div>` : "");
+  const sv=document.querySelector("#ganzBild svg"); if(sv){ sv.style.height="100%"; sv.style.width="auto"; sv.style.maxWidth="100%"; sv.style.display="block"; }
   zeige("extra");
 });
 // Reisepass: alle besuchten Städte als Briefmarken. Tippen → Postkarte und Spannendes über die Stadt, auf Wunsch vorgelesen.
