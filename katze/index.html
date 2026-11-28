@@ -126,6 +126,11 @@
   .chk{display:flex;align-items:center;gap:9px;margin:12px 0;font-size:.95rem}
   .chk input{width:18px;height:18px;accent-color:#f5c242}
   #srNote{margin:0 0 12px}
+  #namesStatus{
+    margin:0 0 10px;font-size:.95rem;font-weight:600;color:var(--text);
+    background:rgba(255,255,255,.08);border-radius:12px;padding:9px 13px;
+  }
+  #namesStatus.leer{font-weight:400;color:var(--muted)}
   #toast{
     position:fixed;left:18px;bottom:18px;z-index:40;
     display:flex;flex-direction:column;gap:8px;pointer-events:none;
@@ -196,6 +201,7 @@
   („leise sein“, „aufhören“, „Lob“ …). Am Ende steht das in der Auswertung.</p>
   <textarea id="namesText" rows="8" placeholder="Anna&#10;Ben&#10;Mia&#10;…"></textarea>
   <label class="chk"><input type="checkbox" id="hearChk"> Namen mithören, während das Mikrofon läuft</label>
+  <p id="namesStatus"></p>
   <p id="srNote"></p>
   <div class="row">
     <button id="btnNamesSave">Speichern</button>
@@ -707,6 +713,19 @@
   const hearChk    = document.getElementById("hearChk");
   const srNoteEl   = document.getElementById("srNote");
 
+  const namesStatusEl = document.getElementById("namesStatus");
+  function updateNamesStatus(){
+    const n = namesList.length;
+    if (!n){
+      namesStatusEl.className = "leer";
+      namesStatusEl.textContent = "Noch keine Namen gespeichert.";
+      return;
+    }
+    namesStatusEl.className = "";
+    namesStatusEl.textContent = "\u2713 " + n + " Namen gespeichert \u00b7 Mithören: " +
+      (hearNames ? "ein" : "aus");
+  }
+
   function setSrNote(msg, bad){
     srNoteEl.innerHTML = "";
     const s = document.createElement("span");
@@ -737,6 +756,7 @@
     txtStore.set("names", namesText.value);
     hearNames = hearChk.checked && !!SR;
     txtStore.set("hear", hearNames ? "1" : "0");
+    updateNamesStatus();
     flash(namesList.length + " Namen gespeichert", hearNames ? "Namen werden mitgehört" : "Mithören ist aus");
     if (running){ stopHearing(); startHearing(); }
     namesPanel.hidden = true;
@@ -745,6 +765,7 @@
     hearNames = hearChk.checked && !!SR;
     txtStore.set("hear", hearNames ? "1" : "0");
     if (running){ hearNames ? startHearing() : stopHearing(); }
+    updateNamesStatus();
   });
 
   // Namen koennen auch im Link stehen: ...index.html#namen=Anna,Ben,Mia
@@ -762,8 +783,10 @@
     namesList = parseNames(namesText.value);
     if (SR){ hearNames = true; hearChk.checked = true; txtStore.set("hear", "1"); }
     try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+    updateNamesStatus();
     setTimeout(() => flash(namesList.length + " Namen übernommen", "aus dem Link gespeichert"), 300);
   }
+  updateNamesStatus();
   namenAusLink();
   // auch wenn die Seite schon offen ist und nur die Adresse gewechselt wird
   window.addEventListener("hashchange", namenAusLink);
