@@ -111,6 +111,43 @@
   #report .fazit{margin:14px 0 0;line-height:1.5}
   #report .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
+  /* Namen hoeren */
+  #namesPanel{
+    width:min(92vw,1000px);
+    background:var(--panel);border-radius:18px;padding:18px 20px;
+  }
+  #namesPanel h2{margin:0 0 6px;font-size:1.15rem}
+  #namesPanel p{color:var(--muted);font-size:.9rem;line-height:1.45;margin:0 0 12px}
+  #namesText{
+    width:100%;font:inherit;font-size:.95rem;line-height:1.5;color:var(--text);
+    background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;padding:10px 12px;resize:vertical;
+  }
+  .chk{display:flex;align-items:center;gap:9px;margin:12px 0;font-size:.95rem}
+  .chk input{width:18px;height:18px;accent-color:#f5c242}
+  #srNote{margin:0 0 12px}
+  #toast{
+    position:fixed;left:18px;bottom:18px;z-index:40;
+    display:flex;flex-direction:column;gap:8px;pointer-events:none;
+  }
+  #toast div{
+    background:rgba(0,0,0,.62);backdrop-filter:blur(6px);
+    border-radius:16px;padding:9px 16px;font-weight:600;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pop .25s ease;
+  }
+  #toast small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  #repNames{margin-top:24px}
+  #repNames h3{margin:0 0 10px;font-size:1rem}
+  #repNames .ctx{color:var(--muted);font-size:.84rem;margin-top:3px}
+  #protokoll{
+    margin-top:10px;max-height:240px;overflow:auto;
+    font-size:.9rem;color:var(--muted);line-height:1.55;
+  }
+  #protokoll b{color:var(--text)}
+  body.full #namesPanel{display:none}
+  body.full #toast{bottom:78px}
+
   /* Vollbild */
   body.full{padding:0;justify-content:center}
   body.full h1,body.full .sub,body.full #hint{display:none}
@@ -148,8 +185,25 @@
   <label class="slider">Trägheit
     <input type="range" id="smooth" min="1" max="12" step="1" value="5">
   </label>
+  <button id="btnNames" class="ghost">🗣 Namen</button>
   <button id="btnFull" class="ghost">⛶ Vollbild</button>
 </div>
+
+<div id="namesPanel" hidden>
+  <h2>🗣 Namen mithören</h2>
+  <p>Hier die Namen der Klasse eintragen – <b>ein Name pro Zeile</b>. Das Programm hört
+  dann mit, wie oft ich einen dieser Namen sage, und in welchem Zusammenhang
+  („leise sein“, „aufhören“, „Lob“ …). Am Ende steht das in der Auswertung.</p>
+  <textarea id="namesText" rows="8" placeholder="Mustafa&#10;Khalil&#10;Lajsa&#10;…"></textarea>
+  <label class="chk"><input type="checkbox" id="hearChk"> Namen mithören, während das Mikrofon läuft</label>
+  <p id="srNote"></p>
+  <div class="row">
+    <button id="btnNamesSave">Speichern</button>
+    <button id="btnNamesClose" class="ghost">Schließen</button>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <div id="report" hidden>
   <h2>Auswertung</h2>
@@ -159,6 +213,15 @@
     <tbody id="repBody"></tbody>
   </table>
   <p class="fazit" id="repFazit"></p>
+  <div id="repNames" hidden>
+    <h3 id="repNamesHead"></h3>
+    <table>
+      <thead><tr><th>Kind</th><th class="num">genannt</th></tr></thead>
+      <tbody id="repNamesBody"></tbody>
+    </table>
+    <div class="row"><button id="btnProt" class="ghost">Protokoll zeigen</button></div>
+    <div id="protokoll" hidden></div>
+  </div>
   <div class="row">
     <button id="btnRepClose" class="ghost">Schließen</button>
   </div>
@@ -294,6 +357,7 @@
     else                    satz += "Aufgewacht ist sie " + geweckt + "×, mehr ist nicht passiert.";
     repFazit.textContent = satz;
 
+    buildNamesReport();
     repEl.hidden = false;
     repEl.scrollIntoView({ behavior:"smooth", block:"nearest" });
   }
@@ -343,6 +407,9 @@
     state = 0;
     lastChange = lastFrame = performance.now();
     stats = newStats(lastFrame);
+    nameEvents = [];
+    Object.keys(lastSeen).forEach(k => { delete lastSeen[k]; });
+    startHearing();
     repEl.hidden = true;
     level = 0;
     // Timer statt requestAnimationFrame: läuft auch weiter, wenn das Fenster
@@ -353,6 +420,7 @@
 
   function stop(){
     running = false;
+    stopHearing();
     clearInterval(timer); timer = null;
     if (stats) showReport();
     if (stream) stream.getTracks().forEach(t => t.stop());
@@ -422,6 +490,320 @@
       state = next; lastChange = now; showState(state);
     }
     if (level > stats.maxLevel) stats.maxLevel = level;
+  }
+
+  /* =====================================================================
+     Namen mithören
+     Chrome kann gesprochene Sprache in Text verwandeln. Wir brauchen aber
+     keine vollständige Mitschrift: wir suchen im Gesagten nur nach den
+     Namen der Klasse (unscharf, denn die Erkennung verhört sich bei Namen
+     gern) und nach ein paar typischen Ermahnungen. Gezählt wird im
+     Browser, gespeichert wird nichts.
+     ===================================================================== */
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  const txtStore = {
+    get(k,d){ try{ const v = localStorage.getItem("lk_"+k); return v===null?d:v; }catch(e){ return d; } },
+    set(k,v){ try{ localStorage.setItem("lk_"+k, v); }catch(e){} }
+  };
+
+  // Zusammenhang: in welcher Absicht ist der Name gefallen?
+  // Reihenfolge = Vorrang (eine Konsequenz wiegt mehr als ein "leise").
+  const CONTEXTS = [
+    { key:"folge",  label:"Konsequenz",    words:["gelbe karte","rote karte","karte","minuspunkt","minus","strafe","punkt ab","konsequenz","nachbleiben","letzte warnung","warnung","ich warne","elternbrief"] },
+    { key:"stop",   label:"aufhören",      words:["aufhören","hör auf","hört auf","höre auf","lass das","lasst das","lass es","schluss","genug","stopp","stop","hör damit auf","nicht schubsen","nicht hauen"] },
+    { key:"ruhe",   label:"leise sein",    words:["leise","ruhig","ruhe","still","psst","pst","nicht so laut","zu laut","flüstern"] },
+    { key:"platz",  label:"Platz / sitzen",words:["setz dich","setzt euch","hinsetzen","auf deinen platz","auf deinem platz","platz","bleib sitzen","bleibt sitzen","nicht aufstehen","geh zurück"] },
+    { key:"hoeren", label:"zuhören",       words:["zuhören","hör zu","hört zu","aufpassen","pass auf","passt auf","schau her","schau mal","guck"] },
+    { key:"arbeit", label:"arbeiten",      words:["arbeite","arbeiten","weiterarbeiten","mach weiter","machst weiter","aufgabe","ins heft","konzentrier","konzentriere","beeil","fertig werden"] },
+    { key:"lob",    label:"Lob",           words:["danke","gut gemacht","sehr gut","super","toll","prima","brav","klasse gemacht","schön gemacht","richtig gut"] }
+  ];
+  const CTX_NONE = "ohne Zusatz";
+
+  function norm(s){
+    return String(s).toLowerCase()
+      .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+      .replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+  }
+  // grobe Lautschrift: "Khalil" und "Kalil", "Mustafa" und "Mustapha" werden gleich
+  function soundKey(s){
+    let t = norm(s).replace(/ /g,"");
+    t = t.replace(/sch/g,"s").replace(/ch/g,"k").replace(/ph/g,"f").replace(/ck/g,"k")
+         .replace(/th/g,"t").replace(/tz/g,"z").replace(/qu/g,"kv").replace(/x/g,"ks")
+         .replace(/[vw]/g,"f").replace(/[yj]/g,"i").replace(/c/g,"k").replace(/z/g,"s")
+         .replace(/h/g,"").replace(/(.)\1+/g,"$1");
+    return t;
+  }
+  function lev(a,b){
+    const m = a.length, n = b.length;
+    if (!m) return n;
+    if (!n) return m;
+    let prev = new Array(n+1), cur = new Array(n+1);
+    for (let j=0;j<=n;j++) prev[j]=j;
+    for (let i=1;i<=m;i++){
+      cur[0]=i;
+      for (let j=1;j<=n;j++){
+        cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a[i-1]===b[j-1]?0:1));
+      }
+      const t = prev; prev = cur; cur = t;
+    }
+    return prev[n];
+  }
+  function ratio(a,b){
+    if (!a || !b) return 0;
+    return 1 - lev(a,b) / Math.max(a.length, b.length);
+  }
+
+  let namesList = [];          // [{label, norm, sound, words}]
+  let hearNames = txtStore.get("hear","0") === "1";
+  let nameEvents = [];         // {t, name, ctx, text}
+  let rec = null, hearing = false, restartTimer = null;
+  const lastSeen = Object.create(null);
+
+  function parseNames(raw){
+    const seen = Object.create(null);
+    return String(raw).split(/[\n,;]+/)
+      .map(s => s.trim()).filter(Boolean).slice(0,40)
+      .filter(s => { const k = norm(s); if (!k || k.length < 3 || seen[k]) return false; seen[k]=1; return true; })
+      .map(s => {
+        const n = norm(s);
+        return { label:s, norm:n, sound:soundKey(s), words:n.split(" ") };
+      });
+  }
+
+  function scanNames(text){
+    const tokens = norm(text).split(" ").filter(Boolean);
+    if (!tokens.length) return [];
+    const whole = soundKey(text);          // ganzer Satz als Lautfolge, ohne Luecken
+    const hits = [];
+    namesList.forEach(n => {
+      const w = n.words.length;
+      let found = false;
+      for (let i=0; i+w<=tokens.length && !found; i++){
+        const cand = tokens.slice(i, i+w).join(" ");
+        if (cand.length < 3) continue;
+        const sk = soundKey(cand);
+        if (cand === n.norm || sk === n.sound ||
+            ratio(cand, n.norm) >= 0.78 || ratio(sk, n.sound) >= 0.85) found = true;
+      }
+      // Die Erkennung zerlegt unbekannte Namen gern in falsche Woerter
+      // ("Mustafa" -> "muss da war"). Darum zusaetzlich die Lautfolge des
+      // ganzen Satzes durchschieben - aber nur bei laengeren Namen, sonst
+      // steckt der Name auf einmal in jedem zweiten Wort.
+      if (!found && n.sound.length >= 5){
+        const L = n.sound.length;
+        for (let i=0; i+L<=whole.length && !found; i++){
+          if (ratio(whole.substr(i, L), n.sound) >= 0.84) found = true;
+        }
+      }
+      if (found) hits.push(n.label);
+    });
+    return hits;
+  }
+
+  function findContext(text){
+    const t = norm(text);
+    for (const c of CONTEXTS){
+      for (const w of c.words){
+        if (t.indexOf(norm(w)) !== -1) return c.label;
+      }
+    }
+    return CTX_NONE;
+  }
+
+  const toastEl = document.getElementById("toast");
+  function flash(title, sub){
+    const d = document.createElement("div");
+    d.textContent = title;
+    if (sub){ const s = document.createElement("small"); s.textContent = sub; d.appendChild(s); }
+    toastEl.appendChild(d);
+    setTimeout(() => d.remove(), 3200);
+  }
+
+  function handleUtterance(res){
+    let text = res[0] ? res[0].transcript : "";
+    let hits = scanNames(text);
+    // die Erkennung liefert Alternativen - bei Namen hilft das oft
+    for (let a=1; a<res.length && !hits.length; a++){
+      const alt = res[a].transcript;
+      const h = scanNames(alt);
+      if (h.length){ hits = h; text = alt; }
+    }
+    if (!hits.length) return;
+    const ctx = findContext(text);
+    const now = performance.now();
+    hits.forEach(label => {
+      if (now - (lastSeen[label] || -1e9) < 3000) return;   // einmal pro Satz zaehlt
+      lastSeen[label] = now;
+      nameEvents.push({ t:now, name:label, ctx:ctx, text:text.trim() });
+      const n = nameEvents.filter(e => e.name === label).length;
+      flash(label + "  ·  " + n + "×", ctx === CTX_NONE ? "" : ctx);
+    });
+  }
+
+  function startHearing(){
+    if (!SR || !hearNames || !namesList.length || hearing) return;
+    try {
+      rec = new SR();
+    } catch(e){ return; }
+    rec.lang = "de-DE";
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+    rec.onresult = (ev) => {
+      for (let i = ev.resultIndex; i < ev.results.length; i++){
+        if (ev.results[i].isFinal) handleUtterance(ev.results[i]);
+      }
+    };
+    rec.onerror = (ev) => {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed"){
+        hearing = false;
+        setSrNote("Die Spracherkennung wurde nicht erlaubt - die Namen werden nicht mitgezählt.", true);
+      }
+    };
+    rec.onend = () => {
+      // Chrome beendet die Erkennung von selbst (Pausen, Zeitlimit) - neu starten
+      if (!hearing) return;
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(() => { try { rec.start(); } catch(e){} }, 400);
+    };
+    hearing = true;
+    try { rec.start(); } catch(e){ hearing = false; return; }
+    flash("Namen werden mitgehört", namesList.length + " Namen in der Liste");
+  }
+
+  function stopHearing(){
+    hearing = false;
+    clearTimeout(restartTimer);
+    if (rec){ try { rec.onend = null; rec.stop(); } catch(e){} }
+    rec = null;
+  }
+
+  /* ---- Einstellungs-Fenster ---- */
+  const namesPanel = document.getElementById("namesPanel");
+  const namesText  = document.getElementById("namesText");
+  const hearChk    = document.getElementById("hearChk");
+  const srNoteEl   = document.getElementById("srNote");
+
+  function setSrNote(msg, bad){
+    srNoteEl.innerHTML = "";
+    const s = document.createElement("span");
+    if (bad) s.className = "err";
+    s.textContent = msg;
+    srNoteEl.appendChild(s);
+  }
+
+  namesText.value = txtStore.get("names","");
+  namesList = parseNames(namesText.value);
+  hearChk.checked = hearNames;
+  if (!SR){
+    hearChk.checked = false; hearChk.disabled = true; hearNames = false;
+    setSrNote("Dieser Browser kann keine Sprache erkennen. Bitte die Seite in Google Chrome oder Microsoft Edge öffnen.", true);
+  } else {
+    setSrNote("Zum Erkennen schickt Chrome den Raumton an seinen Sprachdienst (dafür ist Internet nötig). " +
+              "Mitgeschrieben wird nichts: die Namensliste und die Zählung bleiben nur auf diesem Rechner, " +
+              "und beim Beenden des Programms ist die Zählung wieder weg.");
+  }
+
+  document.getElementById("btnNames").addEventListener("click", () => {
+    namesPanel.hidden = !namesPanel.hidden;
+    if (!namesPanel.hidden) namesPanel.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  });
+  document.getElementById("btnNamesClose").addEventListener("click", () => { namesPanel.hidden = true; });
+  document.getElementById("btnNamesSave").addEventListener("click", () => {
+    namesList = parseNames(namesText.value);
+    txtStore.set("names", namesText.value);
+    hearNames = hearChk.checked && !!SR;
+    txtStore.set("hear", hearNames ? "1" : "0");
+    flash(namesList.length + " Namen gespeichert", hearNames ? "Namen werden mitgehört" : "Mithören ist aus");
+    if (running){ stopHearing(); startHearing(); }
+    namesPanel.hidden = true;
+  });
+  hearChk.addEventListener("change", () => {
+    hearNames = hearChk.checked && !!SR;
+    txtStore.set("hear", hearNames ? "1" : "0");
+    if (running){ hearNames ? startHearing() : stopHearing(); }
+  });
+
+  /* ---- Auswertung der Namen ---- */
+  const repNames     = document.getElementById("repNames");
+  const repNamesHead = document.getElementById("repNamesHead");
+  const repNamesBody = document.getElementById("repNamesBody");
+  const protEl       = document.getElementById("protokoll");
+  const btnProt      = document.getElementById("btnProt");
+
+  btnProt.addEventListener("click", () => {
+    protEl.hidden = !protEl.hidden;
+    btnProt.textContent = protEl.hidden ? "Protokoll zeigen" : "Protokoll verbergen";
+  });
+
+  function clock(ms){
+    const s = Math.max(0, Math.round(ms/1000));
+    return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+  }
+
+  function buildNamesReport(){
+    repNamesBody.innerHTML = "";
+    protEl.innerHTML = "";
+    protEl.hidden = true;
+    btnProt.textContent = "Protokoll zeigen";
+
+    if (!hearNames || !namesList.length){ repNames.hidden = true; return; }
+    repNames.hidden = false;
+
+    if (!nameEvents.length){
+      repNamesHead.textContent = "Kein einziger Name gefallen - ich musste niemanden ermahnen.";
+      btnProt.hidden = true;
+      return;
+    }
+    btnProt.hidden = false;
+    repNamesHead.textContent = "Wie oft habe ich einen Namen gerufen? (" + nameEvents.length + "× insgesamt)";
+
+    const by = new Map();
+    nameEvents.forEach(e => {
+      if (!by.has(e.name)) by.set(e.name, { n:0, ctx:new Map() });
+      const o = by.get(e.name);
+      o.n++;
+      o.ctx.set(e.ctx, (o.ctx.get(e.ctx)||0) + 1);
+    });
+    const rows = [...by.entries()].sort((a,b) => b[1].n - a[1].n);
+    const max = rows[0][1].n;
+
+    rows.forEach(([name, o]) => {
+      const tr = document.createElement("tr");
+
+      const td1 = document.createElement("td");
+      const nm = document.createElement("div");
+      nm.textContent = name;
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("i");
+      fill.style.width = (o.n / max * 100).toFixed(1) + "%";
+      fill.style.background = "var(--c4)";
+      bar.appendChild(fill);
+      const ctx = document.createElement("div");
+      ctx.className = "ctx";
+      ctx.textContent = [...o.ctx.entries()]
+        .sort((a,b) => b[1]-a[1])
+        .map(([k,v]) => v + "× " + k).join(" · ");
+      td1.append(nm, bar, ctx);
+
+      const td2 = document.createElement("td");
+      td2.className = "num";
+      td2.textContent = o.n + "×";
+
+      tr.append(td1, td2);
+      repNamesBody.appendChild(tr);
+    });
+
+    nameEvents.forEach(e => {
+      const p = document.createElement("div");
+      const b = document.createElement("b");
+      b.textContent = clock(e.t - stats.startedAt) + "  " + e.name;
+      p.append(b, document.createTextNode("  -  „" + e.text + "“"));
+      protEl.appendChild(p);
+    });
   }
 
   btnStart.addEventListener("click", () => { running ? stop() : start(); });
