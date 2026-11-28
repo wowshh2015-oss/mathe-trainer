@@ -750,7 +750,7 @@
   // Namen koennen auch im Link stehen: ...index.html#namen=Anna,Ben,Mia
   // Der Teil hinter # wird nie an den Server geschickt - die Liste bleibt
   // auf diesem Rechner. Nach dem Uebernehmen raeumen wir die Adresszeile auf.
-  (function(){
+  function namenAusLink(){
     const m = /[#&]namen=([^&]+)/.exec(location.hash);
     if (!m) return;
     let raw = "";
@@ -763,7 +763,10 @@
     if (SR){ hearNames = true; hearChk.checked = true; txtStore.set("hear", "1"); }
     try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
     setTimeout(() => flash(namesList.length + " Namen übernommen", "aus dem Link gespeichert"), 300);
-  })();
+  }
+  namenAusLink();
+  // auch wenn die Seite schon offen ist und nur die Adresse gewechselt wird
+  window.addEventListener("hashchange", namenAusLink);
 
   /* ---- Auswertung der Namen ---- */
   const repNames     = document.getElementById("repNames");
